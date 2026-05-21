@@ -2,25 +2,46 @@
 import { useEffect, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 
+type NetWorth = {
+  value: number;
+  balance: number;
+  globalFloor: number;
+  civs: Array<{ civ: string; count: number; floor: number; value: number }>;
+};
+
 export function HexNetWorth() {
   const h = useHolder();
-  const [floor, setFloor] = useState<number | null>(null);
+  const [data, setData] = useState<NetWorth | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/opensea/stats").then(r => r.json()).then(d => setFloor(d.floor || 0)).catch(() => {});
-  }, []);
+    if (!h.address) {
+      setData(null);
+      return;
+    }
+    setLoading(true);
+    fetch(`/api/wallet/${h.address}/net-worth`)
+      .then((r) => r.json())
+      .then((d) => setData(d))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, [h.address]);
 
   if (!h.address) {
-    return <div className="net-worth-empty">Connect wallet to see your Hex Net Worth.</div>;
+    return (
+      <div className="net-worth-empty">
+        Connect wallet to see your Hex Net Worth.
+      </div>
+    );
   }
-  if (h.loading || floor === null) return <div className="net-worth-empty">Calculating…</div>;
-  const balance = h.balance ?? 0;
-  const value = balance * floor;
+  if (loading || !data) return <div className="net-worth-empty">Calculating…</div>;
   return (
     <div className="net-worth">
       <span className="kicker">⬡ HEX NET WORTH</span>
-      <div className="nw-value">{value.toFixed(4)} ETH</div>
-      <div className="nw-detail">{balance} citizen{balance !== 1 ? "s" : ""} · floor {floor.toFixed(4)} ETH each</div>
+      <div className="nw-value">{data.value.toFixed(4)} ETH</div>
+      <div className="nw-detail">
+        {data.balance} citizen{data.balance !== 1 ? "s" : ""} · priced per civilization · global floor {data.globalFloor.toFixed(4)} ETH
+      </div>
     </div>
   );
 }

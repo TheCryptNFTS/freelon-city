@@ -3,27 +3,34 @@ import { ImageResponse } from "next/og";
 export const runtime = "nodejs";
 const CACHE = "public, s-maxage=600, stale-while-revalidate=1200";
 
-async function fetchFloor(): Promise<number> {
+type HexIndex = {
+  floor: number;
+  index: number;
+  history: Array<{ ts: number; index: number }>;
+};
+
+async function fetchHexIndex(origin: string): Promise<HexIndex> {
   try {
-    const headers: Record<string, string> = {};
-    if (process.env.OPENSEA_API_KEY)
-      headers["X-API-KEY"] = process.env.OPENSEA_API_KEY;
-    const r = await fetch(
-      "https://api.opensea.io/api/v2/collections/freelons/stats",
-      { headers, next: { revalidate: 600 } }
-    );
-    if (!r.ok) return 0;
-    const d = await r.json();
-    return Number(d?.total?.floor_price || 0);
+    const r = await fetch(`${origin}/api/hex-index`, {
+      next: { revalidate: 600 },
+    });
+    if (!r.ok) return { floor: 0, index: 0, history: [] };
+    return (await r.json()) as HexIndex;
   } catch {
-    return 0;
+    return { floor: 0, index: 0, history: [] };
   }
 }
 
-export async function GET() {
-  const floor = await fetchFloor();
-  // No persisted history yet — stub a flat line at current floor.
-  const points: number[] = Array.from({ length: 30 }, () => floor);
+export async function GET(req: Request) {
+  const origin = new URL(req.url).origin;
+  const hi = await fetchHexIndex(origin);
+  const floor = hi.floor;
+  // Real history from /api/hex-index. Each snapshot stores `index`; convert back
+  // to floor (index = floor × 10000 since per-civ-floor is global here).
+  const series = hi.history.length > 0
+    ? hi.history.map((s) => s.index / 10000)
+    : Array.from({ length: 30 }, () => floor);
+  const points: number[] = series.length > 1 ? series : [floor, floor];
   const w = 1080;
   const h = 280;
   const max = Math.max(...points, floor, 0.0001) * 1.1;
@@ -144,7 +151,9 @@ export async function GET() {
             marginTop: 8,
           }}
         >
-          HISTORY DATA NOT YET TRACKED — SHOWING CURRENT FLOOR
+          {hi.history.length > 1
+            ? `${hi.history.length} DAILY SNAPSHOTS`
+            : "SNAPSHOTS BUILDING — CHECK BACK TOMORROW"}
         </div>
 
         <div

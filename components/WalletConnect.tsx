@@ -59,8 +59,18 @@ export function WalletConnect() {
 
   async function connect() {
     setErr(null);
-    if (typeof window === "undefined" || !window.ethereum) {
-      setErr("No wallet found. Install MetaMask or Rainbow.");
+    if (typeof window === "undefined") return;
+    if (!window.ethereum) {
+      // Mobile fallback: deep-link into MetaMask's in-app browser
+      const ua = navigator.userAgent || "";
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
+      const inMM = /MetaMask/i.test(ua);
+      if (isMobile && !inMM) {
+        const host = window.location.host + window.location.pathname;
+        window.location.href = `https://metamask.app.link/dapp/${host}`;
+        return;
+      }
+      setErr("No wallet found. Install MetaMask, Rainbow, or open on mobile.");
       return;
     }
     setBusy(true);
