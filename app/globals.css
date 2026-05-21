@@ -18,6 +18,13 @@
   --gold-bright: #e6c47a;
   --gold-deep:   #8a7644;
 
+  /* Semantic tokens */
+  --success:        #5a9a4a;   /* up / claimed / verified */
+  --success-bright: #7ab866;
+  --danger:         #c54a3a;   /* down / error / sold out */
+  --danger-bright:  #df6857;
+  --info:           #4a8acb;   /* info / link accent */
+
   --civ-blue:   #4a8acb;
   --civ-red:    #c54a3a;
   --civ-green:  #5a9a4a;
@@ -2612,3 +2619,21 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 /* HolderDist sample line */
 .hc-sample { display: block; margin-top: 4px; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-dim); text-transform: uppercase; }
+
+/* ============================ HEX INDEX ============================ */
+.hex-index { background: var(--surface-2); border: 1px solid var(--line); padding: var(--s-5); margin: var(--s-4) 0; }
+.hex-index .hi-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-3); gap: var(--s-3); flex-wrap: wrap; }
+.hex-index .hi-floor { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; color: var(--ink-dim); }
+.hex-index .hi-number { font-family: var(--display); font-size: clamp(56px, 10vw, 120px); line-height: 1; color: var(--gold); letter-spacing: -0.03em; }
+.hex-index .hi-changes { display: flex; gap: var(--s-4); margin-top: var(--s-3); }
+.hex-index .hi-change { display: flex; align-items: baseline; gap: 8px; }
+.hex-index .hi-label { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-dim); }
+.hex-index .hi-pct { font-family: var(--display); font-size: 18px; letter-spacing: -0.01em; }
+.hex-index .hi-change.up .hi-pct { color: var(--success-bright); }
+.hex-index .hi-change.down .hi-pct { color: var(--danger-bright); }
+.hex-index .hi-change.flat .hi-pct { color: var(--ink-dim); }
+.hex-index-empty, .hex-index-loading { background: var(--surface); }
+.hex-index-empty .hi-empty, .hex-index-loading .hi-empty { display: block; color: var(--ink-dim); font-family: var(--sans); font-size: 14px; margin-top: 8px; letter-spacing: normal; text-transform: none; }
+
+/* Make CityStats card elevated */
+.city-stats { background: var(--surface-2); }

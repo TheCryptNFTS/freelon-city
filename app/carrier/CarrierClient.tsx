@@ -78,7 +78,7 @@ export function CarrierClient() {
   const today = new Date();
   const sig = getDailySignal(today);
   const sigCiv = (CIVILIZATIONS as Record<string, { name: string; color: string }>)[sig.from];
-  const dailyTweet = `⬡ DAILY SIGNAL — ${today.toISOString().slice(0,10)}\n\n"${sig.line}"\n\n— ${sigCiv?.name ?? sig.from}\nfreeloncity.com`;
+  const dailyTweet = `⬡ DAILY SIGNAL — ${today.toISOString().slice(0,10)}\n\n"${sig.line}"\n\n— ${sigCiv?.name ?? sig.from}\n\nI claimed +10 ⬡ — join the city:\nfreeloncity.com/daily`;
   const dailyIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(dailyTweet)}`;
   const claimable = canClaimToday();
 
