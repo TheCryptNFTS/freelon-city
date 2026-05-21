@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { canClaimToday, getLastClaim, setLastClaim, todayUTC } from "@/lib/daily-claim-store";
 import { isValidAddress } from "@/lib/wallet-tokens";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  const rl = await limit(req, "claim:get", { max: 60, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
   const url = new URL(req.url);
   const addr = url.searchParams.get("addr") || "";
   if (!isValidAddress(addr)) {
@@ -19,6 +22,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const rl = await limit(req, "claim:post", { max: 10, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
   let body: { addr?: string } = {};
   try {
     body = (await req.json()) as { addr?: string };

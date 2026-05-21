@@ -11,12 +11,59 @@ export function CarrierClient() {
   const [state, setState] = useState<CarrierState | null>(null);
   const [input, setInput] = useState("");
   const [shared, setShared] = useState(false);
+  const [xVerified, setXVerified] = useState<string | null>(null);
+  const [xError, setXError] = useState<string | null>(null);
   const holder = useHolder();
 
   useEffect(() => {
     const cur = loadCarrier();
     if (cur) setState(tickDecay(cur));
+
+    // Read X OAuth callback params + persisted verification.
+    const url = new URL(window.location.href);
+    const verified = url.searchParams.get("x_verified");
+    const err = url.searchParams.get("x_error");
+    if (err) setXError(err);
+
+    if (verified) {
+      setXVerified(verified);
+      try { localStorage.setItem("freelon::x_verified::v1", verified); } catch {}
+      // If no carrier yet, auto-init with the verified handle
+      if (!cur) {
+        const next = initCarrier(verified);
+        setState(next);
+        fetch(`/api/carrier/${encodeURIComponent(next.handle)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "init" }),
+          keepalive: true,
+        }).catch(() => {});
+      }
+      // Clean URL
+      url.searchParams.delete("x_verified");
+      url.searchParams.delete("x_error");
+      window.history.replaceState({}, "", url.toString());
+    } else {
+      try {
+        const cached = localStorage.getItem("freelon::x_verified::v1");
+        if (cached) setXVerified(cached);
+      } catch {}
+    }
   }, []);
+
+  // Confirm the verification with the server when we have a handle
+  useEffect(() => {
+    if (!state?.handle) return;
+    fetch(`/api/x/me?bind=${encodeURIComponent(state.handle)}`)
+      .then(r => r.json())
+      .then((j: { verification?: { xHandle?: string } | null }) => {
+        if (j.verification?.xHandle) setXVerified(j.verification.xHandle);
+      })
+      .catch(() => {});
+  }, [state?.handle]);
+
+  const xVerifyHref = (handle: string) =>
+    `/api/x/start?bind=${encodeURIComponent(handle)}`;
 
   function onInit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +100,7 @@ export function CarrierClient() {
   }
 
   if (!state) {
+    const seedHandle = input.trim().replace(/^@/, "") || `temp_${Date.now()}`;
     return (
       <section className="carrier-init">
         <form onSubmit={onInit} className="carrier-form">
@@ -61,10 +109,21 @@ export function CarrierClient() {
             type="text" maxLength={32} placeholder="@yourhandle"
             value={input} onChange={(e) => setInput(e.target.value)} required
           />
-          <button className="btn btn-gold" type="submit">
+          <button className="btn btn-primary" type="submit">
             <span className="ttl">BECOME A CARRIER <span className="ar">→</span></span>
           </button>
         </form>
+        <div className="x-signin-row" style={{ marginTop: 20 }}>
+          <span className="x-or">— OR · VERIFIED PATH —</span>
+          <a className="btn btn-secondary btn-sm" href={xVerifyHref(seedHandle)}>
+            <span className="ttl">SIGN IN WITH X (VERIFIED) ↗</span>
+          </a>
+        </div>
+        {xError && (
+          <div className="x-err">
+            X sign-in error: <code>{xError}</code>. Try again or use a handle directly.
+          </div>
+        )}
       </section>
     );
   }
