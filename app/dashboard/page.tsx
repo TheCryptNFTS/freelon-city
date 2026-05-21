@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CivValueChart } from "@/components/CivValueChart";
 import { HexNetWorth } from "@/components/HexNetWorth";
 import { HexIndex } from "@/components/HexIndex";
+import { CityStats } from "@/components/CityStats";
 import { LiveSalesFeed } from "@/components/LiveSalesFeed";
 import { HolderDistributionChart } from "@/components/HolderDistributionChart";
 
@@ -34,7 +35,7 @@ export default function Dashboard() {
         </p>
         <div className="dashboard-share">
           <a
-            href={tweetUrl("The HEX INDEX — total value of FREELON CITY:", `${SITE}/dashboard`)}
+            href={tweetUrl("HEX INDEX — live floor signal of FREELON CITY:", `${SITE}/dashboard`)}
             target="_blank"
             rel="noreferrer"
             className="btn btn-primary dashboard-share-btn"
@@ -63,6 +64,7 @@ export default function Dashboard() {
         </div>
       </section>
 
+      <CityStats />
       <HexIndex />
       <HexNetWorth />
       <CivValueChart />

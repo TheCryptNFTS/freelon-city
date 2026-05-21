@@ -2593,3 +2593,22 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .hero-right { min-height: 0; max-height: 50vh; }
 }
 
+
+/* ============================ CITY STATS ============================ */
+.city-stats { border: 1px solid var(--line); padding: var(--s-4); margin: var(--s-4) 0; background: var(--surface); }
+.city-stats .kicker { display: block; margin-bottom: var(--s-3); color: var(--gold); font-size: 11px; letter-spacing: 0.24em; }
+.city-stats .cs-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--s-4); }
+.city-stats .cs-cell { display: flex; flex-direction: column; gap: 6px; }
+.city-stats .cs-label { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-dim); text-transform: uppercase; }
+.city-stats .cs-value { font-family: var(--display); font-size: clamp(20px, 3vw, 32px); letter-spacing: -0.01em; color: var(--ink); }
+.city-stats-loading .cs-empty { color: var(--ink-dim); font-family: var(--mono2); font-size: 12px; letter-spacing: 0.2em; }
+@media (max-width: 640px) { .city-stats .cs-row { grid-template-columns: 1fr; gap: var(--s-3); } }
+
+/* HexIndex formula line */
+.hi-formula { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-dim); margin-top: 6px; text-transform: uppercase; }
+
+/* CivValue disclaimer */
+.chart-disclaimer { display: block; margin-top: 4px; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-dim); text-transform: uppercase; }
+
+/* HolderDist sample line */
+.hc-sample { display: block; margin-top: 4px; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-dim); text-transform: uppercase; }

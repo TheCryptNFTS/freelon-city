@@ -15,8 +15,13 @@ export function CivValueChart() {
   return (
     <div className="civ-chart">
       <div className="chart-head">
-        <span className="kicker">⬡ COLLECTION VALUE BY CIVILIZATION</span>
-        <span className="chart-total">TOTAL · {data.total.toFixed(2)} ETH @ floor {data.floor.toFixed(4)}</span>
+        <span className="kicker">⬡ MARKET CAP AT FLOOR · BY CIVILIZATION</span>
+        <span className="chart-total">
+          CAP @ FLOOR · {data.total.toFixed(2)} ETH · floor {data.floor.toFixed(4)}
+        </span>
+        <span className="chart-disclaimer">
+          Hypothetical: if every citizen sold at the current floor. Not lifetime volume.
+        </span>
       </div>
       <div className="chart-rows">
         {sorted.map(c => (
