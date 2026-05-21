@@ -101,7 +101,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 fontWeight: 600,
               }}
             >
-              ⬡ LISTING CARD · #{id4}
+              {`LISTING CARD · #${id4}`}
             </div>
             <div
               style={{
@@ -126,7 +126,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 fontWeight: 600,
               }}
             >
-              {civ?.name} · {c.tier.toUpperCase()}
+              {`${civ?.name ?? c.civilization} · ${c.tier.toUpperCase()}`}
             </div>
           </div>
 
@@ -161,7 +161,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
               >
                 <span style={{ color: "#888", letterSpacing: "0.24em", fontSize: 13, textTransform: "uppercase" }}>Last sale</span>
                 <span style={{ color: "#c8aa64", fontSize: 36, fontWeight: 800, letterSpacing: "-0.01em" }}>
-                  {lastSale.toFixed(4)} ETH
+                  {`${lastSale.toFixed(4)} ETH`}
                 </span>
               </div>
             )}
@@ -174,7 +174,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 marginTop: 4,
               }}
             >
-              freeloncity.com/citizens/{tid}/card
+              {`freeloncity.com/citizens/${tid}/card`}
             </div>
           </div>
         </div>
