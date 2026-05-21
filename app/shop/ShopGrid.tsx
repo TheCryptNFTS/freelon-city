@@ -111,6 +111,8 @@ export function ShopGrid() {
           <div className="shop-grid">
             {ownedItems.map((i) => (
               <article key={`owned-${i.id}`} className="shop-item owned">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="shop-img" src={`/shop/${i.id}.webp`} alt={i.name} loading="lazy" />
                 <span className="cat">{i.category}</span>
                 <h3>{i.name}</h3>
                 <p className="desc">{i.description}</p>
@@ -167,6 +169,8 @@ export function ShopGrid() {
 
           return (
             <article key={i.id} className={`shop-item${isOwned ? " owned" : ""}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="shop-img" src={`/shop/${i.id}.webp`} alt={i.name} loading="lazy" />
               <span className="cat">{i.category}{i.civ ? ` · ${i.civ.toUpperCase()}` : ""}</span>
               <h3>{i.name}</h3>
               <p className="desc">{i.description}</p>

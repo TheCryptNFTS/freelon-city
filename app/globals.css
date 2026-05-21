@@ -153,9 +153,28 @@ a { color: inherit; text-decoration: none; }
   text-align: left; font-weight: 700;
 }
 .btn:hover { border-color: var(--gold); color: var(--gold-bright); transform: translateY(-1px); }
-.btn-gold { background: var(--gold); color: var(--bg); border-color: var(--gold); }
-.btn-gold:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); }
+.btn-gold { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 800; }
+.btn-gold:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
 .btn .ar { font-family: var(--mono2); margin-left: auto; }
+
+/* Button hierarchy */
+.btn-primary { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 800; }
+.btn-primary:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
+.btn-secondary { border-color: var(--ink); color: var(--ink); }
+.btn-secondary:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn-ghost { border-color: var(--line); color: var(--ink-2); padding: 14px 20px; font-size: 11px; }
+.btn-ghost:hover { border-color: var(--gold); color: var(--gold-bright); background: transparent; transform: none; }
+.btn-sm { padding: 10px 14px; font-size: 10px; letter-spacing: 0.18em; }
+
+/* Shop image */
+.shop-img {
+  display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  background: #0a0c12; border-bottom: 1px solid var(--line);
+  margin: calc(-1 * var(--s-4)) calc(-1 * var(--s-4)) var(--s-3);
+  border-radius: 2px 2px 0 0;
+}
+.shop-item { padding-top: 0; overflow: hidden; }
+.shop-item > *:not(.shop-img) { padding-left: 0; padding-right: 0; }
 
 /* ---------- terminal badge ---------- */
 .term-badge {
@@ -1485,6 +1504,9 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   display: flex; flex-direction: column; justify-content: center; gap: 5px;
   background: transparent; border: 1px solid var(--line-2);
   border-radius: 2px; cursor: pointer; padding: 0 11px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 110;
 }
 .mobile-trigger:hover { border-color: var(--gold); }
 .mobile-trigger .bar {

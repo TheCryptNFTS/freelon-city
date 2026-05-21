@@ -44,7 +44,7 @@ export function Ghost404() {
         zIndex: 998,
         maxWidth: 320,
         background: "rgba(12,12,20,0.96)",
-        border: "1px solid #6a4a8a",
+        border: "1px solid #3a2a6e",
         padding: "14px 16px",
         boxShadow: "0 8px 28px rgba(0,0,0,0.6)",
         animation: "ghost404-in 0.6s ease",
