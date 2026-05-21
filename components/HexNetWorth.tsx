@@ -34,7 +34,7 @@ export function HexNetWorth() {
       </div>
     );
   }
-  if (loading || !data) return <div className="net-worth-empty">Calculating…</div>;
+  if (loading || !data) return <div className="net-worth-empty">CALCULATING HEX PRESSURE...</div>;
   return (
     <div className="net-worth">
       <span className="kicker">⬡ HEX NET WORTH</span>

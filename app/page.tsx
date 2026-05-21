@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CityFeedTicker } from "@/components/CityFeedTicker";
 import { InlineSync } from "@/components/InlineSync";
 import { LiveStats } from "@/components/LiveStats";
 import { RecentTransmissions } from "@/components/RecentTransmissions";
@@ -30,6 +31,7 @@ export default function Home() {
 
   return (
     <main>
+      <CityFeedTicker />
       {/* HERO */}
       <section className="hero">
         <div className="hero-left">

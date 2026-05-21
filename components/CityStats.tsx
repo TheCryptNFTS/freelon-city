@@ -28,7 +28,7 @@ export function CityStats() {
     return (
       <div className="city-stats city-stats-loading">
         <span className="kicker">⬡ CITY · LIFETIME STATS</span>
-        <span className="cs-empty">Loading…</span>
+        <span className="cs-empty">SCANNING SIGNAL...</span>
       </div>
     );
   }

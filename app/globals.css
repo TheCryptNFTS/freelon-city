@@ -3,20 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --bg:        #0a0c12;
-  --bg-2:      #0d0f15;
-  --surface:   #131316;
-  --surface-2: #1a1a1f;
-  --line:      #1f2027;
-  --line-2:    #2a2b33;
-  --ink:       #e6e1d2;
-  --ink-2:     #a8a59a;
-  --ink-dim:   #888888;
-  --ink-fade:  #4a4a4a;
+  --bg:        #050505;
+  --bg-2:      #0A0A0B;
+  --surface:   #0B0B0C;
+  --surface-2: #111113;
+  --line:      rgba(255,255,255,.10);
+  --line-2:    rgba(255,255,255,.18);
+  --ink:       #F5F2E8;
+  --ink-2:     rgba(245,242,232,.82);
+  --ink-dim:   rgba(245,242,232,.66);
+  --ink-fade:  rgba(245,242,232,.42);
 
-  --gold:        #c8aa64;
-  --gold-bright: #e6c47a;
-  --gold-deep:   #8a7644;
+  --gold:        #C8A75D;
+  --gold-bright: #E9C984;
+  --gold-deep:   #8A7A40;
+
+  /* Premium signal colors — use sparingly, one per context */
+  --mars-rust:   #A84F2A;
+  --signal-blue: #4D8DFF;
+  --signal-red:  #FF4D4D;
+  --void-purple: #8D5CFF;
 
   /* Semantic tokens */
   --success:        #5a9a4a;   /* up / claimed / verified */
@@ -29,19 +35,21 @@
   --civ-red:    #c54a3a;
   --civ-green:  #5a9a4a;
   --civ-purple: #8a4ac5;
-  --civ-white:  #e6e1d2;
+  --civ-white:  #F5F2E8;
   --civ-pink:   #d97aa0;
   --civ-black:  #404045;
-  --civ-gold:   #c8aa64;
+  --civ-gold:   #C8A75D;
   --civ-void:   #3a2a6e;
   --civ-silver: #b0b4be;
 
   /* TYPOGRAPHY STACK — Fontshare premium */
-  --display: "Tanker", "Cabinet Grotesk", "Helvetica Neue", Impact, sans-serif;
-  --grotesk: "Cabinet Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --sans:    "Satoshi", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --mono:    "JetBrains Mono", ui-monospace, "SF Mono", monospace;
-  --mono2:   "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --display: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+  --grotesk: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+  --sans:    'Satoshi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono:    'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --mono2:   'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --lore:    'EB Garamond', Georgia, serif;
+  --tanker:  'Satoshi', 'Helvetica Neue', sans-serif;
   /* Legacy aliases — for any rule still pointing at --anton, alias to --display */
   --anton:   var(--display);
 
@@ -158,25 +166,87 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink); background: transparent;
   cursor: pointer; transition: all .18s ease;
   text-align: left; font-weight: 700;
+  border-radius: 999px;
 }
 .btn:hover { border-color: var(--gold); color: var(--gold-bright); transform: translateY(-1px); }
 .btn-gold { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 800; }
 .btn-gold:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
 .btn .ar { font-family: var(--mono2); margin-left: auto; }
 
-/* Button hierarchy — double-class for specificity beats later .btn override */
-.btn.btn-primary { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 800; }
-.btn.btn-primary:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
-.btn.btn-secondary { border-color: var(--ink); color: var(--ink); background: transparent; }
-.btn.btn-secondary:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.btn.btn-ghost { border-color: var(--line); color: var(--ink-2); padding: 14px 20px; font-size: 11px; background: transparent; }
-.btn.btn-ghost:hover { border-color: var(--gold); color: var(--gold-bright); background: transparent; transform: none; }
-.btn.btn-sm { padding: 10px 14px; font-size: 10px; letter-spacing: 0.18em; }
+/* SIGNAL button — primary CTA, metallic bone-gold gradient */
+.btn.btn-primary, .signal-button {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 52px; padding: 0 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #F5F2E8, #CFC6AA);
+  color: #070707;
+  font-weight: 700; font-family: var(--grotesk);
+  font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase;
+  border: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 12px 40px rgba(245,242,232,.16);
+  cursor: pointer; transition: transform 200ms ease, box-shadow 240ms ease;
+  position: relative; overflow: hidden;
+}
+.btn.btn-primary:hover, .signal-button:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 18px 60px rgba(245,242,232,.24);
+}
+/* Rolex glint sweep */
+.btn.btn-primary::before, .signal-button::before {
+  content: ""; position: absolute; top: 0; left: -80%;
+  width: 45%; height: 100%;
+  background: linear-gradient(110deg, transparent, rgba(255,255,255,.38), transparent);
+  transform: skewX(-20deg); pointer-events: none;
+}
+.btn.btn-primary:hover::before, .signal-button:hover::before {
+  animation: glint 900ms ease;
+}
+@keyframes glint { to { left: 130%; } }
+
+/* GLASS button — secondary */
+.btn.btn-secondary, .glass-button {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 52px; padding: 0 22px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.11);
+  color: rgba(245,242,232,.82);
+  font-family: var(--grotesk); font-weight: 700;
+  font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase;
+  backdrop-filter: blur(18px);
+  cursor: pointer; transition: background 200ms ease, border-color 200ms ease;
+}
+.btn.btn-secondary:hover, .glass-button:hover {
+  background: rgba(255,255,255,.075);
+  border-color: rgba(255,255,255,.22);
+  color: var(--ink);
+}
+
+/* TERMINAL button — ghost / system */
+.btn.btn-ghost, .terminal-button {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono2);
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(245,242,232,.6);
+  background: transparent; border: none;
+  padding: 8px 0;
+  cursor: pointer; transition: color 200ms ease;
+}
+.btn.btn-ghost:hover, .terminal-button:hover { color: var(--ink); }
+
+.btn.btn-sm { height: 40px; padding: 0 16px; font-size: 11px; }
+
+/* Status label above buttons */
+.btn-with-label { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.btn-status {
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(245,242,232,.55);
+}
 
 /* Shop image */
 .shop-img {
   display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
-  background: #0a0c12; border-bottom: 1px solid var(--line);
+  background: #050505; border-bottom: 1px solid var(--line);
   margin: calc(-1 * var(--s-4)) calc(-1 * var(--s-4)) var(--s-3);
   border-radius: 2px 2px 0 0;
 }
@@ -868,7 +938,8 @@ a, button, [role="button"] { transition: color 160ms ease, background 160ms ease
 
 /* Stronger button material */
 .btn {
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  background: transparent;
+  border-radius: 999px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 0 rgba(0,0,0,0.4);
   backdrop-filter: blur(4px);
 }
@@ -3473,3 +3544,152 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .broadcast-form { display: flex; flex-direction: column; gap: 8px; margin-top: var(--s-3); }
 .broadcast-form textarea { padding: 12px 14px; font-family: var(--mono2); font-size: 13px; background: var(--bg); border: 1px solid var(--line-2); color: var(--ink); resize: vertical; min-height: 60px; }
 .broadcast-form textarea:focus { outline: none; border-color: var(--gold); }
+
+/* ============================ RELIC CARD ============================ */
+.relic-card {
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.07), transparent 35%),
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 24px 80px rgba(0,0,0,.42);
+  backdrop-filter: blur(20px);
+  padding: var(--s-4);
+  position: relative; overflow: hidden;
+  transition: border-color 240ms ease, transform 240ms ease;
+}
+.relic-card:hover { border-color: rgba(255,255,255,.22); transform: translateY(-2px); }
+.relic-card .relic-label {
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.24em;
+  color: rgba(245,242,232,.55); text-transform: uppercase;
+  margin-bottom: 12px; display: block;
+}
+
+/* Scan-line hover effect — only on cards marked .scan-card */
+.scan-card { position: relative; overflow: hidden; }
+.scan-card::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent, rgba(245,242,232,.10), transparent);
+  opacity: 0; transform: translateY(-100%);
+  transition: transform .7s ease, opacity .2s ease;
+  pointer-events: none;
+}
+.scan-card:hover::after {
+  opacity: 1; transform: translateY(100%);
+}
+
+/* ============================ STATUS CHIPS ============================ */
+.status-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.045);
+  color: rgba(245,242,232,.82);
+}
+.status-chip[data-tone="gold"] { color: var(--gold); border-color: rgba(200,167,93,.3); background: rgba(200,167,93,.06); }
+.status-chip[data-tone="blue"] { color: var(--signal-blue); border-color: rgba(77,141,255,.3); background: rgba(77,141,255,.06); }
+.status-chip[data-tone="red"]  { color: var(--signal-red);  border-color: rgba(255,77,77,.3); background: rgba(255,77,77,.06); }
+.status-chip[data-tone="purple"] { color: var(--void-purple); border-color: rgba(141,92,255,.3); background: rgba(141,92,255,.06); }
+.status-chip[data-tone="rust"] { color: var(--mars-rust); border-color: rgba(168,79,42,.3); background: rgba(168,79,42,.06); }
+
+/* Premium type hierarchy adjustment — make labels truly tiny + lift body opacity */
+.section-label {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* ============================ CITY FEED TICKER ============================ */
+.city-feed {
+  border-top: 1px solid rgba(255,255,255,.10);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.02);
+  overflow: hidden;
+  padding: 8px 0;
+}
+.city-feed-track {
+  display: flex; gap: 40px;
+  white-space: nowrap;
+  animation: cf-scroll 90s linear infinite;
+}
+.city-feed-track:hover { animation-play-state: paused; }
+@keyframes cf-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.city-feed-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em;
+  color: rgba(245,242,232,.55); text-transform: uppercase;
+  flex-shrink: 0;
+}
+.city-feed-item[data-tone="gold"] { color: var(--gold); }
+.city-feed-item[data-tone="blue"] { color: var(--signal-blue); }
+.city-feed-item[data-tone="rust"] { color: var(--mars-rust); }
+.cf-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* ============================ WALLET SCANNER ============================ */
+.wallet-scanner { max-width: 720px; margin: 0 auto; padding: var(--s-6) var(--pad); }
+.ws-input-row { display: flex; gap: 12px; margin-bottom: var(--s-5); }
+.ws-input {
+  flex: 1; padding: 18px 22px;
+  font-family: var(--mono2); font-size: 14px;
+  background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.11);
+  border-radius: 999px; color: var(--ink);
+  outline: none;
+  backdrop-filter: blur(18px);
+  transition: border-color 200ms ease, background 200ms ease;
+}
+.ws-input::placeholder { color: rgba(245,242,232,.32); letter-spacing: 0.04em; }
+.ws-input:focus { border-color: var(--gold); background: rgba(255,255,255,.06); }
+.ws-steps { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.ws-step {
+  display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap;
+  font-family: var(--mono2); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(245,242,232,.4);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 400ms ease, transform 400ms ease, color 400ms ease;
+}
+.ws-step.shown { opacity: 1; transform: translateY(0); color: var(--ink); }
+.ws-step.shown .ws-arrow { color: var(--gold); }
+.ws-arrow { color: rgba(245,242,232,.3); flex: 0 0 auto; line-height: 1.4; }
+.ws-label { line-height: 1.4; }
+.ws-dots {
+  display: inline-block; margin-left: 6px;
+  animation: ws-dots-blink 1.2s infinite;
+}
+@keyframes ws-dots-blink {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.ws-result {
+  flex: 1 0 100%;
+  margin-top: 16px; padding-left: 32px;
+  display: flex; flex-direction: column; gap: 10px;
+  font-family: var(--mono2); font-size: 13px; text-transform: none; letter-spacing: 0.02em;
+  color: var(--ink);
+  animation: ws-fade-up 600ms ease both;
+}
+.ws-line { display: flex; align-items: center; gap: 10px; }
+.ws-line-arrow { color: var(--gold); }
+.ws-result strong { color: var(--gold-bright); font-weight: 600; }
+.ws-result .btn { margin-top: 8px; align-self: flex-start; }
+@keyframes ws-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 640px) {
+  .ws-input-row { flex-direction: column; }
+  .ws-input { width: 100%; }
+}

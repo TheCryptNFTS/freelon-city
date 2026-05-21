@@ -12,31 +12,33 @@ export function Header() {
           <Image src="/logo.png" alt="FREELON CITY" width={36} height={36} priority style={{ display: "block" }} />
           <span style={{ fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.24em", textTransform: "uppercase", color: "var(--ink)" }}>404 · FREELON CITY</span>
         </Link>
-        <nav className="desktop-nav" style={{ display: "flex", gap: 22, alignItems: "center" }}>
+        <nav className="desktop-nav" style={{ display: "flex", gap: 18, alignItems: "center" }}>
+          <Link href="/civilizations" className="nav-link">City</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
-          <Link href="/civilizations" className="nav-link">Civilizations</Link>
-          <Link href="/daily" className="nav-link">Daily</Link>
-          <Link href="/leaderboard" className="nav-link">Leaders</Link>
+          <Link href="/daily" className="nav-link">Signal</Link>
+          <Link href="/dashboard" className="nav-link">War Board</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
-          <Link href="/earn" className="nav-link" style={{ color: "var(--gold)" }}>Earn ⬡</Link>
-          <Link href="/carrier" className="nav-link" style={{ color: "var(--gold)" }}>Carrier</Link>
           <div className="nav-more">
-            <button type="button" className="nav-link nav-more-trigger" aria-haspopup="true">Explore ▾</button>
+            <button type="button" className="nav-link nav-more-trigger" aria-haspopup="true">Archives ▾</button>
             <div className="nav-more-menu">
               <Link href="/origin">Origin</Link>
               <Link href="/lore">Lore</Link>
-              <Link href="/dashboard">Dashboard</Link>
               <Link href="/shapes">Shapes</Link>
               <Link href="/castes">Castes</Link>
-              <Link href="/tribute">Tributes</Link>
-              <Link href="/patrons">Patrons</Link>
+              <Link href="/tribute">Tribute</Link>
               <Link href="/manifesto">Manifesto</Link>
               <Link href="/rebuild">Rebuild</Link>
-              <Link href="/lexicon">Lexicon</Link>
-              <Link href="/pfp">PFP Studio</Link>
               <Link href="/secrets" style={{ color: "var(--gold)" }}>⬡ Secrets</Link>
+              <Link href="/lexicon">Lexicon</Link>
+              <Link href="/names">Names</Link>
+              <Link href="/heat">Heat</Link>
+              <Link href="/undervalued">Undervalued</Link>
+              <Link href="/defenders">Defenders</Link>
+              <Link href="/graveyard">Graveyard</Link>
+              <Link href="/pfp">PFP</Link>
             </div>
           </div>
+          <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Sync</Link>
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>
@@ -44,8 +46,10 @@ export function Header() {
       </div>
       <style>{`
         header .bar { display: flex; align-items: center; justify-content: space-between; height: 72px; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad); }
+        .desktop-nav { gap: 18px; }
         .nav-link { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); transition: color .2s ease; }
         .nav-link:hover { color: var(--gold-bright); }
+        .nav-sync { text-transform: uppercase; letter-spacing: 0.22em; }
         @media (max-width: 980px) { .desktop-nav { display: none !important; } }
         @media (min-width: 981px) { .mobile-trigger, .mobile-sheet { display: none !important; } }
         .nav-more { position: relative; }

@@ -77,7 +77,7 @@ export function HexEarningsLog({ address }: { address: string }) {
     return (
       <div className="hex-log hex-log-loading">
         <span className="kicker">⬡ WALLET HEX</span>
-        <span className="hl-empty">Calculating ledger…</span>
+        <span className="hl-empty">SCANNING CIV LEDGER...</span>
       </div>
     );
   }
@@ -117,7 +117,7 @@ export function HexEarningsLog({ address }: { address: string }) {
       )}
 
       {data.events.length === 0 ? (
-        <div className="hl-empty">No earnings yet. Sweep a citizen, share on X, or visit civilizations to start.</div>
+        <div className="hl-empty">NO SIGNAL DETECTED. CLAIM RANK 01 — sweep a citizen, share on X, or visit civilizations to start.</div>
       ) : (
         <ol className="hl-list">
           {data.events.map((e, i) => (

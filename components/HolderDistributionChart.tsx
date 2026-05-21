@@ -56,7 +56,7 @@ export function HolderDistributionChart() {
     return (
       <div className="holders-chart holders-chart-loading">
         <span className="kicker">⬡ HOLDER DISTRIBUTION</span>
-        <span className="hc-empty">Counting wallets…</span>
+        <span className="hc-empty">SCANNING WALLET LEDGER...</span>
       </div>
     );
   }

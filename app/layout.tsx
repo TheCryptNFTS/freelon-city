@@ -40,7 +40,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://api.fontshare.com/v2/css?f[]=tanker@400&f[]=cabinet-grotesk@500,700,800,900&f[]=satoshi@300,400,500,700,900&f[]=jetbrains-mono@400,500&display=swap"
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=ibm-plex-mono@400,500&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,400;0,500;1,500&display=swap"
           rel="stylesheet"
         />
         <link rel="icon" href="/favicon.png" type="image/png" />

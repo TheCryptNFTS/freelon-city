@@ -8,7 +8,7 @@ export function CivValueChart() {
   useEffect(() => {
     fetch("/api/opensea/civ-stats").then(r => r.json()).then(setData).catch(() => {});
   }, []);
-  if (!data) return <div className="civ-chart-loading">Loading civ values…</div>;
+  if (!data) return <div className="civ-chart-loading">SCANNING CIV LEDGER...</div>;
   const max = Math.max(...data.civs.map(c => c.value));
   const sorted = [...data.civs].sort((a, b) => b.value - a.value);
 
