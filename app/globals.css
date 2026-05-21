@@ -164,14 +164,14 @@ a { color: inherit; text-decoration: none; }
 .btn-gold:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
 .btn .ar { font-family: var(--mono2); margin-left: auto; }
 
-/* Button hierarchy */
-.btn-primary { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 800; }
-.btn-primary:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
-.btn-secondary { border-color: var(--ink); color: var(--ink); }
-.btn-secondary:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.btn-ghost { border-color: var(--line); color: var(--ink-2); padding: 14px 20px; font-size: 11px; }
-.btn-ghost:hover { border-color: var(--gold); color: var(--gold-bright); background: transparent; transform: none; }
-.btn-sm { padding: 10px 14px; font-size: 10px; letter-spacing: 0.18em; }
+/* Button hierarchy — double-class for specificity beats later .btn override */
+.btn.btn-primary { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 800; }
+.btn.btn-primary:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
+.btn.btn-secondary { border-color: var(--ink); color: var(--ink); background: transparent; }
+.btn.btn-secondary:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.btn-ghost { border-color: var(--line); color: var(--ink-2); padding: 14px 20px; font-size: 11px; background: transparent; }
+.btn.btn-ghost:hover { border-color: var(--gold); color: var(--gold-bright); background: transparent; transform: none; }
+.btn.btn-sm { padding: 10px 14px; font-size: 10px; letter-spacing: 0.18em; }
 
 /* Shop image */
 .shop-img {
