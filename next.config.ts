@@ -16,6 +16,25 @@ const config: NextConfig = {
       { source: "/the-final-signal", destination: "/citizens/4040" },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          // Clickjacking protection
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // MIME-sniffing protection
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Referrer leak control
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Disable unused browser APIs
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+          // Belt-and-braces HSTS (Vercel already sets it, but make it explicit)
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+        ],
+      },
+    ];
+  },
 };
 
 export default config;

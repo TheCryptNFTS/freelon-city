@@ -22,10 +22,16 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
-  // Vercel cron sends Authorization: Bearer <CRON_SECRET>
+  // Vercel cron sends Authorization: Bearer <CRON_SECRET>.
+  // In production, fail closed if CRON_SECRET isn't set — public exposure is unacceptable.
+  const isProd = process.env.VERCEL_ENV === "production";
   const auth = req.headers.get("authorization");
-  const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : null;
-  if (expected && auth !== expected) {
+  const secret = process.env.CRON_SECRET;
+
+  if (isProd && !secret) {
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 503 });
+  }
+  if (secret && auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
