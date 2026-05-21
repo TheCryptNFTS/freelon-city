@@ -34,7 +34,7 @@ export default function Home() {
             <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
             <h1 className="hero-headline">
               The hex didn&apos;t<br />
-              disappear.<br />
+              disappear<br />
               <em>It moved</em>
             </h1>
             <p className="hero-sub">
