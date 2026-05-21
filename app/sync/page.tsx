@@ -81,7 +81,7 @@ export default async function SyncPage({ searchParams }: { searchParams: Promise
       <section className="sync-result-hero">
         <div className="left">
           <div className="stamp">⬡ SYNC COMPLETE · @{r.handle}</div>
-          <h1>You belong to<br /><em style={{ color: civ.color }}>{civ.name}.</em></h1>
+          <h1>You belong to<br /><em style={{ color: civ.color }}>{civ.name}</em></h1>
           <p className="doctrine">{civ.doctrine.toUpperCase()} · {civ.role.toUpperCase()}</p>
           <div className="chant">&ldquo;{civ.chant}&rdquo;</div>
           <dl className="sync-stats">

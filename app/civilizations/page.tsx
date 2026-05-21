@@ -8,7 +8,7 @@ export default function Page() {
     <main className="civs-page">
       <section className="civs-hero">
         <span className="kicker">⬡ CIVILIZATIONS</span>
-        <h1>10 <em>Signal</em> civilizations.</h1>
+        <h1>10 <em>Signal</em> civilizations</h1>
         <p className="lead">
           Each citizen belongs to one. Population dictates power. Silver Machine at 80 is the rarest.
         </p>

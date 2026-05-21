@@ -43,7 +43,7 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
           <span className="kicker">⬡ CARRIER · PUBLIC PROFILE</span>
           <h1>
             @{h} carries<br />
-            for <em style={{ color: civ?.color }}>{civ?.name}.</em>
+            for <em style={{ color: civ?.color }}>{civ?.name}</em>
           </h1>
           <div className="cp-doctrine">{civ?.doctrine?.toUpperCase()}</div>
           {live && t && (

@@ -91,7 +91,7 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
           <h3 style={{ color: "var(--gold)" }}>{deepLore.title}</h3>
         )}
         {!canShow && (
-          <h3>Locked.</h3>
+          <h3>Locked</h3>
         )}
       </header>
 

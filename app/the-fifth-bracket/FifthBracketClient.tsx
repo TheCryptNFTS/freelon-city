@@ -33,7 +33,7 @@ export function FifthBracketClient() {
       <main style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 32 }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.3em", color: "var(--ink-2)" }}>404</div>
-          <h1 style={{ marginTop: 12, fontSize: 48, fontWeight: 300 }}>Hex not found.</h1>
+          <h1 style={{ marginTop: 12, fontSize: 48, fontWeight: 300 }}>Hex not found</h1>
           <p style={{ marginTop: 14, color: "var(--ink-2)" }}>The page you are looking for does not exist.</p>
           <Link href="/" style={{ marginTop: 24, display: "inline-block", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--gold)" }}>
             ← RETURN TO THE CITY

@@ -9,8 +9,17 @@ export function LiveStats() {
       .then(setStats)
       .catch(() => setStats(null));
   }, []);
-  const floor = stats?.floor ? `${stats.floor.toFixed(4)}` : "—";
-  const holders = stats?.holders ? stats.holders.toLocaleString() : "—";
+  // Show "SYNCING" while loading instead of bare dashes — premium feel
+  const floor = stats === null
+    ? "SYNCING"
+    : stats?.floor
+      ? `${stats.floor.toFixed(4)}`
+      : "SYNCING";
+  const holders = stats === null
+    ? "SYNCING"
+    : stats?.holders
+      ? stats.holders.toLocaleString()
+      : "SYNCING";
   return (
     <div className="hero-coords">
       <span>SIGNAL · <strong style={{ color: "var(--gold)" }}>LIVE</strong> · CYCLE 0404</span>

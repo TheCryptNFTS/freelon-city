@@ -79,7 +79,7 @@ export default function RebuildPage() {
       </section>
       <section className="rebuild-proof">
         <span className="kicker">PROOF</span>
-        <h2>The city, after.</h2>
+        <h2>The city, after</h2>
         <div className="proof-grid">
           {[1, 404, 1337, 4040].map((id) => (
             <Link key={id} href={`/citizens/${id}`} className="proof-cell">

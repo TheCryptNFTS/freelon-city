@@ -6,7 +6,7 @@ export default function Page() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
       <div className="terminal text-[var(--color-gold)] text-xs tracking-[0.3em]">SOCIAL HIERARCHY</div>
-      <h1 className="mt-2 text-5xl font-light">Every city has a structure.<br/>Every citizen has a place.</h1>
+      <h1 className="mt-2 text-5xl font-light">Every city has a structure<br />Every citizen has a place</h1>
       <p className="mt-4 max-w-2xl text-[var(--color-ink-dim)]">7 castes derived deterministically from on-chain traits. Hex State + Tier determine where you stand.</p>
 
       <div className="mt-12 space-y-3">

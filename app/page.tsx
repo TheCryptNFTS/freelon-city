@@ -43,13 +43,13 @@ export default function Home() {
               Burn hex — carve your name into the city.
             </p>
             <div className="hero-ctas">
-              <a className="btn btn-primary" href={`https://opensea.io/assets/ethereum/${CONTRACT}`} target="_blank" rel="noreferrer">
-                <span className="lbl">PRIMARY MARKET</span>
-                <span className="ttl">BUY ON OPENSEA <span className="ar">↗</span></span>
-              </a>
-              <Link className="btn btn-secondary" href="/earn">
-                <span className="lbl">HOW IT WORKS</span>
-                <span className="ttl">SEE THE ECONOMY <span className="ar">→</span></span>
+              <Link className="btn btn-primary" href="/sync">
+                <span className="lbl">FIND YOUR PLACE</span>
+                <span className="ttl">CHECK YOUR WALLET <span className="ar">⬡ →</span></span>
+              </Link>
+              <Link className="btn btn-secondary" href="/citizens">
+                <span className="lbl">4040 ON CHAIN</span>
+                <span className="ttl">EXPLORE CITIZENS <span className="ar">→</span></span>
               </Link>
             </div>
           </div>
@@ -76,42 +76,62 @@ export default function Home() {
         </div>
       </section>
 
-      {/* WHY FREELON · 5-second value prop */}
+      {/* WHY FREELON · the city pays you to live in it */}
       <section className="why-freelon">
-        <span className="kicker">⬡ WHY HOLD A FREELON</span>
+        <span className="kicker">⬡ THE CITY PAYS YOU TO LIVE IN IT</span>
         <h2 className="why-headline">
-          A locked NFT collection with a <em>real on-site economy</em>
+          Hold a citizen. <em>Earn the city's credit.</em><br />
+          Spend it on legend.
         </h2>
         <div className="why-grid">
-          <div className="why-card" style={{ "--accent": "#c8aa64" } as React.CSSProperties}>
-            <span className="why-no">01</span>
-            <h3>EARN BY HOLDING</h3>
-            <p>
-              Every citizen earns hex points daily. Tier multipliers, civilization bonuses,
-              +50/day for citizens held 30+ days, +200/day for a 1-of-1.
-            </p>
-          </div>
-          <div className="why-card" style={{ "--accent": "#4a8acb" } as React.CSSProperties}>
-            <span className="why-no">02</span>
-            <h3>EARN BY ACTIVITY</h3>
-            <p>
-              +25⬡ per sweep, +10⬡ per daily verified X share, +500⬡ for streaks,
-              quest rewards, referrals. The city pays you to show up.
-            </p>
-          </div>
-          <div className="why-card" style={{ "--accent": "#c54a3a" } as React.CSSProperties}>
-            <span className="why-no">03</span>
-            <h3>BURN FOR STATUS</h3>
-            <p>
-              Spend hex to name your citizen, realign your civilization,
-              buy artifacts. Burn hex to put your name on the Patrons Wall.
-            </p>
-          </div>
+          <Link href="/earn#hold" className="why-card" style={{ "--accent": "#c8aa64" } as React.CSSProperties}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="why-img" src={heroImageUrl(4040)} alt="" />
+            <div className="why-body">
+              <span className="why-no">⬡ 01 · HOLD</span>
+              <h3>+200⬡/day for 1-of-1s</h3>
+              <p>
+                Every citizen earns hex daily. Tier multiplier up to 2×.
+                Diamond hands (30+ days unlisted) → +50⬡/day per citizen.
+                Honoraries → +50⬡/week. One-of-ones → +200⬡/day.
+              </p>
+              <span className="why-cta">SEE EVERY EARN RULE →</span>
+            </div>
+          </Link>
+          <Link href="/earn#activity" className="why-card" style={{ "--accent": "#4a8acb" } as React.CSSProperties}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="why-img" src={heroImageUrl(1)} alt="" />
+            <div className="why-body">
+              <span className="why-no">⬡ 02 · MOVE</span>
+              <h3>+100⬡ for a 3-sweep streak</h3>
+              <p>
+                Sweep the floor → +25⬡ per citizen + streak bonuses.
+                Share the daily signal on X → +10⬡, +500⬡ at day 30.
+                Complete the 4 hidden quests → +700⬡. The city watches.
+              </p>
+              <span className="why-cta">SEE THE ACTIVITY MAP →</span>
+            </div>
+          </Link>
+          <Link href="/patrons" className="why-card" style={{ "--accent": "#c54a3a" } as React.CSSProperties}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="why-img" src={heroImageUrl(404)} alt="" />
+            <div className="why-body">
+              <span className="why-no">⬡ 03 · BURN</span>
+              <h3>Names carved into the city</h3>
+              <p>
+                Burn hex to rename your citizen, realign your civilization,
+                buy artifacts in the Shop. Burn 100+ ⬡ to put your name on the
+                Patrons Wall for 7 days. Status that the city remembers.
+              </p>
+              <span className="why-cta">SEE THE PATRONS WALL →</span>
+            </div>
+          </Link>
         </div>
         <div className="why-trust">
-          <span className="dot" /> 4040 citizens · 10 civilizations · 16 sacred shapes ·
-          contract <code>{CONTRACT.slice(0, 6)}…{CONTRACT.slice(-4)}</code> ·
-          no admin key · no roadmap · no token sale
+          <span className="dot" />
+          <strong>4040 citizens</strong> · <strong>10 civilizations</strong> ·
+          <strong>16 sacred shapes</strong> · <strong>4 one-of-ones</strong> ·
+          <strong>35 honoraries</strong> · contract <code>{CONTRACT.slice(0, 6)}…{CONTRACT.slice(-4)}</code>
         </div>
       </section>
 
@@ -125,7 +145,7 @@ export default function Home() {
       <section className="inline-sync reveal">
         <div className="left">
           <span className="kicker">⬡ NEWCOMER? START HERE</span>
-          <h3>Drop your handle. Sync to your <em>civilization</em>.</h3>
+          <h3>Drop your handle. Sync to your <em>civilization</em></h3>
         </div>
         <InlineSync />
       </section>
@@ -135,7 +155,7 @@ export default function Home() {
         <div className="section-bar">
           <div className="left-col">
             <span className="kicker">FOUR CITIZENS · BRACKETS OF THE CITY</span>
-            <h2>Four <em>singular</em> citizens.</h2>
+            <h2>Four <em>singular</em> citizens</h2>
           </div>
           <Link className="more" href="/citizens">VIEW ALL CITIZENS →</Link>
         </div>
@@ -249,7 +269,7 @@ export default function Home() {
         <div className="section-bar">
           <div className="left-col">
             <span className="kicker">SIXTEEN OF FOUR THOUSAND FORTY</span>
-            <h2>16 <em>citizens</em><br />4,024 more behind them.</h2>
+            <h2>16 <em>citizens</em><br />4,024 more behind them</h2>
           </div>
           <Link className="more" href="/citizens">BROWSE ALL 4040 →</Link>
         </div>

@@ -36,7 +36,7 @@ export function RecentTransmissions() {
       <div style={{ maxWidth: "var(--maxw)", margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 24 }}>
           <h2>
-            Recent <em>transmissions.</em>
+            Recent <em>transmissions</em>
           </h2>
           <a href="https://opensea.io/collection/freelons/activity" target="_blank" rel="noreferrer" style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--ink-2)" }}>
             FULL ACTIVITY ↗

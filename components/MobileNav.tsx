@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 const LINKS = [
   { href: "/origin",        label: "Origin" },
@@ -24,6 +25,10 @@ const LINKS = [
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Portal target only available after mount (avoids SSR mismatch)
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -35,6 +40,34 @@ export function MobileNav() {
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  const sheet = (
+    <div
+      className={`mobile-sheet ${open ? "open" : ""}`}
+      onClick={() => setOpen(false)}
+      aria-hidden={!open}
+    >
+      <nav onClick={(e) => e.stopPropagation()}>
+        <span className="kicker">⬡ FREELON CITY · NAVIGATION</span>
+        <ul>
+          {LINKS.map((l) => (
+            <li key={l.href}>
+              <Link
+                href={l.href}
+                onClick={() => setOpen(false)}
+                style={l.gold ? { color: "var(--gold)" } : undefined}
+              >
+                {l.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="sheet-footer">
+          <span>Cycle 0404 · Locked on Ethereum</span>
+        </div>
+      </nav>
+    </div>
+  );
 
   return (
     <>
@@ -49,31 +82,10 @@ export function MobileNav() {
         <span className={`bar ${open ? "open" : ""}`} />
         <span className={`bar ${open ? "open" : ""}`} />
       </button>
-      <div
-        className={`mobile-sheet ${open ? "open" : ""}`}
-        onClick={() => setOpen(false)}
-        aria-hidden={!open}
-      >
-        <nav onClick={(e) => e.stopPropagation()}>
-          <span className="kicker">⬡ FREELON CITY · NAVIGATION</span>
-          <ul>
-            {LINKS.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  style={l.gold ? { color: "var(--gold)" } : undefined}
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className="sheet-footer">
-            <span>Cycle 0404 · Locked on Ethereum</span>
-          </div>
-        </nav>
-      </div>
+      {/* Portal the sheet to document.body so it escapes the header's
+          backdrop-filter containing block. Without this, position: fixed
+          gets trapped inside the 72px-tall header. */}
+      {mounted && createPortal(sheet, document.body)}
     </>
   );
 }

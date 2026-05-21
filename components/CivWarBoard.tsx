@@ -45,7 +45,7 @@ export function CivWarBoard() {
       <div className="war-bar">
         <div>
           <span className="kicker">⬡ LIVE · CIVILIZATION WAR · 24H</span>
-          <h2>The <em>scoreboard.</em></h2>
+          <h2>The <em>scoreboard</em></h2>
         </div>
         <span className="war-meta">SORTED BY VOLUME · POPULATION FIXED</span>
       </div>
