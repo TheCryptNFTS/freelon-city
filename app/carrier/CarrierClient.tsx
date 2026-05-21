@@ -154,17 +154,34 @@ export function CarrierClient() {
         <div className="daily-claim-card" style={{ gridColumn: "1 / -1" }}>
           <span className="kicker">⬡ DAILY CLAIM</span>
           <h3>{claimable ? "Today's signal is unclaimed." : "Claimed today."}</h3>
-          <p>Share today's signal on X, then claim +10 ⬡.</p>
+          {xVerified ? (
+            <p>
+              X verified as <strong>@{xVerified}</strong>. Share today's signal on X, then claim +10 ⬡.
+            </p>
+          ) : (
+            <p>
+              Verify your X account to claim. Stops anyone from claiming on your handle.
+            </p>
+          )}
           <div className="claim-flow">
-            <a className="btn" href={dailyIntent} target="_blank" rel="noreferrer" onClick={() => setShared(true)}>
-              <span className="ttl">1. SHARE ON X →</span>
-            </a>
-            <button className="btn btn-gold" disabled={!shared || !claimable} onClick={() => {
-              const next = claimDaily();
-              if (next) setState(next);
-            }}>
-              <span className="ttl">2. CLAIM +10 ⬡ →</span>
-            </button>
+            {!xVerified && (
+              <a className="btn btn-primary" href={xVerifyHref(state.handle)}>
+                <span className="ttl">VERIFY WITH X →</span>
+              </a>
+            )}
+            {xVerified && (
+              <>
+                <a className="btn btn-secondary" href={dailyIntent} target="_blank" rel="noreferrer" onClick={() => setShared(true)}>
+                  <span className="ttl">1. SHARE ON X →</span>
+                </a>
+                <button className="btn btn-primary" disabled={!shared || !claimable} onClick={() => {
+                  const next = claimDaily();
+                  if (next) setState(next);
+                }}>
+                  <span className="ttl">2. CLAIM +10 ⬡ →</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

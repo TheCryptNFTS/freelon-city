@@ -2637,3 +2637,43 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 /* Make CityStats card elevated */
 .city-stats { background: var(--surface-2); }
+
+/* ============================ X VERIFICATION ============================ */
+.x-verified-tick {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-family: var(--mono2);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  background: rgba(200,170,100,0.12);
+  border: 1px solid var(--gold);
+  color: var(--gold-bright);
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.x-signin-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+}
+.x-or {
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+.x-err {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(200,80,80,0.4);
+  background: rgba(200,80,80,0.08);
+  color: #e8a8a8;
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+.x-err code { color: #f5c5c5; }

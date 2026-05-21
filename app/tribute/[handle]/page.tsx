@@ -45,6 +45,18 @@ export default async function TributePage({ params }: { params: Promise<{ handle
   const identity = getIdentity(h.id);
   const cleanHandle = (h.honoree_handle || "").replace(/^@/, "");
 
+  // Check if the honoree's X handle has been verified by signing in
+  let xVerified = false;
+  if (cleanHandle) {
+    try {
+      const { getByHandle } = await import("@/lib/x-store");
+      const v = await getByHandle(cleanHandle);
+      xVerified = !!v;
+    } catch {
+      /* non-fatal */
+    }
+  }
+
   const tweet =
     `${h.honoree_handle || h.honoree} — citizen #${id4} of FREELON CITY carries your name.\n\n` +
     `Civilization: ${civ?.name}.\n` +
@@ -71,7 +83,7 @@ export default async function TributePage({ params }: { params: Promise<{ handle
               target="_blank"
               rel="noreferrer"
             >
-              {h.honoree_handle} ↗
+              {h.honoree_handle} {xVerified && <span className="x-verified-tick" title="Verified by X sign-in">⬡ VERIFIED</span>} ↗
             </a>
           )}
           <div className="civ-tag" style={{ color }}>
