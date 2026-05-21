@@ -22,7 +22,7 @@ export default async function LeaderboardPage() {
     <main className="leaderboard-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
       <span className="kicker">⬡ HEX LEADERBOARD</span>
       <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(48px, 8vw, 96px)", lineHeight: 0.94, letterSpacing: "-0.02em", marginTop: "var(--s-3)" }}>
-        Who's <em>earned the most.</em>
+        Who's <em>earned the most</em>
       </h1>
       <p className="lead" style={{ maxWidth: 640, marginTop: "var(--s-3)" }}>
         Top hex earners. Recomputed every 2 minutes from the wallet ledger.

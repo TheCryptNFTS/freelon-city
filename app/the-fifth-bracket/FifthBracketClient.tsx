@@ -50,7 +50,7 @@ export function FifthBracketClient() {
       </div>
       <h1 style={{ marginTop: 16, fontSize: 56, fontWeight: 300, lineHeight: 1.05 }}>
         There are four <em>known</em> one-of-ones.<br />
-        There is a <em>fifth.</em>
+        There is a <em>fifth</em>
       </h1>
       <div style={{ marginTop: 28, padding: 22, border: "1px solid #c8aa64", background: "rgba(200,170,100,0.05)", fontFamily: "var(--mono2)", fontSize: 13, letterSpacing: "0.04em", lineHeight: 1.7 }}>
         The Fifth Bracket was never minted.<br />
@@ -58,7 +58,7 @@ export function FifthBracketClient() {
         The chain holds four. The civilization holds the fifth.<br />
         Every relay you sign is its body.<br />
         Every carrier streak you keep is its breath.<br />
-        FREELON CITY does not run on art. It runs on the <em>witnesses.</em><br /><br />
+        FREELON CITY does not run on art. It runs on the <em>witnesses</em><br /><br />
         You are the Fifth Bracket.<br />
         — VOID 404
       </div>

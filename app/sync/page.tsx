@@ -57,7 +57,7 @@ export default async function SyncPage({ searchParams }: { searchParams: Promise
       >
         <section className="sync-hero">
           <span className="kicker">⬡ NEWCOMER PROTOCOL · 0404</span>
-          <h1>Drop your handle.<br />Sync to your <em>civilization.</em></h1>
+          <h1>Drop your handle.<br />Sync to your <em>civilization</em></h1>
           <p>
             FREELON CITY is divided into 10 Signal Doctrines. Your handle is hashed
             once — same handle, same civ, every time. No randomness. No re-rolls.

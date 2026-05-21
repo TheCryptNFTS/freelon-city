@@ -14,7 +14,7 @@ export default function TributeIndex() {
     <main className="tribute-index">
       <section className="tribute-hero">
         <span className="kicker">⬡ 35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span>
-        <h1>The <em>honoraries.</em></h1>
+        <h1>The <em>honoraries</em></h1>
         <p className="lead">
           35 citizens of FREELON CITY carry the name of a real human who shaped the signal.
           Each one comes with a pre-loaded tweet. Tag them. Tell them their citizen woke up.

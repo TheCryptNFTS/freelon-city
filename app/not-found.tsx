@@ -8,7 +8,7 @@ export default function NotFound() {
         <h1>
           The hex<br />
           didn&apos;t<br />
-          <em>move.</em>
+          <em>move</em>
         </h1>
         <p className="sub">
           You followed a signal that never landed. The path you reached for

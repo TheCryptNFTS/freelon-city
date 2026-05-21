@@ -33,7 +33,7 @@ export default function Citizens() {
     <main className="citizens-page">
       <section className="citizens-hero">
         <span className="kicker">⬡ CITIZENS · 4040 TOTAL</span>
-        <h1>Find your <em>citizen.</em></h1>
+        <h1>Find your <em>citizen</em></h1>
         <p className="lead">Enter a token number 1—4040 to look up any Freelon directly.</p>
         <div className="finder">
           <FindCitizen />
@@ -43,7 +43,7 @@ export default function Citizens() {
       <section className="citizens-section reveal">
         <header className="sec-head">
           <span className="kicker">ONE OF ONES</span>
-          <h2>The <em>Four.</em></h2>
+          <h2>The <em>Four</em></h2>
         </header>
         <div className="ones-grid">
           {ones.map((c) => {
@@ -74,7 +74,7 @@ export default function Citizens() {
       <section className="citizens-section reveal">
         <header className="sec-head">
           <span className="kicker">35 ELEVATED CITIZENS</span>
-          <h2>The <em>Honoraries.</em></h2>
+          <h2>The <em>Honoraries</em></h2>
         </header>
         <div className="honor-grid">
           {honoraries.map((c) => {
@@ -98,7 +98,7 @@ export default function Citizens() {
       <section className="citizens-section reveal">
         <header className="sec-head">
           <span className="kicker">40 TOTAL · 12 SHOWN</span>
-          <h2>The <em>Legendaries.</em></h2>
+          <h2>The <em>Legendaries</em></h2>
         </header>
         <div className="legendary-grid">
           {legendaries.map((c) => {
@@ -120,7 +120,7 @@ export default function Citizens() {
       <section className="citizens-section reveal">
         <header className="sec-head">
           <span className="kicker">SEARCH · FILTER · SCROLL</span>
-          <h2>Browse all <em>4040.</em></h2>
+          <h2>Browse all <em>4040</em></h2>
         </header>
         <CitizensBrowser all={mini} />
       </section>

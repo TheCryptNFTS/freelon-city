@@ -9,7 +9,7 @@ export default function Page() {
     <main className="shapes-page">
       <section className="shapes-hero">
         <span className="kicker">⬡ THE SACRED SHAPES</span>
-        <h1>Shape is the <em>first read.</em></h1>
+        <h1>Shape is the <em>first read</em></h1>
         <p className="lead">
           Most large collections fail at silhouette. Different traits, same read.
           FREELON CITY is built around 16 sacred geometric forms so rarity can be

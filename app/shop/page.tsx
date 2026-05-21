@@ -18,7 +18,7 @@ export default function ShopPage() {
         <span className="kicker">⬡ HEX SHOP · OFF-CHAIN INVENTORY</span>
         <h1>
           Spend the signal.<br />
-          <em>Own a piece of the city.</em>
+          <em>Own a piece of the city</em>
         </h1>
         <p className="lead">
           Property, land, ceremonial arms, woven cloth, and the rarest artifacts of the broken signal.

@@ -59,7 +59,7 @@ export default function RebuildPage() {
         <span className="kicker">⬡ WAR STORY · PHASE 3 SHIP LOG</span>
         <h1>
           48 hours.<br />
-          <em>4040 citizens.</em><br />
+          <em>4040 citizens</em><br />
           Zero traits changed.
         </h1>
         <p className="lead">

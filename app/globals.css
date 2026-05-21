@@ -3053,3 +3053,85 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   color: var(--ink-dim);
   text-transform: uppercase;
 }
+
+/* ============================ WHY FREELON ============================ */
+.why-freelon {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--s-6) var(--pad);
+  border-top: 1px solid var(--line);
+}
+.why-freelon .kicker { display: block; color: var(--gold); margin-bottom: var(--s-3); }
+.why-headline {
+  font-family: var(--display);
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 0.96;
+  letter-spacing: -0.02em;
+  max-width: 880px;
+  margin-bottom: var(--s-5);
+}
+.why-headline em { color: var(--gold-bright); font-style: normal; }
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+}
+.why-card {
+  background: var(--surface);
+  border-top: 2px solid var(--accent, var(--gold));
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.why-no {
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: var(--accent, var(--gold));
+}
+.why-card h3 {
+  font-family: var(--grotesk);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.why-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.why-trust {
+  margin-top: var(--s-5);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.02);
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.why-trust code {
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+.why-trust .dot {
+  width: 8px; height: 8px;
+  background: var(--gold);
+  display: inline-block;
+  border-radius: 50%;
+}
+
+@media (max-width: 860px) {
+  .why-grid { grid-template-columns: 1fr; }
+}

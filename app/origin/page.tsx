@@ -19,7 +19,7 @@ export default function Page() {
         <h1>
           The hex didn&apos;t<br />
           disappear.<br />
-          <em>It changed location.</em>
+          <em>It changed location</em>
         </h1>
 
         <div className="origin-body">

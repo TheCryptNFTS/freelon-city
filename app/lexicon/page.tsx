@@ -78,7 +78,7 @@ export default function Lexicon() {
         <span className="kicker">⬡ LEXICON · THE CITY'S VOCABULARY</span>
         <h1>
           Words the city<br />
-          <em>uses.</em>
+          <em>uses</em>
         </h1>
         <p className="lead">
           Every cult onboards through vocabulary. Below is the working glossary

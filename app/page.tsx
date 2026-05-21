@@ -35,19 +35,21 @@ export default function Home() {
             <h1 className="hero-headline">
               The hex didn&apos;t<br />
               disappear.<br />
-              <em>It moved.</em>
+              <em>It moved</em>
             </h1>
             <p className="hero-sub">
-              A signal arrived on Mars. A city answered. 4040 citizens of FREELON CITY — locked on-chain, open to receive.
+              An NFT collection of <strong>4040 citizens</strong> on Ethereum.
+              10 civilizations. Locked supply. Hold one — earn hex points daily.
+              Burn hex — carve your name into the city.
             </p>
             <div className="hero-ctas">
-              <Link className="btn btn-gold" href="/sync">
-                <span className="lbl">FOR INCOMING</span>
-                <span className="ttl">RECEIVE THE SIGNAL <span className="ar">⬡ →</span></span>
-              </Link>
-              <Link className="btn" href="/citizens">
-                <span className="lbl">FOR CITIZENS</span>
-                <span className="ttl">ENTER THE CITY <span className="ar">⬡ →</span></span>
+              <a className="btn btn-primary" href={`https://opensea.io/assets/ethereum/${CONTRACT}`} target="_blank" rel="noreferrer">
+                <span className="lbl">PRIMARY MARKET</span>
+                <span className="ttl">BUY ON OPENSEA <span className="ar">↗</span></span>
+              </a>
+              <Link className="btn btn-secondary" href="/earn">
+                <span className="lbl">HOW IT WORKS</span>
+                <span className="ttl">SEE THE ECONOMY <span className="ar">→</span></span>
               </Link>
             </div>
           </div>
@@ -65,12 +67,51 @@ export default function Home() {
           </div>
           <div className="img-stamp">
             ⬡ THE FOURTH BRACKET
-            <h2>The Final <em>Signal.</em></h2>
+            <h2>The Final <em>Signal</em></h2>
           </div>
           <div className="img-meta">
             VOID 404 · SANCTUM<br />
             FACE — TRANSMISSION LOCKED
           </div>
+        </div>
+      </section>
+
+      {/* WHY FREELON · 5-second value prop */}
+      <section className="why-freelon">
+        <span className="kicker">⬡ WHY HOLD A FREELON</span>
+        <h2 className="why-headline">
+          A locked NFT collection with a <em>real on-site economy</em>
+        </h2>
+        <div className="why-grid">
+          <div className="why-card" style={{ "--accent": "#c8aa64" } as React.CSSProperties}>
+            <span className="why-no">01</span>
+            <h3>EARN BY HOLDING</h3>
+            <p>
+              Every citizen earns hex points daily. Tier multipliers, civilization bonuses,
+              +50/day for citizens held 30+ days, +200/day for a 1-of-1.
+            </p>
+          </div>
+          <div className="why-card" style={{ "--accent": "#4a8acb" } as React.CSSProperties}>
+            <span className="why-no">02</span>
+            <h3>EARN BY ACTIVITY</h3>
+            <p>
+              +25⬡ per sweep, +10⬡ per daily verified X share, +500⬡ for streaks,
+              quest rewards, referrals. The city pays you to show up.
+            </p>
+          </div>
+          <div className="why-card" style={{ "--accent": "#c54a3a" } as React.CSSProperties}>
+            <span className="why-no">03</span>
+            <h3>BURN FOR STATUS</h3>
+            <p>
+              Spend hex to name your citizen, realign your civilization,
+              buy artifacts. Burn hex to put your name on the Patrons Wall.
+            </p>
+          </div>
+        </div>
+        <div className="why-trust">
+          <span className="dot" /> 4040 citizens · 10 civilizations · 16 sacred shapes ·
+          contract <code>{CONTRACT.slice(0, 6)}…{CONTRACT.slice(-4)}</code> ·
+          no admin key · no roadmap · no token sale
         </div>
       </section>
 
@@ -134,7 +175,7 @@ export default function Home() {
             <h2 className="lead">
               One contract.<br />
               No admin key.<br />
-              No <em>roadmap.</em>
+              No <em>roadmap</em>
             </h2>
           </div>
           <div className="stat-row">
@@ -153,7 +194,7 @@ export default function Home() {
         <div className="section-bar" style={{ paddingTop: 96 }}>
           <div className="left-col">
             <span className="kicker">TEN SIGNAL DOCTRINES</span>
-            <h2>Ten <em>civilizations.</em></h2>
+            <h2>Ten <em>civilizations</em></h2>
           </div>
           <Link className="more" href="/civilizations">ENTER A CIVILIZATION →</Link>
         </div>
@@ -181,7 +222,7 @@ export default function Home() {
         <div className="section-bar">
           <div className="left-col">
             <span className="kicker">35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span>
-            <h2>The <em>honoraries.</em></h2>
+            <h2>The <em>honoraries</em></h2>
           </div>
           <Link className="more" href="/tribute">SEND A TRIBUTE TWEET →</Link>
         </div>
@@ -208,7 +249,7 @@ export default function Home() {
         <div className="section-bar">
           <div className="left-col">
             <span className="kicker">SIXTEEN OF FOUR THOUSAND FORTY</span>
-            <h2>16 <em>citizens.</em><br />4,024 more behind them.</h2>
+            <h2>16 <em>citizens</em><br />4,024 more behind them.</h2>
           </div>
           <Link className="more" href="/citizens">BROWSE ALL 4040 →</Link>
         </div>
@@ -248,7 +289,7 @@ export default function Home() {
         <div className="section-bar">
           <div className="left-col">
             <span className="kicker">FIVE NAMED RIVALRIES · TEN DOCTRINES AT WAR</span>
-            <h2>The civilizations <em>do not agree.</em></h2>
+            <h2>The civilizations <em>do not agree</em></h2>
           </div>
           <Link className="more" href="/lore">READ THE LORE →</Link>
         </div>
@@ -305,7 +346,7 @@ export default function Home() {
       <section className="onchain reveal">
         <div style={{ marginBottom: 24 }}>
           <span className="kicker">ON-CHAIN</span>
-          <h2 style={{ marginTop: 12 }}>Truths that <em>don&apos;t move.</em></h2>
+          <h2 style={{ marginTop: 12 }}>Truths that <em>don&apos;t move</em></h2>
         </div>
         <div className="trinity">
           <div className="cell">

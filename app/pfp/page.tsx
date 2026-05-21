@@ -13,7 +13,7 @@ export default function PfpPage() {
         <span className="kicker">⬡ HEX-FRAME GENERATOR · CITIZEN UTILITY</span>
         <h1>
           Wear the<br />
-          <em>signal.</em>
+          <em>signal</em>
         </h1>
         <p className="lead">
           Upload your avatar. The hex frames it. Download. Set as your PFP.

@@ -26,7 +26,7 @@ export default function Manifesto() {
         <span className="kicker">⬡ TEN VERSES · SEALED ON-CHAIN</span>
         <h1>
           The signal didn&apos;t die.<br />
-          <em>It moved.</em>
+          <em>It moved</em>
         </h1>
         <p className="lead">
           Ten verses, ten doctrines, one contract. Read once. Speak once.

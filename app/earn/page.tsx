@@ -145,7 +145,7 @@ export default function EarnPage() {
     <main className="earn-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
       <span className="kicker">⬡ ECONOMY · EARN + SPEND</span>
       <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(48px, 8vw, 96px)", lineHeight: 0.94, letterSpacing: "-0.02em", marginTop: "var(--s-3)" }}>
-        Every way the city <em>pays.</em>
+        Every way the city <em>pays</em>
       </h1>
       <p className="lead" style={{ maxWidth: 680, marginTop: "var(--s-3)" }}>
         Hex points are the city's internal credit. You earn them by participating,

@@ -28,7 +28,7 @@ export default function Dashboard() {
       <section className="dashboard-hero">
         <span className="kicker">⬡ FREELON CITY · ECONOMIC LAYER</span>
         <h1>
-          The <em>numbers.</em>
+          The <em>numbers</em>
         </h1>
         <p className="lead">
           Live floor × civilization population × your holdings. The city, valued.

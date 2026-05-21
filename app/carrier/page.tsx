@@ -13,7 +13,7 @@ export default function CarrierPage() {
         <span className="kicker">⬡ CARRIER PROTOCOL · NON-HOLDER STATUS</span>
         <h1>
           Holders own citizens.<br />
-          <em>Carriers hold the signal.</em>
+          <em>Carriers hold the signal</em>
         </h1>
         <p className="lead">
           Sync your handle. Relay the signal daily. Your rank climbs from <strong>DARK</strong> to <strong>BEARER</strong> the more you transmit.

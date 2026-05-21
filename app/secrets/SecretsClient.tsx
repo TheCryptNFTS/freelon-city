@@ -77,7 +77,7 @@ export function SecretsClient() {
         ⬡ /SECRETS · {score} / 5
       </div>
       <h1 style={{ marginTop: 14, fontSize: 44, fontWeight: 300 }}>
-        Five hidden <em>signals.</em>
+        Five hidden <em>signals</em>
       </h1>
       <p style={{ marginTop: 12, fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6 }}>
         Hints, not solutions. Find them yourself.

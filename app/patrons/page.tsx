@@ -30,7 +30,7 @@ export default async function PatronsPage() {
     <main className="patrons-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
       <span className="kicker">⬡ THE PATRONS WALL · 7-DAY TITHES</span>
       <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(48px, 8vw, 96px)", lineHeight: 0.94, letterSpacing: "-0.02em", marginTop: "var(--s-3)" }}>
-        Names burned <em>into the city.</em>
+        Names burned <em>into the city</em>
       </h1>
       <p className="lead" style={{ maxWidth: 680, marginTop: "var(--s-3)" }}>
         Burn hex points → your name appears here for 7 days, sorted by burn amount.

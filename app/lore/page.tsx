@@ -20,7 +20,7 @@ export default function LorePage() {
         <span className="term-badge flicker"><span className="dot" />THE CANON · CYCLE 0404</span>
         <h1>
           A signal. A city.<br />
-          <em>A civilization on Mars.</em>
+          <em>A civilization on Mars</em>
         </h1>
         <p className="lead">
           Everything you need to know about FREELON CITY — the founding, the
@@ -52,7 +52,7 @@ export default function LorePage() {
         <span className="kicker">⬡ III · THE TEN CIVILIZATIONS</span>
         <h2>
           Each one a doctrine.<br />
-          <em>Each one a grudge.</em>
+          <em>Each one a grudge</em>
         </h2>
       </section>
 
@@ -119,7 +119,7 @@ export default function LorePage() {
       <section className="lore-cta">
         <h3>
           The signal is open.<br />
-          <em>Find where you belong.</em>
+          <em>Find where you belong</em>
         </h3>
         <div className="cta-row">
           <Link href="/sync" className="btn btn-gold">

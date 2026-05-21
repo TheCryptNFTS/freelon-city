@@ -11,7 +11,7 @@ export default function LegalIndex() {
     <main className="legal-page">
       <section className="legal-hero">
         <span className="kicker">⬡ LEGAL · DOCUMENTS</span>
-        <h1>The <em>paperwork.</em></h1>
+        <h1>The <em>paperwork</em></h1>
         <p className="lead">
           FREELON CITY is a 4040-citizen art collection sealed on Ethereum
           contract <code>0xa79e…b504</code>. The contract is immutable; the
