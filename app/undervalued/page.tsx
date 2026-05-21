@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { CIVILIZATIONS, heroImageUrl, openseaUrl } from "@/lib/constants";
+
+const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
 import citizensData from "@/data/citizens.json";
 import type { Citizen } from "@/lib/citizens";
 import type { ListingItem } from "@/app/api/opensea/listings/route";
@@ -183,6 +185,26 @@ export default async function UndervaluedPage() {
           })}
         </div>
       )}
+
+      <div
+        style={{
+          marginTop: "var(--s-7)",
+          display: "flex",
+          gap: "var(--s-3)",
+          flexWrap: "wrap",
+        }}
+      >
+        <a
+          className="btn btn-primary"
+          href={OPENSEA_COLLECTION_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="ttl">VIEW ALL LISTINGS →</span>
+        </a>
+        <Link className="btn btn-secondary" href="/heat"><span className="ttl">TRAIT HEAT →</span></Link>
+        <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
+      </div>
     </div>
   );
 }

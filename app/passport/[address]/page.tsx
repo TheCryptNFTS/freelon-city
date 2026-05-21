@@ -169,12 +169,12 @@ export default async function PassportPage({
         <div className="passport-cell">
           <span className="lbl">Dominant civ</span>
           <span className="val" style={{ color: civColor }}>
-            {dominantCiv?.name ?? "—"}
+            {dominantCiv?.name ?? "SYNCING"}
           </span>
         </div>
         <div className="passport-cell">
           <span className="lbl">Caste alignment</span>
-          <span className="val">{dominantCaste ?? "—"}</span>
+          <span className="val">{dominantCaste ?? "SYNCING"}</span>
         </div>
         <div className="passport-cell">
           <span className="lbl">Hex balance</span>
@@ -195,7 +195,7 @@ export default async function PassportPage({
           <span className="val">
             {cityRank !== null
               ? `#${cityRank}${totalRanked ? ` / ${totalRanked}` : ""}`
-              : "—"}
+              : "SYNCING"}
           </span>
         </div>
       </div>
@@ -235,17 +235,26 @@ export default async function PassportPage({
           href={tweetUrl}
           target="_blank"
           rel="noreferrer"
-          className="btn"
+          className="btn btn-primary"
         >
-          GENERATE PASSPORT CARD ↗
+          <span className="ttl">GENERATE PASSPORT CARD ↗</span>
         </a>
-        <a href={ogUrl} target="_blank" rel="noreferrer" className="btn">
-          VIEW CARD IMAGE
+        <a href={ogUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
+          <span className="ttl">VIEW CARD IMAGE</span>
         </a>
-        <Link href={`/wallet/${norm}`} className="btn">
-          ← Wallet
+        <Link href={`/wallet/${norm}`} className="btn btn-ghost">
+          <span className="ttl">← Wallet</span>
         </Link>
       </div>
+      <section className="passport-next" style={{ maxWidth: 1100, margin: "var(--s-6) auto 0", padding: "0 var(--s-4)", textAlign: "center" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
+          Share your card. Every passport posted strengthens the city.
+        </p>
+        <a className="btn btn-primary" href={tweetUrl} target="_blank" rel="noreferrer">
+          <span className="ttl">POST PASSPORT TO X ↗</span>
+        </a>
+      </section>
     </main>
   );
 }

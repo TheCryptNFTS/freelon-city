@@ -173,7 +173,10 @@ export default async function DefendersPage() {
           flexWrap: "wrap",
         }}
       >
-        <Link className="btn btn-primary" href="/earn">
+        <Link className="btn btn-primary" href="/earn#defender">
+          <span className="ttl">BECOME A DEFENDER →</span>
+        </Link>
+        <Link className="btn btn-secondary" href="/earn">
           <span className="ttl">HOW TO EARN →</span>
         </Link>
         <Link className="btn btn-secondary" href="/leaderboard">

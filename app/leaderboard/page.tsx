@@ -33,7 +33,7 @@ export default async function LeaderboardPage() {
           <h2 className="kicker" style={{ display: "block", marginBottom: "var(--s-3)" }}>⬡ CURRENT BALANCE</h2>
           {byBalance.length === 0 ? (
             <p style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.16em" }}>
-              No earnings yet. Be the first.
+              SYNCING THE LEDGER. CLAIM RANK 01 →
             </p>
           ) : (
             <ol className="lb-list">
@@ -52,7 +52,7 @@ export default async function LeaderboardPage() {
           <h2 className="kicker" style={{ display: "block", marginBottom: "var(--s-3)" }}>⬡ LIFETIME EARNED</h2>
           {byLifetime.length === 0 ? (
             <p style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.16em" }}>
-              No earnings yet.
+              SYNCING LIFETIME EARNED. START STACKING →
             </p>
           ) : (
             <ol className="lb-list">
@@ -68,10 +68,14 @@ export default async function LeaderboardPage() {
         </section>
       </div>
 
-      <div style={{ marginTop: "var(--s-6)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-        <Link className="btn btn-primary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
-        <Link className="btn btn-secondary" href="/patrons"><span className="ttl">PATRONS WALL →</span></Link>
-      </div>
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href="/carrier"><span className="ttl">CLIMB THE RANK →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+          <Link className="btn btn-secondary" href="/patrons"><span className="ttl">PATRONS WALL →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

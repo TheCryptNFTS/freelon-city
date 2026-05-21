@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ShopGrid } from "./ShopGrid";
 import { CATEGORIES, ITEMS, itemsByCategory } from "@/lib/shop";
 
@@ -17,7 +18,7 @@ export default function ShopPage() {
       <section className="shop-hero">
         <span className="kicker">⬡ HEX SHOP · OFF-CHAIN INVENTORY</span>
         <h1>
-          Spend the signal.<br />
+          Spend the signal<br />
           <em>Own a piece of the city</em>
         </h1>
         <p className="lead">
@@ -36,6 +37,15 @@ export default function ShopPage() {
       </div>
 
       <ShopGrid />
+
+      <section style={{ marginTop: "var(--s-6)", padding: "0 var(--pad)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href="/earn"><span className="ttl">EARN MORE HEX →</span></Link>
+          <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">LEADERBOARD →</span></Link>
+          <Link className="btn btn-secondary" href="/patrons"><span className="ttl">PATRONS WALL →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

@@ -60,7 +60,7 @@ export default function RebuildPage() {
         <h1>
           48 hours.<br />
           <em>4040 citizens</em><br />
-          Zero traits changed.
+          Zero traits changed
         </h1>
         <p className="lead">
           The art rebuild that didn&apos;t touch the contract. A timeline.
@@ -91,8 +91,9 @@ export default function RebuildPage() {
         </div>
       </section>
       <section className="rebuild-cta">
-        <Link className="btn btn-gold" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
-        <Link className="btn" href="/manifesto"><span className="ttl">READ THE MANIFESTO →</span></Link>
+        <Link className="btn btn-primary" href="/civilizations"><span className="ttl">EXPLORE THE CITY →</span></Link>
+        <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
+        <Link className="btn btn-secondary" href="/manifesto"><span className="ttl">READ THE MANIFESTO →</span></Link>
       </section>
     </main>
   );

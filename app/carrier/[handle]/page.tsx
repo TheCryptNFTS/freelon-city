@@ -69,19 +69,28 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
         </Link>
       </section>
       <section className="cp-cta">
-        <a className="btn btn-gold" href={intent} target="_blank" rel="noreferrer">
+        <a className="btn btn-primary" href={intent} target="_blank" rel="noreferrer">
           <span className="lbl">RELAY</span>
           <span className="ttl">SHARE THIS PROFILE <span className="ar">→</span></span>
         </a>
-        <Link className="btn" href={`/civilizations/${r.civilization}`}>
+        <Link className="btn btn-secondary" href={`/civilizations/${r.civilization}`}>
           <span className="lbl">ENTER</span>
           <span className="ttl">{civ?.name?.toUpperCase()} →</span>
         </Link>
-        <a className="btn" href={openseaUrl(r.patron.id)} target="_blank" rel="noreferrer">
+        <a className="btn btn-ghost" href={openseaUrl(r.patron.id)} target="_blank" rel="noreferrer">
           <span className="ttl">VIEW PATRON ON OPENSEA ↗</span>
         </a>
-        <Link className="btn" href="/carrier">
+        <Link className="btn btn-ghost" href="/carrier">
           <span className="ttl">CLAIM YOUR OWN CARRIER →</span>
+        </Link>
+      </section>
+      <section className="cp-next" style={{ maxWidth: 1100, margin: "var(--s-6) auto 0", padding: "0 var(--s-4)", textAlign: "center" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
+          This is @{h}. If it&rsquo;s you, your dashboard tracks streak, decay, and ⬡.
+        </p>
+        <Link className="btn btn-primary" href="/carrier">
+          <span className="ttl">OPEN MY CARRIER DASH →</span>
         </Link>
       </section>
     </main>

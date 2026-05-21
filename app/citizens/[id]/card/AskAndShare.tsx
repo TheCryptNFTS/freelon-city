@@ -100,7 +100,7 @@ export function AskAndShare({
 
       <div className="card-actions">
         <a
-          className={`btn btn-gold${canShare ? "" : " is-disabled"}`}
+          className={`btn btn-primary${canShare ? "" : " is-disabled"}`}
           href={canShare ? tweetUrl : undefined}
           target="_blank"
           rel="noreferrer"

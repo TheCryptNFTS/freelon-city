@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CIVILIZATIONS, CONTRACT } from "@/lib/constants";
 import citizensData from "@/data/citizens.json";
 import type { Citizen } from "@/lib/citizens";
@@ -231,6 +232,18 @@ export default async function HeatPage() {
           ))}
         </div>
       )}
+
+      <div
+        style={{
+          marginTop: "var(--s-7)",
+          display: "flex",
+          gap: "var(--s-3)",
+          flexWrap: "wrap",
+        }}
+      >
+        <Link className="btn btn-primary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
+        <Link className="btn btn-secondary" href="/undervalued"><span className="ttl">SEE UNDERVALUED →</span></Link>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CivValueChart } from "@/components/CivValueChart";
 import { HexNetWorth } from "@/components/HexNetWorth";
 import { HexIndex } from "@/components/HexIndex";
@@ -70,6 +71,22 @@ export default function Dashboard() {
       <CivValueChart />
       <HolderDistributionChart />
       <LiveSalesFeed />
+
+      <section style={{ marginTop: "var(--s-6)", maxWidth: "var(--maxw)", margin: "var(--s-6) auto 0", padding: "0 var(--pad)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <a
+            className="btn btn-primary"
+            href="https://opensea.io/assets/ethereum/0xa79e73c9828db3fcd7c77be7d9f356fb684b5504"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="ttl">GET A FREELON <span className="ar">↗</span></span>
+          </a>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+          <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">LEADERBOARD →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

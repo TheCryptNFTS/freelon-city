@@ -122,11 +122,11 @@ export default function LorePage() {
           <em>Find where you belong</em>
         </h3>
         <div className="cta-row">
-          <Link href="/sync" className="btn btn-gold">
-            <span className="ttl">RECEIVE THE SIGNAL <span className="ar">→</span></span>
+          <Link href="/civilizations" className="btn btn-primary">
+            <span className="ttl">FIND YOUR CIVILIZATION <span className="ar">→</span></span>
           </Link>
-          <Link href="/civilizations" className="btn">
-            <span className="ttl">ENTER A CIVILIZATION →</span>
+          <Link href="/sync" className="btn btn-secondary">
+            <span className="ttl">RECEIVE THE SIGNAL →</span>
           </Link>
         </div>
       </section>

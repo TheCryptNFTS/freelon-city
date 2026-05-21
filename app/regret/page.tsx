@@ -20,6 +20,15 @@ export default function RegretPage() {
         and the price you sold for. The machine computes what the city did next.
       </p>
       <RegretForm />
+
+      <div style={{ marginTop: 48, paddingTop: 32, borderTop: "1px solid var(--line)" }}>
+        <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", color: "var(--ink-2)", marginBottom: 10 }}>
+          NEXT SIGNAL
+        </div>
+        <a className="btn" href="/graveyard">
+          <span className="ttl">VIEW THE GRAVEYARD →</span>
+        </a>
+      </div>
     </main>
   );
 }

@@ -241,14 +241,14 @@ export function CarrierClient() {
         </div>
         <AllDoctrinesBadge />
         <div className="rank-actions">
-          <a className="btn btn-gold" href={intent} target="_blank" rel="noreferrer" onClick={onRelay}>
+          <a className="btn btn-primary" href={intent} target="_blank" rel="noreferrer" onClick={onRelay}>
             <span className="lbl">+12 RANK</span>
             <span className="ttl">RELAY ON X <span className="ar">→</span></span>
           </a>
-          <a className="btn" href={`/carrier/${state.handle}`}>
+          <a className="btn btn-secondary" href={`/carrier/${state.handle}`}>
             <span className="ttl">VIEW PUBLIC PROFILE →</span>
           </a>
-          <button className="btn" onClick={onReset} type="button">
+          <button className="btn btn-ghost" onClick={onReset} type="button">
             <span className="ttl">RESET CARRIER</span>
           </button>
         </div>

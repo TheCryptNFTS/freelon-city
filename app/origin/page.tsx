@@ -37,10 +37,13 @@ export default function Page() {
         <div className="origin-chant">ON MARS. WE HEAR. WE SYNC. WE ARE.</div>
 
         <div className="origin-cta">
-          <Link href="/civilizations" className="btn btn-gold">
-            <span className="ttl">EXPLORE CIVILIZATIONS <span className="ar">→</span></span>
+          <Link href="/lore" className="btn btn-primary">
+            <span className="ttl">READ THE FULL LORE <span className="ar">→</span></span>
           </Link>
-          <Link href="/citizens" className="btn">
+          <Link href="/civilizations" className="btn btn-secondary">
+            <span className="ttl">EXPLORE CIVILIZATIONS →</span>
+          </Link>
+          <Link href="/citizens" className="btn btn-secondary">
             <span className="ttl">FIND YOUR CITIZEN →</span>
           </Link>
         </div>

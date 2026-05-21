@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CASTES } from "@/lib/constants";
 
 export const metadata = { title: "7 Castes" };
@@ -23,6 +24,15 @@ export default function Page() {
           </div>
         ))}
       </div>
+
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href="/citizens"><span className="ttl">BROWSE BY CASTE →</span></Link>
+          <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
+          <Link className="btn btn-secondary" href="/shapes"><span className="ttl">SEE THE 16 SHAPES →</span></Link>
+        </div>
+      </section>
     </div>
   );
 }

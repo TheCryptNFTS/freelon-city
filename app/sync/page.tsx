@@ -57,10 +57,9 @@ export default async function SyncPage({ searchParams }: { searchParams: Promise
       >
         <section className="sync-hero">
           <span className="kicker">⬡ NEWCOMER PROTOCOL · 0404</span>
-          <h1>Drop your handle.<br />Sync to your <em>civilization</em></h1>
+          <h1>Drop your handle<br />Sync to your <em>civilization</em></h1>
           <p>
-            FREELON CITY is divided into 10 Signal Doctrines. Your handle is hashed
-            once — same handle, same civ, every time. No randomness. No re-rolls.
+            10 Signal Doctrines. Your handle hashes to one — same handle, same civ, every time.
             The signal already knows.
           </p>
           <div className="big-input">
@@ -82,7 +81,7 @@ export default async function SyncPage({ searchParams }: { searchParams: Promise
         <span className="sw-text">
           <strong>SIGNAL FOUND</strong> · {civ.name.toUpperCase()} · {r.caste.toUpperCase()}
         </span>
-        <Link className="btn btn-gold" href={`/civilizations/${r.civilization}`}>
+        <Link className="btn btn-primary" href={`/civilizations/${r.civilization}`}>
           <span className="ttl">EXPLORE YOUR CIVILIZATION →</span>
         </Link>
       </div>
@@ -111,21 +110,30 @@ export default async function SyncPage({ searchParams }: { searchParams: Promise
         </div>
       </section>
       <section className="sync-cta">
-        <a className="btn btn-gold" href={intent} target="_blank" rel="noreferrer">
+        <a className="btn btn-primary" href={intent} target="_blank" rel="noreferrer">
           <span className="lbl">SHARE YOUR SYNC</span>
           <span className="ttl">POST TO X <span className="ar">→</span></span>
         </a>
-        <Link className="btn" href={`/civilizations/${r.civilization}`}>
+        <Link className="btn btn-secondary" href={`/civilizations/${r.civilization}`}>
           <span className="lbl">ENTER YOUR CIV</span>
           <span className="ttl">{civ.name.toUpperCase()} <span className="ar">→</span></span>
         </Link>
-        <a className="btn" href={openseaUrl(r.patron.id)} target="_blank" rel="noreferrer">
+        <a className="btn btn-ghost" href={openseaUrl(r.patron.id)} target="_blank" rel="noreferrer">
           <span className="lbl">PATRON</span>
           <span className="ttl">VIEW ON OPENSEA ↗</span>
         </a>
-        <Link className="btn" href="/sync">
+        <Link className="btn btn-ghost" href="/sync">
           <span className="lbl">DIFFERENT HANDLE?</span>
           <span className="ttl">RESYNC <span className="ar">→</span></span>
+        </Link>
+      </section>
+      <section className="sync-next" style={{ maxWidth: 1100, margin: "var(--s-6) auto 0", padding: "0 var(--s-4)", textAlign: "center" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
+          Step inside {civ.name}. Doctrine, chant, and the {civ.population} citizens who carry it.
+        </p>
+        <Link className="btn btn-primary" href={`/civilizations/${r.civilization}`}>
+          <span className="ttl">EXPLORE {civ.name.toUpperCase()} →</span>
         </Link>
       </section>
     </main>

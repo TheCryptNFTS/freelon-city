@@ -37,6 +37,10 @@ async function loadNames(): Promise<NameEntry[]> {
 
 export default async function NamesPage() {
   const names = await loadNames();
+  const tweetText = names.length > 0
+    ? `${names.length} citizen${names.length === 1 ? "" : "s"} of FREELON CITY have been carved into the ledger.\n\nfreeloncity.com/names`
+    : "Be the first to name a citizen of FREELON CITY.\n\nfreeloncity.com/names";
+  const shareIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
 
   return (
     <main className="names-page">
@@ -47,6 +51,12 @@ export default async function NamesPage() {
       <p style={{ color: "var(--ink-2)", maxWidth: 640 }}>
         Holders burned hex to rename their citizens. These names are permanent on the city ledger.
       </p>
+
+      <div style={{ marginTop: 16, display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <a className="btn" href={shareIntent} target="_blank" rel="noreferrer">
+          <span className="ttl">SHARE THE HALL →</span>
+        </a>
+      </div>
 
       {names.length === 0 ? (
         <div style={{ marginTop: 48, padding: 32, border: "1px solid var(--line)", textAlign: "center", color: "var(--ink-dim)" }}>
@@ -78,6 +88,15 @@ export default async function NamesPage() {
           })}
         </div>
       )}
+
+      <div style={{ marginTop: 48, paddingTop: 32, borderTop: "1px solid var(--line)" }}>
+        <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", color: "var(--ink-2)", marginBottom: 10 }}>
+          NEXT SIGNAL
+        </div>
+        <a className="btn btn-gold" href="/citizens">
+          <span className="ttl">NAME YOUR CITIZEN →</span>
+        </a>
+      </div>
     </main>
   );
 }

@@ -40,6 +40,15 @@ export default function Page() {
           </Link>
         ))}
       </section>
+
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href="/sync"><span className="ttl">FIND YOUR CIVILIZATION →</span></Link>
+          <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

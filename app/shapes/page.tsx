@@ -41,6 +41,15 @@ export default function Page() {
           );
         })}
       </section>
+
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href="/citizens"><span className="ttl">BROWSE BY SHAPE →</span></Link>
+          <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
+          <Link className="btn btn-secondary" href="/castes"><span className="ttl">SEE THE 7 CASTES →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

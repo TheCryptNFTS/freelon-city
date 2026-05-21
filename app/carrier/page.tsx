@@ -12,15 +12,24 @@ export default function CarrierPage() {
       <section className="carrier-hero">
         <span className="kicker">⬡ CARRIER PROTOCOL · NON-HOLDER STATUS</span>
         <h1>
-          Holders own citizens.<br />
+          Holders own citizens<br />
           <em>Carriers hold the signal</em>
         </h1>
         <p className="lead">
-          Sync your handle. Relay the signal daily. Your rank climbs from <strong>DARK</strong> to <strong>BEARER</strong> the more you transmit.
-          Skip a day, the signal decays. The city remembers who carried it.
+          Sync your handle. Relay daily. Your rank climbs from <strong>DARK</strong> to <strong>BEARER</strong> the more you transmit.
+          Skip a day, the signal decays. The city remembers.
         </p>
       </section>
       <CarrierClient />
+      <section className="carrier-next" style={{ maxWidth: 1200, margin: "var(--s-6) auto 0", padding: "0 var(--s-4)", textAlign: "center" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
+          Carrying isn&rsquo;t the only path. Burn ⬡ for a permanent name on a citizen.
+        </p>
+        <a className="btn btn-primary" href="/patrons">
+          <span className="ttl">BURN HEX FOR YOUR NAME →</span>
+        </a>
+      </section>
     </main>
   );
 }

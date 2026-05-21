@@ -255,8 +255,8 @@ export default async function WalletPage({
           <code>{norm}</code>
         </p>
         <p style={{ marginTop: "var(--s-3)" }}>
-          <Link href={`/passport/${norm}`} className="btn">
-            VIEW PASSPORT →
+          <Link href={`/passport/${norm}`} className="btn btn-primary">
+            <span className="ttl">VIEW PASSPORT →</span>
           </Link>
         </p>
       </section>
@@ -276,7 +276,7 @@ export default async function WalletPage({
             {rank !== null && totalHolders !== null
               ? `#${rank} / ${totalHolders}`
               : balance > 0
-              ? "—"
+              ? "SYNCING"
               : "Not a holder"}
           </span>
           <span className="ws-sub">among all FREELON holders</span>
@@ -301,8 +301,8 @@ export default async function WalletPage({
             </>
           ) : (
             <>
-              <span className="ws-value">—</span>
-              <span className="ws-sub">no history available</span>
+              <span className="ws-value">SYNCING</span>
+              <span className="ws-sub">indexing on-chain history</span>
             </>
           )}
         </div>
@@ -394,25 +394,34 @@ export default async function WalletPage({
       </section>
 
       <section className="wallet-foot">
-        <Link href="/dashboard" className="btn">
-          ← Dashboard
+        <Link href="/dashboard" className="btn btn-ghost">
+          <span className="ttl">← Dashboard</span>
         </Link>
         <a
           href={`https://etherscan.io/address/${norm}`}
           target="_blank"
           rel="noreferrer"
-          className="btn"
+          className="btn btn-ghost"
         >
-          Etherscan ↗
+          <span className="ttl">Etherscan ↗</span>
         </a>
         <a
           href={`https://opensea.io/${norm}`}
           target="_blank"
           rel="noreferrer"
-          className="btn"
+          className="btn btn-ghost"
         >
-          OpenSea ↗
+          <span className="ttl">OpenSea ↗</span>
         </a>
+      </section>
+      <section className="wallet-next" style={{ maxWidth: 1100, margin: "var(--s-6) auto 0", padding: "0 var(--s-4)", textAlign: "center" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
+          Your passport classifies this wallet by holdings, hex, streak, and rank.
+        </p>
+        <Link href={`/passport/${norm}`} className="btn btn-primary">
+          <span className="ttl">VIEW PASSPORT →</span>
+        </Link>
       </section>
     </main>
   );

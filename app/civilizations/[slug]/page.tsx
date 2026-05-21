@@ -117,6 +117,15 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <Link href="/civilizations" className="terminal text-[var(--color-ink-dim)] text-sm uppercase tracking-widest hover:text-[var(--color-gold)]">← all civilizations</Link>
         <span className="terminal text-[var(--color-ink-dim)] text-sm uppercase tracking-widest">{citizens.length} total citizens</span>
       </div>
+
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href={`/citizens?civ=${slug}`} style={{ borderColor: c.color, background: c.color, color: "var(--bg)" }}><span className="ttl">EXPLORE {c.name.toUpperCase()} CITIZENS →</span></Link>
+          <Link className="btn btn-secondary" href="/sync"><span className="ttl">SYNC YOUR HANDLE →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+        </div>
+      </section>
     </div>
   );
 }

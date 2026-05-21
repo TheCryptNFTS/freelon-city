@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { heroImageUrl } from "@/lib/constants";
 
+const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
+
 export const revalidate = 300;
 
 export const metadata: Metadata = {
@@ -235,7 +237,15 @@ export default async function GraveyardPage() {
           flexWrap: "wrap",
         }}
       >
-        <Link className="btn btn-primary" href="/defenders">
+        <a
+          className="btn btn-primary"
+          href={OPENSEA_COLLECTION_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="ttl">BUY ON OPENSEA →</span>
+        </a>
+        <Link className="btn btn-secondary" href="/defenders">
           <span className="ttl">FLOOR DEFENDERS →</span>
         </Link>
         <Link className="btn btn-secondary" href="/leaderboard">

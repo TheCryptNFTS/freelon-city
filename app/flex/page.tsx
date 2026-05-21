@@ -20,6 +20,15 @@ export default function FlexPage() {
         you a shareable card that proves you were here first.
       </p>
       <FlexClient />
+
+      <div style={{ marginTop: 48, paddingTop: 32, borderTop: "1px solid var(--line)" }}>
+        <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", color: "var(--ink-2)", marginBottom: 10 }}>
+          NEXT SIGNAL
+        </div>
+        <a className="btn" href="/defenders">
+          <span className="ttl">VIEW THE DEFENDERS →</span>
+        </a>
+      </div>
     </main>
   );
 }

@@ -141,6 +141,15 @@ export function DoppelClient() {
               </div>
             </div>
           </div>
+
+          <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--line)" }}>
+            <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", color: "var(--ink-2)", marginBottom: 10 }}>
+              NEXT SIGNAL
+            </div>
+            <a className="btn" href={`/civilizations/${match.civSlug}`} style={{ borderColor: match.civColor }}>
+              <span className="ttl">EXPLORE {match.civName.toUpperCase()} →</span>
+            </a>
+          </div>
         </div>
       )}
     </>

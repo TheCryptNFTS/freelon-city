@@ -124,6 +124,15 @@ export default function Citizens() {
         </header>
         <CitizensBrowser all={mini} />
       </section>
+
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href="/sync"><span className="ttl">FIND YOUR CITIZEN →</span></Link>
+          <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

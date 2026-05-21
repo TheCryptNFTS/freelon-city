@@ -148,8 +148,8 @@ export default function EarnPage() {
         Every way the city <em>pays</em>
       </h1>
       <p className="lead" style={{ maxWidth: 680, marginTop: "var(--s-3)" }}>
-        Hex points are the city's internal credit. You earn them by participating,
-        spend them on status. They never leave the site — no token, no taxes, no rug.
+        Hex points are the city's internal credit. Earn them by participating,
+        spend them on status. Every action below pays.
       </p>
 
       <section style={{ marginTop: "var(--s-6)" }}>
@@ -166,16 +166,19 @@ export default function EarnPage() {
         </div>
       </section>
 
-      <section style={{ marginTop: "var(--s-6)", display: "grid", gap: "var(--s-3)", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        <Link className="btn btn-primary" href="/carrier">
-          <span className="ttl">START EARNING →</span>
-        </Link>
-        <Link className="btn btn-secondary" href="/patrons">
-          <span className="ttl">SEE THE PATRONS →</span>
-        </Link>
-        <Link className="btn btn-secondary" href="/leaderboard">
-          <span className="ttl">LEADERBOARD →</span>
-        </Link>
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "grid", gap: "var(--s-3)", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          <Link className="btn btn-primary" href="/carrier">
+            <span className="ttl">START EARNING NOW →</span>
+          </Link>
+          <Link className="btn btn-secondary" href="/patrons">
+            <span className="ttl">SEE THE PATRONS →</span>
+          </Link>
+          <Link className="btn btn-secondary" href="/leaderboard">
+            <span className="ttl">LEADERBOARD →</span>
+          </Link>
+        </div>
       </section>
     </main>
   );

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Lexicon · The city's vocabulary · FREELON CITY",
@@ -102,6 +103,19 @@ export default function Lexicon() {
           </dl>
         </section>
       ))}
+      <section
+        style={{
+          maxWidth: 960,
+          margin: "var(--s-7) auto 0",
+          padding: "0 var(--s-4)",
+          display: "flex",
+          gap: "var(--s-3)",
+          flexWrap: "wrap",
+        }}
+      >
+        <Link className="btn btn-primary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
+        <Link className="btn btn-secondary" href="/lore"><span className="ttl">READ THE CANON →</span></Link>
+      </section>
     </main>
   );
 }

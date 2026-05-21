@@ -178,7 +178,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </Link>
             {c.honoree_handle && (
               <a
-                className="btn btn-gold"
+                className="btn btn-primary"
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${c.honoree_handle} — citizen #${id4} of FREELON CITY carries your name.\n\nfreeloncity.com/tribute/${cleanHandle}`)}`}
                 target="_blank" rel="noreferrer"
               >
@@ -200,6 +200,15 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           </nav>
         </section>
       </article>
+
+      <section style={{ marginTop: "var(--s-5)", maxWidth: "var(--maxw)", margin: "var(--s-5) auto 0", padding: "0 var(--pad)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <a className="btn btn-primary" href={openseaUrl(tid)} target="_blank" rel="noreferrer"><span className="ttl">BUY ON OPENSEA ↗</span></a>
+          <Link className="btn btn-secondary" href={`/civilizations/${c.civilization}`}><span className="ttl">EXPLORE {civ?.name?.toUpperCase()} →</span></Link>
+          <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

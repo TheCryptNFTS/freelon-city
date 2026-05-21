@@ -83,7 +83,7 @@ export default function Home() {
       <section className="why-freelon">
         <span className="kicker">⬡ THE CITY PAYS YOU TO LIVE IN IT</span>
         <h2 className="why-headline">
-          Hold a citizen. <em>Earn the city's credit.</em><br />
+          Hold a citizen. <em>Earn the city's credit</em><br />
           Spend it on legend.
         </h2>
         <div className="why-grid">
@@ -207,9 +207,9 @@ export default function Home() {
           <div>
             <span className="kicker">⬡ THE NUMBERS ARE THE CITY</span>
             <h2 className="lead">
-              One contract.<br />
-              No admin key.<br />
-              No <em>roadmap</em>
+              One contract<br />
+              4040 souls<br />
+              The signal moves <em>through us</em>
             </h2>
           </div>
           <div className="stat-row">

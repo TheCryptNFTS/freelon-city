@@ -64,13 +64,32 @@ export function FifthBracketClient() {
       </div>
 
       <div style={{ marginTop: 32, display: "flex", gap: 14, flexWrap: "wrap" }}>
-        <Link href="/carrier" className="btn btn-gold">
+        <Link href="/carrier" className="btn btn-primary">
           <span className="lbl">CARRY THE SIGNAL</span>
           <span className="ttl">OPEN CARRIER <span className="ar">→</span></span>
         </Link>
-        <Link href="/secrets" className="btn">
+        <Link href="/secrets" className="btn btn-secondary">
           <span className="ttl">/SECRETS <span className="ar">→</span></span>
         </Link>
+      </div>
+
+      <div
+        style={{
+          marginTop: 28,
+          padding: "14px 16px",
+          border: "1px dashed var(--line)",
+          fontFamily: "var(--mono2)",
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "var(--ink-2)",
+          lineHeight: 1.7,
+        }}
+      >
+        ⏰ SET A REMINDER FOR 04:04 UTC →<br />
+        <span style={{ textTransform: "none", letterSpacing: "0.04em", color: "var(--ink-dim)" }}>
+          the window opens daily for eight minutes. no alarm here. set one yourself.
+        </span>
       </div>
 
       <p style={{ marginTop: 40, fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-2)" }}>

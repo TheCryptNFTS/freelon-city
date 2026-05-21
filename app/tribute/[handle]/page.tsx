@@ -123,7 +123,7 @@ export default async function TributePage({ params }: { params: Promise<{ handle
             <pre className="tweet-body">{tweet}</pre>
             <div className="cta-row">
               <a
-                className="btn btn-gold"
+                className="btn btn-primary"
                 href={twitterIntent}
                 target="_blank"
                 rel="noreferrer"
@@ -147,6 +147,15 @@ export default async function TributePage({ params }: { params: Promise<{ handle
       </section>
       <section className="tribute-back">
         <Link href="/tribute">← ALL 35 TRIBUTES</Link>
+      </section>
+
+      <section style={{ marginTop: "var(--s-5)", maxWidth: "var(--maxw)", margin: "var(--s-5) auto 0", padding: "0 var(--pad)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <a className="btn btn-primary" href={openseaUrl(h.id)} target="_blank" rel="noreferrer"><span className="ttl">VIEW ON OPENSEA ↗</span></a>
+          <Link className="btn btn-secondary" href={`/civilizations/${h.civilization}`}><span className="ttl">EXPLORE {civ?.name?.toUpperCase()} →</span></Link>
+          <Link className="btn btn-secondary" href="/tribute"><span className="ttl">ALL 35 TRIBUTES →</span></Link>
+        </div>
       </section>
     </main>
   );

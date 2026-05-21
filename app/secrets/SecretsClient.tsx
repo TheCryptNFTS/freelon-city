@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { loadSecrets, SecretsState, totalDiscovered } from "@/lib/secrets-store";
 
 const HINTS: { n: number; hint: string }[] = [
@@ -118,6 +119,11 @@ export function SecretsClient() {
       <p style={{ marginTop: 32, fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-2)" }}>
         DISCOVERIES LIVE IN YOUR BROWSER. CLEARING STORAGE FORGETS THE CITY.
       </p>
+
+      <div style={{ marginTop: 40, display: "flex", gap: 14, flexWrap: "wrap" }}>
+        <Link href="/earn" className="btn btn-primary"><span className="ttl">EARN HEX →</span></Link>
+        <Link href="/lore" className="btn btn-secondary"><span className="ttl">READ THE CANON →</span></Link>
+      </div>
     </main>
   );
 }

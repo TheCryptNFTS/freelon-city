@@ -42,8 +42,8 @@ export default function Manifesto() {
         ))}
       </section>
       <section className="manifesto-cta">
-        <Link className="btn btn-gold" href="/sync"><span className="ttl">SYNC TO A CIVILIZATION →</span></Link>
-        <Link className="btn" href="/lore"><span className="ttl">FULL CANON →</span></Link>
+        <Link className="btn btn-primary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
+        <Link className="btn btn-secondary" href="/lore"><span className="ttl">FULL CANON →</span></Link>
       </section>
     </main>
   );

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getAllActive, type Tithe } from "@/lib/tithe-store";
 import { CIVILIZATIONS } from "@/lib/constants";
 
@@ -93,6 +94,15 @@ export default async function PatronsPage() {
           );
         })}
       </div>
+
+      <section style={{ marginTop: "var(--s-6)" }}>
+        <span className="kicker">⬡ NEXT SIGNAL</span>
+        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary" href="/carrier"><span className="ttl">BURN HEX FOR YOUR NAME →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">EARN MORE HEX →</span></Link>
+          <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">LEADERBOARD →</span></Link>
+        </div>
+      </section>
     </main>
   );
 }
