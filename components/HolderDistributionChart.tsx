@@ -6,6 +6,7 @@ type Bucket = "1" | "2-5" | "6-20" | "21+";
 type Data = {
   totalHolders: number;
   totalSupply?: number;
+  sampleSize?: number;
   distribution: Record<Bucket, number>;
   top10: Array<{ address: string; count: number }>;
 };
@@ -80,6 +81,11 @@ export function HolderDistributionChart() {
           {data.totalHolders.toLocaleString()} unique wallets
           {data.totalSupply ? ` · ${data.totalSupply} citizens` : ""}
         </span>
+        {data.sampleSize ? (
+          <span className="hc-sample">
+            Bars + top wallets: rotating sample of {data.sampleSize} / {data.totalSupply ?? "—"}
+          </span>
+        ) : null}
       </div>
 
       <div className="hc-rows">
