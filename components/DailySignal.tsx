@@ -24,7 +24,7 @@ export function DailySignal() {
     <section className="daily-signal reveal" style={{ "--civ": civ.color } as React.CSSProperties}>
       <div className="ds-head">
         <span className="kicker">⬡ DAILY SIGNAL · TRANSMITTING NOW</span>
-        <span className="ds-countdown">NEXT IN {hh}:{mm}:{ss} · 04:04 UTC</span>
+        <span className="ds-countdown" aria-live="polite" aria-atomic="true">NEXT IN {hh}:{mm}:{ss} · 04:04 UTC</span>
       </div>
       <div className="ds-body">
         <div className="ds-cipher">{sig.cipher}</div>

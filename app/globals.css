@@ -1836,3 +1836,58 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .points-rules .pr-grid > :nth-child(odd) { color: var(--gold); letter-spacing: 0.04em; }
 .points-rules .pr-grid > :nth-child(even) { color: var(--ink-2); letter-spacing: 0.08em; }
 .rank-stats dd.hex-pts { color: var(--gold); }
+
+/* Skip link (accessibility) */
+.skip-link {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--gold); color: var(--bg);
+  padding: 12px 18px; font-family: var(--mono2); font-size: 12px;
+  letter-spacing: 0.2em; text-transform: uppercase; z-index: 9999;
+  border-radius: 0 0 4px 0;
+}
+.skip-link:focus { left: 0; top: 0; }
+
+/* Holder verification badges */
+.holder-flex {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4); margin-bottom: var(--s-4);
+  border: 1px solid var(--gold);
+  background: rgba(200,170,100,0.04);
+  border-radius: 2px;
+}
+.holder-flex .holder-count { font-family: var(--display); font-size: 24px; color: var(--gold); letter-spacing: -0.01em; }
+.holder-flex .holder-addr { font-family: var(--mono2); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.12em; margin-left: auto; }
+
+.owned-by-you {
+  display: inline-block; margin: var(--s-3) 0 var(--s-2);
+  padding: 6px 12px; border: 1px solid var(--gold);
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em;
+  color: var(--gold); background: rgba(200,170,100,0.06);
+  border-radius: 2px;
+}
+
+/* Citizen custom name display */
+.custom-name {
+  font-family: var(--mono2); font-size: 13px; letter-spacing: 0.22em;
+  color: var(--gold); text-transform: uppercase;
+  margin: var(--s-3) 0 var(--s-2);
+}
+
+/* Name editor */
+.name-editor {
+  margin: var(--s-6) 0; padding: var(--s-5);
+  background: var(--surface); border: 1px solid var(--line); border-top: 2px solid var(--gold);
+  border-radius: 4px;
+}
+.name-editor .kicker { display: block; margin-bottom: var(--s-3); }
+.name-editor form { display: flex; flex-direction: column; gap: var(--s-3); }
+.name-editor input {
+  width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--line); color: var(--ink);
+  padding: 12px 14px; font-family: var(--mono2); font-size: 14px;
+  letter-spacing: 0.06em; border-radius: 4px;
+}
+.name-editor input:focus { outline: none; border-color: var(--gold); }
+.name-editor .btn { width: 100%; }
+.name-editor .name-msg { font-family: var(--sans); font-size: 12px; color: var(--ink-dim); margin-top: var(--s-2); line-height: 1.5; }
+.name-editor .name-err { color: #c54a3a; }
+.name-editor .name-ok { color: #5ab368; }

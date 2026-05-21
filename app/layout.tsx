@@ -45,8 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://gateway.pinata.cloud" />
       </head>
       <body>
+        <a href="#main" className="skip-link">Skip to main content</a>
         <Header />
-        <main>{children}</main>
+        <main id="main">{children}</main>
         <Footer />
         <ScrollReveal />
         <Spotlight />

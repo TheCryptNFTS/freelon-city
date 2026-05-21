@@ -5,6 +5,7 @@ import { unlockCost } from "@/lib/deep-lore";
 import { normalizeHandle, syncHandle } from "@/lib/sync";
 import { getCitizen } from "@/lib/citizens";
 import { COST, CarrierState, POINTS } from "@/lib/carrier";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 function dayKey() { return Math.floor(Date.now() / 86400000); }
 
@@ -20,10 +21,12 @@ type Body = {
   recipient?: string;
 };
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const rl = await limit(req, "unlock-get", { max: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
   const { id } = await params;
   const cid = parseInt(id, 10);
-  const url = new URL(_req.url);
+  const url = new URL(req.url);
   const handle = normalizeHandle(url.searchParams.get("h") ?? "");
   if (!handle) return NextResponse.json({ unlocked: false });
   const unlocked = await hasUnlocked(handle, cid);
@@ -32,6 +35,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const rl = await limit(req, "unlock-post", { max: 12 });
+  if (!rl.ok) return tooManyResponse(rl);
   const { id } = await params;
   const cid = parseInt(id, 10);
   const citizen = getCitizen(cid);

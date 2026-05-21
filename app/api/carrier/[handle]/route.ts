@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCarrier, putCarrier } from "@/lib/carrier-store";
 import { syncHandle, normalizeHandle } from "@/lib/sync";
 import { CarrierState } from "@/lib/carrier";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +37,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ handle:
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ handle: string }> }) {
+  const rl = await limit(req, "carrier-post", { max: 20 });
+  if (!rl.ok) return tooManyResponse(rl);
   const { handle } = await params;
   const h = normalizeHandle(handle);
   if (!h) return NextResponse.json({ error: "invalid handle" }, { status: 400 });

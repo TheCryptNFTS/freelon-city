@@ -11,9 +11,13 @@ export function imageUrl(tokenId: number) {
   return `${IPFS_GATEWAY}/${IMAGE_CID}/${tokenId.toString().padStart(4, "0")}.jpg`;
 }
 
-// Fast local mirror for the 4 hero 1-of-1s — avoids IPFS gateway lag for LCP.
+// Fast local mirror for the 4 1-of-1s + 35 honoraries — avoids IPFS gateway lag.
 // Falls through to the IPFS URL if the tokenId is not in the local set.
-const LOCAL_HEROES = new Set([1, 404, 1337, 4040]);
+import citizensData from "@/data/citizens.json";
+const _localIds = (citizensData as Array<{ id: number; tier: string }>)
+  .filter((c) => c.tier === "Honorary" || c.tier === "One of One")
+  .map((c) => c.id);
+export const LOCAL_HEROES = new Set<number>(_localIds);
 export function heroImageUrl(tokenId: number) {
   if (LOCAL_HEROES.has(tokenId)) {
     return `/heroes/${tokenId.toString().padStart(4, "0")}.webp`;

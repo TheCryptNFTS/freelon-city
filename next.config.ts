@@ -31,6 +31,23 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
           // Belt-and-braces HSTS (Vercel already sets it, but make it explicit)
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              // Next.js inlines a hydration script; allow inline + eval for now (tighten later with nonces)
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io",
+              "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com",
+              "font-src 'self' https://cdn.fontshare.com data:",
+              "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link",
+              "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth.llamarpc.com https://ethereum.publicnode.com https://rpc.ankr.com https://*.upstash.io https://api.x.com https://plausible.io",
+              "frame-ancestors 'self'",
+              "base-uri 'self'",
+              "form-action 'self' https://twitter.com https://x.com",
+              "object-src 'none'",
+              "upgrade-insecure-requests",
+            ].join("; "),
+          },
         ],
       },
     ];

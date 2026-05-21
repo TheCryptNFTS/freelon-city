@@ -1,14 +1,18 @@
 import { ImageResponse } from "next/og";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
-import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
+import { imageUrl, CIVILIZATIONS, LOCAL_HEROES } from "@/lib/constants";
 
 export const runtime = "edge";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const tid = parseInt(id, 10);
   const c = getCitizen(tid);
   if (!c) return new Response("Not found", { status: 404 });
+  const id4src = tid.toString().padStart(4, "0");
+  const imgSrc = LOCAL_HEROES.has(tid)
+    ? new URL(`/heroes/${id4src}.webp`, req.url).toString()
+    : imageUrl(tid);
 
   const color = civilizationColor(c.civilization);
   const civ = (CIVILIZATIONS as Record<string, { name: string; doctrine: string }>)[c.civilization];
@@ -43,7 +47,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={imageUrl(tid)}
+            src={imgSrc}
             width="630"
             height="630"
             alt=""

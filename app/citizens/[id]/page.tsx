@@ -5,7 +5,10 @@ import { getCitizen, countSimilar, civilizationColor, getIdentity } from "@/lib/
 import { imageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
 import { ShareButtons } from "@/components/ShareButtons";
 import { CitizenDeepLore } from "@/components/CitizenDeepLore";
+import { CitizenOwnedByYou } from "@/components/CitizenOwnedByYou";
+import { CitizenNameEditor } from "@/components/CitizenNameEditor";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
+import { getName } from "@/lib/name-store";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -56,6 +59,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const civ = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; population: number }>)[c.civilization];
   const id4 = tid.toString().padStart(4, "0");
   const identity = getIdentity(tid);
+  const customName = await getName(tid).catch(() => null);
   const cleanHandle = (c.honoree_handle || "").replace(/^@/, "");
 
   return (
@@ -74,6 +78,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
         <section className="citizen-body">
           <span className="stamp">⬡ FREELON CITY · CITIZEN #{id4}</span>
+          <CitizenOwnedByYou citizenId={tid} />
+          {customName?.name && <div className="custom-name">{customName.name}</div>}
           {c.transmission_name && <h1>{c.transmission_name}</h1>}
           {c.honoree && !c.transmission_name && (
             <>
@@ -132,6 +138,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               <li><span>1 of</span><strong>{counts.sameCombo}</strong>with this exact civ × shape × tier</li>
             </ul>
           </div>
+
+          <CitizenNameEditor citizenId={tid} currentName={customName?.name ?? null} />
 
           <div className="cta-row">
             <a className="btn" href={openseaUrl(tid)} target="_blank" rel="noreferrer">

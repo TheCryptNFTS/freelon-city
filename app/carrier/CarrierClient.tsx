@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CarrierState, loadCarrier, initCarrier, relay, tickDecay, tier } from "@/lib/carrier";
 import { CIVILIZATIONS } from "@/lib/constants";
+import { useHolder } from "@/lib/useHolder";
 
 export function CarrierClient() {
   const [state, setState] = useState<CarrierState | null>(null);
   const [input, setInput] = useState("");
+  const holder = useHolder();
 
   useEffect(() => {
     const cur = loadCarrier();
@@ -72,6 +74,13 @@ export function CarrierClient() {
 
   return (
     <section className="carrier-dash" style={{ "--civ": civ?.color || "var(--gold)" } as React.CSSProperties}>
+      {holder.isHolder && holder.balance !== null && (
+        <div className="holder-flex" style={{ gridColumn: "1 / -1" }}>
+          <span className="kicker">⬡ VERIFIED HOLDER</span>
+          <span className="holder-count">{holder.balance} CITIZEN{holder.balance !== 1 ? "S" : ""}</span>
+          <span className="holder-addr">{holder.address?.slice(0, 6)}…{holder.address?.slice(-4)}</span>
+        </div>
+      )}
       <div className="rank-card">
         <div className="rank-meta">
           <span className="kicker">CARRIER · @{state.handle}</span>
