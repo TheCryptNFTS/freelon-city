@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.11",
-    "eslint-config-next": "^15.5.4",
-    "next": "^15.5.4",
+    "eslint-config-next": "^15.5.9",
+    "next": "^15.5.9",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
     "viem": "^2.50.4",
