@@ -5,6 +5,7 @@ import { getItem } from "@/lib/shop";
 import { normalizeHandle, syncHandle } from "@/lib/sync";
 import { CarrierState, POINTS } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { requireXSession } from "@/lib/require-x";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +30,9 @@ export async function POST(req: Request) {
   if (!handle) {
     return NextResponse.json({ error: "carrier handle required" }, { status: 400 });
   }
+  // Require verified X session bound to this handle
+  const session = await requireXSession(req, { handle });
+  if (session instanceof NextResponse) return session;
   if (!itemId) {
     return NextResponse.json({ error: "itemId required" }, { status: 400 });
   }

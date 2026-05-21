@@ -7,6 +7,7 @@ import {
   clientCredentials,
 } from "@/lib/x-oauth";
 import { setXVerification } from "@/lib/x-store";
+import { signSession, X_SESSION_COOKIE, sessionCookieOptions } from "@/lib/x-session";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,9 @@ export async function GET(req: Request) {
   const res = NextResponse.redirect(
     new URL(`/carrier?x_verified=${encodeURIComponent(xHandle)}`, url.origin),
   );
+  // Issue a 7-day HMAC-signed session cookie binding this browser to xHandle
+  const session = signSession({ xId, xHandle, bind });
+  res.cookies.set(X_SESSION_COOKIE, session, sessionCookieOptions());
   // Clear flow cookies
   res.cookies.delete("x_pkce_verifier");
   res.cookies.delete("x_oauth_state");

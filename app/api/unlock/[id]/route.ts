@@ -6,6 +6,7 @@ import { normalizeHandle, syncHandle } from "@/lib/sync";
 import { getCitizen } from "@/lib/citizens";
 import { COST, CarrierState, POINTS } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { requireXSession } from "@/lib/require-x";
 
 function dayKey() { return Math.floor(Date.now() / 86400000); }
 
@@ -49,6 +50,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (!handle) return NextResponse.json({ error: "carrier handle required" }, { status: 400 });
   if (action === "gift" && !recipient) return NextResponse.json({ error: "recipient required for gift" }, { status: 400 });
+
+  // Require verified X session bound to the payer's handle (mutations only)
+  const session = await requireXSession(req, { handle });
+  if (session instanceof NextResponse) return session;
 
   let carrier = await getCarrier(handle);
   if (!carrier) {

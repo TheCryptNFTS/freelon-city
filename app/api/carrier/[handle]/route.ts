@@ -3,6 +3,7 @@ import { getCarrier, putCarrier } from "@/lib/carrier-store";
 import { syncHandle, normalizeHandle } from "@/lib/sync";
 import { CarrierState } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { requireXSession } from "@/lib/require-x";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ handle:
   const { handle } = await params;
   const h = normalizeHandle(handle);
   if (!h) return NextResponse.json({ error: "invalid handle" }, { status: 400 });
+  // Require verified X session bound to this handle (mutations only)
+  const session = await requireXSession(req, { handle: h });
+  if (session instanceof NextResponse) return session;
   const body = (await req.json().catch(() => ({}))) as { action?: string };
   const today = dayKey();
 
