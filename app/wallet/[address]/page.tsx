@@ -8,6 +8,7 @@ import {
   LOCAL_HEROES,
 } from "@/lib/constants";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
+import { HexEarningsLog } from "@/components/HexEarningsLog";
 import {
   getWalletTokens,
   normalizeAddress,
@@ -299,6 +300,10 @@ export default async function WalletPage({
             </>
           )}
         </div>
+      </section>
+
+      <section className="wallet-hex-section" style={{ marginTop: "var(--s-5)" }}>
+        <HexEarningsLog address={norm} />
       </section>
 
       <section className="wallet-civs">

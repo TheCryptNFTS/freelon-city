@@ -4,6 +4,7 @@ import { CIVILIZATIONS, CivilizationSlug } from "@/lib/constants";
 import { getByCivilization } from "@/lib/citizens";
 import { CitizenCard } from "@/components/CitizenCard";
 import { CivVisitTracker } from "@/components/CivVisitTracker";
+import { QuestTracker } from "@/components/QuestTracker";
 
 export function generateStaticParams() {
   return Object.keys(CIVILIZATIONS).map((slug) => ({ slug }));
@@ -35,6 +36,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
       <CivVisitTracker slug={slug} />
+      <QuestTracker questId="city-tourist" stepId={slug} />
       <div className="terminal text-xs tracking-[0.3em]" style={{ color: c.color }}>{c.name.toUpperCase()}</div>
       <h1 className="mt-2 text-6xl font-light" style={{ color: c.color }}>{c.doctrine}</h1>
       <div className="mt-6 max-w-2xl text-[var(--color-ink-dim)] text-lg leading-relaxed">

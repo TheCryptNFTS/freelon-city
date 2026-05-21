@@ -1,0 +1,67 @@
+"use client";
+import { useEffect } from "react";
+
+type Props = {
+  questId: "city-tourist" | "archivist" | "hex-hunter" | "doctrine-master";
+  stepId: string;
+};
+
+/**
+ * Fire-and-forget quest step marker. Reads the wallet address OR carrier
+ * handle from localStorage and posts to /api/quests/[questId].
+ *
+ * Drop one of these on a page (e.g. civilization page → stepId=civSlug;
+ * honoree deep-lore panel → stepId="honoree:<handle>") and the user's
+ * progress accrues automatically. If they complete a quest, the API
+ * credits hex and returns { justCompleted: true, rewardHex: N }.
+ */
+export function QuestTracker({ questId, stepId }: Props) {
+  useEffect(() => {
+    try {
+      let key: string | null = null;
+      // Prefer wallet address if available
+      const w = typeof window !== "undefined"
+        ? (window as unknown as { ethereum?: { selectedAddress?: string } }).ethereum?.selectedAddress
+        : null;
+      if (w && /^0x[a-fA-F0-9]{40}$/.test(w)) key = w.toLowerCase();
+
+      // Fall back to carrier handle
+      if (!key) {
+        const carrierRaw = localStorage.getItem("freelon::carrier::v1");
+        if (carrierRaw) {
+          const parsed = JSON.parse(carrierRaw) as { handle?: string };
+          if (parsed?.handle) key = parsed.handle.toLowerCase();
+        }
+      }
+      if (!key) return; // Anonymous visitor — no progress tracked
+
+      // Local dedupe — don't spam the API for repeat visits in the same session
+      const localKey = `freelon::quest::${questId}::${stepId}::${key}`;
+      if (sessionStorage.getItem(localKey)) return;
+      sessionStorage.setItem(localKey, "1");
+
+      fetch(`/api/quests/${encodeURIComponent(questId)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, stepId }),
+        keepalive: true,
+      })
+        .then((r) => r.json())
+        .then((j: { justCompleted?: boolean; rewardHex?: number }) => {
+          if (j.justCompleted && j.rewardHex) {
+            // Fire a small toast event for any listening UI
+            window.dispatchEvent(
+              new CustomEvent("freelon:quest-complete", {
+                detail: { questId, reward: j.rewardHex },
+              }),
+            );
+          }
+        })
+        .catch(() => {});
+    } catch {
+      /* never break the page */
+    }
+  }, [questId, stepId]);
+
+  return null;
+}

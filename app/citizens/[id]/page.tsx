@@ -5,6 +5,7 @@ import { getCitizen, countSimilar, civilizationColor, getIdentity } from "@/lib/
 import { imageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
 import { ShareButtons } from "@/components/ShareButtons";
 import { CitizenDeepLore } from "@/components/CitizenDeepLore";
+import { QuestTracker } from "@/components/QuestTracker";
 import { CitizenOwnedByYou } from "@/components/CitizenOwnedByYou";
 import { CitizenNameEditor } from "@/components/CitizenNameEditor";
 import { CitizenRealignEditor } from "@/components/CitizenRealignEditor";
@@ -123,6 +124,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
+          {c.tier === "Honorary" && (
+            <QuestTracker questId="archivist" stepId={`honoree:${id4}`} />
+          )}
           <CitizenDeepLore
             citizenId={tid}
             cost={unlockCost(tid)}

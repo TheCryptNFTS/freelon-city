@@ -2677,3 +2677,57 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   letter-spacing: 0.16em;
 }
 .x-err code { color: #f5c5c5; }
+
+/* ============================ HEX EARNINGS LOG ============================ */
+.hex-log {
+  border: 1px solid var(--line);
+  padding: var(--s-4);
+  background: var(--surface);
+}
+.hex-log .kicker { display: block; color: var(--gold); margin-bottom: 4px; }
+.hex-log .hl-head { display: grid; grid-template-columns: 1fr auto; gap: 6px var(--s-4); align-items: baseline; margin-bottom: var(--s-3); }
+.hex-log .hl-balance {
+  font-family: var(--display);
+  font-size: clamp(32px, 5vw, 56px);
+  letter-spacing: -0.02em;
+  color: var(--gold-bright);
+  grid-row: 2;
+  grid-column: 1 / -1;
+}
+.hex-log .hl-lifetime { grid-column: 1 / -1; grid-row: 3; font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; color: var(--ink-dim); text-transform: uppercase; }
+.hex-log .hl-tick {
+  padding: 10px 14px;
+  background: rgba(200,170,100,0.06);
+  border: 1px solid rgba(200,170,100,0.25);
+  border-radius: 2px;
+  margin-bottom: var(--s-3);
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-2);
+}
+.hex-log .hl-tick-credit { color: var(--gold-bright); font-weight: 700; }
+.hex-log .hl-list { list-style: none; padding: 0; margin: 0; }
+.hex-log .hl-row {
+  display: grid;
+  grid-template-columns: 70px 1fr auto auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.hex-log .hl-row:first-child { border-top: none; }
+.hex-log .hl-kind { font-weight: 700; }
+.hex-log .hl-note { color: var(--ink); letter-spacing: 0.06em; }
+.hex-log .hl-amount { font-family: var(--display); font-size: 14px; letter-spacing: 0; }
+.hex-log .hl-time { color: var(--ink-dim); font-size: 10px; }
+.hex-log .hl-empty { color: var(--ink-dim); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.16em; }
+.hex-log-empty .hl-empty, .hex-log-loading .hl-empty { display: block; padding: var(--s-3) 0; }
+@media (max-width: 640px) {
+  .hex-log .hl-row { grid-template-columns: 60px 1fr; }
+  .hex-log .hl-amount { grid-column: 1 / -1; }
+  .hex-log .hl-time { grid-column: 2; text-align: right; }
+}

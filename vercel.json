@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/daily-signal",
       "schedule": "4 4 * * *"
+    },
+    {
+      "path": "/api/cron/sweep-bounty",
+      "schedule": "*/30 * * * *"
     }
   ]
 }
