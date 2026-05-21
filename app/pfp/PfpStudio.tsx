@@ -170,7 +170,7 @@ export function PfpStudio() {
                   disabled={locked}
                   title={locked ? "Gold frames are holder-only. Connect a wallet that owns a FREELON citizen." : ""}
                 >
-                  {f.toUpperCase()}{locked && " ⛔"}
+                  {f.toUpperCase()}{locked && " · LOCKED"}
                 </button>
               );
             })}

@@ -5,6 +5,7 @@ import { CarrierState, loadCarrier, initCarrier, relay, tickDecay, tier, claimDa
 import { CIVILIZATIONS } from "@/lib/constants";
 import { useHolder } from "@/lib/useHolder";
 import { getDailySignal } from "@/lib/daily-signal";
+import { AllDoctrinesBadge } from "@/components/AllDoctrinesBadge";
 
 export function CarrierClient() {
   const [state, setState] = useState<CarrierState | null>(null);
@@ -93,7 +94,7 @@ export function CarrierClient() {
       {state && (
         <div className="daily-claim-card" style={{ gridColumn: "1 / -1" }}>
           <span className="kicker">⬡ DAILY CLAIM</span>
-          <h3>{claimable ? "Today's signal is unclaimed." : "Claimed today ✓"}</h3>
+          <h3>{claimable ? "Today's signal is unclaimed." : "Claimed today."}</h3>
           <p>Share today's signal on X, then claim +10 ⬡.</p>
           <div className="claim-flow">
             <a className="btn" href={dailyIntent} target="_blank" rel="noreferrer" onClick={() => setShared(true)}>
@@ -142,6 +143,7 @@ export function CarrierClient() {
             <span>50</span><span>gift unlock for any citizen</span>
           </div>
         </div>
+        <AllDoctrinesBadge />
         <div className="rank-actions">
           <a className="btn btn-gold" href={intent} target="_blank" rel="noreferrer" onClick={onRelay}>
             <span className="lbl">+12 RANK</span>

@@ -46,6 +46,34 @@ export function AskAndShare({
 
   const canShare = !isNaN(askNumber) && askNumber > 0;
 
+  const [downloading, setDownloading] = useState(false);
+  const [downloadErr, setDownloadErr] = useState<string | null>(null);
+
+  async function downloadPng() {
+    if (downloading) return;
+    setDownloading(true);
+    setDownloadErr(null);
+    try {
+      const r = await fetch(`/api/og/card/${tokenId}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const ct = r.headers.get("content-type") || "";
+      if (!ct.startsWith("image/")) throw new Error("Bad response");
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `freelon-city-${id4}-listing.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setDownloadErr("DOWNLOAD FAILED — RETRY");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <>
       <div className="card-sales">
@@ -84,6 +112,20 @@ export function AskAndShare({
         <a className="btn" href={openseaUrl} target="_blank" rel="noreferrer">
           <span className="ttl">LIST ON OPENSEA ↗</span>
         </a>
+        <button
+          type="button"
+          className="btn"
+          onClick={downloadPng}
+          disabled={downloading}
+        >
+          <span className="ttl">
+            {downloading
+              ? "DOWNLOADING…"
+              : downloadErr
+              ? downloadErr
+              : "DOWNLOAD PNG ↓"}
+          </span>
+        </button>
       </div>
     </>
   );

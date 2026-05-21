@@ -26,7 +26,7 @@
   --civ-pink:   #d97aa0;
   --civ-black:  #404045;
   --civ-gold:   #c8aa64;
-  --civ-void:   #6a4a8a;
+  --civ-void:   #3a2a6e;
   --civ-silver: #b0b4be;
 
   /* TYPOGRAPHY STACK — Fontshare premium */
@@ -2384,3 +2384,190 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .shop-item .buy-btn:hover:not(:disabled) { background: var(--gold); color: var(--bg); }
 .shop-item .owned-tag { color: var(--gold); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; text-align: center; }
 @media (max-width: 760px) { .shop-grid { grid-template-columns: 1fr; } }
+
+/* ============================== */
+/* WALLET PROFILE PAGE            */
+/* ============================== */
+.wallet-page { max-width: 1180px; margin: 0 auto; padding: 60px 24px 120px; }
+.wallet-hero { margin-bottom: 40px; }
+.wallet-addr-h1 { font-family: var(--mono2); font-size: 56px; letter-spacing: 0.04em; margin: 12px 0 6px; color: var(--ink); font-weight: 400; }
+.wallet-addr-full { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.18em; color: var(--ink-dim); word-break: break-all; }
+.wallet-addr-full code { color: var(--ink-dim); }
+.wallet-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 32px 0 40px; }
+.wallet-stat { background: var(--panel, #0c0f16); border: 1px solid var(--line); padding: 22px 22px 20px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px; }
+.wallet-stat .ws-label { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.24em; color: var(--ink-dim); }
+.wallet-stat .ws-value { font-family: var(--mono2); font-size: 30px; color: var(--gold); letter-spacing: 0.02em; }
+.wallet-stat .ws-value.ws-link { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(200,170,100,0.3); }
+.wallet-stat .ws-value.ws-link:hover { border-color: var(--gold); }
+.wallet-stat .ws-sub { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); }
+.wallet-civs { margin: 40px 0; }
+.wallet-civs .kicker { margin-bottom: 14px; display: block; }
+.wallet-civ-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.wallet-civ-row { display: grid; grid-template-columns: 200px 1fr 60px 50px; gap: 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.wallet-civ-row .wcr-name { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em; color: var(--ink); }
+.wallet-civ-row .wcr-bar-wrap { height: 10px; background: rgba(255,255,255,0.04); position: relative; border-radius: 2px; overflow: hidden; }
+.wallet-civ-row .wcr-bar { height: 10px; display: block; transition: width 0.4s ease; }
+.wallet-civ-row .wcr-pct { font-family: var(--mono2); font-size: 12px; color: var(--gold); text-align: right; }
+.wallet-civ-row .wcr-count { font-family: var(--mono2); font-size: 11px; color: var(--ink-dim); text-align: right; }
+.wallet-gallery { margin: 40px 0; }
+.wallet-gallery .kicker { display: block; margin-bottom: 14px; }
+.wallet-gallery .gallery-count { color: var(--ink-dim); font-weight: 400; }
+.wallet-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.wallet-grid-item a { display: block; text-decoration: none; color: var(--ink); }
+.wallet-grid-item .wgi-frame { display: block; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; aspect-ratio: 1/1; background: #000; }
+.wallet-grid-item .wgi-frame img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
+.wallet-grid-item:hover .wgi-frame img { transform: scale(1.04); }
+.wallet-grid-item .wgi-id { display: block; text-align: center; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; color: var(--ink-dim); padding-top: 6px; }
+.wallet-overflow { display: inline-block; margin-top: 18px; font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(200,170,100,0.3); }
+.wallet-overflow:hover { border-color: var(--gold); }
+.wallet-empty { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em; color: var(--ink-dim); padding: 24px 0; }
+.wallet-foot { display: flex; gap: 10px; margin-top: 36px; flex-wrap: wrap; }
+.dashboard-share { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.dashboard-share-btn { padding: 10px 16px; }
+@media (max-width: 860px) {
+  .wallet-stats { grid-template-columns: 1fr; }
+  .wallet-grid { grid-template-columns: repeat(3, 1fr); }
+  .wallet-civ-row { grid-template-columns: 120px 1fr 50px 40px; }
+  .wallet-addr-h1 { font-size: 36px; }
+}
+@media (max-width: 480px) {
+  .wallet-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* =========================================================================
+   CIV RIVALRY BLOCK — on /civilizations/[slug]
+   ========================================================================= */
+.civ-rivalry-block {
+  margin-top: var(--s-9);
+  padding: var(--s-7) var(--s-6);
+  background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.civ-rivalry-block .rivalry-head {
+  display: flex; flex-direction: column; gap: var(--s-3);
+  margin-bottom: var(--s-5);
+}
+.civ-rivalry-block .rivalry-pair {
+  display: flex; align-items: center; gap: var(--s-4);
+  font-family: var(--display);
+  font-size: clamp(28px, 4vw, 56px);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  flex-wrap: wrap;
+}
+.civ-rivalry-block .rivalry-pair .vs {
+  color: var(--gold);
+  font-family: var(--mono2);
+  font-size: 0.6em;
+  opacity: 0.75;
+}
+.civ-rivalry-block .rivalry-line {
+  margin: 0 0 var(--s-6) 0;
+  padding: var(--s-5) var(--s-6);
+  border-left: 4px solid var(--gold);
+  background: rgba(0,0,0,0.25);
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(20px, 2.6vw, 32px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.civ-rivalry-block .rivalry-cta {
+  display: inline-flex; align-items: center; gap: var(--s-3);
+  font-family: var(--grotesk);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 14px 22px;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  transition: transform 180ms ease, background 180ms ease;
+}
+.civ-rivalry-block .rivalry-cta:hover { transform: translateY(-1px); background: rgba(255,255,255,0.02); }
+
+/* =========================================================================
+   RIVALRIES SECTION — on / (homepage)
+   ========================================================================= */
+.rivalries-section {
+  padding: var(--sec-y) var(--pad);
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+.rivalries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+.rivalry-card {
+  display: flex; flex-direction: column; gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+.rivalry-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.rivalry-card-pair {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--s-3);
+  font-family: var(--display);
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+.rivalry-card-pair .cross {
+  color: var(--gold);
+  font-family: var(--mono2);
+  font-size: 14px;
+  opacity: 0.7;
+}
+.rivalry-card-line {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  font-style: italic;
+  min-height: 4em;
+}
+.rivalry-card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+.rivalry-card-meta .sep {
+  color: var(--ink-dim);
+  font-size: 9px;
+}
+
+/* =========================================================================
+   CITIZEN EPITHET — subtitle for procedural citizens
+   ========================================================================= */
+.citizen-epithet {
+  margin-top: var(--s-3);
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(16px, 1.6vw, 22px);
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  opacity: 0.88;
+}
+
+/* =========================================================================
+   MOBILE HERO HEIGHT CAP — visual rating fix
+   Cap the right-pane image so the headline stays above the fold at 375–760.
+   Appended last so this wins on cascade order.
+   ========================================================================= */
+@media (max-width: 760px) {
+  .hero-right { min-height: 0; max-height: 50vh; }
+}
+

@@ -88,10 +88,13 @@ export function WalletConnect() {
 
   if (!addr) {
     return (
-      <button onClick={connect} className="btn" type="button" disabled={busy}>
-        <span className="lbl">{busy ? "CONNECTING" : "WALLET"}</span>
-        <span className="ttl">{busy ? "…" : "CONNECT"} <span className="ar">⬡</span></span>
-      </button>
+      <div className="wallet-connect">
+        <button onClick={connect} className="btn" type="button" disabled={busy}>
+          <span className="lbl">{busy ? "CONNECTING" : "WALLET"}</span>
+          <span className="ttl">{busy ? "…" : "CONNECT"} <span className="ar">⬡</span></span>
+        </button>
+        {err && <div className="wallet-err">{err}</div>}
+      </div>
     );
   }
   return (

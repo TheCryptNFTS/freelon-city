@@ -38,7 +38,7 @@ export async function generateMetadata({
   const tid = parseInt(id, 10);
   const c = getCitizen(tid);
   if (!c) return { title: "Not found" };
-  const ogUrl = `/api/og/${tid}`;
+  const ogUrl = `/api/og/card/${tid}`;
   const id4 = tid.toString().padStart(4, "0");
   const displayName = c.transmission_name || c.honoree || `Citizen #${id4}`;
   const title = `Listing Card · #${id4} · ${displayName}`;

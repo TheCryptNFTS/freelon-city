@@ -11,6 +11,7 @@ import { CitizenRealignEditor } from "@/components/CitizenRealignEditor";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
 import { getName } from "@/lib/name-store";
 import { getRealignment } from "@/lib/realignment-store";
+import { epithetFor } from "@/lib/epithets";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -98,6 +99,12 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </>
           )}
           {!c.transmission_name && !c.honoree && <h1>Citizen #{id4}</h1>}
+          {(() => {
+            const epithet = epithetFor(c);
+            return epithet ? (
+              <div className="citizen-epithet" style={{ color }}>{epithet}</div>
+            ) : null;
+          })()}
 
           <div className="civ-line" style={{ color }}>
             <span className="dot" />

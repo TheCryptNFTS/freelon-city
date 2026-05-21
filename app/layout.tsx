@@ -5,6 +5,8 @@ import { Footer } from "@/components/Footer";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { Spotlight } from "@/components/Spotlight";
 import { Analytics } from "@/components/Analytics";
+import { EasterEggCode } from "@/components/EasterEggCode";
+import { Ghost404 } from "@/components/Ghost404";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://freeloncity.com"),
@@ -52,6 +54,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ScrollReveal />
         <Spotlight />
         <Analytics />
+        <EasterEggCode />
+        <Ghost404 />
       </body>
     </html>
   );

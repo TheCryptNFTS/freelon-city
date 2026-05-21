@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CIVILIZATIONS, CivilizationSlug } from "@/lib/constants";
 import { getByCivilization } from "@/lib/citizens";
 import { CitizenCard } from "@/components/CitizenCard";
+import { CivVisitTracker } from "@/components/CivVisitTracker";
 
 export function generateStaticParams() {
   return Object.keys(CIVILIZATIONS).map((slug) => ({ slug }));
@@ -17,8 +18,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; role: string; essence: string; population: number; color: string }>)[slug];
+  const c = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; role: string; essence: string; population: number; color: string; rival?: string; rivalLine?: string }>)[slug];
   if (!c) notFound();
+  const rivalSlug = c.rival;
+  const rival = rivalSlug
+    ? (CIVILIZATIONS as Record<string, { name: string; doctrine: string; color: string }>)[rivalSlug]
+    : null;
   const citizens = getByCivilization(slug as CivilizationSlug);
   const featured = [
     ...citizens.filter((x) => x.tier === "One of One"),
@@ -29,6 +34,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
+      <CivVisitTracker slug={slug} />
       <div className="terminal text-xs tracking-[0.3em]" style={{ color: c.color }}>{c.name.toUpperCase()}</div>
       <h1 className="mt-2 text-6xl font-light" style={{ color: c.color }}>{c.doctrine}</h1>
       <div className="mt-6 max-w-2xl text-[var(--color-ink-dim)] text-lg leading-relaxed">
@@ -42,6 +48,25 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <div className="text-xs uppercase tracking-widest text-[var(--color-ink-dim)]">citizens</div>
         </div>
       </div>
+
+      {rival && rivalSlug && c.rivalLine && (
+        <section className="civ-rivalry-block">
+          <div className="rivalry-head">
+            <span className="kicker">RIVAL DOCTRINE</span>
+            <div className="rivalry-pair">
+              <span className="self" style={{ color: c.color }}>{c.name.toUpperCase()}</span>
+              <span className="vs">⬡</span>
+              <span className="other" style={{ color: rival.color }}>{rival.name.toUpperCase()}</span>
+            </div>
+          </div>
+          <blockquote className="rivalry-line" style={{ borderLeftColor: c.color }}>
+            {c.rivalLine}
+          </blockquote>
+          <Link href={`/civilizations/${rivalSlug}`} className="rivalry-cta" style={{ borderColor: rival.color, color: rival.color }}>
+            VIEW RIVAL · {rival.doctrine.toUpperCase()} →
+          </Link>
+        </section>
+      )}
 
       <section className="mt-16 border-t border-white/5 pt-12">
         <div className="terminal text-[var(--color-gold)] text-xs tracking-[0.3em]">FEATURED CITIZENS</div>

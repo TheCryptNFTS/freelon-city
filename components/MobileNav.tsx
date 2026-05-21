@@ -16,6 +16,7 @@ const LINKS = [
   { href: "/tribute",       label: "Tributes" },
   { href: "/pfp",           label: "PFP Studio" },
   { href: "/rebuild",       label: "Rebuild" },
+  { href: "/secrets",       label: "⬡ secrets", gold: true },
 ];
 
 export function MobileNav() {

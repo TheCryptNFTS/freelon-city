@@ -20,6 +20,7 @@ export function Header() {
           <Link href="/citizens" className="nav-link">Citizens</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
           <Link href="/carrier" className="nav-link" style={{ color: "var(--gold)" }}>Carrier</Link>
+          <Link href="/secrets" className="nav-link" style={{ color: "var(--gold)", fontSize: 9, letterSpacing: "0.28em", opacity: 0.7 }}>⬡</Link>
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>
         <MobileNav />
