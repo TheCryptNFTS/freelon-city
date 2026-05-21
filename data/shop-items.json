@@ -1,0 +1,300 @@
+[
+  {
+    "id": "manor-of-red-corruption",
+    "category": "PROPERTY",
+    "name": "Manor of the Red Corruption",
+    "description": "A high-walled estate in the Corruption district. Tile-roofed and watched by silent Choir.",
+    "cost": 1500,
+    "civ": "red-corruption",
+    "supply": 7,
+    "tier": "Rare"
+  },
+  {
+    "id": "synthesis-cathedral-cell",
+    "category": "PROPERTY",
+    "name": "Synthesis Cathedral Cell",
+    "description": "A narrow stone cell within the great Synthesis Cathedral. Cold floor, hex window.",
+    "cost": 800,
+    "civ": "synthesis",
+    "supply": 20,
+    "tier": "Uncommon"
+  },
+  {
+    "id": "void-outpost",
+    "category": "PROPERTY",
+    "name": "Void Outpost",
+    "description": "An iron-clad watchtower at the edge of the Void. No signal reaches here unbidden.",
+    "cost": 2500,
+    "civ": "void",
+    "supply": 3,
+    "tier": "Legendary"
+  },
+  {
+    "id": "carrier-tenement",
+    "category": "PROPERTY",
+    "name": "Carrier's Tenement",
+    "description": "A bunk-room above the relay station. Smells of solder and old rain.",
+    "cost": 200,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "oracle-spire-quarters",
+    "category": "PROPERTY",
+    "name": "Oracle Spire Quarters",
+    "description": "Top-floor chambers above the seer's chamber. Pre-dawn light, ink stains on the desk.",
+    "cost": 1800,
+    "civ": "oracle",
+    "supply": 6,
+    "tier": "Rare"
+  },
+  {
+    "id": "sovereignty-keep",
+    "category": "PROPERTY",
+    "name": "Sovereignty Keep",
+    "description": "A black-stone keep bearing the broken-hex banner. Held by writ, not by lease.",
+    "cost": 2200,
+    "civ": "sovereignty",
+    "supply": 5,
+    "tier": "Epic"
+  },
+
+  {
+    "id": "plot-in-hex-plaza",
+    "category": "LAND",
+    "name": "Plot in Hex Plaza",
+    "description": "A hex-cut parcel facing the central plaza. Foot traffic, dust, the smell of bread.",
+    "cost": 1000,
+    "supply": 30,
+    "tier": "Uncommon"
+  },
+  {
+    "id": "outer-wall-acre",
+    "category": "LAND",
+    "name": "Outer Wall Acre",
+    "description": "A thin acre against the outer wall. Cheap, exposed, but yours.",
+    "cost": 300,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "cydonia-basin",
+    "category": "LAND",
+    "name": "Cydonia Basin",
+    "description": "The fabled red basin where the first signal was recorded. One claim only.",
+    "cost": 3000,
+    "supply": 1,
+    "tier": "Legendary"
+  },
+  {
+    "id": "fracture-quarry",
+    "category": "LAND",
+    "name": "Fracture Quarry",
+    "description": "A working quarry split by an old hex-fault. Yields shard and dust.",
+    "cost": 1200,
+    "civ": "fracture",
+    "supply": 8,
+    "tier": "Rare"
+  },
+  {
+    "id": "ignition-yard",
+    "category": "LAND",
+    "name": "Ignition Yard",
+    "description": "A scorched workshop yard, still warm. Marked by the Ignition cipher.",
+    "cost": 700,
+    "civ": "ignition",
+    "supply": 14,
+    "tier": "Uncommon"
+  },
+  {
+    "id": "growth-orchard",
+    "category": "LAND",
+    "name": "Growth Orchard",
+    "description": "Twelve rows of pale-blue fruit trees outside the Growth gate.",
+    "cost": 900,
+    "civ": "growth",
+    "supply": 12,
+    "tier": "Uncommon"
+  },
+
+  {
+    "id": "hex-marker-staff",
+    "category": "WEAPONS",
+    "name": "Hex Marker Staff",
+    "description": "Iron-shod staff used by city marshals to mark hex boundaries. Ceremonial.",
+    "cost": 500,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "signal-receiver-blade",
+    "category": "WEAPONS",
+    "name": "Signal Receiver Blade",
+    "description": "A narrow blade tuned to receive the broken signal. Hums faintly. Ceremonial.",
+    "cost": 1200,
+    "supply": 18,
+    "tier": "Rare"
+  },
+  {
+    "id": "void-knight-lance",
+    "category": "WEAPONS",
+    "name": "Void Knight Lance",
+    "description": "Black-haft lance carried by the eleven Knights of the Void. Eleven exist.",
+    "cost": 2000,
+    "civ": "void",
+    "supply": 11,
+    "tier": "Epic"
+  },
+  {
+    "id": "choir-tuning-fork",
+    "category": "WEAPONS",
+    "name": "Choir Tuning Fork",
+    "description": "A two-pronged fork rung at silent ceremonies. Strikes nothing. Settles nothing.",
+    "cost": 350,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "transmission-saber",
+    "category": "WEAPONS",
+    "name": "Transmission Saber",
+    "description": "A curved saber etched with the doctrine of Transmission. Polished, unblooded.",
+    "cost": 1100,
+    "civ": "transmission",
+    "supply": 16,
+    "tier": "Rare"
+  },
+  {
+    "id": "machine-ceremonial-mace",
+    "category": "WEAPONS",
+    "name": "Machine Ceremonial Mace",
+    "description": "Bronze-and-silver mace borne in Machine parades. Heavy beyond reason.",
+    "cost": 900,
+    "civ": "machine",
+    "supply": 10,
+    "tier": "Uncommon"
+  },
+
+  {
+    "id": "carrier-robe",
+    "category": "CLOTHES",
+    "name": "Carrier Robe",
+    "description": "Plain wool relay-robe with a hex-stitched hood. Standard issue.",
+    "cost": 150,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "sovereignty-crown-cloth",
+    "category": "CLOTHES",
+    "name": "Sovereignty Crown-cloth",
+    "description": "A silver-thread crown-cloth, worn folded across the brow. Marks a sworn citizen.",
+    "cost": 1000,
+    "civ": "sovereignty",
+    "supply": 9,
+    "tier": "Rare"
+  },
+  {
+    "id": "choir-mask",
+    "category": "CLOTHES",
+    "name": "Choir Mask",
+    "description": "A smooth ceramic mask with no mouth. Worn during the silent rites.",
+    "cost": 400,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "synth-ascended-gloves",
+    "category": "CLOTHES",
+    "name": "Synth Ascended Gloves",
+    "description": "Lacquered black gloves with hex-tipped fingers. Issued to Synthesis Ascended.",
+    "cost": 250,
+    "civ": "synthesis",
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "oracle-veil",
+    "category": "CLOTHES",
+    "name": "Oracle Veil",
+    "description": "A long pale veil embroidered with the eye-and-hex. Worn at dawn readings.",
+    "cost": 600,
+    "civ": "oracle",
+    "supply": 15,
+    "tier": "Uncommon"
+  },
+  {
+    "id": "fracture-mantle",
+    "category": "CLOTHES",
+    "name": "Fracture Mantle",
+    "description": "A heavy shoulder mantle with two halves stitched in mismatch. Worn proudly.",
+    "cost": 750,
+    "civ": "fracture",
+    "supply": 11,
+    "tier": "Uncommon"
+  },
+
+  {
+    "id": "original-signal-recording",
+    "category": "ARTIFACTS",
+    "name": "Original Signal Recording",
+    "description": "Patient Zero's transmission. The only copy. Do not open in company.",
+    "cost": 5000,
+    "supply": 1,
+    "tier": "Legendary"
+  },
+  {
+    "id": "hex-fragment",
+    "category": "ARTIFACTS",
+    "name": "Hex Fragment",
+    "description": "A single broken hex-shard from the fracture event. Plentiful, but each unique.",
+    "cost": 50,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "cipher-tablet",
+    "category": "ARTIFACTS",
+    "name": "Cipher Tablet",
+    "description": "A clay tablet inscribed with one of the ten Signal Doctrines. Pick yours.",
+    "cost": 700,
+    "supply": null,
+    "tier": "Uncommon"
+  },
+  {
+    "id": "founders-hex-coin",
+    "category": "ARTIFACTS",
+    "name": "Founder's Hex Coin",
+    "description": "Minted by the first three Bearers. Three exist. Three is the limit.",
+    "cost": 3000,
+    "supply": 3,
+    "tier": "Legendary"
+  },
+  {
+    "id": "patient-zero-mask",
+    "category": "ARTIFACTS",
+    "name": "Patient Zero Mask",
+    "description": "A burnt ceramic face-plate recovered from the first relay site.",
+    "cost": 2800,
+    "supply": 2,
+    "tier": "Legendary"
+  },
+  {
+    "id": "broken-relay-stone",
+    "category": "ARTIFACTS",
+    "name": "Broken Relay Stone",
+    "description": "Half a relay-stone, hex-fissured. Resonates near other halves.",
+    "cost": 450,
+    "supply": null,
+    "tier": "Common"
+  },
+  {
+    "id": "doctrine-ledger",
+    "category": "ARTIFACTS",
+    "name": "Doctrine Ledger",
+    "description": "A bound ledger of the ten Signal Doctrines. The pages refuse to be torn.",
+    "cost": 1300,
+    "supply": 22,
+    "tier": "Rare"
+  }
+]

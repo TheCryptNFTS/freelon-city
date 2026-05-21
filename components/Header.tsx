@@ -5,7 +5,7 @@ import { WalletConnect } from "@/components/WalletConnect";
 
 export function Header() {
   return (
-    <header className="border-b" style={{ borderColor: "var(--line)", background: "rgba(10,12,18,0.72)", backdropFilter: "blur(16px) saturate(120%)", position: "sticky", top: 0, zIndex: 50 }}>
+    <header className="border-b" style={{ borderColor: "var(--line)", background: "rgba(10,12,18,0.85)", backdropFilter: "blur(16px) saturate(120%)", WebkitBackdropFilter: "blur(16px) saturate(120%)", position: "sticky", top: 0, zIndex: 100 }}>
       <div className="bar">
         <Link href="/" className="brand" style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
           <Image src="/logo.png" alt="FREELON CITY" width={36} height={36} priority style={{ display: "block" }} />
@@ -15,8 +15,10 @@ export function Header() {
           <Link href="/origin" className="nav-link">Origin</Link>
           <Link href="/lore" className="nav-link">Lore</Link>
           <Link href="/civilizations" className="nav-link">Civilizations</Link>
+          <Link href="/dashboard" className="nav-link">Dashboard</Link>
           <Link href="/shapes" className="nav-link">Shapes</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
+          <Link href="/shop" className="nav-link">Shop</Link>
           <Link href="/carrier" className="nav-link" style={{ color: "var(--gold)" }}>Carrier</Link>
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>

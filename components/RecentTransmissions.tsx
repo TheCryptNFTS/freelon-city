@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { imageUrl } from "@/lib/constants";
+import { heroImageUrl } from "@/lib/constants";
 
 type SaleEvent = {
   tokenId: number;
@@ -47,7 +47,14 @@ export function RecentTransmissions() {
             <Link href={`/citizens/${ev.tokenId}`} key={i} className="transmission-row" style={{ textDecoration: "none" }}>
               <div className="thumb">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(ev.tokenId)} alt="" loading="lazy" />
+                <img
+                  src={heroImageUrl(ev.tokenId)}
+                  alt={`Citizen #${ev.tokenId}`}
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><polygon points='24,4 42,14 42,34 24,44 6,34 6,14' fill='none' stroke='%23c8aa64' stroke-width='2'/></svg>";
+                  }}
+                />
               </div>
               <div>
                 <div className="id">#{ev.tokenId.toString().padStart(4, "0")}</div>

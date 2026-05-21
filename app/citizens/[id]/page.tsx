@@ -7,8 +7,10 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { CitizenDeepLore } from "@/components/CitizenDeepLore";
 import { CitizenOwnedByYou } from "@/components/CitizenOwnedByYou";
 import { CitizenNameEditor } from "@/components/CitizenNameEditor";
+import { CitizenRealignEditor } from "@/components/CitizenRealignEditor";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
 import { getName } from "@/lib/name-store";
+import { getRealignment } from "@/lib/realignment-store";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -60,6 +62,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const id4 = tid.toString().padStart(4, "0");
   const identity = getIdentity(tid);
   const customName = await getName(tid).catch(() => null);
+  const realign = await getRealignment(tid).catch(() => null);
+  const alignedCivDef = realign
+    ? (CIVILIZATIONS as Record<string, { name: string }>)[realign.alignedCiv]
+    : null;
   const cleanHandle = (c.honoree_handle || "").replace(/^@/, "");
 
   return (
@@ -97,6 +103,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <span className="dot" />
             {civ?.name?.toUpperCase()} · {c.doctrine?.toUpperCase()}
           </div>
+          {realign && alignedCivDef && (
+            <div className="realigned-badge">
+              ⬡ ALIGNED TO {alignedCivDef.name.toUpperCase()}
+            </div>
+          )}
 
           {identity && (
             <div className="identity-block">
@@ -140,11 +151,20 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           </div>
 
           <CitizenNameEditor citizenId={tid} currentName={customName?.name ?? null} />
+          <CitizenRealignEditor
+            citizenId={tid}
+            tier={c.tier}
+            originalCiv={c.civilization}
+            currentRealignment={realign}
+          />
 
           <div className="cta-row">
             <a className="btn" href={openseaUrl(tid)} target="_blank" rel="noreferrer">
               <span className="ttl">VIEW ON OPENSEA ↗</span>
             </a>
+            <Link className="btn" href={`/citizens/${tid}/card`}>
+              <span className="ttl">SHAREABLE LISTING CARD →</span>
+            </Link>
             {c.honoree_handle && (
               <a
                 className="btn btn-gold"

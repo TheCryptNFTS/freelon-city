@@ -148,6 +148,33 @@ export function spendPoints(amount: number): CarrierState | null {
   return next;
 }
 
+const CLAIM_KEY = "freelon::carrier::claim::v1";
+
+export function getLastClaimDay(): number {
+  if (typeof window === "undefined") return -1;
+  return parseInt(localStorage.getItem(CLAIM_KEY) || "-1", 10);
+}
+
+export function canClaimToday(): boolean {
+  return getLastClaimDay() < Math.floor(Date.now() / 86400000);
+}
+
+export function claimDaily(): CarrierState | null {
+  const cur = loadCarrier();
+  if (!cur) return null;
+  if (!canClaimToday()) return cur;
+  const today = Math.floor(Date.now() / 86400000);
+  const earned = 10;
+  const next: CarrierState = {
+    ...cur,
+    hexPoints: cur.hexPoints + earned,
+    totalEarned: cur.totalEarned + earned,
+  };
+  save(next);
+  localStorage.setItem(CLAIM_KEY, String(today));
+  return next;
+}
+
 export function tier(rank: number): { name: string; color: string } {
   if (rank >= 80) return { name: "BEARER",  color: "#c8aa64" };
   if (rank >= 55) return { name: "RELAY",   color: "#e6e1d2" };

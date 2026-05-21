@@ -1,13 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CarrierState, loadCarrier, initCarrier, relay, tickDecay, tier } from "@/lib/carrier";
+import { CarrierState, loadCarrier, initCarrier, relay, tickDecay, tier, claimDaily, canClaimToday } from "@/lib/carrier";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { useHolder } from "@/lib/useHolder";
+import { getDailySignal } from "@/lib/daily-signal";
 
 export function CarrierClient() {
   const [state, setState] = useState<CarrierState | null>(null);
   const [input, setInput] = useState("");
+  const [shared, setShared] = useState(false);
   const holder = useHolder();
 
   useEffect(() => {
@@ -72,6 +74,13 @@ export function CarrierClient() {
   const tweet = `I'm a ${t.name} of FREELON CITY.\n\nCivilization: ${civ?.name}\nRank: ${state.rank} / 100\nStreak: ${state.streak}d\nTotal relays: ${state.totalRelays}\n\nThe signal moves through us.\n${profileUrl}`;
   const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
 
+  const today = new Date();
+  const sig = getDailySignal(today);
+  const sigCiv = (CIVILIZATIONS as Record<string, { name: string; color: string }>)[sig.from];
+  const dailyTweet = `⬡ DAILY SIGNAL — ${today.toISOString().slice(0,10)}\n\n"${sig.line}"\n\n— ${sigCiv?.name ?? sig.from}\nfreeloncity.com`;
+  const dailyIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(dailyTweet)}`;
+  const claimable = canClaimToday();
+
   return (
     <section className="carrier-dash" style={{ "--civ": civ?.color || "var(--gold)" } as React.CSSProperties}>
       {holder.isHolder && holder.balance !== null && (
@@ -79,6 +88,24 @@ export function CarrierClient() {
           <span className="kicker">⬡ VERIFIED HOLDER</span>
           <span className="holder-count">{holder.balance} CITIZEN{holder.balance !== 1 ? "S" : ""}</span>
           <span className="holder-addr">{holder.address?.slice(0, 6)}…{holder.address?.slice(-4)}</span>
+        </div>
+      )}
+      {state && (
+        <div className="daily-claim-card" style={{ gridColumn: "1 / -1" }}>
+          <span className="kicker">⬡ DAILY CLAIM</span>
+          <h3>{claimable ? "Today's signal is unclaimed." : "Claimed today ✓"}</h3>
+          <p>Share today's signal on X, then claim +10 ⬡.</p>
+          <div className="claim-flow">
+            <a className="btn" href={dailyIntent} target="_blank" rel="noreferrer" onClick={() => setShared(true)}>
+              <span className="ttl">1. SHARE ON X →</span>
+            </a>
+            <button className="btn btn-gold" disabled={!shared || !claimable} onClick={() => {
+              const next = claimDaily();
+              if (next) setState(next);
+            }}>
+              <span className="ttl">2. CLAIM +10 ⬡ →</span>
+            </button>
+          </div>
         </div>
       )}
       <div className="rank-card">
