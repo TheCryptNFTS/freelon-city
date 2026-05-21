@@ -2731,3 +2731,125 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .hex-log .hl-amount { grid-column: 1 / -1; }
   .hex-log .hl-time { grid-column: 2; text-align: right; }
 }
+
+/* ============================ TITHE FORM ============================ */
+.tithe-form {
+  border: 1px solid var(--line);
+  padding: var(--s-4);
+  background: var(--surface);
+}
+.tithe-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: var(--s-3); }
+.tithe-head .kicker { color: var(--gold); }
+.tithe-head .tithe-sub { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; color: var(--ink-dim); text-transform: uppercase; }
+.tithe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.tithe-field { display: flex; flex-direction: column; gap: 4px; }
+.tithe-field-wide { grid-column: 1 / -1; }
+.tithe-field span {
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+.tithe-field input, .tithe-field select {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--mono2);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+}
+.tithe-field input:focus, .tithe-field select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.tithe-err {
+  margin-top: var(--s-3);
+  padding: 10px 14px;
+  border: 1px solid rgba(200,80,80,0.4);
+  background: rgba(200,80,80,0.08);
+  color: #e8a8a8;
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+.tithe-ok {
+  margin-top: var(--s-3);
+  padding: 10px 14px;
+  border: 1px solid var(--gold);
+  background: rgba(200,170,100,0.06);
+  color: var(--ink);
+  font-family: var(--mono2);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+.tithe-actions { margin-top: var(--s-3); display: flex; justify-content: flex-end; }
+@media (max-width: 640px) { .tithe-grid { grid-template-columns: 1fr; } }
+
+/* ============================ QUEST TOAST ============================ */
+.quest-toast-stack {
+  position: fixed;
+  top: 92px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9000;
+  pointer-events: none;
+}
+.quest-toast {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-rows: auto auto;
+  column-gap: var(--s-3);
+  align-items: center;
+  padding: 14px 18px;
+  background: rgba(12,12,20,0.96);
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  box-shadow: 0 12px 40px -10px rgba(200,170,100,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  min-width: 280px;
+  max-width: 360px;
+  animation: qt-in 320ms cubic-bezier(0.2,0.7,0.2,1);
+}
+@keyframes qt-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.quest-toast .qt-kicker {
+  grid-column: 1 / -1;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.quest-toast .qt-title {
+  font-family: var(--display);
+  font-size: 22px;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+.quest-toast .qt-reward {
+  font-family: var(--display);
+  font-size: 22px;
+  color: var(--gold-bright);
+}
+.quest-toast .qt-close {
+  background: transparent;
+  border: none;
+  color: var(--ink-dim);
+  cursor: pointer;
+  font-family: var(--mono2);
+  font-size: 13px;
+  padding: 4px 8px;
+}
+.quest-toast .qt-close:hover { color: var(--ink); }
+@media (max-width: 640px) {
+  .quest-toast-stack { left: 12px; right: 12px; top: 80px; }
+  .quest-toast { min-width: 0; max-width: none; }
+}

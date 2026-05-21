@@ -7,6 +7,7 @@ import { Spotlight } from "@/components/Spotlight";
 import { Analytics } from "@/components/Analytics";
 import { EasterEggCode } from "@/components/EasterEggCode";
 import { Ghost404 } from "@/components/Ghost404";
+import { QuestToast } from "@/components/QuestToast";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://freeloncity.com"),
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Analytics />
         <EasterEggCode />
         <Ghost404 />
+        <QuestToast />
       </body>
     </html>
   );

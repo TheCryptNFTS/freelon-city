@@ -14,6 +14,52 @@ export function SecretsClient() {
   const [s, setS] = useState<SecretsState | null>(null);
   useEffect(() => { setS(loadSecrets()); }, []);
 
+  // Server-side hex-hunter quest progress — fire one step per discovered secret.
+  // The API is session-deduped client-side via sessionStorage in the helper.
+  useEffect(() => {
+    if (!s) return;
+    let key: string | null = null;
+    try {
+      const w = (window as unknown as { ethereum?: { selectedAddress?: string } }).ethereum?.selectedAddress;
+      if (w && /^0x[a-fA-F0-9]{40}$/.test(w)) key = w.toLowerCase();
+      if (!key) {
+        const carrierRaw = localStorage.getItem("freelon::carrier::v1");
+        if (carrierRaw) {
+          const parsed = JSON.parse(carrierRaw) as { handle?: string };
+          if (parsed?.handle) key = parsed.handle.toLowerCase();
+        }
+      }
+    } catch {}
+    if (!key) return;
+
+    const fireStep = async (stepId: string) => {
+      const dedupe = `freelon::quest::hex-hunter::${stepId}::${key}`;
+      if (sessionStorage.getItem(dedupe)) return;
+      sessionStorage.setItem(dedupe, "1");
+      try {
+        const r = await fetch("/api/quests/hex-hunter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key, stepId }),
+        });
+        const j = await r.json();
+        if (j.justCompleted && j.rewardHex) {
+          window.dispatchEvent(
+            new CustomEvent("freelon:quest-complete", {
+              detail: { questId: "hex-hunter", reward: j.rewardHex },
+            }),
+          );
+        }
+      } catch {}
+    };
+
+    if (s.code0404) fireStep("code0404");
+    if (s.civsSeen.length >= 10) fireStep("all-civs");
+    if (s.ghost404) fireStep("ghost404");
+    if (s.fifthBracket) fireStep("fifth-bracket");
+    if (s.channels.length > 0) fireStep("channels");
+  }, [s]);
+
   const found = (i: number): boolean => {
     if (!s) return false;
     if (i === 1) return s.code0404;

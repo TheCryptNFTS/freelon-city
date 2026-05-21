@@ -9,6 +9,7 @@ import {
 } from "@/lib/constants";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
 import { HexEarningsLog } from "@/components/HexEarningsLog";
+import { TitheForm } from "@/components/TitheForm";
 import {
   getWalletTokens,
   normalizeAddress,
@@ -304,6 +305,13 @@ export default async function WalletPage({
 
       <section className="wallet-hex-section" style={{ marginTop: "var(--s-5)" }}>
         <HexEarningsLog address={norm} />
+      </section>
+
+      <section className="wallet-tithe-section" style={{ marginTop: "var(--s-5)" }}>
+        <TitheForm
+          address={norm}
+          civs={Object.entries(CIVILIZATIONS).map(([slug, c]) => ({ slug, name: c.name, color: c.color }))}
+        />
       </section>
 
       <section className="wallet-civs">
