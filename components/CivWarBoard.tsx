@@ -40,15 +40,21 @@ export function CivWarBoard() {
       .catch(() => setLoaded(true));
   }, []);
 
+  const narrative = deriveNarrative(rows);
+
   return (
     <section className="civ-war reveal">
       <div className="war-bar">
         <div>
           <span className="kicker">⬡ LIVE · CIVILIZATION WAR · 24H</span>
-          <h2>The <em>scoreboard</em></h2>
+          <h2>Every sale moves <em>the city</em></h2>
+          <p className="war-sub">Every holder strengthens a signal. Every civilization wants the top bracket.</p>
         </div>
         <span className="war-meta">SORTED BY VOLUME · POPULATION FIXED</span>
       </div>
+      {loaded && rows.length > 0 && (
+        <div className="war-narrative">⬡ {narrative}</div>
+      )}
       <div className="war-table">
         <div className="war-head">
           <span>RANK</span><span>CIVILIZATION</span><span className="num">POP</span><span className="num">SALES</span><span className="num">VOL · ETH</span><span>LAST</span>
@@ -68,6 +74,41 @@ export function CivWarBoard() {
       </div>
     </section>
   );
+}
+
+function deriveNarrative(rows: CivRow[]): string {
+  if (!rows.length) return "The city is watching.";
+  const withVol = rows.filter((r) => r.volume > 0);
+  if (withVol.length === 0) return "The city is watching. No civilization has moved yet.";
+
+  const top = rows[0];
+  const second = rows[1];
+  const topName = top.name.toUpperCase();
+
+  // Single mover
+  if (withVol.length === 1) return `${topName} is the only civilization moving.`;
+
+  const secondName = second?.name.toUpperCase() ?? "";
+  const totalVol = withVol.reduce((sum, r) => sum + r.volume, 0);
+  const topShare = top.volume / totalVol;
+
+  // Runaway: top civ > 50% of total volume
+  if (topShare > 0.5) return `${topName} is running away with it.`;
+
+  // Trading blows: top 2 within 10% of each other
+  if (second && second.volume > 0) {
+    const gap = (top.volume - second.volume) / top.volume;
+    if (gap < 0.1) return `${topName} and ${secondName} are trading blows.`;
+  }
+
+  // Climber: a lower-ranked civ has volume > top's pop-normalized rate
+  // Heuristic: third or lower with > 60% of second's volume = climber
+  const third = rows[2];
+  if (third && second && third.volume > second.volume * 0.6 && third.volume > 0) {
+    return `${third.name.toUpperCase()} is climbing fast.`;
+  }
+
+  return "The city is watching.";
 }
 
 function timeAgo(ts: number) {

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { StreakBadge } from "./StreakBadge";
 
 type Event = {
   ts: number;
@@ -94,7 +95,9 @@ export function HexEarningsLog({ address }: { address: string }) {
       </div>
 
       {data.claimStreak ? (
-        <div className="hl-streak">⬡ STREAK · {data.claimStreak}d 🔥</div>
+        <div className="hl-streak">
+          <StreakBadge streak={data.claimStreak} />
+        </div>
       ) : null}
 
       {data.tick && data.tick.daysCredited > 0 && (

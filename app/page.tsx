@@ -6,6 +6,9 @@ import { CivWarBoard } from "@/components/CivWarBoard";
 import { DailySignal } from "@/components/DailySignal";
 import { DailyMission } from "@/components/DailyMission";
 import { TopPatronsStrip } from "@/components/TopPatronsStrip";
+import { AlertsFeed } from "@/components/AlertsFeed";
+import { HexIndexHero } from "@/components/HexIndexHero";
+import { CitizenOfDay } from "@/components/CitizenOfDay";
 import { getOneOfOnes, getAllCitizens, getHonoraries } from "@/lib/citizens";
 import { CIVILIZATIONS, CONTRACT, METADATA_CID, imageUrl, heroImageUrl } from "@/lib/constants";
 
@@ -135,18 +138,29 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 404 ALERTS · LIVE SIGNAL FEED */}
+      <AlertsFeed />
+
+      {/* HEX INDEX · MASTER NUMBER */}
+      <HexIndexHero />
+
       {/* DAILY SIGNAL */}
       <DailySignal />
+
+      {/* 404TH CITIZEN OF THE DAY */}
+      <CitizenOfDay />
 
       {/* DAILY MISSION */}
       <DailyMission />
 
-      {/* INLINE SYNC */}
-      <section className="inline-sync reveal">
-        <div className="left">
-          <span className="kicker">⬡ NEWCOMER? START HERE</span>
-          <h3>Drop your handle. Sync to your <em>civilization</em></h3>
-        </div>
+      {/* SIGNAL CHECK · the main first action */}
+      <section className="signal-check reveal">
+        <span className="kicker">⬡ SIGNAL CHECK</span>
+        <h2>The city detects you<br /><em>Find your place</em></h2>
+        <p className="signal-check-sub">
+          Paste a wallet or sync your X handle. Find your citizens.
+          See your civilization. Claim your hex balance.
+        </p>
         <InlineSync />
       </section>
 

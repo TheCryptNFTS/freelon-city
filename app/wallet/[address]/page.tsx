@@ -254,6 +254,11 @@ export default async function WalletPage({
         <p className="wallet-addr-full">
           <code>{norm}</code>
         </p>
+        <p style={{ marginTop: "var(--s-3)" }}>
+          <Link href={`/passport/${norm}`} className="btn">
+            VIEW PASSPORT →
+          </Link>
+        </p>
       </section>
 
       <section className="wallet-stats">

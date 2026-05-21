@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
+import { cityNotice } from "@/lib/city-notice";
 
 type Props = { citizenId: number; currentName: string | null };
 
@@ -47,6 +48,11 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
         setMsg({ kind: "err", text: data.error || "Failed to save name." });
       } else {
         setMsg({ kind: "ok", text: "Saved. Refresh to see it." });
+        cityNotice({
+          title: "CITIZEN REGISTERED",
+          body: `#${id4} is now ${name}`,
+          delta: "-100 ⬡",
+        });
       }
     } catch (e) {
       setMsg({ kind: "err", text: (e as Error).message || "Signature cancelled." });

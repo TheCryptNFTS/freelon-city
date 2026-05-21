@@ -8,6 +8,8 @@ import { getDailySignal } from "@/lib/daily-signal";
 import { AllDoctrinesBadge } from "@/components/AllDoctrinesBadge";
 import { MyInvites } from "@/components/MyInvites";
 import { DailyMission } from "@/components/DailyMission";
+import { cityNotice } from "@/lib/city-notice";
+import { StreakBadge } from "@/components/StreakBadge";
 
 export function CarrierClient() {
   const [state, setState] = useState<CarrierState | null>(null);
@@ -181,7 +183,14 @@ export function CarrierClient() {
                 </a>
                 <button className="btn btn-primary" disabled={!shared || !claimable} onClick={() => {
                   const next = claimDaily();
-                  if (next) setState(next);
+                  if (next) {
+                    setState(next);
+                    cityNotice({
+                      title: "DAILY PULSE CLAIMED",
+                      body: "The signal moves through you.",
+                      delta: "+10 ⬡",
+                    });
+                  }
                 }}>
                   <span className="ttl">2. CLAIM +10 ⬡ →</span>
                 </button>
@@ -198,6 +207,11 @@ export function CarrierClient() {
             {civ?.name?.toUpperCase()}
           </Link>
         </div>
+        {state.streak > 0 && (
+          <div style={{ marginTop: 8 }}>
+            <StreakBadge streak={state.streak} />
+          </div>
+        )}
         <div className="tier-band" style={{ color: t.color, borderColor: t.color }}>{t.name}</div>
         <div className="rank-bar">
           <div className="rank-fill" style={{ width: `${state.rank}%`, background: t.color }} />

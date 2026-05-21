@@ -6,6 +6,9 @@ import { CitizenCard } from "@/components/CitizenCard";
 import { CivVisitTracker } from "@/components/CivVisitTracker";
 import { QuestTracker } from "@/components/QuestTracker";
 import { DoctrineFragment } from "@/components/DoctrineFragment";
+import { PropagandaShareButtons } from "@/components/PropagandaShareButtons";
+import { MayorBroadcast } from "@/components/MayorBroadcast";
+import { getBroadcast } from "@/lib/civ-broadcast-store";
 import doctrineFragments from "@/data/doctrine-fragments.json";
 
 export function generateStaticParams() {
@@ -26,6 +29,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   // Mayor of this civ — sampled from on-chain holdings, 30min cache
   const { getMayor } = await import("@/lib/civ-mayor");
   const mayor = await getMayor(slug).catch(() => null);
+  const broadcast = await getBroadcast(slug).catch(() => null);
   const rivalSlug = c.rival;
   const rival = rivalSlug
     ? (CIVILIZATIONS as Record<string, { name: string; doctrine: string; color: string }>)[rivalSlug]
@@ -51,6 +55,12 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <span className="cm-count">{mayor.count}+ citizens (sampled)</span>
         </a>
       )}
+      <MayorBroadcast
+        slug={slug}
+        color={c.color}
+        initialBroadcast={broadcast}
+        mayorAddress={mayor?.address ?? null}
+      />
       <div className="mt-6 max-w-2xl text-[var(--color-ink-dim)] text-lg leading-relaxed">
         <p>{c.role}</p>
         <p className="mt-3 italic">{c.essence}</p>
@@ -79,6 +89,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <Link href={`/civilizations/${rivalSlug}`} className="rivalry-cta" style={{ borderColor: rival.color, color: rival.color }}>
             VIEW RIVAL · {rival.doctrine.toUpperCase()} →
           </Link>
+          <PropagandaShareButtons slug={slug} />
         </section>
       )}
 

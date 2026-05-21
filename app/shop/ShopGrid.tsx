@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CATEGORIES, ITEMS, type ShopItem } from "@/lib/shop";
 import { loadCarrier, type CarrierState } from "@/lib/carrier";
+import { cityNotice } from "@/lib/city-notice";
 
 type SoldMap = Record<string, number>;
 
@@ -74,6 +75,11 @@ export function ShopGrid() {
       if (typeof j.sold === "number") {
         setSold((prev) => ({ ...prev, [item.id]: j.sold }));
       }
+      cityNotice({
+        title: "ARTIFACT ACQUIRED",
+        body: `${item.name} added to your collection`,
+        delta: `-${item.cost} ⬡`,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
     } finally {

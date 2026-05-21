@@ -21,6 +21,7 @@ export function Footer() {
             <li><Link href="/shapes">Shapes</Link></li>
             <li><Link href="/castes">Castes</Link></li>
             <li><Link href="/citizens">Citizens</Link></li>
+            <li><Link href="/names">Name Hall of Fame</Link></li>
           </ul>
         </div>
         <div>

@@ -8,6 +8,8 @@ import { Analytics } from "@/components/Analytics";
 import { EasterEggCode } from "@/components/EasterEggCode";
 import { Ghost404 } from "@/components/Ghost404";
 import { QuestToast } from "@/components/QuestToast";
+import { CityNotice } from "@/components/CityNotice";
+import { FourOFourEvent } from "@/components/FourOFourEvent";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://freeloncity.com"),
@@ -50,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>
         <Header />
+        <FourOFourEvent />
         <main id="main">{children}</main>
         <Footer />
         <ScrollReveal />
@@ -58,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <EasterEggCode />
         <Ghost404 />
         <QuestToast />
+        <CityNotice />
       </body>
     </html>
   );

@@ -78,6 +78,14 @@ export default async function SyncPage({ searchParams }: { searchParams: Promise
 
   return (
     <main className="sync-result" style={{ "--civ": civ.color } as React.CSSProperties}>
+      <div className="sync-welcome">
+        <span className="sw-text">
+          <strong>SIGNAL FOUND</strong> · {civ.name.toUpperCase()} · {r.caste.toUpperCase()}
+        </span>
+        <Link className="btn btn-gold" href={`/civilizations/${r.civilization}`}>
+          <span className="ttl">EXPLORE YOUR CIVILIZATION →</span>
+        </Link>
+      </div>
       <section className="sync-result-hero">
         <div className="left">
           <div className="stamp">⬡ SYNC COMPLETE · @{r.handle}</div>
