@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { runHolderTick } from "@/lib/holder-tick";
 import { runFloorDefenderTick } from "@/lib/floor-defender";
+import { processSweepsForWallet } from "@/lib/sweep-inline";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 
@@ -28,6 +29,9 @@ export async function GET(
   const tick = await runHolderTick(address);
   // Floor defender tick (loyal-hold bonus, +50/day per 30d+ citizen)
   const defenderTick = await runFloorDefenderTick(address);
+  // Inline sweep processor — catches recent sales for this wallet between
+  // the once-daily cron runs (Vercel Hobby plan can't run more than daily).
+  const sweep = await processSweepsForWallet(address);
   const rec = await getWalletHex(address);
 
   return NextResponse.json({
@@ -38,6 +42,7 @@ export async function GET(
     claimStreak: rec.claimStreak ?? 0,
     tick,
     defenderTick,
+    sweep,
     events: rec.events.slice(0, 20),
   });
 }

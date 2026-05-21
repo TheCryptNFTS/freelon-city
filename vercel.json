@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/sweep-bounty",
-      "schedule": "*/30 * * * *"
+      "schedule": "7 1 * * *"
     }
   ]
 }
