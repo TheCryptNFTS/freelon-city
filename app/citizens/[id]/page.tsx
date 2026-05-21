@@ -1,0 +1,166 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Metadata } from "next";
+import { getCitizen, countSimilar, civilizationColor, getIdentity } from "@/lib/citizens";
+import { imageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
+import { ShareButtons } from "@/components/ShareButtons";
+import { CitizenDeepLore } from "@/components/CitizenDeepLore";
+import { getDeepLore, unlockCost } from "@/lib/deep-lore";
+
+export const dynamicParams = true;
+export const revalidate = 3600;
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const tid = parseInt(id, 10);
+  const c = getCitizen(tid);
+  if (!c) return { title: "Not found" };
+  const ogUrl = `/api/og/${tid}`;
+  const title = c.transmission_name
+    ? `#${tid.toString().padStart(4,"0")} · ${c.transmission_name}`
+    : c.honoree
+    ? `Honorary · ${c.honoree}`
+    : `Citizen #${tid.toString().padStart(4,"0")}`;
+  return {
+    title,
+    description: `${c.shape} · ${c.civilization.replace("-", " ")} · ${c.caste} · ${c.tier}`,
+    openGraph: { images: [{ url: ogUrl, width: 1200, height: 630 }] },
+    twitter: { card: "summary_large_image", images: [ogUrl] },
+  };
+}
+
+const FIELDS: Array<{ key: keyof CitizenLike; label: string }> = [
+  { key: "caste",        label: "Caste" },
+  { key: "shape",        label: "Shape" },
+  { key: "hex_state",    label: "Hex state" },
+  { key: "signal_type",  label: "Signal type" },
+  { key: "face_status",  label: "Face status" },
+  { key: "glow_level",   label: "Glow level" },
+  { key: "sub_archetype",label: "Sub-archetype" },
+];
+
+type CitizenLike = {
+  caste: string; shape: string; hex_state: string;
+  signal_type: string; face_status: string; glow_level: string;
+  sub_archetype: string; aura: string;
+};
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const tid = parseInt(id, 10);
+  const c = getCitizen(tid);
+  if (!c) notFound();
+
+  const counts = countSimilar(c);
+  const color = civilizationColor(c.civilization);
+  const civ = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; population: number }>)[c.civilization];
+  const id4 = tid.toString().padStart(4, "0");
+  const identity = getIdentity(tid);
+  const cleanHandle = (c.honoree_handle || "").replace(/^@/, "");
+
+  return (
+    <main className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
+      <article className="citizen-grid">
+        <aside className="citizen-image">
+          <div className="img-shell">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageUrl(tid)} alt={c.name} />
+          </div>
+          <div className="img-meta">
+            <span className="big-id">#{id4}</span>
+            <span className="big-tier" style={{ color }}>{c.tier}</span>
+          </div>
+        </aside>
+
+        <section className="citizen-body">
+          <span className="stamp">⬡ FREELON CITY · CITIZEN #{id4}</span>
+          {c.transmission_name && <h1>{c.transmission_name}</h1>}
+          {c.honoree && !c.transmission_name && (
+            <>
+              <h1>{c.honoree}</h1>
+              {c.honoree_handle && (
+                <a className="honoree-handle" href={`https://twitter.com/${cleanHandle}`} target="_blank" rel="noreferrer">
+                  {c.honoree_handle} ↗
+                </a>
+              )}
+            </>
+          )}
+          {!c.transmission_name && !c.honoree && <h1>Citizen #{id4}</h1>}
+
+          <div className="civ-line" style={{ color }}>
+            <span className="dot" />
+            {civ?.name?.toUpperCase()} · {c.doctrine?.toUpperCase()}
+          </div>
+
+          {identity && (
+            <div className="identity-block">
+              <div className="headline" style={{ color }}>{identity.headline}</div>
+              <p className="bio">{identity.bio}</p>
+            </div>
+          )}
+
+          <CitizenDeepLore
+            citizenId={tid}
+            cost={unlockCost(tid)}
+            deepLore={getDeepLore(c)}
+            previewLine={
+              identity?.bio
+                ? identity.bio.split(/(?<=[.!?])\s+/)[0] || identity.bio.slice(0, 160)
+                : `Citizen #${id4} of ${civ?.name}.`
+            }
+          />
+
+          <dl className="trait-grid">
+            {FIELDS.map((f) => (
+              <div key={f.key} className="trait">
+                <dt>{f.label.toUpperCase()}</dt>
+                <dd>{(c as unknown as CitizenLike)[f.key]}</dd>
+              </div>
+            ))}
+            {c.aura && c.aura !== "None" && (
+              <div className="trait">
+                <dt>AURA</dt><dd>{c.aura}</dd>
+              </div>
+            )}
+          </dl>
+
+          <div className="scarcity">
+            <span className="kicker">SCARCITY</span>
+            <ul>
+              <li><span>1 of</span><strong>{counts.sameCiv}</strong>{civ?.name} citizens</li>
+              <li><span>1 of</span><strong>{counts.sameShape}</strong>{c.shape} shapes</li>
+              <li><span>1 of</span><strong>{counts.sameCombo}</strong>with this exact civ × shape × tier</li>
+            </ul>
+          </div>
+
+          <div className="cta-row">
+            <a className="btn" href={openseaUrl(tid)} target="_blank" rel="noreferrer">
+              <span className="ttl">VIEW ON OPENSEA ↗</span>
+            </a>
+            {c.honoree_handle && (
+              <a
+                className="btn btn-gold"
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${c.honoree_handle} — citizen #${id4} of FREELON CITY carries your name.\n\nfreeloncity.com/tribute/${cleanHandle}`)}`}
+                target="_blank" rel="noreferrer"
+              >
+                <span className="lbl">TRIBUTE</span>
+                <span className="ttl">TWEET AT {c.honoree_handle?.toUpperCase()} <span className="ar">→</span></span>
+              </a>
+            )}
+            {c.honoree && (
+              <Link className="btn" href={`/tribute/${cleanHandle || tid}`}>
+                <span className="ttl">TRIBUTE PAGE →</span>
+              </Link>
+            )}
+            <ShareButtons citizen={c} siteUrl="https://freeloncity.com" />
+          </div>
+
+          <nav className="citizen-nav">
+            {tid > 1 ? <Link href={`/citizens/${tid - 1}`}>← #{(tid - 1).toString().padStart(4, "0")}</Link> : <span />}
+            {tid < 4040 && <Link href={`/citizens/${tid + 1}`}>#{(tid + 1).toString().padStart(4, "0")} →</Link>}
+          </nav>
+        </section>
+      </article>
+    </main>
+  );
+}
