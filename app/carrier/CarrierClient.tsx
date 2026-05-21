@@ -6,6 +6,8 @@ import { CIVILIZATIONS } from "@/lib/constants";
 import { useHolder } from "@/lib/useHolder";
 import { getDailySignal } from "@/lib/daily-signal";
 import { AllDoctrinesBadge } from "@/components/AllDoctrinesBadge";
+import { MyInvites } from "@/components/MyInvites";
+import { DailyMission } from "@/components/DailyMission";
 
 export function CarrierClient() {
   const [state, setState] = useState<CarrierState | null>(null);
@@ -143,6 +145,9 @@ export function CarrierClient() {
 
   return (
     <section className="carrier-dash" style={{ "--civ": civ?.color || "var(--gold)" } as React.CSSProperties}>
+      <div style={{ gridColumn: "1 / -1" }}>
+        <DailyMission />
+      </div>
       {holder.isHolder && holder.balance !== null && (
         <div className="holder-flex" style={{ gridColumn: "1 / -1" }}>
           <span className="kicker">⬡ VERIFIED HOLDER</span>
@@ -185,6 +190,7 @@ export function CarrierClient() {
           </div>
         </div>
       )}
+      {state && <MyInvites handle={state.handle} />}
       <div className="rank-card">
         <div className="rank-meta">
           <span className="kicker">CARRIER · @{state.handle}</span>

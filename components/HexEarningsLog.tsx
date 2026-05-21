@@ -12,12 +12,18 @@ type Data = {
   balance: number;
   lifetimeEarned: number;
   lastHolderTickDay: string | null;
+  claimStreak?: number;
   tick?: {
     daysCredited: number;
     hexCredited: number;
     tier: string;
     multiplier: number;
     civBonusPct: number;
+  };
+  defenderTick?: {
+    qualifyingTokens: number;
+    hexCredited: number;
+    daysCredited: number;
   };
   events: Event[];
 };
@@ -87,12 +93,23 @@ export function HexEarningsLog({ address }: { address: string }) {
         </span>
       </div>
 
+      {data.claimStreak ? (
+        <div className="hl-streak">⬡ STREAK · {data.claimStreak}d 🔥</div>
+      ) : null}
+
       {data.tick && data.tick.daysCredited > 0 && (
         <div className="hl-tick">
           <span className="hl-tick-credit">+{data.tick.hexCredited} ⬡</span>{" "}
           for {data.tick.daysCredited} day{data.tick.daysCredited > 1 ? "s" : ""} of holding ·{" "}
           <strong>{data.tick.tier}</strong> tier ({data.tick.multiplier}×)
           {data.tick.civBonusPct ? ` · +${data.tick.civBonusPct}% civ bonus` : ""}
+        </div>
+      )}
+
+      {data.defenderTick && data.defenderTick.qualifyingTokens > 0 && (
+        <div className="hl-tick">
+          <span className="hl-tick-credit">+{data.defenderTick.hexCredited} ⬡</span>{" "}
+          floor defender · {data.defenderTick.qualifyingTokens} citizen{data.defenderTick.qualifyingTokens === 1 ? "" : "s"} held 30d+
         </div>
       )}
 

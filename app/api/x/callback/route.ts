@@ -8,6 +8,8 @@ import {
 } from "@/lib/x-oauth";
 import { setXVerification } from "@/lib/x-store";
 import { signSession, X_SESSION_COOKIE, sessionCookieOptions } from "@/lib/x-session";
+import { setReferrer } from "@/lib/referral-store";
+import { normalizeHandle } from "@/lib/sync";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +100,20 @@ export async function GET(req: Request) {
     verifiedAt: Date.now(),
   });
 
+  // Bind referral if a pending referrer cookie is set and not self-referral.
+  const refCookie = c.get("freelon_ref")?.value;
+  if (refCookie) {
+    const referrer = normalizeHandle(refCookie);
+    const joiner = normalizeHandle(xHandle);
+    if (referrer && joiner && referrer !== joiner) {
+      try {
+        await setReferrer(joiner, referrer);
+      } catch {
+        // best-effort; do not block verification flow
+      }
+    }
+  }
+
   const res = NextResponse.redirect(
     new URL(`/carrier?x_verified=${encodeURIComponent(xHandle)}`, url.origin),
   );
@@ -108,5 +124,6 @@ export async function GET(req: Request) {
   res.cookies.delete("x_pkce_verifier");
   res.cookies.delete("x_oauth_state");
   res.cookies.delete("x_bind");
+  res.cookies.delete("freelon_ref");
   return res;
 }

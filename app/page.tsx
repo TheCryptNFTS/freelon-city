@@ -4,6 +4,8 @@ import { LiveStats } from "@/components/LiveStats";
 import { RecentTransmissions } from "@/components/RecentTransmissions";
 import { CivWarBoard } from "@/components/CivWarBoard";
 import { DailySignal } from "@/components/DailySignal";
+import { DailyMission } from "@/components/DailyMission";
+import { TopPatronsStrip } from "@/components/TopPatronsStrip";
 import { getOneOfOnes, getAllCitizens, getHonoraries } from "@/lib/citizens";
 import { CIVILIZATIONS, CONTRACT, METADATA_CID, imageUrl, heroImageUrl } from "@/lib/constants";
 
@@ -74,6 +76,9 @@ export default function Home() {
 
       {/* DAILY SIGNAL */}
       <DailySignal />
+
+      {/* DAILY MISSION */}
+      <DailyMission />
 
       {/* INLINE SYNC */}
       <section className="inline-sync reveal">
@@ -234,6 +239,9 @@ export default function Home() {
 
       {/* CIVILIZATION WAR SCOREBOARD */}
       <CivWarBoard />
+
+      {/* TOP PATRONS · 7-DAY BURN */}
+      <TopPatronsStrip />
 
       {/* RIVALRIES */}
       <section className="rivalries-section reveal">

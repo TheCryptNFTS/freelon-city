@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { InlineSync } from "@/components/InlineSync";
-import { syncHandle } from "@/lib/sync";
+import { syncHandle, normalizeHandle } from "@/lib/sync";
 import { CIVILIZATIONS, imageUrl, openseaUrl } from "@/lib/constants";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ searchParams }: { searchParams: Promise<{ h?: string }> }): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ h?: string; r?: string }> }): Promise<Metadata> {
   const sp = await searchParams;
   if (!sp.h) {
     return {
@@ -24,8 +25,24 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   };
 }
 
-export default async function SyncPage({ searchParams }: { searchParams: Promise<{ h?: string }> }) {
+export default async function SyncPage({ searchParams }: { searchParams: Promise<{ h?: string; r?: string }> }) {
   const sp = await searchParams;
+  if (sp.r) {
+    const ref = normalizeHandle(sp.r);
+    if (ref) {
+      try {
+        const c = await cookies();
+        c.set("freelon_ref", ref, {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30,
+        });
+      } catch {
+        // best-effort; cookie write may fail in some render paths
+      }
+    }
+  }
   if (!sp.h) {
     return (
       <main

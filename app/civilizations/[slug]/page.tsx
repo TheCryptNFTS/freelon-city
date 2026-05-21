@@ -5,6 +5,8 @@ import { getByCivilization } from "@/lib/citizens";
 import { CitizenCard } from "@/components/CitizenCard";
 import { CivVisitTracker } from "@/components/CivVisitTracker";
 import { QuestTracker } from "@/components/QuestTracker";
+import { DoctrineFragment } from "@/components/DoctrineFragment";
+import doctrineFragments from "@/data/doctrine-fragments.json";
 
 export function generateStaticParams() {
   return Object.keys(CIVILIZATIONS).map((slug) => ({ slug }));
@@ -21,6 +23,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const { slug } = await params;
   const c = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; role: string; essence: string; population: number; color: string; rival?: string; rivalLine?: string }>)[slug];
   if (!c) notFound();
+  // Mayor of this civ — sampled from on-chain holdings, 30min cache
+  const { getMayor } = await import("@/lib/civ-mayor");
+  const mayor = await getMayor(slug).catch(() => null);
   const rivalSlug = c.rival;
   const rival = rivalSlug
     ? (CIVILIZATIONS as Record<string, { name: string; doctrine: string; color: string }>)[rivalSlug]
@@ -39,6 +44,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <QuestTracker questId="city-tourist" stepId={slug} />
       <div className="terminal text-xs tracking-[0.3em]" style={{ color: c.color }}>{c.name.toUpperCase()}</div>
       <h1 className="mt-2 text-6xl font-light" style={{ color: c.color }}>{c.doctrine}</h1>
+      {mayor && (
+        <a className="civ-mayor" href={`/wallet/${mayor.address}`} style={{ borderColor: c.color }}>
+          <span className="cm-kicker" style={{ color: c.color }}>⬡ MAYOR OF {c.name.toUpperCase()}</span>
+          <span className="cm-addr">{mayor.address.slice(0, 6)}…{mayor.address.slice(-4)}</span>
+          <span className="cm-count">{mayor.count}+ citizens (sampled)</span>
+        </a>
+      )}
       <div className="mt-6 max-w-2xl text-[var(--color-ink-dim)] text-lg leading-relaxed">
         <p>{c.role}</p>
         <p className="mt-3 italic">{c.essence}</p>
@@ -77,6 +89,18 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           {featured.map((cit) => <CitizenCard key={cit.id} citizen={cit} size="sm" />)}
         </div>
       </section>
+
+      {(() => {
+        // Map doctrine name to fragment-json key. "Void/404" -> "void".
+        const key = c.doctrine.toLowerCase().replace(/\/.*$/, "").trim();
+        const fragments = doctrineFragments as Record<
+          string,
+          { fragment: string; stepId: string } | undefined
+        >;
+        const frag = fragments[key];
+        if (!frag) return null;
+        return <DoctrineFragment stepId={frag.stepId} fragment={frag.fragment} />;
+      })()}
 
       <div className="mt-16 flex justify-between">
         <Link href="/civilizations" className="terminal text-[var(--color-ink-dim)] text-sm uppercase tracking-widest hover:text-[var(--color-gold)]">← all civilizations</Link>

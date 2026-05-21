@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { runHolderTick } from "@/lib/holder-tick";
+import { runFloorDefenderTick } from "@/lib/floor-defender";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 
@@ -25,6 +26,8 @@ export async function GET(
 
   // Run the holder tick (catches up since last day, caps at 30d)
   const tick = await runHolderTick(address);
+  // Floor defender tick (loyal-hold bonus, +50/day per 30d+ citizen)
+  const defenderTick = await runFloorDefenderTick(address);
   const rec = await getWalletHex(address);
 
   return NextResponse.json({
@@ -32,7 +35,9 @@ export async function GET(
     balance: rec.balance,
     lifetimeEarned: rec.lifetimeEarned,
     lastHolderTickDay: rec.lastHolderTickDay,
+    claimStreak: rec.claimStreak ?? 0,
     tick,
+    defenderTick,
     events: rec.events.slice(0, 20),
   });
 }

@@ -57,6 +57,19 @@ export default async function TributePage({ params }: { params: Promise<{ handle
     }
   }
 
+  // Look up current on-chain holder — 2s budget so the build doesn't stall.
+  // If RPC is slow or unavailable, simply omit the badge (graceful).
+  let currentPatron: string | null = null;
+  try {
+    const { ownerOf } = await import("@/lib/owner-of");
+    currentPatron = await Promise.race<string | null>([
+      ownerOf(h.id),
+      new Promise<null>((r) => setTimeout(() => r(null), 2000)),
+    ]);
+  } catch {
+    /* non-fatal */
+  }
+
   const tweet =
     `${h.honoree_handle || h.honoree} — citizen #${id4} of FREELON CITY carries your name.\n\n` +
     `Civilization: ${civ?.name}.\n` +
@@ -89,6 +102,16 @@ export default async function TributePage({ params }: { params: Promise<{ handle
           <div className="civ-tag" style={{ color }}>
             {civ?.doctrine?.toUpperCase()} · {civ?.name?.toUpperCase()}
           </div>
+          {currentPatron && (
+            <a
+              className="current-patron"
+              href={`/wallet/${currentPatron}`}
+              style={{ borderColor: color }}
+            >
+              <span className="cp-kicker">⬡ CURRENT PATRON</span>
+              <span className="cp-addr">{currentPatron.slice(0, 6)}…{currentPatron.slice(-4)}</span>
+            </a>
+          )}
           {identity && (
             <div className="bio">
               <div className="headline" style={{ color }}>{identity.headline}</div>

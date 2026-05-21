@@ -1,0 +1,12 @@
+{
+  "synthesis":    { "fragment": "We merge what was broken into something they cannot break again.", "stepId": "synthesis" },
+  "corruption":   { "fragment": "Every broken hex remembers its old shape. We carry the rust.", "stepId": "corruption" },
+  "growth":       { "fragment": "Where signal lands, life answers. Slowly. Patiently. Forever.", "stepId": "growth" },
+  "oracle":       { "fragment": "Three futures arrived simultaneously. We learned to read all three.", "stepId": "oracle" },
+  "sovereignty":  { "fragment": "A crown is only a hex turned outward, made permanent.", "stepId": "sovereignty" },
+  "void":         { "fragment": "The 404 wasn't an error. It was the doctrine that knows when not to speak.", "stepId": "void" },
+  "luxury":       { "fragment": "Pink is the color the city wore when it stopped pretending the signal was utilitarian.", "stepId": "luxury" },
+  "transmission": { "fragment": "We are the spark that crosses gaps. We do not stop for permission.", "stepId": "transmission" },
+  "fracture":     { "fragment": "Break the shape. The shape becomes the language.", "stepId": "fracture" },
+  "machine":      { "fragment": "Repeat. Repeat. Repeat. The doctrine of perfect uninterrupted iteration.", "stepId": "machine" }
+}

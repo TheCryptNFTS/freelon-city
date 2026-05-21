@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MobileNav } from "@/components/MobileNav";
 import { WalletConnect } from "@/components/WalletConnect";
+import { HeaderHexPill } from "@/components/HeaderHexPill";
 
 export function Header() {
   return (
@@ -19,8 +20,11 @@ export function Header() {
           <Link href="/shapes" className="nav-link">Shapes</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
+          <Link href="/earn" className="nav-link" style={{ color: "var(--gold)" }}>Earn</Link>
+          <Link href="/leaderboard" className="nav-link">Leaders</Link>
           <Link href="/carrier" className="nav-link" style={{ color: "var(--gold)" }}>Carrier</Link>
           <Link href="/secrets" className="nav-link" style={{ color: "var(--gold)", fontSize: 9, letterSpacing: "0.28em", opacity: 0.7 }}>⬡</Link>
+          <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>
         <MobileNav />

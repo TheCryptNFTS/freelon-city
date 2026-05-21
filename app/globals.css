@@ -2853,3 +2853,203 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .quest-toast-stack { left: 12px; right: 12px; top: 80px; }
   .quest-toast { min-width: 0; max-width: none; }
 }
+
+/* ============================ INVITES ============================ */
+.invites { border: 1px solid var(--line); padding: var(--s-4); background: var(--surface); margin-top: var(--s-4); }
+.invites .kicker { color: var(--gold); display: block; margin-bottom: var(--s-3); }
+.invites-link { display: flex; gap: 8px; align-items: stretch; margin-top: var(--s-3); }
+.invites-link input { flex: 1; padding: 12px 14px; font-family: var(--mono2); font-size: 12px; background: var(--bg); border: 1px solid var(--line-2); color: var(--ink); }
+.invites-link button { padding: 12px 16px; background: var(--gold); color: var(--bg); border: 1px solid var(--gold); font-family: var(--grotesk); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; font-weight: 700; }
+.invites-link button:hover { background: var(--gold-bright); }
+.invites-list { margin-top: var(--s-3); list-style: none; padding: 0; }
+.invites-list li { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--line); font-family: var(--mono2); font-size: 12px; letter-spacing: 0.06em; }
+.invites-list li:first-child { border-top: none; }
+.invites-empty { color: var(--ink-dim); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.16em; padding: var(--s-2) 0; }
+
+/* ============================ DAILY MISSION ============================ */
+.daily-mission { border: 1px solid var(--gold); background: rgba(200,170,100,0.04); padding: var(--s-4); margin: var(--s-4) 0; display: grid; grid-template-columns: 1fr auto; gap: var(--s-3); align-items: center; }
+.daily-mission .dm-body { display: flex; flex-direction: column; gap: 6px; }
+.daily-mission .kicker { color: var(--gold); }
+.daily-mission h3 { font-family: var(--display); font-size: clamp(20px, 3vw, 28px); letter-spacing: -0.005em; }
+.daily-mission .dm-desc { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.08em; color: var(--ink-2); }
+.daily-mission .dm-reward { font-family: var(--display); font-size: 18px; color: var(--gold-bright); margin-left: var(--s-3); }
+.daily-mission .dm-cta { display: inline-flex; align-items: center; gap: 8px; }
+.daily-mission .dm-claimed { color: var(--ink-dim); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; }
+@media (max-width: 640px) { .daily-mission { grid-template-columns: 1fr; } }
+
+/* ============================ DOCTRINE FRAGMENT ============================ */
+.doctrine-fragment {
+  margin-top: var(--s-6);
+  padding: var(--s-3) 0;
+  border-top: 1px dashed var(--line);
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(16px, 2vw, 22px);
+  cursor: pointer;
+  user-select: none;
+  transition: color 280ms ease;
+}
+.doctrine-fragment:not(.revealed) { color: rgba(230,225,210,0.06); }
+.doctrine-fragment:not(.revealed):hover { color: rgba(230,225,210,0.16); }
+.doctrine-fragment.revealed { color: var(--ink-2); }
+.doctrine-fragment.just-claimed::after {
+  content: " · ⬡ FRAGMENT RECORDED";
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--gold);
+  font-style: normal;
+  margin-left: 8px;
+}
+
+/* ============================ HEADER HEX PILL ============================ */
+.header-hex-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--gold);
+  background: rgba(200,170,100,0.06);
+  color: var(--gold-bright);
+  font-family: var(--mono2);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: background 200ms ease, transform 200ms ease;
+  text-decoration: none;
+}
+.header-hex-pill:hover {
+  background: rgba(200,170,100,0.16);
+  transform: translateY(-1px);
+}
+.header-hex-pill .hp-icon { font-size: 13px; }
+.header-hex-pill .hp-balance { font-weight: 700; letter-spacing: 0.08em; }
+
+/* ============================ HEX LOG STREAK ============================ */
+.hex-log .hl-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  margin: 0 0 var(--s-3) 0;
+  background: rgba(229,121,74,0.12);
+  border: 1px solid rgba(229,121,74,0.5);
+  color: #f5a07a;
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+/* ============================ EARN PAGE ============================ */
+.earn-row { background: var(--surface); padding: var(--s-4); display: grid; gap: 8px; }
+.earn-row-head {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: baseline;
+  gap: var(--s-3);
+}
+.earn-kind {
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  font-weight: 700;
+}
+.earn-name { font-family: var(--display); font-size: 18px; letter-spacing: -0.005em; }
+.earn-reward { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.12em; color: var(--gold-bright); }
+.earn-how { color: var(--ink); font-size: 15px; line-height: 1.55; margin: 0; }
+.earn-notes { color: var(--ink-dim); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.06em; line-height: 1.7; margin: 0; }
+@media (max-width: 640px) { .earn-row-head { grid-template-columns: 1fr; } }
+
+/* ============================ LEADERBOARD ============================ */
+.lb-list { list-style: none; padding: 0; margin: 0; }
+.lb-list li {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono2);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.lb-rank { color: var(--ink-dim); }
+.lb-addr { color: var(--ink); text-decoration: none; }
+.lb-addr:hover { color: var(--gold); }
+.lb-amt { color: var(--gold-bright); font-family: var(--display); font-size: 15px; letter-spacing: 0; }
+@media (max-width: 720px) {
+  .leaderboard-page > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+}
+
+/* ============================ TOP PATRONS STRIP ============================ */
+.top-patrons-strip {
+  margin: var(--s-6) 0;
+  padding: var(--s-4);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.top-patrons-strip .tp-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--s-3); }
+.top-patrons-strip .tp-more {
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--gold);
+  text-decoration: none;
+}
+.top-patrons-strip .tp-list { list-style: none; padding: 0; margin: 0; }
+.tp-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 180px auto;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono2);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.tp-rank { color: var(--ink-dim); }
+.tp-name { font-family: var(--display); font-size: 16px; letter-spacing: -0.005em; }
+.tp-civ { font-size: 10px; letter-spacing: 0.2em; }
+.tp-amt { color: var(--civ, var(--gold-bright)); font-family: var(--display); font-size: 15px; }
+@media (max-width: 640px) {
+  .tp-row { grid-template-columns: 24px 1fr auto; }
+  .tp-civ { display: none; }
+}
+
+/* ============================ MAYOR / PATRON BADGES ============================ */
+.civ-mayor, .current-patron {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: rgba(200,170,100,0.04);
+  margin-top: var(--s-3);
+  text-decoration: none;
+  color: var(--ink);
+  border-radius: 2px;
+  transition: background 200ms ease;
+}
+.civ-mayor:hover, .current-patron:hover { background: rgba(200,170,100,0.08); }
+.cm-kicker, .cp-kicker {
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.cm-addr, .cp-addr {
+  font-family: var(--mono2);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.cm-count {
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}

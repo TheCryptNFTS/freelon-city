@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { canClaimToday, getLastClaim, setLastClaim, todayUTC } from "@/lib/daily-claim-store";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
+
+const STREAK_MILESTONES: Record<number, number> = { 3: 25, 7: 100, 30: 500 };
+
+function yesterdayUTC(): string {
+  const d = new Date(Date.now() - 86400000);
+  return d.toISOString().slice(0, 10);
+}
 
 export const dynamic = "force-dynamic";
 
@@ -41,9 +49,41 @@ export async function POST(req: Request) {
     );
   }
   await setLastClaim(addr, todayUTC());
+
+  // Update streak + milestone bonuses on the wallet hex ledger
+  let streak = 0;
+  let bonus = 0;
+  try {
+    const rec = await getWalletHex(addr);
+    const last = rec.lastClaimDay ?? null;
+    if (last === yesterdayUTC()) streak = (rec.claimStreak ?? 0) + 1;
+    else streak = 1;
+    rec.claimStreak = streak;
+    rec.lastClaimDay = todayUTC();
+    await setWalletHex(rec);
+
+    // Base +10 for the claim itself
+    await creditWalletHex(addr, 10, {
+      kind: "manual",
+      note: `Daily X share · streak ${streak}d`,
+    });
+
+    bonus = STREAK_MILESTONES[streak] || 0;
+    if (bonus > 0) {
+      await creditWalletHex(addr, bonus, {
+        kind: "manual",
+        note: `Streak milestone · ${streak}d · +${bonus}⬡`,
+      });
+    }
+  } catch {
+    /* non-fatal */
+  }
+
   return NextResponse.json({
     ok: true,
     day: todayUTC(),
     awarded: 10,
+    streak,
+    streakBonus: bonus,
   });
 }
