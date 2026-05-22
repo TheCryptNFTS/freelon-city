@@ -68,9 +68,9 @@ export function AskAndShare({
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      cityNotice({ title: "SIGNAL TRANSMITTED", body: "Listing card copied. Spread it." });
+      cityNotice({ title: "SIGNAL RECEIVED", body: "Listing card copied. Spread it." });
     } catch {
-      setDownloadErr("DOWNLOAD FAILED — RETRY");
+      setDownloadErr("SIGNAL LOST — RETRY");
     } finally {
       setDownloading(false);
     }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { CANON } from "@/lib/canon";
 
 type Props = { tokenId: number };
 
@@ -85,16 +86,16 @@ export function WatchlistButton({ tokenId }: Props) {
           watchlist_full: "WATCHLIST FULL · 50 max",
           invalid_address: "ADDRESS MALFORMED",
           invalid_token: "CITIZEN ID OUT OF RANGE",
-          add_failed: "BIND FAILED · retry",
-          debit_failed: "HEX DEBIT FAILED · retry",
+          add_failed: `${CANON.LOST} · retry`,
+          debit_failed: `${CANON.LOST} · hex debit failed · retry`,
         };
-        setError(map[j.error] || `TRANSMISSION FAILED · ${j.error || "unknown"}`);
+        setError(map[j.error] || `${CANON.LOST} · ${j.error || "unknown"}`);
         return;
       }
       setWatching(!watching);
       if (j.burned) setBalance((b) => (b !== null ? b - j.burned : null));
     } catch {
-      setError("SIGNAL LOST · retry");
+      setError(`${CANON.LOST} · retry`);
     } finally {
       setBusy(false);
     }

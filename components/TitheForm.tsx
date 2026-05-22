@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { cityNotice } from "@/lib/city-notice";
 import { ECONOMY } from "@/lib/economy-constants";
+import { CANON } from "@/lib/canon";
 
 type Civ = { slug: string; name: string; color: string };
 
@@ -91,9 +92,11 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
       setOk({ amount: n, civ });
       // Refresh wallet hex log on success
       window.dispatchEvent(new CustomEvent("freelon:hex-refresh"));
+      // Tithe is a hex BURN — confirmation, not restoration. SIGNAL RECEIVED
+      // is the right canonical phrase here.
       cityNotice({
-        title: "THE CITY NOTICED",
-        body: `Your name burned into ${selected?.name ?? civ} for 7 days`,
+        title: CANON.RECEIVED,
+        body: `Name carved into ${selected?.name ?? civ} for 7 days`,
         delta: `-${n} ⬡`,
       });
     } catch (e) {

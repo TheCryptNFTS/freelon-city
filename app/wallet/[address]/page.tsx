@@ -18,6 +18,7 @@ import {
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 import { StampViewerAddr } from "@/components/StampViewerAddr";
+import { CANON } from "@/lib/canon";
 
 export const revalidate = 300;
 
@@ -230,14 +231,18 @@ export default async function WalletPage({
     daysSinceActive !== null &&
     !isCold &&
     daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS - 4;
-  const health: { state: "ACTIVE" | "COOLING" | "COLD" | "NEW"; color: string; msg: string } =
+  // Carrier health uses canon phrases as the pill label so the brand voice
+  // stays consistent across every wallet view.
+  const health: { state: string; color: string; msg: string } =
     daysSinceActive === null
-      ? { state: "NEW", color: "var(--ink-dim)", msg: "Post to start earning." }
+      ? { state: CANON.IDENTITY, color: "var(--ink-dim)", msg: "Post to start earning." }
       : isCold
-      ? { state: "COLD", color: "#FF5A4D", msg: `Earnings paused · ${daysSinceActive}d inactive · post to resume` }
+      ? { state: CANON.LOST, color: "#FF5A4D", msg: `Earnings paused · ${daysSinceActive}d inactive · post to restore` }
       : isCooling
-      ? { state: "COOLING", color: "#E8B247", msg: `${ECONOMY.ACTIVITY_DECAY_DAYS - daysSinceActive}d until cold · post to reset` }
-      : { state: "ACTIVE", color: "#7AE08D", msg: `${daysSinceActive}d since last action` };
+      ? { state: "COOLING", color: "#E8B247", msg: `${ECONOMY.ACTIVITY_DECAY_DAYS - daysSinceActive}d until ${CANON.LOST.toLowerCase()} · post to reset` }
+      : daysSinceActive <= 1
+      ? { state: CANON.RESTORED, color: "#7AE08D", msg: `Active today · meter flowing` }
+      : { state: CANON.ONLINE, color: "#7AE08D", msg: `${daysSinceActive}d since last action` };
 
   const tokenIds = tokensRes?.tokenIds ?? [];
   const balance = tokensRes?.balance ?? 0;
@@ -347,12 +352,12 @@ export default async function WalletPage({
               boxShadow: `0 0 8px ${health.color}`,
             }}
           />
-          CARRIER · {health.state}
+          ⬡ {health.state}
         </span>
         <span style={{ color: "var(--ink-2)", fontSize: 13, fontFamily: "var(--mono2)" }}>
           {health.msg}
         </span>
-        {(health.state === "NEW" || health.state === "COLD" || health.state === "COOLING") && (
+        {(health.state === CANON.IDENTITY || health.state === CANON.LOST || health.state === "COOLING") && (
           <Link
             href="/carrier"
             style={{

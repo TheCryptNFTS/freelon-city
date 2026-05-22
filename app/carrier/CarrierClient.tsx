@@ -9,6 +9,7 @@ import { AllDoctrinesBadge } from "@/components/AllDoctrinesBadge";
 import { MyInvites } from "@/components/MyInvites";
 import { DailyMission } from "@/components/DailyMission";
 import { cityNotice } from "@/lib/city-notice";
+import { CANON } from "@/lib/canon";
 import { StreakBadge } from "@/components/StreakBadge";
 
 export function CarrierClient() {
@@ -186,8 +187,8 @@ export function CarrierClient() {
                   if (next) {
                     setState(next);
                     cityNotice({
-                      title: "DAILY PULSE CLAIMED",
-                      body: "The signal moves through you.",
+                      title: CANON.HEX_RESTORED,
+                      body: "Daily signal claimed · the meter holds.",
                       delta: "+10 ⬡",
                     });
                   }

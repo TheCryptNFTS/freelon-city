@@ -22,6 +22,7 @@ import {
 import { ECONOMY, ethToHex } from "@/lib/economy-constants";
 import { getRedSignal, setRedSignal, snipeBounty } from "@/lib/red-signal-store";
 import { withLock } from "@/lib/upstash-lock";
+import { CANON } from "@/lib/canon";
 
 const DAY_MS = 86_400_000;
 
@@ -147,9 +148,11 @@ export async function creditFreshBlood(
     await setWalletHex(rec);
     return { credited: 0 };
   }
+  // HEX DETECTED is a rare-use canon phrase reserved for the recognition
+  // moment — wallet's first ever freelon acquired earns this label.
   await creditWalletHex(address, ECONOMY.FRESH_BLOOD_BOUNTY, {
     kind: "manual",
-    note: "Fresh blood · first freelon acquired",
+    note: `${CANON.HEX_DETECTED} · first freelon acquired`,
   });
   const after = await getWalletHex(address);
   after.freshBloodAwardedAt = Date.now();

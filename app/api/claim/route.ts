@@ -4,6 +4,7 @@ import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
+import { CANON } from "@/lib/canon";
 
 const STREAK_MILESTONES: Record<number, number> = {
   3: ECONOMY.STREAK_3_BONUS,
@@ -75,9 +76,12 @@ export async function POST(req: Request) {
 
     bonus = STREAK_MILESTONES[streak] || 0;
     if (bonus > 0) {
+      // 30-day streak is the milestone-of-milestones — earns the rare
+      // 404 RESOLVED canon label. Lesser streaks use plain phrasing.
+      const label = streak === 30 ? CANON.RESOLVED : "Streak milestone";
       await creditWalletHex(addr, bonus, {
         kind: "manual",
-        note: `Streak milestone · ${streak}d · +${bonus}⬡`,
+        note: `${label} · ${streak}d · +${bonus}⬡`,
       });
     }
   } catch {

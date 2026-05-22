@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CATEGORIES, ITEMS, type ShopItem } from "@/lib/shop";
 import { loadCarrier, type CarrierState } from "@/lib/carrier";
 import { cityNotice } from "@/lib/city-notice";
+import { CANON } from "@/lib/canon";
 
 type SoldMap = Record<string, number>;
 
@@ -76,12 +77,12 @@ export function ShopGrid() {
         setSold((prev) => ({ ...prev, [item.id]: j.sold }));
       }
       cityNotice({
-        title: "ARTIFACT ACQUIRED",
+        title: CANON.RECEIVED,
         body: `${item.name} added to your collection`,
         delta: `-${item.cost} ⬡`,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Network error");
+      setError(e instanceof Error ? `${CANON.LOST} · ${e.message}` : `${CANON.LOST} · retry`);
     } finally {
       setBusyId(null);
     }

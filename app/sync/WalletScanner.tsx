@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { cityNotice } from "@/lib/city-notice";
+import { CANON } from "@/lib/canon";
 
 type CivInfo = { slug: string; name: string; color: string };
 type ScanResult = {
@@ -13,12 +14,14 @@ type ScanResult = {
   citizenMatch?: { id: number; civ: string; color: string };
 };
 
+// Step language uses the canon — "SIGNAL FOUND" is reserved for the
+// discovery moment (it's a rare-use phrase, so it earns the final reveal).
 const STEPS = [
   "SCANNING WALLET",
   "READING SIGNAL STRENGTH",
   "CHECKING CIV ALIGNMENT",
   "CALCULATING HEX PRESSURE",
-  "PASSPORT READY",
+  CANON.FOUND,
 ] as const;
 
 const CIV_LOOKUP = CIVILIZATIONS as Record<string, { name: string; color: string }>;
@@ -68,8 +71,9 @@ export function WalletScanner() {
         await delay(600);
         setStep(4);
         setResult({ kind: "wallet", address: addr, balance, dominantCiv });
+        // SIGNAL FOUND is rare-use; this is one of the two moments it earns.
         cityNotice({
-          title: "THE CITY DETECTED YOU",
+          title: CANON.FOUND,
           body: dominantCiv ? `Identity locked · ${dominantCiv.name}` : "Identity locked",
           delta: `${balance} citizen${balance === 1 ? "" : "s"}`,
         });
@@ -90,7 +94,7 @@ export function WalletScanner() {
           citizenMatch: { id, civ: "?", color: "#C8A75D" },
         });
         cityNotice({
-          title: "SIGNAL MATCH",
+          title: CANON.RECEIVED,
           body: `Citizen #${id.toString().padStart(4, "0")} carries your alignment`,
         });
       }
