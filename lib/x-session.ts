@@ -83,7 +83,10 @@ export const X_SESSION_COOKIE = COOKIE_NAME;
 export function sessionCookieOptions() {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // Always Secure. Localhost browsers will still accept the cookie over
+    // http://localhost; this only blocks cleartext sessions on staging /
+    // preview / non-prod hosted environments, which is what we want.
+    secure: true,
     sameSite: "lax" as const,
     path: "/",
     maxAge: Math.floor(SESSION_TTL_MS / 1000),

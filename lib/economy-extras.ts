@@ -63,11 +63,15 @@ export async function creditSaleShare(address: string): Promise<{ credited: numb
 
     if (events.length === 0) return { credited: 0, sales: 0 };
 
-    // Apply per-24h cap: count up to MAX_PER_24H newest sales
+    // Apply per-24h cap: count up to MAX_PER_24H newest sales.
+    // Sort ASCENDING so we credit oldest-first and advance the cursor
+    // monotonically — guarantees no re-credit even if OpenSea returns
+    // events out of order between calls.
     const cap = ECONOMY.SALE_SHARE_MAX_PER_24H;
-    const ordered = events.sort((a, b) => (b.event_timestamp || 0) - (a.event_timestamp || 0));
+    const ordered = events.sort((a, b) => (a.event_timestamp || 0) - (b.event_timestamp || 0));
     const within24h = ordered.filter((e) => Date.now() - (e.event_timestamp || 0) * 1000 < DAY_MS);
-    const eligible = within24h.slice(0, cap);
+    // Take the MOST RECENT cap sales (within24h tail) but still process ascending
+    const eligible = within24h.slice(-cap);
 
     let totalCredit = 0;
     let newestTs = cursor;
@@ -84,14 +88,14 @@ export async function creditSaleShare(address: string): Promise<{ credited: numb
         });
         totalCredit += hex;
       }
+      // Advance cursor to THIS event's ts before processing the next, so
+      // a crash mid-loop never leaks credit on next run.
       newestTs = Math.max(newestTs, ev.event_timestamp || 0);
+      const mid = await getWalletHex(address);
+      mid.lastSaleCreditTs = newestTs;
+      mid.lastActiveDay = new Date().toISOString().slice(0, 10);
+      await setWalletHex(mid);
     }
-
-    // Advance cursor
-    const after = await getWalletHex(address);
-    after.lastSaleCreditTs = newestTs;
-    after.lastActiveDay = new Date().toISOString().slice(0, 10);
-    await setWalletHex(after);
 
     return { credited: totalCredit, sales: eligible.length };
   } catch {
@@ -207,6 +211,10 @@ export async function creditSnipeBounties(
     if (rs.claimedBy) continue;                // already claimed
     // Acquisition must be AFTER the flag (you bought it while it was red)
     if (acqTs < rs.flaggedAt) continue;
+    // Self-snipe block: a wallet cannot bounty-claim a listing it (or its
+    // recorded seller) made. Cheap defence against the sybil-pair exploit
+    // where one wallet lists at 90% floor and an alt buys to claim 500 hex.
+    if (rs.seller && rs.seller.toLowerCase() === address.toLowerCase()) continue;
 
     const bounty = snipeBounty(rs);
     if (bounty <= 0) continue;
@@ -247,11 +255,15 @@ export async function creditListingBounty(
     const d = (await r.json()) as { orders?: RawListing[] };
     const active = (d.orders || []).length;
     if (active === 0) return { credited: 0, activeListings: 0 };
+    // Per-day amount capped at LISTING_BOUNTY_DAILY_CAP. We then multiply by
+    // daysDue BUT cap the total at one day's worth — so a wallet that ticks
+    // after 30 days of inactivity can't claim 30× the daily cap. The intent
+    // of "5 hex/day per listing, 25 cap" is a daily rate, not a backlog.
     const perDay = Math.min(
       active * ECONOMY.LISTING_BOUNTY_PER_DAY,
       ECONOMY.LISTING_BOUNTY_DAILY_CAP,
     );
-    const credit = perDay * daysDue;
+    const credit = Math.min(perDay * daysDue, ECONOMY.LISTING_BOUNTY_DAILY_CAP);
     if (credit > 0) {
       await creditWalletHex(address, credit, {
         kind: "manual",

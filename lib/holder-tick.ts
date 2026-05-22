@@ -93,8 +93,10 @@ export async function runHolderTick(address: string): Promise<TickResult> {
   // ── DECAY GATE ─────────────────────────────────────────────────────
   // If the wallet hasn't done an active action in ACTIVITY_DECAY_DAYS,
   // passive earnings are PAUSED. The cursor still advances so we don't
-  // backfill years of credit later, and the next active action will
-  // resume earnings with at most ACTIVITY_RESUME_BACKFILL_DAYS of catch-up.
+  // backfill years of credit later. The catch-up cap is applied ONLY when
+  // the wallet has actually been COLD and is resuming — not while it's
+  // merely in the cooling window. Otherwise an active wallet checking in
+  // every 12 days would get capped to 3 days credit, which was wrong.
   const lastActive = rec.lastActiveDay ?? null;
   const daysSinceActive = lastActive ? diffDaysUTC(lastActive, today) : 0;
   const isDecayed = lastActive !== null && daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS;
@@ -102,14 +104,6 @@ export async function runHolderTick(address: string): Promise<TickResult> {
     // Stamp the cursor forward and skip credit. UI will show "COLD" state.
     const cooled = await emptyTick(address, today);
     return cooled;
-  }
-  // If just resumed after a cold period, cap retroactive credit so a
-  // returning lazy holder can't recoup a month of missed earnings.
-  if (lastActive && daysSinceActive > 0 && daysSinceActive <= ECONOMY.ACTIVITY_DECAY_DAYS) {
-    // Inside the grace window — credit normally up to daysDue.
-  }
-  if (daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS - ECONOMY.ACTIVITY_RESUME_BACKFILL_DAYS) {
-    daysDue = Math.min(daysDue, ECONOMY.ACTIVITY_RESUME_BACKFILL_DAYS);
   }
 
   // Read on-chain holdings (capped at 500 in getWalletTokens)
@@ -156,14 +150,15 @@ export async function runHolderTick(address: string): Promise<TickResult> {
     });
   }
 
-  // Active-economy crediters — parallel, each independently fault-tolerant.
-  // Failures fall through silently; they never block the passive credit.
-  await Promise.allSettled([
-    creditFreshBlood(address, balance),
-    creditSaleShare(address),
-    creditListingBounty(address, daysDue),
-    creditSnipeBounties(address, tokens.tokenIds),
-  ]);
+  // Active-economy crediters — chained sequentially.
+  // Each crediter does read-modify-write on the wallet record. Running them
+  // in parallel caused last-writer-wins races where one credit could erase
+  // another. Sequential is slower but correct. Each call swallows its own
+  // errors so a failure in one doesn't block the others.
+  try { await creditFreshBlood(address, balance); } catch {}
+  try { await creditSaleShare(address); } catch {}
+  try { await creditListingBounty(address, daysDue); } catch {}
+  try { await creditSnipeBounties(address, tokens.tokenIds); } catch {}
 
   // Update cursor
   const after = await getWalletHex(address);

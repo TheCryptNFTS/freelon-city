@@ -91,13 +91,13 @@ export default function Home() {
         <div className="why-grid">
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--gold)" } as React.CSSProperties}>
             <div className="why-stat">
-              <span className="why-num">+200⬡</span>
-              <span className="why-unit">per day</span>
+              <span className="why-num">+500⬡</span>
+              <span className="why-unit">per snipe</span>
             </div>
             <div className="why-body">
-              <span className="why-no">01 · HOLD</span>
-              <h3>For every 1-of-1 you hold</h3>
-              <p>Every citizen accrues hex daily. Common = +1⬡/day, scaling by tier. 1-of-1 = +200⬡/day.</p>
+              <span className="why-no">01 · SNIPE</span>
+              <h3>Snipe a 🔴 Red Signal</h3>
+              <p>Listings priced ≤ 90% of floor get flagged. Buy one, hold 7 days, the city pays the spread in hex — up to +500⬡ per snipe.</p>
             </div>
           </Link>
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--signal-blue)" } as React.CSSProperties}>

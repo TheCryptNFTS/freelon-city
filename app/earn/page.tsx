@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ECONOMY } from "@/lib/economy-constants";
 
 export const metadata: Metadata = {
   title: "The Ledger ⬡ · FREELON CITY",
-  description: "The full ledger of hex — every way the city pays, every way it takes. Passive holding, sweeps, quests, daily share, referrals, tithes.",
+  description: "The full ledger of hex — every way the city pays, every way it takes. Active actions earn most. Passive holding is a floor, not a salary.",
 };
 
 type Row = {
@@ -15,82 +16,91 @@ type Row = {
 };
 
 const EARN: Row[] = [
+  // ── Active actions (this is where most hex flows) ──────────────────
   {
     kind: "EARN",
-    name: "Passive holding",
-    reward: "+1 ⬡/citizen/day × tier mult.",
-    how: "Hold any FREELON citizen. Tick fires when you view /wallet/[your-addr].",
-    notes: "Tier: 1=1.0×, 2–5=1.2×, 6–20=1.5×, 21+=2.0×. +25% if all same civ OR ≥1 of every civ. +50/wk per Honorary. +200/day per 1-of-1.",
+    name: "Snipe a 🔴 Red Signal",
+    reward: `Up to +${ECONOMY.SNIPE_BOUNTY_CAP} ⬡`,
+    how: `Buy a listing flagged red on /dashboard (priced ≤ ${ECONOMY.RED_SIGNAL_THRESHOLD * 100}% of floor). Hold ${ECONOMY.SNIPE_HOLD_DAYS} days. Bounty auto-credits.`,
+    notes: `Capped at ${ECONOMY.SNIPE_MAX_PER_DAY}/day per wallet. ${ECONOMY.SNIPE_COOLDOWN_HOURS}h cooldown. No self-snipes (own listings excluded).`,
   },
   {
     kind: "EARN",
-    name: "Floor defender",
-    reward: "+50 ⬡/citizen/day",
-    how: "Hold any citizen for 30+ consecutive days (no transfer out).",
-    notes: "Verified via OpenSea transfer history. Caps catch-up at 30 days.",
+    name: "Sale share",
+    reward: `${ECONOMY.SALE_SHARE_PCT}% of sale ETH (peg ${ECONOMY.HEX_PER_ETH.toLocaleString()} ⬡ = 1 ETH)`,
+    how: "Sell a FREELON citizen on OpenSea. Hex auto-credits on your next wallet tick.",
+    notes: `Max ${ECONOMY.SALE_SHARE_MAX_PER_24H} sales/24h count. A 0.01 ETH sale ≈ ${Math.round(0.01 * ECONOMY.SALE_SHARE_PCT / 100 * ECONOMY.HEX_PER_ETH)} ⬡.`,
+  },
+  {
+    kind: "EARN",
+    name: "Fresh blood bounty",
+    reward: `+${ECONOMY.FRESH_BLOOD_BOUNTY} ⬡`,
+    how: "One-time payout the first time a wallet acquires any FREELON citizen.",
+    notes: "Cooldown deters sybil shuffling. New holders only.",
+  },
+  {
+    kind: "EARN",
+    name: "Listing bounty",
+    reward: `+${ECONOMY.LISTING_BOUNTY_PER_DAY} ⬡/day per active listing`,
+    how: "Keep liquidity on the floor. Hex credits while your citizens are actively listed on OpenSea.",
+    notes: `Cap ${ECONOMY.LISTING_BOUNTY_DAILY_CAP} ⬡/day per wallet. List-cancel cycling earns nothing.`,
   },
   {
     kind: "EARN",
     name: "Sweep bounty",
-    reward: "+25 ⬡ per sweep",
-    how: "Buy a FREELON citizen on OpenSea. Cron credits you within 30 min.",
-    notes: "Daily cap 250 ⬡. +100 ⬡ streak bonus on 3+ sweeps in 24h.",
+    reward: `+${ECONOMY.SWEEP_BOUNTY} ⬡ per sweep`,
+    how: "Buy a FREELON citizen at or near floor. Credited within 30 min by the daily sweep cron.",
+    notes: `Daily cap ${ECONOMY.SWEEP_DAILY_CAP} ⬡. +${ECONOMY.SWEEP_STREAK_BONUS} ⬡ streak bonus on ${ECONOMY.SWEEP_STREAK_THRESHOLD}+ sweeps in 24h.`,
   },
   {
     kind: "EARN",
     name: "Daily X share",
-    reward: "+10 ⬡",
-    how: "Sign in with X, share the daily signal on /carrier.",
-    notes: "Once per UTC day. Wallet-bound, can't be farmed.",
-  },
-  {
-    kind: "EARN",
-    name: "Streak milestones",
-    reward: "+25 / +100 / +500 ⬡",
-    how: "3, 7, or 30 consecutive days of daily X share claims.",
-    notes: "Resets to 0 if you miss a day.",
+    reward: `+${ECONOMY.DAILY_CLAIM} ⬡ (+ streak)`,
+    how: "Sign in with X, share the daily signal. Resets the 14-day decay clock.",
+    notes: `Once per UTC day. Streak: +${ECONOMY.STREAK_3_BONUS} (3d) / +${ECONOMY.STREAK_7_BONUS} (7d) / +${ECONOMY.STREAK_30_BONUS} (30d). Resets if missed.`,
   },
   {
     kind: "EARN",
     name: "Daily mission",
-    reward: "+5 ⬡",
+    reward: `+${ECONOMY.MISSION_REWARD} ⬡`,
     how: "Today's mission card on / and /carrier. Rotates per UTC day.",
-    notes: "Visit a different civ each day. 10-day rotation.",
   },
+  // ── Quests (one-time) ──────────────────────────────────────────────
   {
     kind: "EARN",
     name: "City Tourist quest",
-    reward: "+25 ⬡",
+    reward: `+${ECONOMY.CITY_TOURIST_REWARD} ⬡`,
     how: "Visit all 10 civilization pages.",
     notes: "One-time reward.",
   },
   {
     kind: "EARN",
     name: "Archivist quest",
-    reward: "+100 ⬡",
+    reward: `+${ECONOMY.ARCHIVIST_REWARD} ⬡`,
     how: "Open the lore panel for all 35 honorary citizens.",
     notes: "One-time reward.",
   },
   {
     kind: "EARN",
     name: "Hex Hunter quest",
-    reward: "+75 ⬡",
+    reward: `+${ECONOMY.HEX_HUNTER_REWARD} ⬡`,
     how: "Find 5 hidden secrets on /secrets.",
     notes: "One-time reward.",
   },
   {
     kind: "EARN",
     name: "Doctrine Master quest",
-    reward: "+500 ⬡",
+    reward: `+${ECONOMY.DOCTRINE_MASTER_REWARD} ⬡`,
     how: "Find all 10 hidden doctrine fragments — one on each civilization page.",
     notes: "Look near the bottom. Click the faint italic line.",
   },
+  // ── Passive (deliberately small — see "decay gate" below) ──────────
   {
     kind: "EARN",
-    name: "Referral",
-    reward: "+50 ⬡ referrer · +25 ⬡ joiner",
-    how: "Share your /sync?r=<your-handle> link. New X-verified joiner credits both.",
-    notes: "Tracked via HttpOnly cookie set on /sync, bound on X verification.",
+    name: "Passive holding",
+    reward: `+${ECONOMY.PER_CITIZEN_PER_DAY} ⬡/citizen/day × tier mult.`,
+    how: "A baseline pulse for holders. Earnings PAUSE after 14 days of no active action — post to resume.",
+    notes: `Tier: 1=1.0×, 2–5=1.2×, 6–20=1.5×, 21+=2.0×. +25% if all same civ OR ≥1 of every civ. +${ECONOMY.HONORARY_BONUS_PER_WEEK}/wk per Honorary. +${ECONOMY.ONE_OF_ONE_BONUS_PER_DAY}/day per 1-of-1.`,
   },
 ];
 
@@ -98,30 +108,53 @@ const SPEND: Row[] = [
   {
     kind: "SPEND",
     name: "Tithe — Patrons wall",
-    reward: "Min 100 ⬡",
+    reward: `Min ${ECONOMY.TITHE_MIN} ⬡`,
     how: "Burn hex on /wallet/[addr] tithe form. Your name appears on /patrons for 7 days.",
     notes: "Sorted by amount per civilization.",
   },
   {
     kind: "SPEND",
-    name: "Shop items",
-    reward: "250–5000 ⬡",
-    how: "30 artifacts at /shop. Property, weapons, clothes, artifacts.",
-    notes: "Carrier-handle keyed (older system); migrates to wallet-keyed over time.",
+    name: "Naming",
+    reward: `${ECONOMY.NAMING_COST} ⬡`,
+    how: "Give a citizen a custom display name. Signature + ownership verified on-chain.",
+    notes: `Permanent until overwritten by next owner.`,
   },
   {
     kind: "SPEND",
     name: "Civilization realign",
-    reward: "500 ⬡",
-    how: "Move a Common citizen to a different civilization.",
-    notes: "Rarity-preserving. Common tier only.",
+    reward: `${ECONOMY.REALIGN_COST} ⬡`,
+    how: "Move a Common citizen to a different civilization. Rarity-preserving, Common tier only.",
   },
   {
     kind: "SPEND",
-    name: "Naming",
-    reward: "100 ⬡",
-    how: "Give a procedural citizen a custom display name.",
-    notes: "Signature verified, ownership checked on-chain.",
+    name: "Boost listing on /market",
+    reward: `${ECONOMY.BOOST_LISTING_PER_DAY} ⬡/day`,
+    how: "Pin your listing at the top of the market feed for 24h.",
+  },
+  {
+    kind: "SPEND",
+    name: "Feature citizen 24h",
+    reward: `${ECONOMY.FEATURE_CITIZEN_24H} ⬡`,
+    how: "Hero slot on /civilizations for the citizen's civ for 24h.",
+  },
+  {
+    kind: "SPEND",
+    name: "Signal Burst",
+    reward: `${ECONOMY.SIGNAL_BURST_COST} ⬡`,
+    how: "Top-of-feed spotlight on the homepage for the next signal cycle.",
+  },
+  {
+    kind: "SPEND",
+    name: "Custom carrier title",
+    reward: `${ECONOMY.CUSTOM_TITLE_COST} ⬡`,
+    how: "Vanity title displayed on your /carrier/[handle] profile.",
+  },
+  {
+    kind: "SPEND",
+    name: "Shop items",
+    reward: `${ECONOMY.SHOP_MIN}–${ECONOMY.SHOP_MAX} ⬡`,
+    how: "30 artifacts at /shop. Property, weapons, clothes, artifacts.",
+    notes: "Carrier-handle keyed (older system); migrates to wallet-keyed over time.",
   },
 ];
 
@@ -147,8 +180,9 @@ export default function EarnPage() {
         <span className="kicker">⬡ THE LEDGER · EARN + BURN</span>
         <h1>Every way the city <em>pays</em></h1>
         <p className="lead">
-          Hex is the city&apos;s internal credit. Participate, and the wall accrues.
-          Burn, and your name is carved. Every line below is law.
+          Hex is the city&apos;s internal credit. Active carriers earn most of it.
+          Passive holders get a baseline pulse — and it pauses after {ECONOMY.ACTIVITY_DECAY_DAYS} days
+          of no action. Post, snipe, sweep, or sell to keep the meter alive.
         </p>
       </section>
 

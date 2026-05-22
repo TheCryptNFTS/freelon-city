@@ -20,9 +20,16 @@ async function upstash(cmd: string[]): Promise<unknown> {
 }
 
 function getIp(req: Request): string {
+  // Prefer the trusted Vercel header (x-real-ip is set by Vercel's edge and
+  // cannot be spoofed by clients). Fall back to X-Forwarded-For for non-Vercel
+  // deployments, taking the LEFTMOST value (the original client). Without
+  // this ordering, an attacker can rotate X-Forwarded-For per request to
+  // bypass per-IP limits entirely.
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
   const xff = req.headers.get("x-forwarded-for");
   if (xff) return xff.split(",")[0].trim();
-  return req.headers.get("x-real-ip") || "unknown";
+  return "unknown";
 }
 
 export type LimitState = { ok: boolean; remaining: number; reset: number };

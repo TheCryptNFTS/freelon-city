@@ -4,6 +4,8 @@ import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
 import { getName, setName, validName } from "@/lib/name-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { debitWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
+import { ECONOMY } from "@/lib/economy-constants";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -90,6 +92,33 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "you do not own this citizen" }, { status: 403 });
   }
 
+  // Hex burn — NAMING_COST. Verify balance first to give a friendly error,
+  // then debit (debitWalletHex itself throws on insufficient as a safety net).
+  const rec = await getWalletHex(address);
+  if (rec.balance < ECONOMY.NAMING_COST) {
+    return NextResponse.json(
+      {
+        error: "insufficient_hex",
+        required: ECONOMY.NAMING_COST,
+        balance: rec.balance,
+      },
+      { status: 402 },
+    );
+  }
+  try {
+    await debitWalletHex(address, ECONOMY.NAMING_COST, {
+      kind: "manual",
+      note: `Naming · #${String(cid).padStart(4, "0")} → "${name}"`,
+    });
+  } catch {
+    return NextResponse.json({ error: "debit_failed" }, { status: 402 });
+  }
+
   await setName(cid, name, address);
-  return NextResponse.json({ ok: true, name, owner: address });
+  return NextResponse.json({
+    ok: true,
+    name,
+    owner: address,
+    burned: ECONOMY.NAMING_COST,
+  });
 }

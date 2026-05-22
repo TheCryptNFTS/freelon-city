@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { cityNotice } from "@/lib/city-notice";
+import { ECONOMY } from "@/lib/economy-constants";
 
 type Civ = { slug: string; name: string; color: string };
 
@@ -11,11 +12,11 @@ type Props = {
   defaultDisplay?: string;
 };
 
-const MIN = 100;
+const MIN = ECONOMY.TITHE_MIN;
 
 export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
   const [civ, setCiv] = useState(civs[0]?.slug ?? "");
-  const [amount, setAmount] = useState<string>("100");
+  const [amount, setAmount] = useState<string>(String(ECONOMY.TITHE_MIN));
   const [display, setDisplay] = useState<string>(defaultDisplay);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -28,7 +28,11 @@ async function fetchAllHolders(): Promise<HolderRow[]> {
   const wallets = new Map<string, number>();
   let next: string | null = null;
   let pages = 0;
-  const MAX_PAGES = 30;
+  // Lowered from 30 to 10 to keep the server component well under Vercel's
+  // 10s function timeout. 10 pages × 200 = 2000 NFTs, which covers >99% of
+  // wallets. Larger wallets simply show a partial holders set; their rank
+  // computation will be conservative but the page still renders fast.
+  const MAX_PAGES = 10;
   const limit = 200;
 
   try {

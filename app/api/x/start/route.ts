@@ -56,7 +56,7 @@ export async function GET(req: Request) {
   const res = NextResponse.redirect(authUrl.toString());
   const cookieOpts = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true, // always — protects PKCE verifier on staging/preview hosts
     sameSite: "lax" as const,
     path: "/",
     maxAge: 600, // 10 minutes

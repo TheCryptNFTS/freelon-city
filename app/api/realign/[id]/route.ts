@@ -9,6 +9,7 @@ import { normalizeHandle } from "@/lib/sync";
 import { getRealignment, setRealignment } from "@/lib/realignment-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { ECONOMY } from "@/lib/economy-constants";
+import { getXVerification } from "@/lib/x-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -135,6 +136,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (owner !== address) {
     return NextResponse.json({ error: "you do not own this citizen" }, { status: 403 });
+  }
+
+  // Bind check: the carrier handle being debited MUST be the X handle the
+  // signing wallet verified. Otherwise an attacker could drain a victim's
+  // hex by submitting their own valid signature with the victim's handle.
+  const verification = await getXVerification(address);
+  if (!verification || normalizeHandle(verification.xHandle) !== handle) {
+    return NextResponse.json(
+      { error: "handle not verified to this wallet" },
+      { status: 403 },
+    );
   }
 
   const carrier = await getCarrier(handle);

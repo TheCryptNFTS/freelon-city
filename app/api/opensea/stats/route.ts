@@ -23,6 +23,8 @@ export async function GET() {
     const holders = data?.total?.num_owners ?? null;
     return NextResponse.json({ floor, holders, volume });
   } catch (e) {
-    return NextResponse.json({ floor: null, holders: null, volume: null, error: String(e).slice(0, 100) }, { status: 200 });
+    // Log server-side; return a generic code so stack traces don't leak.
+    console.error("[opensea/stats]", e);
+    return NextResponse.json({ floor: null, holders: null, volume: null, error: "upstream_unavailable" }, { status: 200 });
   }
 }
