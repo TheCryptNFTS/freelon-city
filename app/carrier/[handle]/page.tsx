@@ -9,6 +9,7 @@ import { getWalletTokens } from "@/lib/wallet-tokens";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { getCitizenMeta } from "@/lib/citizen-meta";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { tweetCarrier, tweetIntent } from "@/lib/share";
 
 async function fetchFloor(): Promise<number> {
   try {
@@ -103,12 +104,13 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
     };
   }
 
-  const tweet =
-    `@${h} carries the signal for ${civ?.name}.\n\n` +
-    `Patron citizen #${id4} · ${civ?.doctrine.toUpperCase()}\n` +
-    `Civ population: ${civ?.population} of 4040\n\n` +
-    `Find your civ: freeloncity.com/sync?h=YOURHANDLE`;
-  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
+  const tweet = tweetCarrier({
+    handle: h,
+    civName: civ?.name ?? r.civilization,
+    patronId: r.patron.id,
+    doctrine: civ?.doctrine ?? "",
+  });
+  const intent = tweetIntent(tweet);
 
   return (
     <main className="carrier-public" style={{ "--civ": civ?.color } as React.CSSProperties}>

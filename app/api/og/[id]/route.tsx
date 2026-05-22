@@ -135,6 +135,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        // Cache the rendered card hard. Citizen metadata is immutable per id,
+        // so this image can be cached forever. Lets X / Discord / iMessage
+        // hit Vercel's CDN cache instead of re-rendering each time — which
+        // is what causes social cards to silently show a placeholder.
+        "Cache-Control": "public, max-age=31536000, immutable, s-maxage=31536000",
+      },
+    },
   );
 }

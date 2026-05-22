@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cityNotice } from "@/lib/city-notice";
+import { tweetListing, tweetIntent } from "@/lib/share";
 
 type Props = {
   tokenId: number;
@@ -36,14 +37,19 @@ export function AskAndShare({
   const askNumber = parseFloat(ask);
   const askDisplay = !isNaN(askNumber) && askNumber > 0 ? formatEth(askNumber) : "—";
 
-  const tweet =
-    `⬡ Listing FREELON CITY #${id4} — ${displayName}\n\n` +
-    `Last sale: ${formatEth(lastSale)} ETH\n` +
-    `Ask: ${askDisplay} ETH\n\n` +
-    `${civilizationName} · ${shape}\n\n` +
-    `freeloncity.com/citizens/${tokenId}/card`;
-
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
+  void id4; // id4 is exported by lib/share through tokenId
+  void askDisplay;
+  const tweet = !isNaN(askNumber) && askNumber > 0
+    ? tweetListing({
+        tokenId,
+        name: displayName,
+        civName: civilizationName,
+        shape,
+        lastSaleEth: lastSale,
+        askEth: askNumber,
+      })
+    : "";
+  const tweetUrl = tweetIntent(tweet);
 
   const canShare = !isNaN(askNumber) && askNumber > 0;
 

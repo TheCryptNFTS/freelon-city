@@ -180,6 +180,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         </div>
       </div>
     ),
-    { width: 1200, height: 630 },
+    { width: 1200, height: 630, headers: { "Cache-Control": "public, max-age=31536000, immutable, s-maxage=31536000" } },
   );
 }

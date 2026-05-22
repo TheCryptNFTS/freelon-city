@@ -112,10 +112,9 @@ export default async function PassportPage({
   const thumbIds = tokenIds.slice(0, MAX_THUMBS);
 
   const ogUrl = `/api/og/passport/${norm}`;
-  const tweetText = `My FREELON CITY passport: ${klass}\n\nfreeloncity.com/passport/${norm}`;
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    tweetText
-  )}`;
+  const { tweetPassport, tweetIntent } = await import("@/lib/share");
+  const tweetText = tweetPassport({ klass, address: norm, balance });
+  const tweetUrl = tweetIntent(tweetText);
 
   return (
     <main

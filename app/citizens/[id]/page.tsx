@@ -16,6 +16,7 @@ import { getRealignment } from "@/lib/realignment-store";
 import { epithetFor } from "@/lib/epithets";
 import { rarityRank } from "@/lib/rarity";
 import { getCitizenMeta, type CitizenMeta } from "@/lib/citizen-meta";
+import { tweetTribute, tweetIntent } from "@/lib/share";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -215,7 +216,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             {c.honoree_handle && (
               <a
                 className="btn btn-primary"
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${c.honoree_handle} — citizen #${id4} of FREELON CITY carries your name.\n\nfreeloncity.com/tribute/${cleanHandle}`)}`}
+                href={tweetIntent(tweetTribute({ handle: c.honoree_handle, tokenId: tid }))}
                 target="_blank" rel="noreferrer"
               >
                 <span className="lbl">TRIBUTE</span>
