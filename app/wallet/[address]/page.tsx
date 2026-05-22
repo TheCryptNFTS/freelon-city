@@ -288,6 +288,13 @@ export default async function WalletPage({
           </span>
         </div>
         <div className="wallet-stat">
+          <span className="ws-label">PORTFOLIO VALUE</span>
+          <span className="ws-value">{(balance * floor).toFixed(4) } ETH</span>
+          <span className="ws-sub">
+            {balance} × {floor.toFixed(4)} ETH floor
+          </span>
+        </div>
+        <div className="wallet-stat">
           <span className="ws-label">RANK</span>
           <span className="ws-value">
             {rank !== null && totalHolders !== null

@@ -4061,3 +4061,19 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   .sales-feed .sf-row .sf-thumb { width: 56px; height: 56px; }
   .sales-feed .sf-meta { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: baseline; padding-top: 4px; border-top: 1px solid var(--line); margin-top: 4px; }
 }
+
+/* ============================ CITIZEN META STRIP ============================ */
+.citizen-meta-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s-3);
+  padding: var(--s-3);
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: var(--s-4) 0;
+}
+.cm-cell { display: flex; flex-direction: column; gap: 4px; }
+.cm-lbl { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-dim); text-transform: uppercase; }
+.cm-val { font-family: var(--display); font-size: 22px; letter-spacing: -0.005em; color: var(--ink); }
+.cm-val small { font-family: var(--mono2); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.16em; margin-left: 4px; }

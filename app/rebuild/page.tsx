@@ -3,52 +3,46 @@ import Link from "next/link";
 import { CONTRACT, IMAGE_CID, METADATA_CID, imageUrl } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "The Rebuild · 48 hours · FREELON CITY",
-  description: "How 4040 citizens were rebuilt without changing a single trait. The war story.",
+  title: "The Art System · FREELON CITY",
+  description: "How 4040 citizens are generated from 16 sacred shapes, 10 civilizations, and 7 castes — locked on-chain.",
 };
 
-const PHASES = [
+const SECTIONS = [
   {
-    h: "00:00",
-    t: "THE COLLAPSE",
+    h: "01",
+    t: "THE SHAPE SYSTEM",
     body:
-      "Phase 2 art was HTML+SVG. It rendered. It was correct. It was also flat — every citizen looked like a logo, not a person. The collection had locked metadata on-chain and 4040 holders. Nothing about the city could change. Except the art.",
+      "16 sacred shapes form the base of every citizen. Hood, Crown, Spire, Veil, Cipher, Wing, Hex, Pyramid, Orb, Mask, Halo, Ring, Tablet, Sigil, Throne, Echo. Each citizen is built from one primary shape and one secondary modifier. Rarity is a function of which shapes combine, weighted by population.",
   },
   {
-    h: "06:00",
-    t: "THE CHOICE",
+    h: "02",
+    t: "THE TEN CIVILIZATIONS",
     body:
-      "Three options: (1) ship as-is and lose, (2) regenerate from scratch and break trait rarity, (3) edit each citizen against a reference anchor and preserve trait distributions to the byte. We chose 3.",
+      "Every citizen belongs to one of ten signal doctrines. Civilization is set on-chain at mint and determines color, caste eligibility, and yield bonus. The doctrines: synthesis, corruption, growth, oracle, transmission, fracture, sovereignty, void, luxury, machine.",
   },
   {
-    h: "12:00",
-    t: "THE PIPELINE",
+    h: "03",
+    t: "THE SEVEN CASTES",
     body:
-      "OpenAI gpt-image-1.5 medium via images.edit() with a per-civilization reference image. Each token gets a 75–150 word visual-noun prompt seeded from on-chain traits. 9 batches of ≈ 500 images. Batch API for the 50% discount.",
+      "Caste determines a citizen's social hierarchy inside the city. Carrier, Architect, Choir, Witness, Throne, Vector, Voice. Population is fixed; rarity is set by the contract.",
   },
   {
-    h: "20:00",
-    t: "THE HEROES",
+    h: "04",
+    t: "THE LOCKED METADATA",
     body:
-      "Four 1/1s and 35 honoraries were hand-iterated. Vitalik got a tetrahedron crown. punk6529 got a voxel cube. Origin Signal is the founder myth. Patient Zero is the moment before collapse. Genesis Hex is the bracket. Final Signal is the one who turns out the lights.",
+      "The contract is a closed loop. 4040 tokens. No mint function. No metadata update. No admin key call that can change a single trait. The contract at " + CONTRACT.slice(0, 10) + "…" + CONTRACT.slice(-6) + " is the canonical source of every citizen's identity. What we render is a faithful read of what is already on-chain. Image CID: " + IMAGE_CID.slice(0, 14) + "… Metadata CID: " + METADATA_CID.slice(0, 14) + "… Both sealed.",
   },
   {
-    h: "32:00",
-    t: "THE PIN",
+    h: "05",
+    t: "THE ART RENDERING",
     body:
-      "All 4040 images pinned to Pinata IPFS. Image CID: " + IMAGE_CID.slice(0, 14) + "… Metadata CID: " + METADATA_CID.slice(0, 14) + "… Both sealed.",
+      "Each citizen image is composed from layered SVG components driven by the on-chain traits. The composition runs deterministically — same traits, same image, every time, forever. The 35 honorary citizens carry hand-detailed art. The four 1-of-1 transmissions are unique.",
   },
   {
-    h: "44:00",
-    t: "THE CALL",
+    h: "06",
+    t: "THE ON-SITE ECONOMY",
     body:
-      "One transaction. setBaseURI on " + CONTRACT.slice(0, 10) + "…" + CONTRACT.slice(-6) + ". Zero metadata changes. Zero trait rewrites. Every rarity preserved exactly.",
-  },
-  {
-    h: "48:00",
-    t: "THE CITY",
-    body:
-      "4040 citizens woke up. None of them moved. All of them changed face. The signal didn't die. It moved.",
+      "Hex points accrue daily for holders. Floor defenders earn more. Sweep bounties, streak bonuses, and quests run on the city's ledger. Tithes burn hex onto the patrons wall for 7 days. All recorded by the city, not the contract.",
   },
 ];
 
@@ -56,18 +50,18 @@ export default function RebuildPage() {
   return (
     <main className="rebuild" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.6) 0%, rgba(10,12,18,0.94) 65%, var(--bg) 100%), url(/atmos/rebuild.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
       <section className="rebuild-hero">
-        <span className="kicker">⬡ WAR STORY · PHASE 3 SHIP LOG</span>
+        <span className="kicker">⬡ THE CITY&apos;S ARCHITECTURE</span>
         <h1>
-          48 hours.<br />
           <em>4040 citizens</em><br />
-          Zero traits changed
+          Locked metadata<br />
+          Generative art
         </h1>
         <p className="lead">
-          The art rebuild that didn&apos;t touch the contract. A timeline.
+          The art is a generative system over 16 sacred shapes, 10 civilizations, 7 castes, and a single immutable contract. Here is how it works.
         </p>
       </section>
       <section className="timeline">
-        {PHASES.map((p, i) => (
+        {SECTIONS.map((p, i) => (
           <article key={i} className="phase">
             <div className="hh">{p.h}</div>
             <div className="body">
@@ -78,8 +72,8 @@ export default function RebuildPage() {
         ))}
       </section>
       <section className="rebuild-proof">
-        <span className="kicker">PROOF</span>
-        <h2>The city, after</h2>
+        <span className="kicker">THE CITY</span>
+        <h2>Four citizens, four readings of the system</h2>
         <div className="proof-grid">
           {[1, 404, 1337, 4040].map((id) => (
             <Link key={id} href={`/citizens/${id}`} className="proof-cell">
@@ -91,9 +85,10 @@ export default function RebuildPage() {
         </div>
       </section>
       <section className="rebuild-cta">
-        <Link className="btn btn-primary" href="/civilizations"><span className="ttl">EXPLORE THE CITY →</span></Link>
-        <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
-        <Link className="btn btn-secondary" href="/manifesto"><span className="ttl">READ THE MANIFESTO →</span></Link>
+        <span className="kicker">NEXT SIGNAL</span>
+        <Link className="btn btn-primary" href="/civilizations"><span className="ttl">EXPLORE THE CIVILIZATIONS →</span></Link>
+        <Link className="btn btn-secondary" href="/lore"><span className="ttl">READ THE LORE →</span></Link>
+        <a className="btn btn-secondary" href={`https://opensea.io/assets/ethereum/${CONTRACT}`} target="_blank" rel="noopener noreferrer"><span className="ttl">GET A FREELON ↗</span></a>
       </section>
     </main>
   );

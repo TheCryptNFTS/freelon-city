@@ -13,6 +13,8 @@ import { getDeepLore, unlockCost } from "@/lib/deep-lore";
 import { getName } from "@/lib/name-store";
 import { getRealignment } from "@/lib/realignment-store";
 import { epithetFor } from "@/lib/epithets";
+import { rarityRank } from "@/lib/rarity";
+import { getCitizenMeta, type CitizenMeta } from "@/lib/citizen-meta";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -69,6 +71,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     ? (CIVILIZATIONS as Record<string, { name: string }>)[realign.alignedCiv]
     : null;
   const cleanHandle = (c.honoree_handle || "").replace(/^@/, "");
+
+  const rank = rarityRank(tid);
+  const meta = await Promise.race<CitizenMeta>([
+    getCitizenMeta(tid),
+    new Promise<CitizenMeta>((r) =>
+      setTimeout(() => r({ daysHeld: null, lastSaleEth: null, lastSaleTs: null }), 6000)
+    ),
+  ]);
 
   return (
     <main className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
@@ -137,6 +147,27 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 : `Citizen #${id4} of ${civ?.name}.`
             }
           />
+
+          <div className="citizen-meta-strip">
+            <div className="cm-cell">
+              <span className="cm-lbl">Rarity rank</span>
+              <span className="cm-val">
+                {rank ? `#${rank}` : "—"} <small>/ 4040</small>
+              </span>
+            </div>
+            <div className="cm-cell">
+              <span className="cm-lbl">Days held</span>
+              <span className="cm-val">
+                {meta.daysHeld != null ? `${meta.daysHeld}d` : "—"}
+              </span>
+            </div>
+            <div className="cm-cell">
+              <span className="cm-lbl">Last sale</span>
+              <span className="cm-val">
+                {meta.lastSaleEth != null ? `${meta.lastSaleEth.toFixed(4)} ETH` : "—"}
+              </span>
+            </div>
+          </div>
 
           <dl className="trait-grid">
             {FIELDS.map((f) => (
