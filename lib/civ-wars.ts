@@ -53,12 +53,17 @@ export async function getCivStandings(): Promise<{
   const records = await listWalletHexRecords(500);
   const totals: Record<string, { hex: number; events: number; topTokenId: number | null; topAmt: number }> = {};
 
+  // Whitelist note prefixes that legitimately reference a citizen token id.
+  // Stops the exploit where a user-controlled note field (e.g. tithe display
+  // name "#1000") gets mis-parsed as a citizen attribution.
+  const ALLOWED_PREFIXES = ["Snipe ·", "Sale share ·", "Listing bounty ·", "Naming ·"];
   for (const r of records) {
     for (const e of r.events) {
       if (e.ts < since) continue;
       if (e.amount <= 0) continue;
-      // Parse #NNNN token id from the note
-      const m = e.note?.match(/#(\d{1,4})/);
+      if (!e.note) continue;
+      if (!ALLOWED_PREFIXES.some((p) => e.note!.startsWith(p))) continue;
+      const m = e.note.match(/#(\d{1,4})/);
       if (!m) continue;
       const tid = Number(m[1]);
       const civSlug = ID_TO_CIV.get(tid);

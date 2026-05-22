@@ -42,7 +42,7 @@ const SECTIONS = [
     h: "06",
     t: "THE ON-SITE ECONOMY",
     body:
-      "Hex points accrue daily for holders. Floor defenders earn more. Sweep bounties, streak bonuses, and quests run on the city's ledger. Tithes burn hex onto the patrons wall for 7 days. All recorded by the city, not the contract.",
+      "Hex is the city's internal credit. Active carriers earn it — by sniping red signals, sweeping the floor, posting daily, and selling into liquidity. Passive holding earns a small baseline that pauses if you go 14 days without an active move. Tithes burn hex onto the patrons wall for 7 days. All recorded by the city, not the contract.",
   },
 ];
 

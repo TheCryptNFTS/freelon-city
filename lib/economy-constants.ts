@@ -27,9 +27,12 @@ export const ECONOMY = {
   MAX_CATCHUP_DAYS: 30,
 
   // ─── DECAY GATE ─────────────────────────────────────────────────────
-  // If a wallet performs no active action (claim/sweep/snipe/sale) in
-  // this many days, passive earnings PAUSE until they next claim.
+  // (a) Hard cliff: no active action in this many days → passive pauses.
   ACTIVITY_DECAY_DAYS: 14,
+  // (b) Rolling minimum: distinct active-action days needed within the
+  // decay window. Stops the "1 action every 13 days" exploit. Must be
+  // ≥3 of the past 14 days to keep passive flowing.
+  ACTIVITY_MIN_DAYS_PER_WINDOW: 3,
   // On resume after a pause, credit at most this many days retroactive.
   ACTIVITY_RESUME_BACKFILL_DAYS: 3,
 
@@ -78,7 +81,7 @@ export const ECONOMY = {
   SNIPE_BOUNTY_CAP: 500,
   SNIPE_MAX_PER_DAY: 3,
   SNIPE_COOLDOWN_HOURS: 4,
-  SNIPE_HOLD_DAYS: 7,
+  SNIPE_HOLD_DAYS: 14, // raised from 7 — makes the alt-wallet sybil pair eat 2 weeks of price risk before claiming bounty
 
   // ─── Daily mission (app/api/mission/claim) ──────────────────────────
   MISSION_REWARD: 5,

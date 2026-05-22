@@ -21,6 +21,7 @@ import {
 } from "@/lib/wallet-hex-store";
 import { ECONOMY, ethToHex } from "@/lib/economy-constants";
 import { getRedSignal, setRedSignal, snipeBounty } from "@/lib/red-signal-store";
+import { withLock } from "@/lib/upstash-lock";
 
 const DAY_MS = 86_400_000;
 
@@ -34,8 +35,16 @@ type RawSale = {
 };
 
 /** Credit 5% of recent sale ETH (as hex) for sales the wallet made since the
- * last cursor. Capped at SALE_SHARE_MAX_PER_24H sales counted per UTC day. */
+ * last cursor. Capped at SALE_SHARE_MAX_PER_24H sales counted per UTC day.
+ *
+ * Wrapped in a per-wallet lock so two concurrent ticks (e.g. user opens
+ * /wallet in two tabs) can't both read the same cursor and double-credit.
+ */
 export async function creditSaleShare(address: string): Promise<{ credited: number; sales: number }> {
+  return (await withLock(`saleshare:${address.toLowerCase()}`, 15, () => _creditSaleShareInner(address))) ?? { credited: 0, sales: 0 };
+}
+
+async function _creditSaleShareInner(address: string): Promise<{ credited: number; sales: number }> {
   const apiKey = process.env.OPENSEA_API_KEY;
   if (!apiKey) return { credited: 0, sales: 0 };
   const rec = await getWalletHex(address);
@@ -103,7 +112,17 @@ export async function creditSaleShare(address: string): Promise<{ credited: numb
   }
 }
 
-/** One-time bounty when a wallet first holds a freelon. */
+/**
+ * One-time bounty when a wallet first holds a freelon.
+ *
+ * Anti-sybil hardening:
+ *  - Per-wallet flag stops double-claim on the same address.
+ *  - X-verification GATE: only wallets bound to a verified X handle can
+ *    claim. Sybil farmers would need a unique verified X account per
+ *    wallet, which is expensive to acquire and X enforces rate limits.
+ *  - The hex event ring buffer non-empty check is preserved as a second
+ *    line of defence.
+ */
 export async function creditFreshBlood(
   address: string,
   balance: number,
@@ -111,8 +130,17 @@ export async function creditFreshBlood(
   if (balance <= 0) return { credited: 0 };
   const rec = await getWalletHex(address);
   if (rec.freshBloodAwardedAt) return { credited: 0 };
-  // Cooldown: a wallet that previously held + sold cannot re-claim within 7d.
-  // Approximation: if any prior hex events exist, treat as not fresh.
+
+  // Gate on X-verification — silent denial if the wallet hasn't done OAuth.
+  // The wallet can still earn everything else; just not the new-user bounty.
+  try {
+    const { getXVerification } = await import("@/lib/x-store");
+    const verification = await getXVerification(address);
+    if (!verification) return { credited: 0 };
+  } catch {
+    return { credited: 0 };
+  }
+
   if (rec.events.length > 0 || rec.lifetimeEarned > 0) {
     // Mark as awarded so we don't re-check forever
     rec.freshBloodAwardedAt = Date.now();
@@ -130,8 +158,16 @@ export async function creditFreshBlood(
 }
 
 type RawListing = {
-  protocol_data?: { parameters?: { offer?: Array<{ identifierOrCriteria?: string }> } };
+  protocol_data?: {
+    parameters?: {
+      offer?: Array<{ identifierOrCriteria?: string }>;
+      startTime?: string | number;
+    };
+  };
   price?: { current?: { value?: string; decimals?: number } };
+  /** Seaport `start_time` (unix seconds) — used to age-gate the bounty. */
+  start_time?: number;
+  listing_time?: number;
 };
 
 /**
@@ -253,7 +289,17 @@ export async function creditListingBounty(
     });
     if (!r.ok) return { credited: 0, activeListings: 0 };
     const d = (await r.json()) as { orders?: RawListing[] };
-    const active = (d.orders || []).length;
+    // Only count listings older than 24h. Stops the list-cancel-relist farming
+    // loop where a wallet spam-lists at high prices to pocket bounty without
+    // real liquidity commitment.
+    const nowSec = Math.floor(Date.now() / 1000);
+    const minAgeSec = 24 * 3600;
+    const allOrders = d.orders || [];
+    const seasoned = allOrders.filter((o) => {
+      const start = Number(o.listing_time ?? o.start_time ?? o.protocol_data?.parameters?.startTime ?? 0);
+      return start > 0 && nowSec - start >= minAgeSec;
+    });
+    const active = seasoned.length;
     if (active === 0) return { credited: 0, activeListings: 0 };
     // Per-day amount capped at LISTING_BOUNTY_DAILY_CAP. We then multiply by
     // daysDue BUT cap the total at one day's worth — so a wallet that ticks

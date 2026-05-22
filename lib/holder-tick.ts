@@ -91,17 +91,36 @@ export async function runHolderTick(address: string): Promise<TickResult> {
   if (daysDue > MAX_CATCHUP_DAYS) daysDue = MAX_CATCHUP_DAYS;
 
   // ── DECAY GATE ─────────────────────────────────────────────────────
-  // If the wallet hasn't done an active action in ACTIVITY_DECAY_DAYS,
-  // passive earnings are PAUSED. The cursor still advances so we don't
-  // backfill years of credit later. The catch-up cap is applied ONLY when
-  // the wallet has actually been COLD and is resuming — not while it's
-  // merely in the cooling window. Otherwise an active wallet checking in
-  // every 12 days would get capped to 3 days credit, which was wrong.
+  // Two checks must pass:
+  //  (a) Last active action within ACTIVITY_DECAY_DAYS (hard cliff)
+  //  (b) Wallet has done ≥ ACTIVITY_MIN_DAYS_PER_WINDOW distinct active
+  //      action-days in the past ACTIVITY_DECAY_DAYS days (rolling)
+  //
+  // (b) closes the "13-day cycle" exploit where a wallet does ONE action
+  // every 13 days and farms passive forever. Now they need to actually
+  // engage on multiple days within each window.
   const lastActive = rec.lastActiveDay ?? null;
   const daysSinceActive = lastActive ? diffDaysUTC(lastActive, today) : 0;
   const isDecayed = lastActive !== null && daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS;
   if (isDecayed) {
-    // Stamp the cursor forward and skip credit. UI will show "COLD" state.
+    const cooled = await emptyTick(address, today);
+    return cooled;
+  }
+  // Rolling-window count: distinct UTC days where an active event landed
+  // in the past ACTIVITY_DECAY_DAYS. We mine this from the event ring buffer.
+  const windowMs = ECONOMY.ACTIVITY_DECAY_DAYS * 86400000;
+  const activeKindsSet = new Set(["sweep", "sweep_streak", "quest", "manual"]);
+  const distinctActiveDays = new Set<string>();
+  for (const e of rec.events) {
+    if (Date.now() - e.ts > windowMs) continue;
+    if (!activeKindsSet.has(e.kind)) continue;
+    if (e.amount <= 0) continue;
+    distinctActiveDays.add(new Date(e.ts).toISOString().slice(0, 10));
+  }
+  const minRequired = ECONOMY.ACTIVITY_MIN_DAYS_PER_WINDOW;
+  if (lastActive !== null && distinctActiveDays.size < minRequired) {
+    // Not enough engagement spread — pause passive credit but don't mark cold.
+    // UI will show COOLING and tell them how many more active days needed.
     const cooled = await emptyTick(address, today);
     return cooled;
   }

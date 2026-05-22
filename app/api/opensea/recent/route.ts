@@ -58,6 +58,20 @@ export async function GET() {
       .filter((x) => x.tokenId !== null)
       .slice(0, 12);
 
+    // Bump civ-heat counters for any sale newer than the last seen ts.
+    // The counter has a 60-min TTL so it reflects RECENT activity only.
+    try {
+      const { bumpHeat } = await import("@/lib/heat-counters");
+      const citizens = (await import("@/data/citizens.json")).default as Array<{ id: number; civilization: string }>;
+      const idToCiv = new Map(citizens.map((c) => [c.id, c.civilization]));
+      const cutoff = Math.floor(Date.now() / 1000) - 30 * 60; // last 30 min
+      for (const e of events) {
+        if (!e.tokenId || !e.ts || e.ts < cutoff) continue;
+        const civ = idToCiv.get(e.tokenId);
+        if (civ) await bumpHeat(civ, "sale");
+      }
+    } catch { /* heat is cosmetic, never block the response */ }
+
     return NextResponse.json({ events });
   } catch {
     return NextResponse.json({ events: [] });

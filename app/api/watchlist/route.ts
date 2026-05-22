@@ -9,6 +9,8 @@ import {
 } from "@/lib/watchlist-store";
 import { debitWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 
+const MAX_WATCHLIST_PER_WALLET = 50;
+
 export const dynamic = "force-dynamic";
 
 /** GET /api/watchlist?addr=0x... → list of tokenIds watched */
@@ -64,6 +66,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, action: "remove" });
   }
 
+  // Per-wallet size cap — stops a single wallet from watchlisting the
+  // entire collection to grief the public red-signal feed.
+  const current = await getWatchlist(addr);
+  if (current.includes(tokenId)) {
+    return NextResponse.json({ error: "already_watching" }, { status: 409 });
+  }
+  if (current.length >= MAX_WATCHLIST_PER_WALLET) {
+    return NextResponse.json(
+      { error: "watchlist_full", max: MAX_WATCHLIST_PER_WALLET },
+      { status: 409 },
+    );
+  }
+
   // Debit hex before add — fail closed
   const rec = await getWalletHex(addr);
   if (rec.balance < WATCHLIST_COST) {
@@ -72,15 +87,24 @@ export async function POST(req: Request) {
       { status: 402 },
     );
   }
+  // Add FIRST, then debit. If the add fails (Redis hiccup), hex isn't burned.
+  // If the add succeeds and the debit fails, we have a free watch — that's
+  // the lesser evil; we surface debit_failed and the user can claim it later.
+  try {
+    await addToWatchlist(addr, tokenId);
+  } catch {
+    return NextResponse.json({ error: "add_failed" }, { status: 500 });
+  }
   try {
     await debitWalletHex(addr, WATCHLIST_COST, {
       kind: "manual",
       note: `Watchlist · added #${String(tokenId).padStart(4, "0")}`,
     });
   } catch {
+    // Rollback the add to keep state consistent
+    try { await removeFromWatchlist(addr, tokenId); } catch {}
     return NextResponse.json({ error: "debit_failed" }, { status: 402 });
   }
-  await addToWatchlist(addr, tokenId);
 
   return NextResponse.json({
     ok: true,

@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
-import { CONTRACT } from "@/lib/constants";
 import { ECONOMY } from "@/lib/economy-constants";
 import {
   isRedSignal,
+  getRedSignal,
   setRedSignal,
   snipeBounty,
   type RedSignal,
 } from "@/lib/red-signal-store";
 import { getWatchersOfToken, isPrivateWindow } from "@/lib/watchlist-store";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { verifySession, X_SESSION_COOKIE } from "@/lib/x-session";
 
-export const revalidate = 300; // 5 min — listings churn but we don't need tighter
+export const revalidate = 300;
 
 type Listing = {
   protocol_data?: {
@@ -36,12 +38,36 @@ async function fetchFloor(apiKey: string): Promise<number> {
   return Number(d?.total?.floor_price || 0);
 }
 
+/**
+ * Resolve viewer address from the X session cookie (HMAC-signed bind).
+ * Falls back to no-viewer if the session is missing or the bind isn't a
+ * wallet address. Rejects spoofed ?viewer= query params — only the
+ * server's signed cookie counts. Closes the watchlist-enumeration leak.
+ */
+function resolveViewer(req: Request): string | null {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const m = cookieHeader.match(new RegExp(`(?:^|; )${X_SESSION_COOKIE}=([^;]+)`));
+  if (!m) return null;
+  const session = verifySession(decodeURIComponent(m[1]));
+  if (!session) return null;
+  const bind = (session.bind || "").toLowerCase();
+  if (!/^0x[a-f0-9]{40}$/.test(bind)) return null;
+  return bind;
+}
+
 export async function GET(req: Request) {
+  // Hard rate limit: this endpoint hits OpenSea and Upstash on every call.
+  // Without this, an attacker could exhaust the OpenSea quota in minutes.
+  const rl = await limit(req, "market:red-signals", { max: 30, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   const apiKey = process.env.OPENSEA_API_KEY;
   if (!apiKey) return NextResponse.json({ signals: [], floor: 0 });
 
   const floor = await fetchFloor(apiKey);
   if (floor <= 0) return NextResponse.json({ signals: [], floor: 0 });
+
+  const viewer = resolveViewer(req);
 
   try {
     const url = `https://api.opensea.io/api/v2/listings/collection/freelons/all?limit=50`;
@@ -54,15 +80,12 @@ export async function GET(req: Request) {
     const d = (await r.json()) as ListingsResp;
 
     const out: Array<RedSignal & { bountyHex: number; privateUntil?: number }> = [];
-    const viewerAddr = (new URL(req.url).searchParams.get("viewer") || "").toLowerCase();
     for (const l of d.listings || []) {
-      // Token id from offer[0].identifierOrCriteria
       const offer = l.protocol_data?.parameters?.offer || [];
       const idStr = offer[0]?.identifierOrCriteria;
       const tokenId = idStr ? Number(idStr) : NaN;
       if (!Number.isFinite(tokenId) || tokenId < 1 || tokenId > 4040) continue;
 
-      // Price in wei. v2 listings API returns current_price as wei string.
       const wei = l.current_price || l.price?.current?.value;
       if (!wei) continue;
       const decimals = l.price?.current?.decimals ?? 18;
@@ -70,28 +93,46 @@ export async function GET(req: Request) {
       if (!isRedSignal(eth, floor)) continue;
 
       const seller = (l.protocol_data?.parameters?.offerer || l.maker?.address || "").toLowerCase();
-      const rs: RedSignal = {
-        tokenId,
-        priceEth: eth,
-        floorEth: floor,
-        seller,
-        flaggedAt: Date.now(),
-      };
-      // Persist (non-blocking; failures don't fail the response)
-      void setRedSignal(rs).catch(() => {});
 
-      // Watchlist private window: if any wallet is watching this token AND
-      // the signal is still inside its 24h private window, hide it from the
-      // public feed unless the viewer is one of the watchers.
-      const watchers = await getWatchersOfToken(tokenId);
-      const privateNow = watchers.length > 0 && isPrivateWindow(rs.flaggedAt);
-      if (privateNow && !watchers.includes(viewerAddr)) continue;
+      // Check if this signal already exists for this token. If so, reuse the
+      // original flaggedAt + watchersAtFlag so subsequent watchers can't
+      // extend the private window. If not, create a fresh entry with a
+      // frozen snapshot of who was watching at this moment.
+      const existing = await getRedSignal(tokenId);
+      const isNewFlag = !existing || existing.priceEth !== eth;
+      let rs: RedSignal;
+      if (isNewFlag) {
+        const watchers = await getWatchersOfToken(tokenId);
+        rs = {
+          tokenId,
+          priceEth: eth,
+          floorEth: floor,
+          seller,
+          flaggedAt: Date.now(),
+          watchersAtFlag: watchers,
+        };
+        void setRedSignal(rs).catch(() => {});
+        // Bump heat counter (cosmetic — heat panel uses these)
+        try {
+          const { bumpHeat } = await import("@/lib/heat-counters");
+          const citizens = (await import("@/data/citizens.json")).default as Array<{ id: number; civilization: string }>;
+          const civSlug = citizens.find((c) => c.id === tokenId)?.civilization;
+          if (civSlug) await bumpHeat(civSlug, "signal");
+        } catch { /* non-blocking */ }
+      } else {
+        rs = existing!;
+      }
+
+      // Private window: only watchers FROZEN at flag time qualify. Watchers
+      // added later don't get to peek inside this 24h window.
+      const watchersAtFlag = rs.watchersAtFlag || [];
+      const privateNow = watchersAtFlag.length > 0 && isPrivateWindow(rs.flaggedAt);
+      if (privateNow && (!viewer || !watchersAtFlag.includes(viewer))) continue;
       const privateUntil = privateNow ? rs.flaggedAt + 24 * 60 * 60 * 1000 : undefined;
 
       out.push({ ...rs, bountyHex: snipeBounty(rs), privateUntil });
     }
 
-    // Sort by best deal (biggest discount first)
     out.sort((a, b) => (b.floorEth - b.priceEth) - (a.floorEth - a.priceEth));
 
     return NextResponse.json({

@@ -25,6 +25,11 @@ export type RedSignal = {
   seller: string;
   /** UTC timestamp (ms) when first flagged. */
   flaggedAt: number;
+  /** Watchers at the moment of flag — frozen snapshot. Only these wallets
+   * can see the signal during its 24h private window. Watchers added
+   * AFTER the flag don't get the private window for this signal — stops
+   * the "speculate cheap" exploit. */
+  watchersAtFlag?: string[];
   /** Wallets that claimed (rare — usually empty until claim time). */
   claimedBy?: string;
   claimedAt?: number;
