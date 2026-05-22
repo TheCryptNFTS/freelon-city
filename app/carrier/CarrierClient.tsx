@@ -11,8 +11,10 @@ import { DailyMission } from "@/components/DailyMission";
 import { cityNotice } from "@/lib/city-notice";
 import { CANON } from "@/lib/canon";
 import { StreakBadge } from "@/components/StreakBadge";
+import { useViewerAddr } from "@/lib/use-viewer";
 
 export function CarrierClient() {
+  const viewer = useViewerAddr();
   const [state, setState] = useState<CarrierState | null>(null);
   const [input, setInput] = useState("");
   const [shared, setShared] = useState(false);
@@ -67,8 +69,14 @@ export function CarrierClient() {
       .catch(() => {});
   }, [state?.handle]);
 
-  const xVerifyHref = (handle: string) =>
-    `/api/x/start?bind=${encodeURIComponent(handle)}`;
+  // Prefer the connected wallet as the X bind — that's what every
+  // wallet-scoped endpoint (claim, tithe, watchlist, name) requires.
+  // Falls back to the handle path so users without a wallet still can
+  // claim their /carrier handle, just without wallet-bound earning.
+  const xVerifyHref = (handle: string, wallet?: string | null) =>
+    wallet
+      ? `/api/x/start?bind=${encodeURIComponent(wallet)}`
+      : `/api/x/start?bind=${encodeURIComponent(handle)}`;
 
   function onInit(e: React.FormEvent) {
     e.preventDefault();
@@ -120,10 +128,32 @@ export function CarrierClient() {
         </form>
         <div className="x-signin-row" style={{ marginTop: 20 }}>
           <span className="x-or">— OR · VERIFIED PATH —</span>
-          <a className="btn btn-secondary btn-sm" href={xVerifyHref(seedHandle)}>
-            <span className="ttl">SIGN IN WITH X (VERIFIED) ↗</span>
-          </a>
+          {viewer.addr ? (
+            <a className="btn btn-secondary btn-sm" href={xVerifyHref(seedHandle, viewer.addr)}>
+              <span className="ttl">SIGN IN WITH X · BIND TO {viewer.addr.slice(0, 6)}…{viewer.addr.slice(-4)} ↗</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                setTimeout(() => {
+                  document.querySelector<HTMLButtonElement>(".wallet-connect button")?.focus();
+                }, 400);
+              }}
+              style={{ opacity: 0.65 }}
+            >
+              <span className="ttl">CONNECT WALLET FIRST →</span>
+            </button>
+          )}
         </div>
+        {viewer.ready && !viewer.addr && (
+          <p style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.05em", lineHeight: 1.6, marginTop: 8, maxWidth: 420 }}>
+            ⬡ Connect your wallet first so the X session binds to it. Without that bind,
+            tithes / claims / names will reject. Carrier-only path still works for streak-tracking.
+          </p>
+        )}
         {xError && (
           <div className="x-err">
             X sign-in failed: <code>{xError}</code>. Retry or use a handle directly.

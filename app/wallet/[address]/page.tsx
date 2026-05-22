@@ -18,6 +18,7 @@ import {
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 import { StampViewerAddr } from "@/components/StampViewerAddr";
+import { CarrierHealthCta } from "@/components/CarrierHealthCta";
 import { CANON } from "@/lib/canon";
 
 export const revalidate = 300;
@@ -358,26 +359,7 @@ export default async function WalletPage({
           {health.msg}
         </span>
         {(health.state === CANON.IDENTITY || health.state === CANON.LOST || health.state === "COOLING") && (
-          <Link
-            href="/carrier"
-            style={{
-              marginLeft: "auto",
-              padding: "8px 14px",
-              borderRadius: 8,
-              border: `1px solid ${health.color}`,
-              background: `${health.color}1a`,
-              color: health.color,
-              fontFamily: "var(--mono2)",
-              fontSize: 11,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              fontWeight: 600,
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-            }}
-          >
-            CLAIM TODAY&apos;S {ECONOMY.DAILY_CLAIM} ⬡ →
-          </Link>
+          <CarrierHealthCta pageWallet={norm} baseColor={health.color} />
         )}
       </section>
       <section className="wallet-stats">

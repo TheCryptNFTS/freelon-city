@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CityFeedTicker } from "@/components/CityFeedTicker";
 import { WalletScanner } from "@/app/sync/WalletScanner";
+import { BecomeACarrier } from "@/components/BecomeACarrier";
 import { LiveStats } from "@/components/LiveStats";
 import { RecentTransmissions } from "@/components/RecentTransmissions";
 import { CivWarBoard } from "@/components/CivWarBoard";
@@ -157,6 +158,9 @@ export default function Home() {
 
       {/* 404TH CITIZEN OF THE DAY */}
       <CitizenOfDay />
+
+      {/* BECOME A CARRIER · 2-step onboarding */}
+      <BecomeACarrier />
 
       {/* DAILY MISSION */}
       <DailyMission />
