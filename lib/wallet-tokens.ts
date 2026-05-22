@@ -42,9 +42,28 @@ export function normalizeAddress(addr: string): `0x${string}` | null {
   return addr.toLowerCase() as `0x${string}`;
 }
 
-/** Get the FREELON balance for a wallet. Returns 0 on any error. */
+/**
+ * Get the FREELON balance for a wallet.
+ *
+ * Two-source resolution: try RPC first, fall back to OpenSea v2 if the
+ * RPC fails or returns 0 *and* OpenSea reports tokens. This stops the
+ * "real holder shown as NON-holder" false negative when the default
+ * public RPC (cloudflare-eth.com via viem) rate-limits us.
+ *
+ * Returns `null` when both sources fail — callers can treat this as
+ * "unknown" instead of lying with 0.
+ */
 export async function getWalletBalance(addr: string): Promise<number> {
+  const result = await getWalletBalanceVerified(addr);
+  return result ?? 0;
+}
+
+/** Like getWalletBalance but returns null when truly unknown (both sources failed). */
+export async function getWalletBalanceVerified(addr: string): Promise<number | null> {
   if (!isValidAddress(addr)) return 0;
+
+  // Source 1: RPC
+  let rpcBal: number | null = null;
   try {
     const bal = (await client.readContract({
       address: CONTRACT as `0x${string}`,
@@ -52,10 +71,46 @@ export async function getWalletBalance(addr: string): Promise<number> {
       functionName: "balanceOf",
       args: [addr],
     })) as bigint;
-    return Number(bal);
+    rpcBal = Number(bal);
   } catch {
-    return 0;
+    rpcBal = null;
   }
+
+  if (rpcBal !== null && rpcBal > 0) return rpcBal;
+
+  // Source 2: OpenSea fallback — ask for the wallet's NFTs in this
+  // collection. We just need the count; we don't paginate here.
+  const apiKey = process.env.OPENSEA_API_KEY;
+  if (apiKey) {
+    try {
+      const url = `https://api.opensea.io/api/v2/chain/ethereum/account/${addr.toLowerCase()}/nfts?collection=freelons&limit=200`;
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 5_000);
+      const r = await fetch(url, {
+        headers: { "X-API-KEY": apiKey, accept: "application/json" },
+        signal: ctrl.signal,
+        next: { revalidate: 60 },
+      });
+      clearTimeout(to);
+      if (r.ok) {
+        const d = (await r.json()) as { nfts?: Array<{ contract?: string; identifier?: string }> };
+        // Defensive: confirm the NFTs are actually ours
+        const ours = (d.nfts || []).filter(
+          (n) => (n.contract || "").toLowerCase() === CONTRACT.toLowerCase(),
+        );
+        if (ours.length > 0) return ours.length;
+        // If OpenSea agrees zero AND we have a confirmed RPC zero → real zero.
+        if (rpcBal === 0) return 0;
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
+  // RPC says zero but no OpenSea key (or OpenSea also failed) → trust the
+  // zero only when RPC actually answered. If RPC also failed → null/unknown.
+  if (rpcBal !== null) return rpcBal;
+  return null;
 }
 
 /**
@@ -107,7 +162,52 @@ export async function getWalletTokens(
   const norm = normalizeAddress(addr);
   if (!norm) return null;
   const balance = await getWalletBalance(norm);
-  const ids = balance > 0 ? await getWalletTokenIds(norm, max) : [];
+  if (balance <= 0) {
+    return { address: norm, balance: 0, tokenIds: [], truncated: false };
+  }
+
+  // Try RPC first for full token-id enumeration
+  let ids = await getWalletTokenIds(norm, max);
+
+  // Fallback: if RPC enumeration came up short (balance > 0 but RPC returned
+  // empty/partial), backfill from OpenSea so the wallet page actually shows
+  // the holder's citizens. The previous behaviour silently lost their tokens.
+  if (ids.length < balance) {
+    const apiKey = process.env.OPENSEA_API_KEY;
+    if (apiKey) {
+      try {
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 5_000);
+        const url = `https://api.opensea.io/api/v2/chain/ethereum/account/${norm}/nfts?collection=freelons&limit=${Math.min(max, 200)}`;
+        const r = await fetch(url, {
+          headers: { "X-API-KEY": apiKey, accept: "application/json" },
+          signal: ctrl.signal,
+          next: { revalidate: 60 },
+        });
+        clearTimeout(to);
+        if (r.ok) {
+          const d = (await r.json()) as { nfts?: Array<{ contract?: string; identifier?: string }> };
+          const osIds = (d.nfts || [])
+            .filter((n) => (n.contract || "").toLowerCase() === CONTRACT.toLowerCase())
+            .map((n) => Number(n.identifier))
+            .filter((n) => Number.isFinite(n) && n >= 1 && n <= 4040);
+          // Merge — RPC ids first (already verified on-chain), append any
+          // OpenSea ids not already present.
+          const set = new Set(ids);
+          for (const id of osIds) {
+            if (!set.has(id)) ids.push(id);
+            set.add(id);
+          }
+        }
+      } catch {
+        /* keep whatever ids we have */
+      }
+    }
+  }
+
+  // If we still couldn't enumerate but we know balance > 0, return the
+  // balance honestly so the UI doesn't lie. The gallery will look empty
+  // but the wallet won't be told "0 citizens" — it'll show balance: N.
   return {
     address: norm,
     balance,

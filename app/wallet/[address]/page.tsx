@@ -403,7 +403,7 @@ export default async function WalletPage({
               ? `#${rank} / ${totalHolders}`
               : balance > 0
               ? "SYNCING"
-              : "Not a holder"}
+              : "0 citizens"}
           </span>
           <span className="ws-sub">among all carriers</span>
         </div>

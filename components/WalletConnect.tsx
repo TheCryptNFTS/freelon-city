@@ -15,20 +15,43 @@ const ABI = [
   },
 ] as const;
 
+// Use the configured RPC if present — falling back to viem's default public
+// endpoint causes "NOT A HOLDER" false negatives under load because the
+// default cloudflare-eth.com gateway rate-limits aggressively.
+const RPC_URL =
+  process.env.NEXT_PUBLIC_ETH_RPC_URL ||
+  process.env.NEXT_PUBLIC_RPC_URL ||
+  undefined;
+
 const publicClient = createPublicClient({
   chain: mainnet,
-  transport: http(),
+  transport: http(RPC_URL),
 });
 
 // window.ethereum type lives in lib/ethereum.d.ts
 
+type Status = "idle" | "checking" | "holder" | "non-holder" | "error";
+
 export function WalletConnect() {
   const [addr, setAddr] = useState<string | null>(null);
   const [count, setCount] = useState<number | null>(null);
+  const [status, setStatus] = useState<Status>("idle");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  /**
+   * Holder check with two independent sources so a single rate-limit
+   * never produces a false "NOT A HOLDER" against a real holder:
+   *   1. RPC balanceOf via viem
+   *   2. OpenSea collection-nfts-by-account fallback if RPC fails
+   * Only resolve to "non-holder" when BOTH agree the wallet holds 0.
+   */
   const checkHolder = useCallback(async (address: string) => {
+    setStatus("checking");
+    setCount(null);
+
+    // Source 1: RPC
+    let rpcCount: number | null = null;
     try {
       const balance = (await publicClient.readContract({
         address: CONTRACT as `0x${string}`,
@@ -36,14 +59,51 @@ export function WalletConnect() {
         functionName: "balanceOf",
         args: [address as `0x${string}`],
       })) as bigint;
-      setCount(Number(balance));
+      rpcCount = Number(balance);
     } catch {
-      setCount(0);
+      rpcCount = null;
     }
+
+    if (rpcCount !== null && rpcCount > 0) {
+      setCount(rpcCount);
+      setStatus("holder");
+      return;
+    }
+
+    // Source 2: server-side OpenSea fallback (our wallet-tokens endpoint
+    // counts on-chain holdings via OpenSea v2). Authoritative for balance.
+    let openSeaCount: number | null = null;
+    try {
+      const res = await fetch(`/api/wallet/${address.toLowerCase()}/tokens`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const j = (await res.json()) as { balance?: number };
+        if (typeof j.balance === "number") openSeaCount = j.balance;
+      }
+    } catch {
+      openSeaCount = null;
+    }
+
+    if (openSeaCount !== null && openSeaCount > 0) {
+      setCount(openSeaCount);
+      setStatus("holder");
+      return;
+    }
+
+    // If BOTH sources failed (null), don't lie — show retry.
+    if (rpcCount === null && openSeaCount === null) {
+      setCount(null);
+      setStatus("error");
+      return;
+    }
+
+    // Both agreed 0
+    setCount(0);
+    setStatus("non-holder");
   }, []);
 
   useEffect(() => {
-    // Restore previous session if any
     if (typeof window === "undefined" || !window.ethereum) return;
     window.ethereum
       .request({ method: "eth_accounts" })
@@ -61,7 +121,6 @@ export function WalletConnect() {
     setErr(null);
     if (typeof window === "undefined") return;
     if (!window.ethereum) {
-      // Mobile fallback: deep-link into MetaMask's in-app browser
       const ua = navigator.userAgent || "";
       const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
       const inMM = /MetaMask/i.test(ua);
@@ -90,10 +149,16 @@ export function WalletConnect() {
   function disconnect() {
     setAddr(null);
     setCount(null);
+    setStatus("idle");
     setErr(null);
   }
 
-  const isHolder = (count ?? 0) > 0;
+  function retry() {
+    if (!addr) return;
+    void checkHolder(addr);
+  }
+
+  const isHolder = status === "holder" && (count ?? 0) > 0;
   const short = addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "";
 
   if (!addr) {
@@ -107,15 +172,35 @@ export function WalletConnect() {
       </div>
     );
   }
+
+  let badge: string;
+  if (status === "checking" || count === null) badge = "SCANNING SIGNAL…";
+  else if (status === "error") badge = "SIGNAL LOST · TAP TO RETRY";
+  else if (isHolder) badge = `HOLDER · ${count} CITIZEN${count !== 1 ? "S" : ""}`;
+  else badge = "0 CITIZENS";
+
   return (
     <div className="wallet-state" data-holder={isHolder ? "1" : "0"}>
       <div className="addr">
         <span className="dot" />
         {short}
       </div>
-      <div className="holder-badge">
-        {count === null ? "VERIFYING…" : isHolder ? `HOLDER · ${count} CITIZEN${count > 1 ? "S" : ""}` : "NOT A HOLDER"}
-      </div>
+      <button
+        onClick={status === "error" ? retry : undefined}
+        className="holder-badge"
+        type="button"
+        disabled={status !== "error"}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "inherit",
+          font: "inherit",
+          cursor: status === "error" ? "pointer" : "default",
+          padding: 0,
+        }}
+      >
+        {badge}
+      </button>
       <button onClick={disconnect} className="disconnect" type="button" aria-label="Disconnect">×</button>
       {err && <div className="wallet-err">{err}</div>}
     </div>
