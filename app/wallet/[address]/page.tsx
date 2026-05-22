@@ -17,6 +17,7 @@ import {
 } from "@/lib/wallet-tokens";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
+import { StampViewerAddr } from "@/components/StampViewerAddr";
 
 export const revalidate = 300;
 
@@ -285,6 +286,7 @@ export default async function WalletPage({
 
   return (
     <main className="wallet-page">
+      <StampViewerAddr addr={norm} />
       <section className="wallet-hero">
         <span className="kicker">⬡ PUBLIC WALLET PROFILE</span>
         <h1 className="wallet-addr-h1">{shortAddr(norm)}</h1>

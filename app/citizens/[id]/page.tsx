@@ -7,6 +7,7 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { CitizenDeepLore } from "@/components/CitizenDeepLore";
 import { QuestTracker } from "@/components/QuestTracker";
 import { CitizenOwnedByYou } from "@/components/CitizenOwnedByYou";
+import { WatchlistButton } from "@/components/WatchlistButton";
 import { CitizenNameEditor } from "@/components/CitizenNameEditor";
 import { CitizenRealignEditor } from "@/components/CitizenRealignEditor";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
@@ -167,6 +168,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 {meta.lastSaleEth != null ? `${meta.lastSaleEth.toFixed(4)} ETH` : "—"}
               </span>
             </div>
+          </div>
+
+          <div style={{ marginTop: "var(--s-3)" }}>
+            <WatchlistButton tokenId={tid} />
           </div>
 
           <dl className="trait-grid">
