@@ -27,6 +27,7 @@ const LINKS = [
   { href: "/heat",            label: "Heat" },
   { href: "/undervalued",     label: "Undervalued" },
   { href: "/civ-wars",        label: "⬡ Civ Wars", gold: true },
+  { href: "/transmissions",   label: "⬡ Transmissions", gold: true },
   { href: "/graveyard",       label: "Graveyard" },
   { href: "/pfp",             label: "PFP" },
   { href: "/secrets",         label: "⬡ Secrets", gold: true },

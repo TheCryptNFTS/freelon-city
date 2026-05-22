@@ -251,17 +251,27 @@ export default async function EarnPage() {
               </span>
               <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+{ECONOMY.FRESH_BLOOD_BOUNTY} ⬡</span>
             </li>
-            <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0" }}>
+            <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <span>
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Quests</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· tourist / archivist / hunter / doctrine</span>
               </span>
               <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+{ECONOMY.CITY_TOURIST_REWARD} → +{ECONOMY.DOCTRINE_MASTER_REWARD} ⬡</span>
             </li>
+            <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0" }}>
+              <span>
+                <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Transmissions</strong>
+                <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· top weekly transmission</span>
+              </span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+5,000 ⬡ + 10% boost royalties</span>
+            </li>
           </ul>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
+            <Link href="/transmissions" className="btn btn-primary">
+              <span className="ttl">⬡ TRANSMIT YOUR SIGNAL →</span>
+            </Link>
             <Link href="/civ-wars" className="btn btn-secondary">
-              <span className="ttl">⬡ CIV WARS — TRIBAL RACE →</span>
+              <span className="ttl">CIV WARS →</span>
             </Link>
             <Link href="/leaderboard" className="btn btn-secondary">
               <span className="ttl">LEADERBOARD →</span>

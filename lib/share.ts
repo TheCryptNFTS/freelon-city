@@ -190,6 +190,28 @@ export function tweetDashboard(text: string): string {
 }
 
 /**
+ * Transmission share — used on /transmissions/[id].
+ */
+export function tweetTransmission(input: {
+  id: string;
+  caption: string;
+  civName: string;
+  authorHandle: string;
+}): string {
+  return [
+    `⬡ TRANSMISSION · ${input.civName.toUpperCase()}`,
+    ``,
+    `"${input.caption.slice(0, 180)}"`,
+    ``,
+    `— @${input.authorHandle.replace(/^@/, "")}`,
+    ``,
+    `Signal back ⬢ or boost 🔥 → ${SITE}/transmissions/${input.id}`,
+    ``,
+    `${HASHTAGS}`,
+  ].join("\n");
+}
+
+/**
  * Generic share — used by the ShareOG component.
  */
 export function tweetGeneric(text: string, pageUrl: string): string {
