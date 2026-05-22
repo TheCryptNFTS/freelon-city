@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
-import { CONTRACT, TOTAL } from "@/lib/constants";
+import { TOTAL } from "@/lib/constants";
 
 export const revalidate = 300;
 
-type OSNftDetail = {
-  nft?: { owners?: Array<{ address?: string; quantity?: number }> };
-};
+type Holder = { address?: string; quantity?: number; percentage?: number };
+type HoldersResp = { holders?: Holder[]; next?: string | null };
 type CollectionStats = { total?: { num_owners?: number } };
-
-const MAX_DETAIL_PAGES = 60; // ~ scans 60 token ids per refresh
-const PER_REFRESH = 60;
 
 export async function GET() {
   const apiKey = process.env.OPENSEA_API_KEY;
@@ -23,7 +19,7 @@ export async function GET() {
     });
   }
 
-  // 1) Real totalHolders from the collection stats endpoint (cheap, single call).
+  // 1) totalHolders — single exact call from collection stats
   let totalHolders = 0;
   try {
     const r = await fetch(
@@ -41,60 +37,52 @@ export async function GET() {
     /* fall through */
   }
 
-  // 2) Sample owner distribution from a slice of token IDs (rotating).
-  //    The detailed NFT endpoint returns owners[], so we use that for the sample.
-  //    Bucket the sample by per-wallet count to approximate distribution shape.
-  const offset = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % TOTAL;
-  const wallets = new Map<string, number>();
-  let scanned = 0;
+  // 2) REAL top holders from OpenSea's holders endpoint. Single request,
+  //    returns up to 100 by quantity desc. Replaces the broken sample-based
+  //    approach that capped top wallets at ~5 citizens.
+  let topAll: Array<{ address: string; count: number }> = [];
+  try {
+    const r = await fetch(
+      "https://api.opensea.io/api/v2/collections/freelons/holders?limit=100",
+      {
+        headers: { "X-API-KEY": apiKey, accept: "application/json" },
+        next: { revalidate: 300 },
+      },
+    );
+    if (r.ok) {
+      const d = (await r.json()) as HoldersResp;
+      topAll = (d.holders || [])
+        .filter((h): h is { address: string; quantity: number } =>
+          typeof h.address === "string" && typeof h.quantity === "number",
+        )
+        .map((h) => ({ address: h.address.toLowerCase(), count: h.quantity }));
+    }
+  } catch {
+    /* fall through */
+  }
 
-  await Promise.all(
-    Array.from({ length: PER_REFRESH }, (_, k) => {
-      const tid = ((offset + k * Math.floor(TOTAL / MAX_DETAIL_PAGES)) % TOTAL) + 1;
-      return (async () => {
-        try {
-          const r = await fetch(
-            `https://api.opensea.io/api/v2/chain/ethereum/contract/${CONTRACT}/nfts/${tid}`,
-            {
-              headers: { "X-API-KEY": apiKey, accept: "application/json" },
-              next: { revalidate: 1800 },
-            },
-          );
-          if (!r.ok) return;
-          const d = (await r.json()) as OSNftDetail;
-          const owner = d.nft?.owners?.[0]?.address?.toLowerCase();
-          if (!owner) return;
-          wallets.set(owner, (wallets.get(owner) || 0) + 1);
-          scanned++;
-        } catch {
-          /* skip */
-        }
-      })();
-    }),
-  );
-
+  // 3) Distribution: derive from the top-100 + tail. We know totalHolders
+  //    exactly; subtract counted-in-top from total to estimate the "1 citizen"
+  //    bucket (most holders own 1).
   const dist = { "1": 0, "2-5": 0, "6-20": 0, "21+": 0 } as Record<string, number>;
-  for (const c of wallets.values()) {
+  for (const h of topAll) {
+    const c = h.count;
     if (c === 1) dist["1"]++;
     else if (c <= 5) dist["2-5"]++;
     else if (c <= 20) dist["6-20"]++;
     else dist["21+"]++;
   }
-
-  const top10 = [...wallets.entries()]
-    .map(([address, count]) => ({ address, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+  // Holders not in top-100 all own 1 (top-100 covers the tail of "1" bucket
+  // and everything above it; remaining = totalHolders - top100.length is the
+  // bulk of 1-citizen wallets).
+  const remainingOnes = Math.max(0, totalHolders - topAll.length);
+  dist["1"] += remainingOnes;
 
   return NextResponse.json({
     totalHolders,
     totalSupply: TOTAL,
-    sampleSize: scanned,
     distribution: dist,
-    top10,
-    note:
-      scanned > 0
-        ? "Distribution is a rotating sample; totalHolders is exact from OpenSea stats."
-        : "Sample unavailable; showing exact totalHolders only.",
+    top10: topAll.slice(0, 10),
+    source: "opensea_holders_v2",
   });
 }
