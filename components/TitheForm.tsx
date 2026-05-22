@@ -35,6 +35,21 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
     return () => { cancelled = true; };
   }, [address]);
 
+  // Upfront X-session check — show a friendly notice BEFORE the user fills
+  // out the form, so they don't get rejected at submit time.
+  const [xVerified, setXVerified] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!address) return;
+    let cancelled = false;
+    fetch(`/api/x/me?bind=${address}`)
+      .then((r) => r.json())
+      .then((j: { verification?: unknown }) => {
+        if (!cancelled) setXVerified(!!j.verification);
+      })
+      .catch(() => { if (!cancelled) setXVerified(false); });
+    return () => { cancelled = true; };
+  }, [address]);
+
   const amountN = parseInt(amount, 10);
   const validAmount = Number.isFinite(amountN) && amountN >= MIN;
   const afterBurn = walletHex !== null && validAmount ? Math.max(0, walletHex - amountN) : null;
@@ -96,6 +111,13 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
         <span className="kicker">⬡ TITHE · BURN HEX FOR THE WALL</span>
         <span className="tithe-sub">Names live on /patrons for 7 days.</span>
       </div>
+      {xVerified === false && (
+        <div style={{ padding: "10px 14px", margin: "0 0 12px", border: "1px solid #FF5A4D88", background: "rgba(255,90,77,0.08)", borderRadius: 8, fontFamily: "var(--mono2)", fontSize: 11, color: "#FF5A4D", lineHeight: 1.5 }}>
+          ⚠ This wallet isn&apos;t X-verified yet. Tithes require an X session.
+          {" "}
+          <a href={`/api/x/start?bind=${address}`} style={{ color: "#FF5A4D", textDecoration: "underline" }}>Sign in with X →</a>
+        </div>
+      )}
       <div className="tithe-grid">
         <label className="tithe-field">
           <span>CIVILIZATION</span>

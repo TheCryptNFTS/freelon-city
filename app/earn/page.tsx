@@ -20,26 +20,47 @@ type LiveStats = {
 async function fetchLive(): Promise<LiveStats> {
   const apiKey = process.env.OPENSEA_API_KEY;
   if (!apiKey) return { redSignalCount: 0, topBounty: 0, floor: null };
+  // Don't try to self-fetch during build — there's no dev server running.
+  // Skip red-signal count when we can't reach the API; floor still works
+  // because it goes directly to OpenSea.
+  const base = process.env.NEXT_PUBLIC_BASE_URL;
+  const fallback: LiveStats = { redSignalCount: 0, topBounty: 0, floor: null };
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const [redRes, statsRes] = await Promise.all([
-      fetchWithTimeout(`${base}/api/market/red-signals`, { next: { revalidate: 300 }, timeoutMs: 4000 }).catch(() => null),
+    const tasks: Array<Promise<Response | null>> = [];
+    tasks.push(
+      base
+        ? fetchWithTimeout(`${base}/api/market/red-signals`, { next: { revalidate: 300 }, timeoutMs: 4000 }).catch(() => null)
+        : Promise.resolve(null),
+    );
+    tasks.push(
       fetchWithTimeout("https://api.opensea.io/api/v2/collections/freelons/stats", {
         headers: { "X-API-KEY": apiKey },
         next: { revalidate: 300 },
         timeoutMs: 4000,
       }).catch(() => null),
-    ]);
-    const red = redRes && redRes.ok ? await redRes.json() : { signals: [] };
-    const stats = statsRes && statsRes.ok ? await statsRes.json() : null;
-    const signals: Array<{ bountyHex: number }> = red.signals || [];
+    );
+    const [redRes, statsRes] = await Promise.all(tasks);
+    let signals: Array<{ bountyHex: number }> = [];
+    if (redRes && redRes.ok) {
+      try {
+        const red = await redRes.json();
+        signals = red.signals || [];
+      } catch { /* empty body — ignore */ }
+    }
+    let floor: number | null = null;
+    if (statsRes && statsRes.ok) {
+      try {
+        const stats = await statsRes.json();
+        floor = stats?.total?.floor_price ?? null;
+      } catch { /* ignore */ }
+    }
     return {
       redSignalCount: signals.length,
       topBounty: signals[0]?.bountyHex || 0,
-      floor: stats?.total?.floor_price ?? null,
+      floor,
     };
   } catch {
-    return { redSignalCount: 0, topBounty: 0, floor: null };
+    return fallback;
   }
 }
 

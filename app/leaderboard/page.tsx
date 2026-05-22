@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listWalletHexRecords } from "@/lib/wallet-hex-store";
+import { MyRank } from "@/components/MyRank";
 
 export const revalidate = 120;
 
@@ -81,6 +82,8 @@ export default async function LeaderboardPage() {
           pre-economy-v2 accruals don&apos;t count. Recomputed every 2 minutes.
         </p>
       </section>
+
+      <MyRank />
 
       <div className="lb-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--s-4)" }}>
         <section>

@@ -150,6 +150,33 @@ export default async function PassportPage({
       <p className="passport-flavor">{flavor}</p>
       <div className="passport-rule" />
 
+      {/* Class ladder — tells viewers what every class means and what's next */}
+      <details style={{ margin: "var(--s-3) 0", border: "1px solid var(--line)", borderRadius: 10, background: "rgba(255,255,255,0.02)" }}>
+        <summary style={{ cursor: "pointer", padding: "12px 14px", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
+            ⬡ HOW PASSPORTS ARE CLASSIFIED
+          </span>
+          <span style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", letterSpacing: "0.2em" }}>EXPAND ▾</span>
+        </summary>
+        <div style={{ padding: "0 14px 14px" }}>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6, fontFamily: "var(--mono2)", fontSize: 11, lineHeight: 1.6 }}>
+            <li><strong style={{ color: "var(--gold)" }}>SIGNAL WHALE</strong> · top 25 by hex balance — the rarest tier</li>
+            <li><strong style={{ color: "var(--gold)" }}>THE CULTIST</strong> · 5+ citizens, 90%+ in a single civilization</li>
+            <li><strong style={{ color: "var(--gold)" }}>THE COLLECTOR</strong> · 10+ citizens across 5+ civilizations</li>
+            <li><strong style={{ color: "var(--gold)" }}>FLOOR DEFENDER</strong> · 5+ citizens held 30+ days</li>
+            <li><strong style={{ color: "var(--gold)" }}>RELIC HUNTER</strong> · holds at least 1 honorary or 1-of-1</li>
+            <li><strong style={{ color: "var(--gold)" }}>SIGNAL CARRIER</strong> · 2–4 citizens</li>
+            <li><strong style={{ color: "var(--gold)" }}>INITIATE</strong> · exactly 1 citizen</li>
+            <li><strong style={{ color: "var(--ink-dim)" }}>WITNESS</strong> · no citizens — read-only</li>
+          </ul>
+          <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", marginTop: 10, letterSpacing: "0.05em", lineHeight: 1.6 }}>
+            Classes are evaluated in priority order — Signal Whale first, then Cultist, then Collector, etc.
+            You hold the FIRST class your holdings qualify for.
+          </p>
+        </div>
+      </details>
+
+
       <div className="passport-grid">
         <div className="passport-cell">
           <span className="lbl">Citizens held</span>

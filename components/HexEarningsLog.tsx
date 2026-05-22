@@ -116,6 +116,18 @@ export function HexEarningsLog({ address }: { address: string }) {
         </div>
       )}
 
+      {/* Forecast — what tomorrow's passive will look like at current rate */}
+      {data.tick && data.tick.daysCredited > 0 && data.tick.hexCredited > 0 && (
+        <div style={{ padding: "10px 14px", margin: "8px 0 12px", border: "1px dashed var(--line-2)", borderRadius: 8, background: "rgba(200,167,93,0.04)" }}>
+          <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
+            ⬡ NEXT TICK · FORECAST
+          </span>
+          <div style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", marginTop: 4 }}>
+            ~<strong style={{ color: "var(--gold)" }}>+{Math.round(data.tick.hexCredited / data.tick.daysCredited)} ⬡</strong>/day at current rate · stay active to keep the meter flowing
+          </div>
+        </div>
+      )}
+
       {data.defenderTick && data.defenderTick.qualifyingTokens > 0 && (
         <div className="hl-tick">
           <span className="hl-tick-credit">+{data.defenderTick.hexCredited} ⬡</span>{" "}
