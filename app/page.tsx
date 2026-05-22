@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CityFeedTicker } from "@/components/CityFeedTicker";
-import { InlineSync } from "@/components/InlineSync";
+import { WalletScanner } from "@/app/sync/WalletScanner";
 import { LiveStats } from "@/components/LiveStats";
 import { RecentTransmissions } from "@/components/RecentTransmissions";
 import { CivWarBoard } from "@/components/CivWarBoard";
@@ -161,15 +161,17 @@ export default function Home() {
       {/* DAILY MISSION */}
       <DailyMission />
 
-      {/* SIGNAL CHECK · the main first action */}
+      {/* SIGNAL CHECK · the signature interaction */}
       <section className="signal-check reveal">
-        <span className="kicker">⬡ SIGNAL CHECK</span>
-        <h2>The city detects you<br /><em>Find your place</em></h2>
+        <span className="kicker">⬡ SIGNAL CHECK · THE CITY DETECTS YOU</span>
+        <h2>Paste a wallet.<br /><em>The signal locates you.</em></h2>
         <p className="signal-check-sub">
-          Paste a wallet or sync your X handle. The city locates your citizens,
-          reads your civilization, returns your hex balance.
+          Address, ENS, or X handle. The city scans your holdings, reads your
+          civ alignment, calculates hex pressure, returns your passport.
         </p>
-        <InlineSync />
+        <div style={{ maxWidth: 640, margin: "var(--s-4) auto 0" }}>
+          <WalletScanner />
+        </div>
       </section>
 
       {/* THE FOUR ONE-OF-ONES */}

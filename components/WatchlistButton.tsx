@@ -53,7 +53,7 @@ export function WatchlistButton({ tokenId }: Props) {
   function saveAddr(value: string) {
     const trimmed = value.trim().toLowerCase();
     if (!/^0x[a-f0-9]{40}$/.test(trimmed)) {
-      setError("Invalid address (must be 0x + 40 hex chars)");
+      setError("ADDRESS MALFORMED · 0x + 40 hex required");
       return;
     }
     setError(null);
@@ -79,13 +79,22 @@ export function WatchlistButton({ tokenId }: Props) {
       });
       const j = await res.json();
       if (!res.ok) {
-        setError(j.error || "failed");
+        const map: Record<string, string> = {
+          insufficient_hex: `HEX BALANCE LOW · need ${cost} ⬡`,
+          already_watching: "ALREADY WATCHING THIS CITIZEN",
+          watchlist_full: "WATCHLIST FULL · 50 max",
+          invalid_address: "ADDRESS MALFORMED",
+          invalid_token: "CITIZEN ID OUT OF RANGE",
+          add_failed: "BIND FAILED · retry",
+          debit_failed: "HEX DEBIT FAILED · retry",
+        };
+        setError(map[j.error] || `TRANSMISSION FAILED · ${j.error || "unknown"}`);
         return;
       }
       setWatching(!watching);
       if (j.burned) setBalance((b) => (b !== null ? b - j.burned : null));
     } catch {
-      setError("network");
+      setError("SIGNAL LOST · retry");
     } finally {
       setBusy(false);
     }
@@ -135,7 +144,7 @@ export function WatchlistButton({ tokenId }: Props) {
                 cursor: "pointer",
               }}
             >
-              SAVE
+              BIND
             </button>
           </div>
           <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", letterSpacing: "0.1em", lineHeight: 1.5, margin: 0 }}>

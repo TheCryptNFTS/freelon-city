@@ -78,13 +78,13 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
       const j = await res.json();
       if (!res.ok) {
         if (j?.error === "x_session_required") {
-          setError("Sign in with X first — tithe requires a verified session.");
+          setError("NO X SIGNAL DETECTED · sign in to bind your handle to this wallet.");
         } else if (j?.error === "insufficient_hex") {
-          setError(`Insufficient hex. Balance: ${j.balance} ⬡, needed: ${j.needed} ⬡.`);
+          setError(`HEX BALANCE LOW · need ${j.needed} ⬡ · have ${j.balance} ⬡`);
         } else if (j?.error?.startsWith?.("min_tithe_")) {
-          setError(`Minimum tithe is ${MIN} ⬡`);
+          setError(`TITHE FLOOR · minimum ${MIN} ⬡`);
         } else {
-          setError(j?.error || `Tithe failed (${res.status})`);
+          setError(j?.error || `TRANSMISSION FAILED · status ${res.status}`);
         }
         return;
       }
@@ -97,7 +97,7 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
         delta: `-${n} ⬡`,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Network error");
+      setError(e instanceof Error ? `SIGNAL LOST · ${e.message}` : "SIGNAL LOST · retry");
     } finally {
       setBusy(false);
     }

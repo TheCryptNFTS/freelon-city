@@ -3,6 +3,7 @@ import Link from "next/link";
 import { listWalletHexRecords } from "@/lib/wallet-hex-store";
 import { MyRank } from "@/components/MyRank";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 120;
 
 export const metadata: Metadata = {

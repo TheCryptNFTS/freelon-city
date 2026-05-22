@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
 export const metadata: Metadata = {

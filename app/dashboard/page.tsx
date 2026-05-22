@@ -8,6 +8,7 @@ import { LiveSalesFeed } from "@/components/LiveSalesFeed";
 import { RedSignalsFeed } from "@/components/RedSignalsFeed";
 import { LiveHeatGrid } from "@/components/LiveHeatGrid";
 import { HolderDistributionChart } from "@/components/HolderDistributionChart";
+import { CityFeedTicker } from "@/components/CityFeedTicker";
 
 export const metadata: Metadata = {
   title: "Dashboard · The Numbers · FREELON CITY",
@@ -26,6 +27,7 @@ const tweetUrl = (text: string) =>
 export default function Dashboard() {
   return (
     <main className="dashboard-page">
+      <CityFeedTicker />
       <section className="dashboard-hero">
         <span className="kicker">⬡ THE NUMBERS · LIVE FROM THE CITY</span>
         <h1>The <em>numbers</em></h1>
