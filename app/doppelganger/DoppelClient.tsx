@@ -65,7 +65,7 @@ export function DoppelClient() {
       reason,
       civSlug,
       civName: civDef?.name ?? "Unknown",
-      civColor: civDef?.color ?? "#c8aa64",
+      civColor: civDef?.color ?? "var(--gold)",
       name: citizen?.transmission_name || `Citizen #${id.toString().padStart(4, "0")}`,
     });
   }

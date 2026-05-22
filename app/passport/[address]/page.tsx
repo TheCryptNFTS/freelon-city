@@ -90,7 +90,7 @@ export default async function PassportPage({
         dominantCivSlug
       ]
     : null;
-  const civColor = dominantCiv?.color ?? "#c8aa64";
+  const civColor = dominantCiv?.color ?? "var(--gold)";
 
   let dominantCaste: string | null = null;
   let dominantCasteCount = 0;
@@ -220,7 +220,7 @@ export default async function PassportPage({
               const c = getCitizen(tid);
               const color = c
                 ? civilizationColor(c.civilization)
-                : "#c8aa64";
+                : "var(--gold)";
               const id4 = tid.toString().padStart(4, "0");
               const src = LOCAL_HEROES.has(tid)
                 ? `/heroes/${id4}.webp`

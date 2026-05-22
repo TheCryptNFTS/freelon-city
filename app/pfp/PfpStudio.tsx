@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 
 const SIZE = 1024;
-const GOLD = "#c8aa64";
+const GOLD = "var(--gold)";
 
 type FrameStyle = "gold-thick" | "gold-thin" | "white" | "void";
 
@@ -82,7 +82,7 @@ export function PfpStudio() {
 
     // Frame stroke
     const stroke = frame === "gold-thick" ? 18 : frame === "gold-thin" ? 8 : 14;
-    const strokeColor = frame === "white" ? "#e6e1d2" : frame === "void" ? "#6a4a8a" : GOLD;
+    const strokeColor = frame === "white" ? "var(--ink)" : frame === "void" ? "#6a4a8a" : GOLD;
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = stroke;
     ctx.lineJoin = "miter";
@@ -128,7 +128,7 @@ export function PfpStudio() {
     ctx.textAlign = "left";
     ctx.fillText("⬡ FREELON CITY", 40, SIZE - 50);
     ctx.font = "20px 'JetBrains Mono', monospace";
-    ctx.fillStyle = "#e6e1d2";
+    ctx.fillStyle = "var(--ink)";
     ctx.textAlign = "right";
     ctx.fillText(handle ? `@${handle.replace(/^@/, "")}` : "CITIZEN", SIZE - 40, SIZE - 50);
   }

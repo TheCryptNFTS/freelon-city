@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { markGhost404 } from "@/lib/secrets-store";
 
@@ -8,28 +8,31 @@ import { markGhost404 } from "@/lib/secrets-store";
 // Outside that window: invisible, costs nothing.
 export function Ghost404() {
   const [visible, setVisible] = useState(false);
-  const [closed, setClosed] = useState(false);
+  // Day-keyed dismissal so a fresh UTC day resurfaces the ghost
+  const closedDayRef = useRef<string | null>(null);
+  const [closedDay, setClosedDay] = useState<string | null>(null);
 
   useEffect(() => {
     const check = () => {
       const now = new Date();
       const h = now.getUTCHours();
       const m = now.getUTCMinutes();
-      // Window: 04:04 UTC for one minute
+      const today = now.toISOString().slice(0, 10);
       const open = h === 4 && m === 4;
-      if (open && !closed) {
+      const dismissedToday = closedDayRef.current === today;
+      if (open && !dismissedToday) {
         if (!visible) {
           setVisible(true);
           try { markGhost404(); } catch {}
         }
-      } else if (!open && visible) {
+      } else if ((!open || dismissedToday) && visible) {
         setVisible(false);
       }
     };
     check();
-    const t = setInterval(check, 5000);
+    const t = setInterval(check, 2000);
     return () => clearInterval(t);
-  }, [visible, closed]);
+  }, [visible, closedDay]);
 
   if (!visible) return null;
 
@@ -55,7 +58,12 @@ export function Ghost404() {
           ⬡ 04:04 UTC · GHOST TRANSMISSION
         </span>
         <button
-          onClick={() => { setClosed(true); setVisible(false); }}
+          onClick={() => {
+            const today = new Date().toISOString().slice(0, 10);
+            closedDayRef.current = today;
+            setClosedDay(today);
+            setVisible(false);
+          }}
           aria-label="Dismiss"
           style={{
             background: "transparent",

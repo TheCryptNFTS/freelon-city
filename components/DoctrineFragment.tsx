@@ -1,16 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { getWalletAddress } from "@/lib/get-wallet-address";
 
 type Props = { stepId: string; fragment: string };
 
-function readKey(): string | null {
+async function readKey(): Promise<string | null> {
   try {
-    const w =
-      typeof window !== "undefined"
-        ? (window as unknown as { ethereum?: { selectedAddress?: string } })
-            .ethereum?.selectedAddress
-        : null;
-    if (w && /^0x[a-fA-F0-9]{40}$/.test(w)) return w.toLowerCase();
+    const w = await getWalletAddress();
+    if (w) return w;
     const carrierRaw = localStorage.getItem("freelon::carrier::v1");
     if (carrierRaw) {
       const parsed = JSON.parse(carrierRaw) as { handle?: string };
@@ -60,29 +57,31 @@ export function DoctrineFragment({ stepId, fragment }: Props) {
     window.setTimeout(() => setJustClaimed(false), 2200);
 
     // Post to quests API. Server is idempotent — safe to re-post.
-    try {
-      const key = readKey();
-      if (!key) return;
-      fetch(`/api/quests/doctrine-master`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, stepId }),
-        keepalive: true,
-      })
-        .then((r) => r.json())
-        .then((j: { justCompleted?: boolean; rewardHex?: number }) => {
-          if (j.justCompleted && j.rewardHex) {
-            window.dispatchEvent(
-              new CustomEvent("freelon:quest-complete", {
-                detail: { questId: "doctrine-master", reward: j.rewardHex },
-              }),
-            );
-          }
+    (async () => {
+      try {
+        const key = await readKey();
+        if (!key) return;
+        fetch(`/api/quests/doctrine-master`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key, stepId }),
+          keepalive: true,
         })
-        .catch(() => {});
-    } catch {
-      /* never break the page */
-    }
+          .then((r) => r.json())
+          .then((j: { justCompleted?: boolean; rewardHex?: number }) => {
+            if (j.justCompleted && j.rewardHex) {
+              window.dispatchEvent(
+                new CustomEvent("freelon:quest-complete", {
+                  detail: { questId: "doctrine-master", reward: j.rewardHex },
+                }),
+              );
+            }
+          })
+          .catch(() => {});
+      } catch {
+        /* never break the page */
+      }
+    })();
   }
 
   const cls = [

@@ -169,8 +169,6 @@ a { color: inherit; text-decoration: none; }
   border-radius: 999px;
 }
 .btn:hover { border-color: var(--gold); color: var(--gold-bright); transform: translateY(-1px); }
-.btn-gold { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 800; }
-.btn-gold:hover { background: var(--gold-bright); color: var(--bg); border-color: var(--gold-bright); box-shadow: 0 8px 32px -8px rgba(200,170,100,0.55); }
 .btn .ar { font-family: var(--mono2); margin-left: auto; }
 
 /* SIGNAL button — primary CTA, metallic bone-gold gradient */
@@ -943,8 +941,6 @@ a, button, [role="button"] { transition: color 160ms ease, background 160ms ease
 
 /* Stronger button material */
 .btn {
-  background: transparent;
-  border-radius: 999px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 0 rgba(0,0,0,0.4);
   backdrop-filter: blur(4px);
 }
@@ -953,14 +949,6 @@ a, button, [role="button"] { transition: color 160ms ease, background 160ms ease
   color: var(--gold-bright);
   transform: translateY(-1px);
   box-shadow: inset 0 1px 0 rgba(200,170,100,0.18), 0 8px 24px -8px rgba(200,170,100,0.25);
-}
-.btn-gold {
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 18px -6px rgba(200,170,100,0.45);
-}
-.btn-gold:hover {
-  background: linear-gradient(180deg, #f0d28a, var(--gold-bright));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 12px 28px -6px rgba(200,170,100,0.6);
 }
 
 /* Card surfaces get felt depth */

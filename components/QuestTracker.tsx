@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { getWalletAddress } from "@/lib/get-wallet-address";
 
 type Props = {
   questId: "city-tourist" | "archivist" | "hex-hunter" | "doctrine-master";
@@ -17,50 +18,50 @@ type Props = {
  */
 export function QuestTracker({ questId, stepId }: Props) {
   useEffect(() => {
-    try {
-      let key: string | null = null;
-      // Prefer wallet address if available
-      const w = typeof window !== "undefined"
-        ? (window as unknown as { ethereum?: { selectedAddress?: string } }).ethereum?.selectedAddress
-        : null;
-      if (w && /^0x[a-fA-F0-9]{40}$/.test(w)) key = w.toLowerCase();
+    (async () => {
+      try {
+        let key: string | null = null;
+        // Prefer wallet address if available
+        const w = await getWalletAddress();
+        if (w) key = w;
 
-      // Fall back to carrier handle
-      if (!key) {
-        const carrierRaw = localStorage.getItem("freelon::carrier::v1");
-        if (carrierRaw) {
-          const parsed = JSON.parse(carrierRaw) as { handle?: string };
-          if (parsed?.handle) key = parsed.handle.toLowerCase();
-        }
-      }
-      if (!key) return; // Anonymous visitor — no progress tracked
-
-      // Local dedupe — don't spam the API for repeat visits in the same session
-      const localKey = `freelon::quest::${questId}::${stepId}::${key}`;
-      if (sessionStorage.getItem(localKey)) return;
-      sessionStorage.setItem(localKey, "1");
-
-      fetch(`/api/quests/${encodeURIComponent(questId)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, stepId }),
-        keepalive: true,
-      })
-        .then((r) => r.json())
-        .then((j: { justCompleted?: boolean; rewardHex?: number }) => {
-          if (j.justCompleted && j.rewardHex) {
-            // Fire a small toast event for any listening UI
-            window.dispatchEvent(
-              new CustomEvent("freelon:quest-complete", {
-                detail: { questId, reward: j.rewardHex },
-              }),
-            );
+        // Fall back to carrier handle
+        if (!key) {
+          const carrierRaw = localStorage.getItem("freelon::carrier::v1");
+          if (carrierRaw) {
+            const parsed = JSON.parse(carrierRaw) as { handle?: string };
+            if (parsed?.handle) key = parsed.handle.toLowerCase();
           }
+        }
+        if (!key) return; // Anonymous visitor — no progress tracked
+
+        // Local dedupe — don't spam the API for repeat visits in the same session
+        const localKey = `freelon::quest::${questId}::${stepId}::${key}`;
+        if (sessionStorage.getItem(localKey)) return;
+        sessionStorage.setItem(localKey, "1");
+
+        fetch(`/api/quests/${encodeURIComponent(questId)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key, stepId }),
+          keepalive: true,
         })
-        .catch(() => {});
-    } catch {
-      /* never break the page */
-    }
+          .then((r) => r.json())
+          .then((j: { justCompleted?: boolean; rewardHex?: number }) => {
+            if (j.justCompleted && j.rewardHex) {
+              // Fire a small toast event for any listening UI
+              window.dispatchEvent(
+                new CustomEvent("freelon:quest-complete", {
+                  detail: { questId, reward: j.rewardHex },
+                }),
+              );
+            }
+          })
+          .catch(() => {});
+      } catch {
+        /* never break the page */
+      }
+    })();
   }, [questId, stepId]);
 
   return null;

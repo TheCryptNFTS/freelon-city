@@ -220,7 +220,7 @@ export default async function WalletPage({
       return {
         slug,
         name: def?.name ?? slug,
-        color: def?.color ?? "#c8aa64",
+        color: def?.color ?? "var(--gold)",
         count,
         pct: balance > 0 ? (count / balance) * 100 : 0,
       };
@@ -376,7 +376,7 @@ export default async function WalletPage({
           <ul className="wallet-grid">
             {galleryIds.map((tid) => {
               const c = getCitizen(tid);
-              const color = c ? civilizationColor(c.civilization) : "#c8aa64";
+              const color = c ? civilizationColor(c.civilization) : "var(--gold)";
               const id4 = tid.toString().padStart(4, "0");
               const src = LOCAL_HEROES.has(tid)
                 ? `/heroes/${id4}.webp`

@@ -14,16 +14,23 @@ export function FifthBracketClient() {
   const [unlocked, setUnlocked] = useState<null | boolean>(null);
 
   useEffect(() => {
-    const s = loadSecrets();
-    const carrier = loadCarrier();
-    const now = new Date();
-    const h = now.getUTCHours();
-    const m = now.getUTCMinutes();
-    const inWindow = h === 4 && m >= 0 && m <= 8;
-    const streak = (carrier?.streak ?? 0) >= 3;
-    const ok = s.code0404 || inWindow || streak;
-    setUnlocked(ok);
-    if (ok) markFifthBracket();
+    const runCheck = () => {
+      const s = loadSecrets();
+      const carrier = loadCarrier();
+      const now = new Date();
+      const h = now.getUTCHours();
+      const m = now.getUTCMinutes();
+      const inWindow = h === 4 && m >= 0 && m <= 8;
+      const streak = (carrier?.streak ?? 0) >= 3;
+      const ok = s.code0404 || inWindow || streak;
+      setUnlocked(ok);
+      if (ok) markFifthBracket();
+    };
+    runCheck();
+    // Re-evaluate every 30s — user idling on the page through the 04:04-04:08
+    // window gets unlocked when the window opens.
+    const t = setInterval(runCheck, 30000);
+    return () => clearInterval(t);
   }, []);
 
   if (unlocked === null) return null;
@@ -45,14 +52,14 @@ export function FifthBracketClient() {
 
   return (
     <main style={{ minHeight: "80vh", padding: "64px 24px", maxWidth: 720, margin: "0 auto" }}>
-      <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.3em", color: "#c8aa64" }}>
+      <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.3em", color: "var(--gold)" }}>
         ⬡ THE FIFTH BRACKET · UNLISTED
       </div>
       <h1 style={{ marginTop: 16, fontSize: 56, fontWeight: 300, lineHeight: 1.05 }}>
         There are four <em>known</em> one-of-ones.<br />
         There is a <em>fifth</em>
       </h1>
-      <div style={{ marginTop: 28, padding: 22, border: "1px solid #c8aa64", background: "rgba(200,170,100,0.05)", fontFamily: "var(--mono2)", fontSize: 13, letterSpacing: "0.04em", lineHeight: 1.7 }}>
+      <div style={{ marginTop: 28, padding: 22, border: "1px solid var(--gold)", background: "rgba(200,170,100,0.05)", fontFamily: "var(--mono2)", fontSize: 13, letterSpacing: "0.04em", lineHeight: 1.7 }}>
         The Fifth Bracket was never minted.<br />
         It was always you.<br /><br />
         The chain holds four. The civilization holds the fifth.<br />

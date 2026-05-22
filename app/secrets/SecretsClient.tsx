@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { loadSecrets, SecretsState, totalDiscovered } from "@/lib/secrets-store";
+import { getWalletAddress } from "@/lib/get-wallet-address";
 
 const HINTS: { n: number; hint: string }[] = [
   { n: 1, hint: "Type the right four digits anywhere. The city's first error code." },
@@ -19,46 +20,48 @@ export function SecretsClient() {
   // The API is session-deduped client-side via sessionStorage in the helper.
   useEffect(() => {
     if (!s) return;
-    let key: string | null = null;
-    try {
-      const w = (window as unknown as { ethereum?: { selectedAddress?: string } }).ethereum?.selectedAddress;
-      if (w && /^0x[a-fA-F0-9]{40}$/.test(w)) key = w.toLowerCase();
-      if (!key) {
-        const carrierRaw = localStorage.getItem("freelon::carrier::v1");
-        if (carrierRaw) {
-          const parsed = JSON.parse(carrierRaw) as { handle?: string };
-          if (parsed?.handle) key = parsed.handle.toLowerCase();
-        }
-      }
-    } catch {}
-    if (!key) return;
-
-    const fireStep = async (stepId: string) => {
-      const dedupe = `freelon::quest::hex-hunter::${stepId}::${key}`;
-      if (sessionStorage.getItem(dedupe)) return;
-      sessionStorage.setItem(dedupe, "1");
+    (async () => {
+      let key: string | null = null;
       try {
-        const r = await fetch("/api/quests/hex-hunter", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ key, stepId }),
-        });
-        const j = await r.json();
-        if (j.justCompleted && j.rewardHex) {
-          window.dispatchEvent(
-            new CustomEvent("freelon:quest-complete", {
-              detail: { questId: "hex-hunter", reward: j.rewardHex },
-            }),
-          );
+        const w = await getWalletAddress();
+        if (w) key = w;
+        if (!key) {
+          const carrierRaw = localStorage.getItem("freelon::carrier::v1");
+          if (carrierRaw) {
+            const parsed = JSON.parse(carrierRaw) as { handle?: string };
+            if (parsed?.handle) key = parsed.handle.toLowerCase();
+          }
         }
       } catch {}
-    };
+      if (!key) return;
 
-    if (s.code0404) fireStep("code0404");
-    if (s.civsSeen.length >= 10) fireStep("all-civs");
-    if (s.ghost404) fireStep("ghost404");
-    if (s.fifthBracket) fireStep("fifth-bracket");
-    if (s.channels.length > 0) fireStep("channels");
+      const fireStep = async (stepId: string) => {
+        const dedupe = `freelon::quest::hex-hunter::${stepId}::${key}`;
+        if (sessionStorage.getItem(dedupe)) return;
+        sessionStorage.setItem(dedupe, "1");
+        try {
+          const r = await fetch("/api/quests/hex-hunter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key, stepId }),
+          });
+          const j = await r.json();
+          if (j.justCompleted && j.rewardHex) {
+            window.dispatchEvent(
+              new CustomEvent("freelon:quest-complete", {
+                detail: { questId: "hex-hunter", reward: j.rewardHex },
+              }),
+            );
+          }
+        } catch {}
+      };
+
+      if (s.code0404) fireStep("code0404");
+      if (s.civsSeen.length >= 10) fireStep("all-civs");
+      if (s.ghost404) fireStep("ghost404");
+      if (s.fifthBracket) fireStep("fifth-bracket");
+      if (s.channels.length > 0) fireStep("channels");
+    })();
   }, [s]);
 
   const found = (i: number): boolean => {
@@ -92,7 +95,7 @@ export function SecretsClient() {
               key={h.n}
               style={{
                 padding: "14px 16px",
-                border: `1px solid ${ok ? "#c8aa64" : "var(--line)"}`,
+                border: `1px solid ${ok ? "var(--gold)" : "var(--line)"}`,
                 background: ok ? "rgba(200,170,100,0.05)" : "transparent",
                 fontFamily: "var(--mono2)",
                 fontSize: 13,
@@ -104,11 +107,11 @@ export function SecretsClient() {
                 alignItems: "baseline",
               }}
             >
-              <span style={{ color: ok ? "#c8aa64" : "var(--ink-2)", letterSpacing: "0.2em" }}>
+              <span style={{ color: ok ? "var(--gold)" : "var(--ink-2)", letterSpacing: "0.2em" }}>
                 [{h.n}]
               </span>
               <span style={{ flex: 1 }}>{h.hint}</span>
-              <span style={{ color: ok ? "#c8aa64" : "var(--ink-2)", fontSize: 11, letterSpacing: "0.2em" }}>
+              <span style={{ color: ok ? "var(--gold)" : "var(--ink-2)", fontSize: 11, letterSpacing: "0.2em" }}>
                 {ok ? "⬡ FOUND" : "—"}
               </span>
             </li>
