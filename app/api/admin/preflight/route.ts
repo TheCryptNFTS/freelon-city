@@ -81,24 +81,38 @@ async function pingOpensea(): Promise<LiveCheck> {
 }
 
 async function pingRpc(): Promise<LiveCheck> {
-  // Use the same RPC viem uses — public mainnet if not set.
-  const url = process.env.ETH_RPC_URL || process.env.NEXT_PUBLIC_ETH_RPC_URL || "https://eth.llamarpc.com";
+  // Match lib/wallet-tokens.ts: try configured RPC first, then the same
+  // 4 public fallbacks viem uses via fallback(). Only report fail when
+  // ALL endpoints reject — the actual site behaves the same way.
+  const configured = process.env.ETH_RPC_URL || process.env.NEXT_PUBLIC_ETH_RPC_URL;
+  const urls = [
+    ...(configured ? [configured] : []),
+    "https://eth.llamarpc.com",
+    "https://rpc.ankr.com/eth",
+    "https://ethereum-rpc.publicnode.com",
+    "https://eth.drpc.org",
+  ];
   const t0 = Date.now();
-  try {
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }),
-      cache: "no-store",
-    });
-    const ms = Date.now() - t0;
-    if (!r.ok) return { name: "rpc", status: "fail", detail: `http ${r.status}`, ms };
-    const j = await r.json();
-    if (!j.result) return { name: "rpc", status: "fail", detail: "no result", ms };
-    return { name: "rpc", status: "ok", detail: `block ${parseInt(j.result, 16)}`, ms };
-  } catch (e) {
-    return { name: "rpc", status: "fail", detail: e instanceof Error ? e.message.slice(0, 60) : "unknown", ms: Date.now() - t0 };
+  const errors: string[] = [];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", method: "eth_blockNumber", params: [], id: 1 }),
+        cache: "no-store",
+      });
+      if (!r.ok) { errors.push(`${new URL(url).host}:${r.status}`); continue; }
+      const j = await r.json();
+      if (!j.result) { errors.push(`${new URL(url).host}:no-result`); continue; }
+      const ms = Date.now() - t0;
+      return { name: "rpc", status: "ok", detail: `block ${parseInt(j.result, 16)} via ${new URL(url).host}`, ms };
+    } catch (e) {
+      errors.push(`${new URL(url).host}:${e instanceof Error ? e.message.slice(0, 30) : "err"}`);
+      continue;
+    }
   }
+  return { name: "rpc", status: "fail", detail: errors.join(" | ").slice(0, 200), ms: Date.now() - t0 };
 }
 
 function checkOauthRedirect(): LiveCheck {
