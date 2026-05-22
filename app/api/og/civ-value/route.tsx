@@ -40,8 +40,8 @@ export async function GET() {
         style={{
           width: "1200px",
           height: "630px",
-          background: "#0a0c12",
-          color: "#e6e1d2",
+          background: "#050505",
+          color: "#F5F2E8",
           fontFamily: "system-ui, sans-serif",
           padding: "50px 60px",
           display: "flex",
@@ -53,7 +53,7 @@ export async function GET() {
           style={{
             fontSize: 18,
             letterSpacing: 6,
-            color: "#c8aa64",
+            color: "#C8A75D",
             fontFamily: "monospace",
             display: "flex",
           }}
@@ -65,7 +65,7 @@ export async function GET() {
             marginTop: 12,
             fontSize: 44,
             fontWeight: 300,
-            color: "#e6e1d2",
+            color: "#F5F2E8",
             display: "flex",
           }}
         >
@@ -93,7 +93,7 @@ export async function GET() {
                 style={{
                   width: 220,
                   fontSize: 18,
-                  color: "#e6e1d2",
+                  color: "#F5F2E8",
                   display: "flex",
                 }}
               >
@@ -119,7 +119,7 @@ export async function GET() {
               <span
                 style={{
                   fontSize: 16,
-                  color: "#c8aa64",
+                  color: "#C8A75D",
                   fontFamily: "monospace",
                   width: 140,
                   display: "flex",
@@ -144,7 +144,7 @@ export async function GET() {
           }}
         >
           <span style={{ display: "flex" }}>freeloncity.com</span>
-          <span style={{ display: "flex", color: "#c8aa64" }}>
+          <span style={{ display: "flex", color: "#C8A75D" }}>
             WE HEAR · WE SYNC · WE ARE
           </span>
         </div>

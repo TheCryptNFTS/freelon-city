@@ -76,7 +76,7 @@ export function DailyMission() {
         <span className="dm-claimed">✓ CLAIMED TODAY</span>
       ) : (
         <Link
-          className="btn btn-gold dm-cta"
+          className="btn btn-primary dm-cta"
           href={mission.href}
           onClick={onClick}
         >

@@ -19,12 +19,14 @@ export function HexNetWorth() {
       setData(null);
       return;
     }
+    let cancelled = false;
     setLoading(true);
     fetch(`/api/wallet/${h.address}/net-worth`)
       .then((r) => r.json())
-      .then((d) => setData(d))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
+      .then((d) => { if (!cancelled) setData(d); })
+      .catch(() => { if (!cancelled) setData(null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [h.address]);
 
   if (!h.address) {

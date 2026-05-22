@@ -35,7 +35,7 @@ export function DailySignal() {
             {civ.name.toUpperCase()}
           </Link>
         </div>
-        <a className="btn btn-gold ds-share" href={intent} target="_blank" rel="noreferrer">
+        <a className="btn btn-primary ds-share" href={intent} target="_blank" rel="noreferrer">
           <span className="lbl">RELAY THE SIGNAL</span>
           <span className="ttl">POST TO X <span className="ar">→</span></span>
         </a>

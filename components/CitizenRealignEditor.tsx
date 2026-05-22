@@ -154,7 +154,7 @@ export function CitizenRealignEditor({ citizenId, tier, originalCiv, currentReal
             {hexPoints !== null && <> · YOU HAVE {hexPoints} ⬡</>}
             {handle && <> · CARRIER @{handle}</>}
           </p>
-          <button className="btn btn-gold" type="submit" disabled={busy}>
+          <button className="btn btn-primary" type="submit" disabled={busy}>
             <span className="ttl">{busy ? "SIGNING…" : `REALIGN FOR ${REALIGN_COST} ⬡ →`}</span>
           </button>
         </form>

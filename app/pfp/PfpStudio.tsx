@@ -189,7 +189,7 @@ export function PfpStudio() {
           <label>HANDLE (OPTIONAL)</label>
           <input type="text" placeholder="@yourhandle" value={handle} onChange={(e) => setHandle(e.target.value)} maxLength={32} />
         </div>
-        <button className="btn btn-gold" onClick={download} disabled={!src}>
+        <button className="btn btn-primary" onClick={download} disabled={!src}>
           <span className="ttl">DOWNLOAD PFP <span className="ar">→</span></span>
         </button>
         <div className="hint">

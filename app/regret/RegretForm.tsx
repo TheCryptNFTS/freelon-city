@@ -135,7 +135,7 @@ export function RegretForm() {
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
-        <button type="submit" className="btn btn-gold" disabled={loading}>
+        <button type="submit" className="btn btn-primary" disabled={loading}>
           <span className="ttl">{loading ? "COMPUTING REGRET…" : "COMPUTE REGRET →"}</span>
         </button>
       </form>
@@ -194,7 +194,7 @@ export function RegretForm() {
           </div>
 
           <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <a className="btn btn-gold" href={intent} target="_blank" rel="noreferrer">
+            <a className="btn btn-primary" href={intent} target="_blank" rel="noreferrer">
               <span className="ttl">GENERATE REGRET CARD →</span>
             </a>
             <a className="btn" href={ogUrl} target="_blank" rel="noreferrer">

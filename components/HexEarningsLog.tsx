@@ -59,10 +59,12 @@ export function HexEarningsLog({ address }: { address: string }) {
 
   useEffect(() => {
     if (!address) return;
+    let cancelled = false;
     fetch(`/api/wallet/${address}/hex`)
       .then((r) => r.json())
-      .then((d: Data) => setData(d))
-      .catch(() => setErr(true));
+      .then((d: Data) => { if (!cancelled) setData(d); })
+      .catch(() => { if (!cancelled) setErr(true); });
+    return () => { cancelled = true; };
   }, [address]);
 
   if (err) {

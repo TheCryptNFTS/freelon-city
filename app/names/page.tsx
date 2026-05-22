@@ -100,7 +100,7 @@ export default async function NamesPage() {
         <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", color: "var(--ink-2)", marginBottom: 10 }}>
           NEXT SIGNAL
         </div>
-        <a className="btn btn-gold" href="/citizens">
+        <a className="btn btn-primary" href="/citizens">
           <span className="ttl">NAME YOUR CITIZEN →</span>
         </a>
       </div>

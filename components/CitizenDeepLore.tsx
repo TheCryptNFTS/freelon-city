@@ -171,7 +171,7 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
                   )}
                 </div>
                 <button
-                  className="btn btn-gold dl-unlock-btn"
+                  className="btn btn-primary dl-unlock-btn"
                   onClick={doUnlock}
                   disabled={busy || carrier.hexPoints < (unlockMode === "gift" ? 50 : cost)}
                   type="button"

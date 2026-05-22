@@ -29,7 +29,8 @@ const RPC_URL =
 
 const client = createPublicClient({
   chain: mainnet,
-  transport: http(RPC_URL),
+  // Hard 5s timeout — prevents wallet RPC stalls from hanging the whole route
+  transport: http(RPC_URL, { timeout: 5_000, retryCount: 1 }),
 });
 
 export function isValidAddress(addr: string): addr is `0x${string}` {

@@ -91,7 +91,7 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-gold"
+                className="btn btn-primary"
                 style={{ marginTop: 18 }}
               >
                 <span className="lbl">ACKNOWLEDGE</span>

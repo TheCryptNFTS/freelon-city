@@ -56,11 +56,13 @@ export async function getMayor(civ: string): Promise<{ address: string; count: n
     ids.map((tid) =>
       (async () => {
         try {
-          const r = await fetch(
+          const { fetchWithTimeout } = await import("@/lib/fetch-with-timeout");
+          const r = await fetchWithTimeout(
             `https://api.opensea.io/api/v2/chain/ethereum/contract/${CONTRACT}/nfts/${tid}`,
             {
               headers: { "X-API-KEY": apiKey, accept: "application/json" },
               next: { revalidate: 1800 },
+              timeoutMs: 4000,
             },
           );
           if (!r.ok) return;

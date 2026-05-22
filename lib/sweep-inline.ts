@@ -79,10 +79,13 @@ export async function processSweepsForWallet(address: string): Promise<{
       u.searchParams.set("event_type", "sale");
       u.searchParams.set("limit", "50");
       if (next) u.searchParams.set("next", next);
-      const r = await fetch(u.toString(), {
+      const { fetchWithTimeout } = await import("@/lib/fetch-with-timeout");
+      const r = await fetchWithTimeout(u.toString(), {
         headers: { "X-API-KEY": apiKey },
         next: { revalidate: 600 },
-      });
+        timeoutMs: 6000,
+      }).catch(() => null);
+      if (!r) break;
       if (!r.ok) break;
       const d = (await r.json()) as { asset_events?: SaleEvent[]; next?: string };
       for (const ev of d.asset_events || []) {

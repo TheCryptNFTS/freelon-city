@@ -16,7 +16,7 @@ export function ShareButtons({ citizen, siteUrl }: { citizen: Citizen; siteUrl: 
 
   return (
     <>
-      <a href={twitterUrl} target="_blank" rel="noreferrer" className="btn btn-gold">
+      <a href={twitterUrl} target="_blank" rel="noreferrer" className="btn btn-primary">
         <span className="lbl">SHARE</span>
         <span className="ttl">POST TO X <span className="ar">↗</span></span>
       </a>

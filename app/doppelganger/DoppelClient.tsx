@@ -89,7 +89,7 @@ export function DoppelClient() {
           maxLength={64}
           required
         />
-        <button type="submit" className="btn btn-gold">
+        <button type="submit" className="btn btn-primary">
           <span className="ttl">FIND MY MATCH →</span>
         </button>
       </form>
@@ -129,7 +129,7 @@ export function DoppelClient() {
               </div>
 
               <div style={{ marginTop: 18, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a className="btn btn-gold" href={intent} target="_blank" rel="noreferrer">
+                <a className="btn btn-primary" href={intent} target="_blank" rel="noreferrer">
                   <span className="ttl">POST THIS MATCH →</span>
                 </a>
                 <a className="btn" href={ogUrl} target="_blank" rel="noreferrer">

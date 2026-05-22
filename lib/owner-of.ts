@@ -17,7 +17,7 @@ const RPC_URL =
 
 const client = createPublicClient({
   chain: mainnet,
-  transport: http(RPC_URL),
+  transport: http(RPC_URL, { timeout: 4_000, retryCount: 1 }),
 });
 
 export async function ownerOf(tokenId: number): Promise<string | null> {

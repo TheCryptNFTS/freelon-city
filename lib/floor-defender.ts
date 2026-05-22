@@ -86,11 +86,13 @@ export async function runFloorDefenderTick(address: string): Promise<DefenderRes
       u.searchParams.set("event_type", "transfer");
       u.searchParams.set("limit", "50");
       if (next) u.searchParams.set("next", next);
-      const r = await fetch(u.toString(), {
+      const { fetchWithTimeout } = await import("@/lib/fetch-with-timeout");
+      const r = await fetchWithTimeout(u.toString(), {
         headers: { "X-API-KEY": apiKey },
         next: { revalidate: 600 },
-      });
-      if (!r.ok) break;
+        timeoutMs: 6000,
+      }).catch(() => null);
+      if (!r || !r.ok) break;
       const d = (await r.json()) as { asset_events?: TransferEvent[]; next?: string };
       for (const ev of d.asset_events || []) {
         if (ev.event_type !== "transfer") continue;

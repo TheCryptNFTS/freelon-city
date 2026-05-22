@@ -72,7 +72,7 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
           onChange={(e) => setName(e.target.value)}
           placeholder="display name"
         />
-        <button className="btn btn-gold" type="submit" disabled={busy}>
+        <button className="btn btn-primary" type="submit" disabled={busy}>
           <span className="ttl">{busy ? "SIGNING…" : currentName ? "UPDATE NAME →" : "SET NAME →"}</span>
         </button>
       </form>

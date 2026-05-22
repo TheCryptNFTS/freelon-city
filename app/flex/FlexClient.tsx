@@ -87,7 +87,7 @@ export function FlexClient() {
       <div style={{ marginTop: 24 }}>
         <button
           type="button"
-          className="btn btn-gold"
+          className="btn btn-primary"
           onClick={connect}
           disabled={connecting || holder.loading}
         >
@@ -194,7 +194,7 @@ export function FlexClient() {
           </dl>
 
           <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <a className="btn btn-gold" href={intent} target="_blank" rel="noreferrer">
+            <a className="btn btn-primary" href={intent} target="_blank" rel="noreferrer">
               <span className="ttl">GENERATE FLEX CARD →</span>
             </a>
             <a className="btn" href={ogUrl} target="_blank" rel="noreferrer">
