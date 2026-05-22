@@ -10,14 +10,15 @@ export default function CarrierPage() {
   return (
     <main className="carrier-page" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.55) 0%, rgba(10,12,18,0.92) 60%, var(--bg) 100%), url(/atmos/carrier.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
       <section className="carrier-hero">
-        <span className="kicker">⬡ CARRIER PROTOCOL · NON-HOLDER STATUS</span>
+        <span className="kicker">⬡ CARRIER PROTOCOL · HOLD THE SIGNAL</span>
         <h1>
           Holders own citizens<br />
           <em>Carriers hold the signal</em>
         </h1>
         <p className="lead">
-          Sync your handle. Relay daily. Your rank climbs from <strong>DARK</strong> to <strong>BEARER</strong> the more you transmit.
-          Skip a day, the signal decays. The city remembers.
+          The city pays you for work. Sign in with X, relay today&apos;s signal,
+          claim your hex. Every post resets the 14-day decay timer and keeps your passive baseline alive.
+          Skip too many days and the meter pauses until you come back.
         </p>
       </section>
       <CarrierClient />

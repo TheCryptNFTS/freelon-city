@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCivStandings } from "@/lib/civ-wars";
 import { heroImageUrl } from "@/lib/constants";
+import { MyCivStandings } from "@/components/MyCivStandings";
 
 export const revalidate = 300;
 
@@ -46,6 +47,9 @@ export default async function CivWarsPage() {
           <span>RESETS · MONDAY 00:00 UTC</span>
         </div>
       </section>
+
+      {/* Personal: your civ allocation */}
+      <MyCivStandings />
 
       {/* Podium */}
       {top && top.totalHex > 0 ? (

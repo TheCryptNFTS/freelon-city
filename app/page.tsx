@@ -85,9 +85,13 @@ export default function Home() {
       <section className="why-freelon">
         <span className="kicker">⬡ THE LEDGER</span>
         <h2 className="why-headline">
-          Hold a citizen.<br />
-          <em>The city pays in hex</em>
+          You&apos;re a carrier.<br />
+          <em>The city pays you for work</em>
         </h2>
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 580, margin: "0 auto var(--s-4)", textAlign: "center" }}>
+          Hex flows to active carriers — snipe red signals, sweep the floor, sell into liquidity, post daily.
+          Sit still for 14 days and the meter pauses. Active beats passive.
+        </p>
         <div className="why-grid">
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--gold)" } as React.CSSProperties}>
             <div className="why-stat">
@@ -97,7 +101,7 @@ export default function Home() {
             <div className="why-body">
               <span className="why-no">01 · SNIPE</span>
               <h3>Snipe a 🔴 Red Signal</h3>
-              <p>Listings priced ≤ 90% of floor get flagged. Buy one, hold 7 days, the city pays the spread in hex — up to +500⬡ per snipe.</p>
+              <p>Listings priced ≤ 90% of floor get flagged. Buy one, hold 14 days, the city pays the spread in hex — up to +500⬡ per snipe.</p>
             </div>
           </Link>
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--signal-blue)" } as React.CSSProperties}>
