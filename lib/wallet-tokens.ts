@@ -1,4 +1,4 @@
-import { createPublicClient, http, isAddress } from "viem";
+import { createPublicClient, http, fallback, isAddress } from "viem";
 import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
 
@@ -22,16 +22,58 @@ const ABI = [
   },
 ] as const;
 
-const RPC_URL =
+// Multi-RPC fallback transport. We try the user-configured RPC first (if
+// any), then a curated list of reliable public endpoints. viem's
+// `fallback` cycles to the next on error so a single rate-limit doesn't
+// produce a false-zero balance — which is what caused the "NOT A HOLDER"
+// bug for real holders.
+const CONFIGURED_RPC =
   process.env.ETH_RPC_URL ||
   process.env.NEXT_PUBLIC_ETH_RPC_URL ||
-  undefined; // viem will fall back to its default public RPC
+  null;
+
+const PUBLIC_FALLBACKS = [
+  "https://eth.llamarpc.com",
+  "https://rpc.ankr.com/eth",
+  "https://ethereum-rpc.publicnode.com",
+  "https://eth.drpc.org",
+];
+
+const TRANSPORTS = [
+  ...(CONFIGURED_RPC ? [http(CONFIGURED_RPC, { timeout: 5_000, retryCount: 1 })] : []),
+  ...PUBLIC_FALLBACKS.map((u) => http(u, { timeout: 4_000, retryCount: 1 })),
+];
 
 const client = createPublicClient({
   chain: mainnet,
-  // Hard 5s timeout — prevents wallet RPC stalls from hanging the whole route
-  transport: http(RPC_URL, { timeout: 5_000, retryCount: 1 }),
+  transport: fallback(TRANSPORTS, { rank: false, retryCount: 1 }),
 });
+
+// ── Balance cache (per server instance, 90-second TTL) ──────────────
+// Keeps repeated page renders / API hits from re-querying RPC + OpenSea
+// for the same wallet within a short window. Stale-but-fresh-enough.
+type CacheEntry = { value: number; expires: number };
+const balanceCache = new Map<string, CacheEntry>();
+const BALANCE_TTL_MS = 90_000;
+
+function cacheGet(addr: string): number | null {
+  const e = balanceCache.get(addr);
+  if (!e) return null;
+  if (e.expires < Date.now()) {
+    balanceCache.delete(addr);
+    return null;
+  }
+  return e.value;
+}
+
+function cacheSet(addr: string, value: number) {
+  balanceCache.set(addr, { value, expires: Date.now() + BALANCE_TTL_MS });
+  // Keep the map bounded to avoid unbounded growth on long-running servers
+  if (balanceCache.size > 5000) {
+    const oldestKey = balanceCache.keys().next().value;
+    if (oldestKey) balanceCache.delete(oldestKey);
+  }
+}
 
 export function isValidAddress(addr: string): addr is `0x${string}` {
   return typeof addr === "string" && isAddress(addr);
@@ -61,6 +103,11 @@ export async function getWalletBalance(addr: string): Promise<number> {
 /** Like getWalletBalance but returns null when truly unknown (both sources failed). */
 export async function getWalletBalanceVerified(addr: string): Promise<number | null> {
   if (!isValidAddress(addr)) return 0;
+  const lower = addr.toLowerCase();
+
+  // Cache hit — avoid hammering RPC + OpenSea on repeated lookups
+  const cached = cacheGet(lower);
+  if (cached !== null) return cached;
 
   // Source 1: RPC
   let rpcBal: number | null = null;
@@ -76,7 +123,10 @@ export async function getWalletBalanceVerified(addr: string): Promise<number | n
     rpcBal = null;
   }
 
-  if (rpcBal !== null && rpcBal > 0) return rpcBal;
+  if (rpcBal !== null && rpcBal > 0) {
+    cacheSet(lower, rpcBal);
+    return rpcBal;
+  }
 
   // Source 2: OpenSea fallback — ask for the wallet's NFTs in this
   // collection. We just need the count; we don't paginate here.
@@ -98,9 +148,15 @@ export async function getWalletBalanceVerified(addr: string): Promise<number | n
         const ours = (d.nfts || []).filter(
           (n) => (n.contract || "").toLowerCase() === CONTRACT.toLowerCase(),
         );
-        if (ours.length > 0) return ours.length;
+        if (ours.length > 0) {
+          cacheSet(lower, ours.length);
+          return ours.length;
+        }
         // If OpenSea agrees zero AND we have a confirmed RPC zero → real zero.
-        if (rpcBal === 0) return 0;
+        if (rpcBal === 0) {
+          cacheSet(lower, 0);
+          return 0;
+        }
       }
     } catch {
       /* fall through */
@@ -109,7 +165,10 @@ export async function getWalletBalanceVerified(addr: string): Promise<number | n
 
   // RPC says zero but no OpenSea key (or OpenSea also failed) → trust the
   // zero only when RPC actually answered. If RPC also failed → null/unknown.
-  if (rpcBal !== null) return rpcBal;
+  if (rpcBal !== null) {
+    cacheSet(lower, rpcBal);
+    return rpcBal;
+  }
   return null;
 }
 

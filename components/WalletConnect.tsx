@@ -74,12 +74,15 @@ export function WalletConnect() {
     // counts on-chain holdings via OpenSea v2). Authoritative for balance.
     let openSeaCount: number | null = null;
     try {
-      const res = await fetch(`/api/wallet/${address.toLowerCase()}/tokens`, {
+      const res = await fetch(`/api/wallet/${address.toLowerCase()}/balance`, {
         cache: "no-store",
       });
       if (res.ok) {
-        const j = (await res.json()) as { balance?: number };
-        if (typeof j.balance === "number") openSeaCount = j.balance;
+        const j = (await res.json()) as { balance?: number | null; verified?: boolean };
+        // Only trust the server when it confirmed a source resolved.
+        // null + verified:false means "unknown — both sources failed", and
+        // we treat that as still-unknown rather than zero.
+        if (j.verified === true && typeof j.balance === "number") openSeaCount = j.balance;
       }
     } catch {
       openSeaCount = null;
