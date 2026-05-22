@@ -296,7 +296,7 @@ export default async function WalletPage({
               ? "SYNCING"
               : "Not a holder"}
           </span>
-          <span className="ws-sub">among all FREELON holders</span>
+          <span className="ws-sub">among all carriers</span>
         </div>
         <div className="wallet-stat">
           <span className="ws-label">LONGEST HELD</span>
@@ -325,11 +325,11 @@ export default async function WalletPage({
         </div>
       </section>
 
-      <section className="wallet-hex-section" style={{ marginTop: "var(--s-5)" }}>
+      <section className="wallet-hex-section" style={{ marginTop: "var(--s-6)" }}>
         <HexEarningsLog address={norm} />
       </section>
 
-      <section className="wallet-tithe-section" style={{ marginTop: "var(--s-5)" }}>
+      <section className="wallet-tithe-section" style={{ marginTop: "var(--s-6)" }}>
         <TitheForm
           address={norm}
           civs={Object.entries(CIVILIZATIONS).map(([slug, c]) => ({ slug, name: c.name, color: c.color }))}
@@ -339,7 +339,7 @@ export default async function WalletPage({
       <section className="wallet-civs">
         <h2 className="kicker">⬡ CIV ALIGNMENT</h2>
         {civBreakdown.length === 0 ? (
-          <p className="wallet-empty">No FREELONS in this wallet.</p>
+          <p className="wallet-empty">The wall is blank · No citizens on file.</p>
         ) : (
           <ul className="wallet-civ-list">
             {civBreakdown.map((c) => (
@@ -431,7 +431,7 @@ export default async function WalletPage({
           <span className="ttl">OpenSea ↗</span>
         </a>
       </section>
-      <section className="wallet-next" style={{ maxWidth: 1100, margin: "var(--s-6) auto 0", padding: "0 var(--s-4)", textAlign: "center" }}>
+      <section className="wallet-next" style={{ maxWidth: 1100, margin: "var(--s-7) auto 0", padding: "var(--s-5) var(--s-4) 0", textAlign: "center", borderTop: "1px solid var(--line)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
           Your passport classifies this wallet by holdings, hex, streak, and rank.

@@ -10,7 +10,7 @@ export default function Page() {
         <span className="kicker">⬡ CIVILIZATIONS</span>
         <h1>10 <em>Signal</em> civilizations</h1>
         <p className="lead">
-          Each citizen belongs to one. Population dictates power. Silver Machine at 80 is the rarest.
+          Each citizen belongs to one. Population dictates power. Silver Machine at 80 is sacred.
         </p>
       </section>
       <section className="civs-list">
@@ -46,7 +46,7 @@ export default function Page() {
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
           <Link className="btn btn-primary" href="/sync"><span className="ttl">FIND YOUR CIVILIZATION →</span></Link>
           <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
-          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
         </div>
       </section>
     </main>

@@ -124,7 +124,7 @@ export function SecretsClient() {
       </p>
 
       <div style={{ marginTop: 40, display: "flex", gap: 14, flexWrap: "wrap" }}>
-        <Link href="/earn" className="btn btn-primary"><span className="ttl">EARN HEX →</span></Link>
+        <Link href="/earn" className="btn btn-primary"><span className="ttl">THE LEDGER →</span></Link>
         <Link href="/lore" className="btn btn-secondary"><span className="ttl">READ THE CANON →</span></Link>
       </div>
     </main>

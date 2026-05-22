@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getXVerification, getByHandle } from "@/lib/x-store";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,8 @@ export const dynamic = "force-dynamic";
  * "verified by holder" badge).
  */
 export async function GET(req: Request) {
+  const rl = await limit(req, "x:me", { max: 60, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
   const url = new URL(req.url);
   const bind = url.searchParams.get("bind");
   const handle = url.searchParams.get("handle");

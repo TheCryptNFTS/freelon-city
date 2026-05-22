@@ -16,8 +16,8 @@ export default function TributeIndex() {
         <span className="kicker">⬡ 35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span>
         <h1>The <em>honoraries</em></h1>
         <p className="lead">
-          35 citizens of FREELON CITY carry the name of a real human who shaped the signal.
-          Each one comes with a pre-loaded tweet. Tag them. Tell them their citizen woke up.
+          35 citizens carry the name of a human who shaped the signal.
+          Each has a pre-loaded tweet. Tag them. Tell them their citizen woke up.
         </p>
       </section>
       <section className="tribute-grid-wrap">
@@ -49,7 +49,7 @@ export default function TributeIndex() {
       <section style={{ marginTop: "var(--s-6)", maxWidth: "var(--maxw)", margin: "var(--s-6) auto 0", padding: "0 var(--pad)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <Link className="btn btn-primary" href="/earn"><span className="ttl">EARN YOUR PLACE →</span></Link>
+          <Link className="btn btn-primary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
           <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
           <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
         </div>

@@ -43,9 +43,9 @@ export default function Home() {
               <em>It moved</em>
             </h1>
             <p className="hero-sub">
-              An NFT collection of <strong>4040 citizens</strong> on Ethereum.
-              10 civilizations. Locked supply. Hold one — earn hex points daily.
-              Burn hex — carve your name into the city.
+              <strong>4040 citizens</strong> on Ethereum. 10 civilizations.
+              Supply sealed. Hold one — the city pays you in hex daily.
+              Burn hex — carve your name into the wall.
             </p>
             <div className="hero-ctas">
               <Link className="btn btn-primary" href="/sync">
@@ -83,10 +83,10 @@ export default function Home() {
 
       {/* WHY FREELON · simple cards, plain English */}
       <section className="why-freelon">
-        <span className="kicker">⬡ HOW IT WORKS</span>
+        <span className="kicker">⬡ THE LEDGER</span>
         <h2 className="why-headline">
           Hold a citizen.<br />
-          <em>Earn hex points daily</em>
+          <em>The city pays in hex</em>
         </h2>
         <div className="why-grid">
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--gold)" } as React.CSSProperties}>
@@ -97,7 +97,7 @@ export default function Home() {
             <div className="why-body">
               <span className="why-no">01 · HOLD</span>
               <h3>For every 1-of-1 you hold</h3>
-              <p>Every citizen earns hex daily. Common = +1⬡/day, scaling by tier. 1-of-1 = +200⬡/day.</p>
+              <p>Every citizen accrues hex daily. Common = +1⬡/day, scaling by tier. 1-of-1 = +200⬡/day.</p>
             </div>
           </Link>
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--signal-blue)" } as React.CSSProperties}>
@@ -108,7 +108,7 @@ export default function Home() {
             <div className="why-body">
               <span className="why-no">02 · BUY</span>
               <h3>Sweep a citizen on OpenSea</h3>
-              <p>Every purchase credits the buyer 25 hex. 3 sweeps in 24h adds +100⬡ streak bonus.</p>
+              <p>The city credits 25 hex per buy. Three sweeps inside 24h adds +100⬡.</p>
             </div>
           </Link>
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--mars-rust)" } as React.CSSProperties}>
@@ -119,7 +119,7 @@ export default function Home() {
             <div className="why-body">
               <span className="why-no">03 · SHARE</span>
               <h3>Share the daily signal on X</h3>
-              <p>Once per day. 7-day streak = +100⬡. 30-day streak = +500⬡. The city rewards loyalty.</p>
+              <p>Once per day. 7-day streak = +100⬡. 30-day streak = +500⬡. The city remembers loyalty.</p>
             </div>
           </Link>
           <Link href="/patrons" className="why-card scan-card" style={{ "--accent": "var(--signal-red)" } as React.CSSProperties}>
@@ -130,7 +130,7 @@ export default function Home() {
             <div className="why-body">
               <span className="why-no">04 · BURN</span>
               <h3>Carve your name into the city</h3>
-              <p>Burn hex to name your citizen, realign your civ, or put your name on the Patrons Wall for 7 days.</p>
+              <p>Burn hex to name your citizen, realign your civ, or post your name on the Patrons Wall for 7 days.</p>
             </div>
           </Link>
         </div>
@@ -162,8 +162,8 @@ export default function Home() {
         <span className="kicker">⬡ SIGNAL CHECK</span>
         <h2>The city detects you<br /><em>Find your place</em></h2>
         <p className="signal-check-sub">
-          Paste a wallet or sync your X handle. Find your citizens.
-          See your civilization. Claim your hex balance.
+          Paste a wallet or sync your X handle. The city locates your citizens,
+          reads your civilization, returns your hex balance.
         </p>
         <InlineSync />
       </section>
@@ -229,7 +229,7 @@ export default function Home() {
 
       {/* CIVILIZATIONS */}
       <section className="civs-section reveal">
-        <div className="section-bar" style={{ paddingTop: 96 }}>
+        <div className="section-bar" style={{ paddingTop: "var(--s-9)" }}>
           <div className="left-col">
             <span className="kicker">TEN SIGNAL DOCTRINES</span>
             <h2>Ten <em>civilizations</em></h2>
@@ -382,9 +382,9 @@ export default function Home() {
 
       {/* ON-CHAIN */}
       <section className="onchain reveal">
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: "var(--s-5)" }}>
           <span className="kicker">ON-CHAIN</span>
-          <h2 style={{ marginTop: 12 }}>Truths that <em>don&apos;t move</em></h2>
+          <h2 style={{ marginTop: "var(--s-3)" }}>Truths that <em>don&apos;t move</em></h2>
         </div>
         <div className="trinity">
           <div className="cell">

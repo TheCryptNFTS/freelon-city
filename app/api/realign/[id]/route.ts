@@ -8,6 +8,7 @@ import { CarrierState } from "@/lib/carrier";
 import { normalizeHandle } from "@/lib/sync";
 import { getRealignment, setRealignment } from "@/lib/realignment-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { ECONOMY } from "@/lib/economy-constants";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ const ABI = [
 const client = createPublicClient({ chain: mainnet, transport: http() });
 
 const COOLDOWN_MS = 90 * 86400000;
-const REALIGN_COST = 500;
+const REALIGN_COST = ECONOMY.REALIGN_COST;
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const rl = await limit(req, "realign-get", { max: 60 });

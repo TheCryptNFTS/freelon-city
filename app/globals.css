@@ -2488,41 +2488,41 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* ============================== */
 /* WALLET PROFILE PAGE            */
 /* ============================== */
-.wallet-page { max-width: 1180px; margin: 0 auto; padding: 60px 24px 120px; }
-.wallet-hero { margin-bottom: 40px; }
-.wallet-addr-h1 { font-family: var(--mono2); font-size: 56px; letter-spacing: 0.04em; margin: 12px 0 6px; color: var(--ink); font-weight: 400; }
+.wallet-page { max-width: var(--maxw); margin: 0 auto; padding: var(--pad); padding-top: var(--s-8); padding-bottom: var(--s-9); }
+.wallet-hero { padding-bottom: var(--s-5); border-bottom: 1px solid var(--line); margin-bottom: var(--s-6); }
+.wallet-addr-h1 { font-family: var(--mono2); font-size: 56px; letter-spacing: 0.04em; margin: var(--s-3) 0 var(--s-1); color: var(--ink); font-weight: 400; }
 .wallet-addr-full { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.18em; color: var(--ink-dim); word-break: break-all; }
 .wallet-addr-full code { color: var(--ink-dim); }
-.wallet-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 32px 0 40px; }
-.wallet-stat { background: var(--panel, #0c0f16); border: 1px solid var(--line); padding: 22px 22px 20px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px; }
+.wallet-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin: var(--s-6) 0 var(--s-6); }
+.wallet-stat { background: var(--panel, #0c0f16); border: 1px solid var(--line); padding: var(--s-5); border-radius: 4px; display: flex; flex-direction: column; gap: var(--s-1); }
 .wallet-stat .ws-label { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.24em; color: var(--ink-dim); }
 .wallet-stat .ws-value { font-family: var(--mono2); font-size: 30px; color: var(--gold); letter-spacing: 0.02em; }
 .wallet-stat .ws-value.ws-link { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(200,170,100,0.3); }
 .wallet-stat .ws-value.ws-link:hover { border-color: var(--gold); }
 .wallet-stat .ws-sub { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.14em; color: var(--ink-dim); }
-.wallet-civs { margin: 40px 0; }
-.wallet-civs .kicker { margin-bottom: 14px; display: block; }
-.wallet-civ-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-.wallet-civ-row { display: grid; grid-template-columns: 200px 1fr 60px 50px; gap: 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.wallet-civs { margin: var(--s-7) 0; }
+.wallet-civs .kicker { margin-bottom: var(--s-3); display: block; }
+.wallet-civ-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.wallet-civ-row { display: grid; grid-template-columns: 200px 1fr 60px 50px; gap: var(--s-3); align-items: center; padding: var(--s-2) 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
 .wallet-civ-row .wcr-name { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em; color: var(--ink); }
 .wallet-civ-row .wcr-bar-wrap { height: 10px; background: rgba(255,255,255,0.04); position: relative; border-radius: 2px; overflow: hidden; }
 .wallet-civ-row .wcr-bar { height: 10px; display: block; transition: width 0.4s ease; }
 .wallet-civ-row .wcr-pct { font-family: var(--mono2); font-size: 12px; color: var(--gold); text-align: right; }
 .wallet-civ-row .wcr-count { font-family: var(--mono2); font-size: 11px; color: var(--ink-dim); text-align: right; }
-.wallet-gallery { margin: 40px 0; }
-.wallet-gallery .kicker { display: block; margin-bottom: 14px; }
+.wallet-gallery { margin: var(--s-7) 0; }
+.wallet-gallery .kicker { display: block; margin-bottom: var(--s-3); }
 .wallet-gallery .gallery-count { color: var(--ink-dim); font-weight: 400; }
-.wallet-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.wallet-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s-2); }
 .wallet-grid-item a { display: block; text-decoration: none; color: var(--ink); }
 .wallet-grid-item .wgi-frame { display: block; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; aspect-ratio: 1/1; background: #000; }
 .wallet-grid-item .wgi-frame img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
 .wallet-grid-item:hover .wgi-frame img { transform: scale(1.04); }
 .wallet-grid-item .wgi-id { display: block; text-align: center; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; color: var(--ink-dim); padding-top: 6px; }
-.wallet-overflow { display: inline-block; margin-top: 18px; font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(200,170,100,0.3); }
+.wallet-overflow { display: inline-block; margin-top: var(--s-4); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(200,170,100,0.3); }
 .wallet-overflow:hover { border-color: var(--gold); }
-.wallet-empty { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em; color: var(--ink-dim); padding: 24px 0; }
-.wallet-foot { display: flex; gap: 10px; margin-top: 36px; flex-wrap: wrap; }
-.dashboard-share { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.wallet-empty { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em; color: var(--ink-dim); padding: var(--s-5) 0; }
+.wallet-foot { display: flex; gap: var(--s-3); margin-top: var(--s-7); padding-top: var(--s-4); border-top: 1px solid var(--line); flex-wrap: wrap; }
+.dashboard-share { display: flex; gap: var(--s-3); margin-top: var(--s-4); flex-wrap: wrap; }
 .dashboard-share-btn { padding: 10px 16px; }
 @media (max-width: 860px) {
   .wallet-stats { grid-template-columns: 1fr; }
@@ -3259,13 +3259,18 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .passport { max-width: 920px; margin: 0 auto; padding: var(--pad); }
 .passport-class {
   font-family: var(--display);
-  font-size: clamp(56px, 9vw, 120px);
-  line-height: 0.94;
-  letter-spacing: -0.02em;
+  font-size: clamp(72px, 12vw, 160px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
   margin: var(--s-4) 0 var(--s-3);
   text-decoration: underline solid var(--civ, var(--gold)) 4px;
   text-underline-offset: 10px;
 }
+.passport-header { margin-bottom: var(--s-4); }
+.passport-header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--s-3); }
+.passport-header-addr { font-family: var(--mono); color: var(--ink-2); margin-top: var(--s-2); word-break: break-all; }
+.passport-header-addr code { font-size: 12px; }
+.passport-section-kicker { margin-bottom: var(--s-3); display: block; }
 .passport-flavor { font-family: var(--mono2); font-size: 13px; letter-spacing: 0.16em; color: var(--ink-2); text-transform: uppercase; margin-bottom: var(--s-5); }
 .passport-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s-4); margin-bottom: var(--s-5); }
 .passport-cell { display: flex; flex-direction: column; gap: 6px; padding: var(--s-3); border: 1px solid var(--line); background: var(--surface); }
@@ -3877,7 +3882,7 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 
 /* ============================ SHARE ROWS ============================ */
 .wallet-share-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: var(--s-3); margin-bottom: var(--s-4); }
-.wallet-share-row .btn { height: 40px; padding: 0 16px; font-size: 11px; }
+.wallet-share-row .btn { min-height: 44px; padding: 0 16px; font-size: 11px; display: inline-flex; align-items: center; }
 
 /* ============================ PASSPORT POLISH ============================ */
 .passport-issued {
@@ -3891,4 +3896,62 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   background: linear-gradient(90deg, transparent, var(--civ, var(--gold)) 30%, var(--civ, var(--gold)) 70%, transparent);
   margin: var(--s-5) 0;
   opacity: 0.6;
+}
+
+/* ============================ SHARED PAGE LAYOUT (hero + next signal) ============================ */
+.leaderboard-page, .earn-page {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--pad);
+  padding-top: var(--s-8);
+  padding-bottom: var(--s-9);
+}
+.page-hero {
+  padding-bottom: var(--s-5);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--s-7);
+}
+.page-hero h1 {
+  font-family: var(--display);
+  font-size: clamp(48px, 8vw, 96px);
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+  margin-top: var(--s-3);
+}
+.page-hero h1 em { color: var(--gold-bright); font-style: normal; }
+.page-hero .lead {
+  font-size: clamp(15px, 1.6vw, 18px);
+  color: var(--ink-2);
+  margin-top: var(--s-3);
+  max-width: 680px;
+}
+.page-next {
+  margin-top: var(--s-8);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+.page-next-row {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  margin-top: var(--s-3);
+}
+.page-next-row-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.lb-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-5);
+}
+@media (max-width: 720px) {
+  .lb-grid { grid-template-columns: 1fr; }
+}
+.lb-grid > section .kicker { display: block; margin-bottom: var(--s-3); }
+.earn-section { margin-top: var(--s-7); }
+.earn-section .earn-list {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
 }

@@ -22,16 +22,17 @@
 import { getWalletTokens } from "@/lib/wallet-tokens";
 import citizensData from "@/data/citizens.json";
 import { creditWalletHex, getWalletHex, todayUTC } from "@/lib/wallet-hex-store";
+import { ECONOMY } from "@/lib/economy-constants";
 
 type Citizen = { id: number; civilization: string; tier: string };
 
 const ID_TO_CITIZEN = new Map<number, Citizen>();
 for (const c of citizensData as Citizen[]) ID_TO_CITIZEN.set(c.id, c);
 
-const MAX_CATCHUP_DAYS = 30;
-const BASE_PER_CITIZEN_PER_DAY = 1;
-const HONORARY_PER_DAY = 50 / 7; // +50/week
-const ONE_OF_ONE_PER_DAY = 200;
+const MAX_CATCHUP_DAYS = ECONOMY.MAX_CATCHUP_DAYS;
+const BASE_PER_CITIZEN_PER_DAY = ECONOMY.PER_CITIZEN_PER_DAY;
+const HONORARY_PER_DAY = ECONOMY.HONORARY_BONUS_PER_WEEK / 7;
+const ONE_OF_ONE_PER_DAY = ECONOMY.ONE_OF_ONE_BONUS_PER_DAY;
 
 function tierMultiplier(balance: number): number {
   if (balance >= 21) return 2.0;

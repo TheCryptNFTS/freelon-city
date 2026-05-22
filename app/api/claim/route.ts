@@ -3,8 +3,13 @@ import { canClaimToday, getLastClaim, setLastClaim, todayUTC } from "@/lib/daily
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
+import { ECONOMY } from "@/lib/economy-constants";
 
-const STREAK_MILESTONES: Record<number, number> = { 3: 25, 7: 100, 30: 500 };
+const STREAK_MILESTONES: Record<number, number> = {
+  3: ECONOMY.STREAK_3_BONUS,
+  7: ECONOMY.STREAK_7_BONUS,
+  30: ECONOMY.STREAK_30_BONUS,
+};
 
 function yesterdayUTC(): string {
   const d = new Date(Date.now() - 86400000);
@@ -62,8 +67,8 @@ export async function POST(req: Request) {
     rec.lastClaimDay = todayUTC();
     await setWalletHex(rec);
 
-    // Base +10 for the claim itself
-    await creditWalletHex(addr, 10, {
+    // Base claim
+    await creditWalletHex(addr, ECONOMY.DAILY_CLAIM, {
       kind: "manual",
       note: `Daily X share · streak ${streak}d`,
     });
@@ -82,7 +87,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     day: todayUTC(),
-    awarded: 10,
+    awarded: ECONOMY.DAILY_CLAIM,
     streak,
     streakBonus: bonus,
   });

@@ -101,8 +101,8 @@ export default async function DefendersPage() {
         {rows.length === 0 ? (
           <div className="empty-hero">
             <span className="kicker">⬡ NO DEFENDERS YET</span>
-            <h2 className="empty-hero-title">30 days until the first</h2>
-            <p className="empty-hero-sub">Hold a citizen 30+ continuous days without transferring out. +50⬡/day per qualifying citizen. The wall starts building when the first defender qualifies.</p>
+            <h2 className="empty-hero-title">The wall is blank · 30 days until the first</h2>
+            <p className="empty-hero-sub">Hold a citizen 30+ continuous days. No transfer out. +50⬡/day per qualifying citizen. The city carves the first defender into the wall.</p>
             <ol className="ghost-rows">
               <li><span>01</span><span className="ghost">YOUR WALLET</span><span className="ghost">N citizens</span><span className="ghost">— defender hex</span></li>
               <li><span>02</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
@@ -174,10 +174,10 @@ export default async function DefendersPage() {
           <span className="ttl">BECOME A DEFENDER →</span>
         </Link>
         <Link className="btn btn-secondary" href="/earn">
-          <span className="ttl">HOW TO EARN →</span>
+          <span className="ttl">THE LEDGER →</span>
         </Link>
         <Link className="btn btn-secondary" href="/leaderboard">
-          <span className="ttl">LEADERBOARD →</span>
+          <span className="ttl">THE LEADERBOARD →</span>
         </Link>
         <Link className="btn btn-secondary" href="/graveyard">
           <span className="ttl">THE GRAVEYARD →</span>

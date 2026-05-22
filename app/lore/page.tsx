@@ -23,8 +23,7 @@ export default function LorePage() {
           <em>A civilization on Mars</em>
         </h1>
         <p className="lead">
-          Everything you need to know about FREELON CITY — the founding, the
-          districts, the ten civilizations, the alliances, the rivalries, the rituals.
+          The full canon — the founding, the districts, the ten doctrines, the alliances, the rivalries, the rituals.
         </p>
       </section>
 

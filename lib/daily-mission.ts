@@ -6,6 +6,7 @@
  */
 
 import { CIVILIZATIONS, type CivilizationSlug } from "@/lib/constants";
+import { ECONOMY } from "@/lib/economy-constants";
 
 export type Mission = {
   id: string;          // e.g. "visit:blue-synthesis"
@@ -61,7 +62,7 @@ export function getDailyMission(d: Date = new Date()): Mission {
     kicker: "TODAY'S MISSION · ⬡",
     title: `Visit the ${name}.`,
     description: MISSION_DESCRIPTIONS[slug],
-    reward: 5,
+    reward: ECONOMY.MISSION_REWARD,
     href: `/civilizations/${slug}`,
     cta: `VISIT ${upper} →`,
     civ: slug,

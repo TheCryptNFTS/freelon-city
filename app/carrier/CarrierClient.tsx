@@ -125,7 +125,7 @@ export function CarrierClient() {
         </div>
         {xError && (
           <div className="x-err">
-            X sign-in error: <code>{xError}</code>. Try again or use a handle directly.
+            X sign-in failed: <code>{xError}</code>. Retry or use a handle directly.
           </div>
         )}
       </section>
@@ -160,14 +160,14 @@ export function CarrierClient() {
       {state && (
         <div className="daily-claim-card" style={{ gridColumn: "1 / -1" }}>
           <span className="kicker">⬡ DAILY CLAIM</span>
-          <h3>{claimable ? "Today's signal is unclaimed." : "Claimed today."}</h3>
+          <h3>{claimable ? "Today's signal is unclaimed." : "Signal locked · Claimed today."}</h3>
           {xVerified ? (
             <p>
-              X verified as <strong>@{xVerified}</strong>. Share today's signal on X, then claim +10 ⬡.
+              X verified as <strong>@{xVerified}</strong>. Share today's signal, then claim +10 ⬡.
             </p>
           ) : (
             <p>
-              Verify your X account to claim. Stops anyone from claiming on your handle.
+              Verify your X to claim. Stops anyone else claiming on your handle.
             </p>
           )}
           <div className="claim-flow">

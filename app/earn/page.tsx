@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Earn ⬡ · FREELON CITY",
-  description: "Every way to earn hex points in FREELON CITY — passive holding, sweeps, quests, daily share, referrals, tithes.",
+  title: "The Ledger ⬡ · FREELON CITY",
+  description: "The full ledger of hex — every way the city pays, every way it takes. Passive holding, sweeps, quests, daily share, referrals, tithes.",
 };
 
 type Row = {
@@ -142,41 +142,41 @@ function Row({ row }: { row: Row }) {
 
 export default function EarnPage() {
   return (
-    <main className="earn-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
-      <span className="kicker">⬡ ECONOMY · EARN + SPEND</span>
-      <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(48px, 8vw, 96px)", lineHeight: 0.94, letterSpacing: "-0.02em", marginTop: "var(--s-3)" }}>
-        Every way the city <em>pays</em>
-      </h1>
-      <p className="lead" style={{ maxWidth: 680, marginTop: "var(--s-3)" }}>
-        Hex points are the city's internal credit. Earn them by participating,
-        spend them on status. Every action below pays.
-      </p>
+    <main className="earn-page">
+      <section className="page-hero">
+        <span className="kicker">⬡ THE LEDGER · EARN + BURN</span>
+        <h1>Every way the city <em>pays</em></h1>
+        <p className="lead">
+          Hex is the city&apos;s internal credit. Participate, and the wall accrues.
+          Burn, and your name is carved. Every line below is law.
+        </p>
+      </section>
 
-      <section style={{ marginTop: "var(--s-6)" }}>
-        <h2 className="kicker">⬡ EARN — {EARN.length} WAYS</h2>
-        <div className="earn-list" style={{ display: "grid", gap: "var(--s-3)", marginTop: "var(--s-3)" }}>
+      <section className="earn-section">
+        <h2 className="kicker">⬡ EARN — {EARN.length} LINES</h2>
+        <div className="earn-list">
           {EARN.map((r) => <Row key={r.name} row={r} />)}
         </div>
       </section>
 
-      <section style={{ marginTop: "var(--s-6)" }}>
-        <h2 className="kicker" style={{ color: "#a989c7" }}>⬡ SPEND — {SPEND.length} WAYS</h2>
-        <div className="earn-list" style={{ display: "grid", gap: "var(--s-3)", marginTop: "var(--s-3)" }}>
+      <section className="earn-section">
+        <h2 className="kicker" style={{ color: "#a989c7" }}>⬡ BURN — {SPEND.length} LINES</h2>
+        <div className="earn-list">
           {SPEND.map((r) => <Row key={r.name} row={r} />)}
         </div>
       </section>
 
-      <section style={{ marginTop: "var(--s-6)" }}>
+      <section className="page-next">
         <span className="kicker">⬡ NEXT SIGNAL</span>
-        <div style={{ marginTop: "var(--s-3)", display: "grid", gap: "var(--s-3)", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+        <div className="page-next-row page-next-row-grid">
           <Link className="btn btn-primary" href="/carrier">
-            <span className="ttl">START EARNING NOW →</span>
+            <span className="ttl">CLAIM YOUR HEX →</span>
           </Link>
           <Link className="btn btn-secondary" href="/patrons">
-            <span className="ttl">SEE THE PATRONS →</span>
+            <span className="ttl">THE PATRONS WALL →</span>
           </Link>
           <Link className="btn btn-secondary" href="/leaderboard">
-            <span className="ttl">LEADERBOARD →</span>
+            <span className="ttl">THE LEADERBOARD →</span>
           </Link>
         </div>
       </section>

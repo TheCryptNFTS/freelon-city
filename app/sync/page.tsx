@@ -50,7 +50,7 @@ export default async function SyncPage({
         <span className="kicker">⬡ SIGNAL SCANNER</span>
         <h1>The city <em>detects</em> you</h1>
         <p>
-          Paste a wallet, ENS, or X handle. The signal reads your alignment.
+          Paste a wallet, ENS, or X handle. The signal reads your alignment and returns it.
         </p>
       </section>
 
@@ -79,8 +79,7 @@ export default async function SyncPage({
             fontSize: 14,
           }}
         >
-          Don&apos;t hold a citizen yet? Drop your handle for the deterministic
-          civ assignment.
+          Not a citizen yet. Drop your handle — the city assigns your civ deterministically.
         </p>
         <div className="big-input">
           <InlineSync />

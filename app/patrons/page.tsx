@@ -35,15 +35,15 @@ export default async function PatronsPage() {
         Names burned <em>into the city</em>
       </h1>
       <p className="lead" style={{ maxWidth: 680, marginTop: "var(--s-3)" }}>
-        Burn hex points → your name appears here for 7 days, sorted by burn amount.
-        It expires. The city remembers regardless. Minimum tithe: 100 ⬡.
+        Burn hex. Your name is carved here for 7 days, ranked by burn.
+        The carving fades. The city remembers regardless. Minimum tithe: 100 ⬡.
       </p>
 
       {totalActive === 0 && (
         <section className="empty-hero">
           <span className="kicker">⬡ THE WALL IS BLANK</span>
           <h2 className="empty-hero-title">Be the first carved</h2>
-          <p className="empty-hero-sub">No tithes yet across all 10 civilizations. The first names will hold the wall alone for 7 days.</p>
+          <p className="empty-hero-sub">No tithes yet across 10 civilizations. The first carving holds the wall alone for 7 days.</p>
           <ol className="ghost-rows">
             <li><span>01</span><span className="ghost">YOUR NAME</span><span className="ghost">YOUR CIV</span><span className="ghost">100 ⬡</span></li>
             <li><span>02</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
@@ -74,7 +74,7 @@ export default async function PatronsPage() {
               </div>
               {tithes.length === 0 ? (
                 <p style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.16em" }}>
-                  No tithes yet. Be the first to burn for this civ.
+                  The wall is blank · Be the first carved.
                 </p>
               ) : (
                 <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 8 }}>
@@ -112,9 +112,9 @@ export default async function PatronsPage() {
       <section style={{ marginTop: "var(--s-6)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <Link className="btn btn-primary" href="/carrier"><span className="ttl">BURN HEX FOR YOUR NAME →</span></Link>
-          <Link className="btn btn-secondary" href="/earn"><span className="ttl">EARN MORE HEX →</span></Link>
-          <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">LEADERBOARD →</span></Link>
+          <Link className="btn btn-primary" href="/carrier"><span className="ttl">CARVE YOUR NAME →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
+          <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">THE LEADERBOARD →</span></Link>
         </div>
       </section>
     </main>

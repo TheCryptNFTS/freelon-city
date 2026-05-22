@@ -28,7 +28,7 @@ export default function Dashboard() {
         <span className="kicker">⬡ THE NUMBERS · LIVE FROM THE CITY</span>
         <h1>The <em>numbers</em></h1>
         <p className="lead">
-          What FREELON CITY is worth right now. What you've earned. Who holds what.
+          The city, in numbers. Floor by civilization, hex accrued, the holder map. Live.
         </p>
       </section>
 
@@ -81,10 +81,10 @@ export default function Dashboard() {
             <span className="ttl">GET A FREELON <span className="ar">↗</span></span>
           </a>
           <Link className="btn btn-secondary" href="/earn">
-            <span className="ttl">HOW TO EARN →</span>
+            <span className="ttl">THE LEDGER →</span>
           </Link>
           <Link className="btn btn-secondary" href="/leaderboard">
-            <span className="ttl">LEADERBOARD →</span>
+            <span className="ttl">THE LEADERBOARD →</span>
           </Link>
         </div>
       </section>

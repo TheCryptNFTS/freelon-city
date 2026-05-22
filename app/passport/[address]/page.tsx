@@ -122,16 +122,8 @@ export default async function PassportPage({
       className="passport"
       style={{ "--civ": civColor } as React.CSSProperties}
     >
-      <header style={{ marginBottom: "var(--s-4)" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "var(--s-3)",
-          }}
-        >
+      <header className="passport-header">
+        <div className="passport-header-row">
           <span className="kicker">⬡ FREELON CITY PASSPORT</span>
           {x?.xHandle ? (
             <a
@@ -145,16 +137,8 @@ export default async function PassportPage({
             </a>
           ) : null}
         </div>
-        <p
-          className="mono"
-          style={{
-            fontFamily: "var(--mono)",
-            color: "var(--ink-2)",
-            marginTop: "var(--s-2)",
-            wordBreak: "break-all",
-          }}
-        >
-          {shortAddr(norm)} · <code style={{ fontSize: 12 }}>{norm}</code>
+        <p className="passport-header-addr mono">
+          {shortAddr(norm)} · <code>{norm}</code>
         </p>
       </header>
 
@@ -162,12 +146,7 @@ export default async function PassportPage({
         <span>⬡ ISSUED · {new Date().toISOString().slice(0, 10).toUpperCase()}</span>
         <span>BEARER · {shortAddr(norm)}</span>
       </div>
-      <h1
-        className="passport-class"
-        style={{ fontSize: "clamp(72px, 12vw, 160px)", lineHeight: 0.9, letterSpacing: "-0.04em" }}
-      >
-        {klass}
-      </h1>
+      <h1 className="passport-class">{klass}</h1>
       <p className="passport-flavor">{flavor}</p>
       <div className="passport-rule" />
 
@@ -212,7 +191,7 @@ export default async function PassportPage({
 
       {thumbIds.length > 0 ? (
         <>
-          <h2 className="kicker" style={{ marginBottom: "var(--s-3)" }}>
+          <h2 className="kicker passport-section-kicker">
             ⬡ CITIZENS OWNED
           </h2>
           <div className="passport-citizens">
@@ -256,7 +235,7 @@ export default async function PassportPage({
           <span className="ttl">← Wallet</span>
         </Link>
       </div>
-      <section className="passport-next" style={{ maxWidth: 1100, margin: "var(--s-6) auto 0", padding: "0 var(--s-4)", textAlign: "center" }}>
+      <section className="passport-next" style={{ maxWidth: 1100, margin: "var(--s-7) auto 0", padding: "var(--s-5) var(--s-4) 0", textAlign: "center", borderTop: "1px solid var(--line)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
           Share your card. Every passport posted strengthens the city.

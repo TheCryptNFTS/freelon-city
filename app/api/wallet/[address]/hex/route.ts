@@ -8,6 +8,16 @@ import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
+// Hard deadline wrapper — returns fallback if the promise hasn't resolved in time.
+// Prevents one slow upstream (OpenSea, RPC, Upstash) from hanging the route past
+// Vercel's serverless timeout.
+async function withDeadline<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 /**
  * GET /api/wallet/[address]/hex
  * Runs the pull-based holder tick (catch up since last snapshot), then
@@ -25,13 +35,15 @@ export async function GET(
     return NextResponse.json({ error: "invalid_address" }, { status: 400 });
   }
 
-  // Run the holder tick (catches up since last day, caps at 30d)
-  const tick = await runHolderTick(address);
-  // Floor defender tick (loyal-hold bonus, +50/day per 30d+ citizen)
-  const defenderTick = await runFloorDefenderTick(address);
-  // Inline sweep processor — catches recent sales for this wallet between
-  // the once-daily cron runs (Vercel Hobby plan can't run more than daily).
-  const sweep = await processSweepsForWallet(address);
+  // Each tick wrapped in a deadline — if OpenSea/RPC stalls, return zero
+  // credit instead of blocking. User's persisted balance is still returned.
+  const tickFallback = { daysCredited: 0, hexCredited: 0, balance: 0, tier: "Initiate", multiplier: 1, civBonusPct: 0, honoraryCount: 0, oneOfOneCount: 0 };
+  const defenderFallback = { qualifyingTokens: 0, hexCredited: 0, daysCredited: 0 };
+  const sweepFallback = { credited: 0, hex: 0, bonus: false };
+
+  const tick = await withDeadline(runHolderTick(address), 6000, tickFallback);
+  const defenderTick = await withDeadline(runFloorDefenderTick(address), 5000, defenderFallback);
+  const sweep = await withDeadline(processSweepsForWallet(address), 8000, sweepFallback);
   const rec = await getWalletHex(address);
 
   return NextResponse.json({

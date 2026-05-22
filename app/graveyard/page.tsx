@@ -138,16 +138,15 @@ export default async function GraveyardPage() {
         className="lead"
         style={{ maxWidth: 720, marginTop: "var(--s-3)", color: "var(--ink-2)" }}
       >
-        Citizens abandoned by their previous carriers. Recorded as the city
-        watches them change hands.
+        Citizens abandoned by their carriers. The city records every transfer.
       </p>
 
       <section style={{ marginTop: "var(--s-7)" }}>
         {filtered.length === 0 ? (
           <section className="empty-hero">
             <span className="kicker">⬡ THE GRAVEYARD IS SILENT</span>
-            <h2 className="empty-hero-title">No citizens have left lately</h2>
-            <p className="empty-hero-sub">When carriers transfer their citizens out, the record lands here. Held days, paid prices, and the wallets that let them go.</p>
+            <h2 className="empty-hero-title">The graveyard is silent</h2>
+            <p className="empty-hero-sub">No citizens have left lately. When carriers transfer out, the record lands here — days held, the wallet that let go.</p>
           </section>
         ) : (
           <div>
@@ -241,7 +240,7 @@ export default async function GraveyardPage() {
           <span className="ttl">FLOOR DEFENDERS →</span>
         </Link>
         <Link className="btn btn-secondary" href="/leaderboard">
-          <span className="ttl">LEADERBOARD →</span>
+          <span className="ttl">THE LEADERBOARD →</span>
         </Link>
       </div>
     </main>

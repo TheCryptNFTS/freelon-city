@@ -15,11 +15,12 @@ import {
   setWalletHex,
   todayUTC,
 } from "@/lib/wallet-hex-store";
+import { ECONOMY } from "@/lib/economy-constants";
 
-const PER_SWEEP = 25;
-const DAILY_CAP_SWEEPS = 10; // 250 hex / 25 per sweep
-const STREAK_BONUS = 100;
-const STREAK_THRESHOLD = 3;
+const PER_SWEEP = ECONOMY.SWEEP_BOUNTY;
+const DAILY_CAP_SWEEPS = ECONOMY.SWEEP_DAILY_CAP_COUNT; // 250 hex / 25 per sweep
+const STREAK_BONUS = ECONOMY.SWEEP_STREAK_BONUS;
+const STREAK_THRESHOLD = ECONOMY.SWEEP_STREAK_THRESHOLD;
 const STREAK_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_PAGES = 2;
 const MAX_AGE_MS = 30 * 86400000; // Don't backfill more than 30 days

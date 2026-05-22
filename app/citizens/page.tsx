@@ -34,7 +34,7 @@ export default function Citizens() {
       <section className="citizens-hero">
         <span className="kicker">⬡ CITIZENS · 4040 TOTAL</span>
         <h1>Find your <em>citizen</em></h1>
-        <p className="lead">Enter a token number 1—4040 to look up any Freelon directly.</p>
+        <p className="lead">Enter a token number 1—4040. The city returns the file.</p>
         <div className="finder">
           <FindCitizen />
         </div>
@@ -130,7 +130,7 @@ export default function Citizens() {
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
           <Link className="btn btn-primary" href="/sync"><span className="ttl">FIND YOUR CITIZEN →</span></Link>
           <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
-          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
         </div>
       </section>
     </main>

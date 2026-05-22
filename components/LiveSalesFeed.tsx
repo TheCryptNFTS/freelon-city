@@ -63,7 +63,7 @@ export function LiveSalesFeed() {
     return (
       <div className="sales-feed sales-feed-empty">
         <span className="kicker">⬡ LIVE SALES · 30D</span>
-        <span className="sf-empty">No signal.</span>
+        <span className="sf-empty">SIGNAL LOST · RETRY</span>
       </div>
     );
   }
@@ -72,7 +72,7 @@ export function LiveSalesFeed() {
     return (
       <div className="sales-feed sales-feed-loading">
         <span className="kicker">⬡ LIVE SALES · 30D</span>
-        <span className="sf-empty">Tuning in…</span>
+        <span className="sf-empty">SCANNING ...</span>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export function LiveSalesFeed() {
     return (
       <div className="sales-feed sales-feed-empty">
         <span className="kicker">⬡ LIVE SALES · 30D</span>
-        <span className="sf-empty">No sales in the last 30 days.</span>
+        <span className="sf-empty">The floor is quiet · 30 days.</span>
       </div>
     );
   }

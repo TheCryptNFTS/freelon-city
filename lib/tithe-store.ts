@@ -14,8 +14,10 @@ export type Tithe = {
   expiresAt: number;
 };
 
+import { ECONOMY } from "@/lib/economy-constants";
+
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const MIN_TITHE = 100;
+const MIN_TITHE = ECONOMY.TITHE_MIN;
 
 const memory = new Map<string, Tithe[]>(); // civ → list
 const hasUpstash = !!(

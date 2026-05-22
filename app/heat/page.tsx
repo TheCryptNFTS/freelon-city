@@ -158,18 +158,18 @@ export default async function HeatPage() {
           textTransform: "uppercase",
         }}
       >
-        Trait Market Heat
+        What the floor moves
       </h1>
       <p style={{ color: "var(--ink-2)", maxWidth: "62ch", fontSize: 17, lineHeight: 1.5 }}>
-        Which traits are moving. Counts of recent sales bucketed by civilization,
-        tier, caste, and shape. Refreshes every 3 minutes.
+        Which traits the market is taking. Recent sales bucketed by civilization,
+        tier, caste, shape. Refreshes every 3 minutes.
       </p>
 
       {total === 0 ? (
         <section className="empty-hero">
           <span className="kicker">⬡ THE FLOOR IS QUIET</span>
-          <h2 className="empty-hero-title">No sales in the window</h2>
-          <p className="empty-hero-sub">The market is dormant right now. Heat lights up when citizens trade — civ, tier, caste, and shape patterns will surface here.</p>
+          <h2 className="empty-hero-title">The floor is quiet</h2>
+          <p className="empty-hero-sub">No sales in the window. Heat surfaces when citizens trade — civ, tier, caste, and shape patterns will read here.</p>
         </section>
       ) : (
         <div className="heat-grid">

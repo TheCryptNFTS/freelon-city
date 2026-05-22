@@ -17,14 +17,15 @@
 import { NextResponse } from "next/server";
 import { CONTRACT } from "@/lib/constants";
 import { creditWalletHex, getWalletHex, setWalletHex, todayUTC } from "@/lib/wallet-hex-store";
+import { ECONOMY } from "@/lib/economy-constants";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const PER_SWEEP = 25;
-const DAILY_CAP = 250;
-const STREAK_BONUS = 100;
-const STREAK_THRESHOLD = 3;
+const PER_SWEEP = ECONOMY.SWEEP_BOUNTY;
+const DAILY_CAP = ECONOMY.SWEEP_DAILY_CAP;
+const STREAK_BONUS = ECONOMY.SWEEP_STREAK_BONUS;
+const STREAK_THRESHOLD = ECONOMY.SWEEP_STREAK_THRESHOLD;
 const STREAK_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_PAGES = 4; // ~200 events per run
 

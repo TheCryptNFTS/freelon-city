@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 import {
   X_AUTH_URL,
   SCOPES,
@@ -17,10 +18,19 @@ export const dynamic = "force-dynamic";
  * HttpOnly cookies, then redirects the user to X for authorization.
  */
 export async function GET(req: Request) {
+  const rl = await limit(req, "x:start", { max: 20, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
   const url = new URL(req.url);
   const bind = url.searchParams.get("bind") || "";
   if (!bind || bind.length > 80) {
     return NextResponse.json({ error: "missing_bind" }, { status: 400 });
+  }
+  // Tight allowlist: address OR alphanumeric handle.
+  // Reject javascript:, URLs, garbage, scripts etc.
+  const isAddr = /^0x[a-fA-F0-9]{40}$/.test(bind);
+  const isHandle = /^[a-zA-Z0-9_]{1,32}$/.test(bind);
+  if (!isAddr && !isHandle) {
+    return NextResponse.json({ error: "invalid_bind" }, { status: 400 });
   }
 
   let id: string;

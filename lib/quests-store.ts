@@ -6,6 +6,7 @@
 import { creditWalletHex } from "@/lib/wallet-hex-store";
 import { CIVILIZATIONS } from "@/lib/constants";
 import citizensData from "@/data/citizens.json";
+import { ECONOMY } from "@/lib/economy-constants";
 
 // Allowlists per quest. Reject anything not on the list — closes the
 // "submit fake stepIds to farm the reward" exploit.
@@ -45,10 +46,10 @@ export type QuestId =
   | "doctrine-master"; // find all 10 doctrines' hidden quotes (future)
 
 export const QUEST_REWARDS: Record<QuestId, number> = {
-  "city-tourist": 25,
-  archivist: 100,
-  "hex-hunter": 75,
-  "doctrine-master": 500,
+  "city-tourist": ECONOMY.CITY_TOURIST_REWARD,
+  archivist: ECONOMY.ARCHIVIST_REWARD,
+  "hex-hunter": ECONOMY.HEX_HUNTER_REWARD,
+  "doctrine-master": ECONOMY.DOCTRINE_MASTER_REWARD,
 };
 
 export const QUEST_TARGETS: Record<QuestId, number> = {

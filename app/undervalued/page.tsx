@@ -138,8 +138,8 @@ export default async function UndervaluedPage() {
       {candidates.length === 0 ? (
         <section className="empty-hero">
           <span className="kicker">⬡ THE MARKET IS BALANCED</span>
-          <h2 className="empty-hero-title">No mispricings right now</h2>
-          <p className="empty-hero-sub">The city has corrected itself. Rare citizens near floor will appear here when the market drifts.</p>
+          <h2 className="empty-hero-title">The market is balanced</h2>
+          <p className="empty-hero-sub">The city sees what the floor sees. Rare citizens near floor will surface here when the market drifts.</p>
         </section>
       ) : (
         <div className="undervalued-grid">

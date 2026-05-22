@@ -106,7 +106,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
       <section className="mt-16 border-t border-white/5 pt-12">
         <div className="terminal text-[var(--color-gold)] text-xs tracking-[0.3em]">FEATURED CITIZENS</div>
-        <h2 className="mt-2 text-2xl font-light mb-8">Elevated members of the {c.doctrine} doctrine</h2>
+        <h2 className="mt-2 text-2xl font-light mb-8">The faces of the {c.doctrine} doctrine</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {featured.map((cit) => <CitizenCard key={cit.id} citizen={cit} size="sm" />)}
         </div>
@@ -134,7 +134,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
           <Link className="btn btn-primary" href={`/citizens?civ=${slug}`} style={{ borderColor: c.color, background: c.color, color: "var(--bg)" }}><span className="ttl">EXPLORE {c.name.toUpperCase()} CITIZENS →</span></Link>
           <Link className="btn btn-secondary" href="/sync"><span className="ttl">SYNC YOUR HANDLE →</span></Link>
-          <Link className="btn btn-secondary" href="/earn"><span className="ttl">HOW TO EARN →</span></Link>
+          <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
         </div>
       </section>
     </div>

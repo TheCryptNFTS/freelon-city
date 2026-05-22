@@ -17,7 +17,7 @@ export function Header() {
           <Link href="/civilizations" className="nav-link">City</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
           <Link href="/daily" className="nav-link">Signal</Link>
-          <Link href="/dashboard" className="nav-link">War Board</Link>
+          <Link href="/dashboard" className="nav-link">The Numbers</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
           <HeaderArchives />
           <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Sync</Link>

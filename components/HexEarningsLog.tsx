@@ -71,7 +71,7 @@ export function HexEarningsLog({ address }: { address: string }) {
     return (
       <div className="hex-log hex-log-empty">
         <span className="kicker">⬡ WALLET HEX</span>
-        <span className="hl-empty">No signal.</span>
+        <span className="hl-empty">SIGNAL LOST · RETRY</span>
       </div>
     );
   }
@@ -124,7 +124,7 @@ export function HexEarningsLog({ address }: { address: string }) {
       )}
 
       {data.events.length === 0 ? (
-        <div className="hl-empty">NO SIGNAL DETECTED. CLAIM RANK 01 — sweep a citizen, share on X, or visit civilizations to start.</div>
+        <div className="hl-empty">THE WALL IS BLANK · CLAIM RANK 01 — sweep a citizen, share on X, or walk a civilization.</div>
       ) : (
         <ol className="hl-list">
           {data.events.map((e, i) => (

@@ -47,7 +47,7 @@ export function HolderDistributionChart() {
     return (
       <div className="holders-chart holders-chart-empty">
         <span className="kicker">⬡ HOLDER DISTRIBUTION</span>
-        <span className="hc-empty">No signal.</span>
+        <span className="hc-empty">SIGNAL LOST · RETRY</span>
       </div>
     );
   }
@@ -65,7 +65,7 @@ export function HolderDistributionChart() {
     return (
       <div className="holders-chart holders-chart-empty">
         <span className="kicker">⬡ HOLDER DISTRIBUTION</span>
-        <span className="hc-empty">No holder data yet.</span>
+        <span className="hc-empty">The wall is blank.</span>
       </div>
     );
   }

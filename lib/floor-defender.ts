@@ -19,9 +19,11 @@ import {
   todayUTC,
 } from "@/lib/wallet-hex-store";
 
-const PER_TOKEN_PER_DAY = 50;
-const MIN_HOLD_MS = 30 * 86400000;
-const MAX_CATCHUP_DAYS = 30;
+import { ECONOMY } from "@/lib/economy-constants";
+
+const PER_TOKEN_PER_DAY = ECONOMY.FLOOR_DEFENDER_PER_DAY;
+const MIN_HOLD_MS = ECONOMY.FLOOR_DEFENDER_MIN_DAYS * 86400000;
+const MAX_CATCHUP_DAYS = ECONOMY.MAX_CATCHUP_DAYS;
 const MAX_EVENT_PAGES = 4;
 
 type TransferEvent = {

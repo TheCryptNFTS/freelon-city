@@ -48,7 +48,7 @@ export function CivWarBoard() {
         <div>
           <span className="kicker">⬡ LIVE · CIVILIZATION WAR · 24H</span>
           <h2>Every sale moves <em>the city</em></h2>
-          <p className="war-sub">Every holder strengthens a signal. Every civilization wants the top bracket.</p>
+          <p className="war-sub">Every carrier strengthens a signal. Every civilization fights for the top bracket.</p>
         </div>
         <span className="war-meta">SORTED BY VOLUME · POPULATION FIXED</span>
       </div>

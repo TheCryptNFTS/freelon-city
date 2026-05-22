@@ -49,7 +49,7 @@ export default async function NamesPage() {
         Name <em style={{ color: "var(--gold-bright)", fontStyle: "normal" }}>Hall of Fame</em>
       </h1>
       <p style={{ color: "var(--ink-2)", maxWidth: 640 }}>
-        Holders burned hex to rename their citizens. These names are permanent on the city ledger.
+        Carriers burned hex to name their citizens. Carved into the ledger. Permanent.
       </p>
 
       <div style={{ marginTop: 16, display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -61,8 +61,8 @@ export default async function NamesPage() {
       {names.length === 0 ? (
         <section className="empty-hero">
           <span className="kicker">⬡ NO NAMES YET</span>
-          <h2 className="empty-hero-title">Be the first carved</h2>
-          <p className="empty-hero-sub">100 ⬡ renames a citizen permanently on the wall. Custom names show on /tribute and /citizens for everyone.</p>
+          <h2 className="empty-hero-title">The wall is blank · Be the first carved</h2>
+          <p className="empty-hero-sub">100 ⬡ names a citizen permanently. Custom names surface on /tribute and /citizens for the whole city.</p>
           <ol className="ghost-rows">
             <li><span>#0001</span><span className="ghost">YOUR CITIZEN'S NAME</span><span className="ghost">your civ</span><span className="ghost">— hex burned</span></li>
             <li><span>#—</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>

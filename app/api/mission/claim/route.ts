@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { creditWalletHex } from "@/lib/wallet-hex-store";
 import { getDailyMission, utcDayKey } from "@/lib/daily-mission";
+import { ECONOMY } from "@/lib/economy-constants";
 
 export const dynamic = "force-dynamic";
 
-const MISSION_REWARD = 5;
+const MISSION_REWARD = ECONOMY.MISSION_REWARD;
 const TTL_SECONDS = 48 * 60 * 60; // 48h
 const hasUpstash = !!(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN

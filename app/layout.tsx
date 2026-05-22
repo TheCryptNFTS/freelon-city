@@ -10,6 +10,7 @@ import { Ghost404 } from "@/components/Ghost404";
 import { QuestToast } from "@/components/QuestToast";
 import { CityNotice } from "@/components/CityNotice";
 import { FourOFourEvent } from "@/components/FourOFourEvent";
+import { ErrorReporter } from "@/components/ErrorReporter";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://freeloncity.com"),
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Ghost404 />
         <QuestToast />
         <CityNotice />
+        <ErrorReporter />
       </body>
     </html>
   );
