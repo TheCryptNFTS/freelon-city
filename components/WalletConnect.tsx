@@ -1,8 +1,26 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { createPublicClient, http } from "viem";
 import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
+
+/**
+ * Persist the connected wallet address in a non-HttpOnly cookie so client
+ * islands across the site (MyRank on /leaderboard, MyCivStandings on
+ * /civ-wars, WatchlistButton on /citizens/[id]) immediately recognise the
+ * viewer. NOT used for auth — that's still the HMAC X session cookie.
+ */
+function stampViewerCookie(addr: string) {
+  if (typeof document === "undefined") return;
+  const maxAge = 60 * 60 * 24 * 30; // 30 days
+  document.cookie = `freelon_addr=${encodeURIComponent(addr.toLowerCase())}; path=/; max-age=${maxAge}; samesite=lax`;
+}
+
+function clearViewerCookie() {
+  if (typeof document === "undefined") return;
+  document.cookie = `freelon_addr=; path=/; max-age=0; samesite=lax`;
+}
 
 // Minimal ERC-721 ABI for balanceOf
 const ABI = [
@@ -49,6 +67,10 @@ export function WalletConnect() {
   const checkHolder = useCallback(async (address: string) => {
     setStatus("checking");
     setCount(null);
+    // Stamp the viewer cookie immediately so personal modules across the
+    // site (MyRank, MyCivStandings, Watchlist) recognise this wallet
+    // even before the balance resolves.
+    stampViewerCookie(address);
 
     // Source 1: RPC
     let rpcCount: number | null = null;
@@ -154,6 +176,7 @@ export function WalletConnect() {
     setCount(null);
     setStatus("idle");
     setErr(null);
+    clearViewerCookie();
   }
 
   function retry() {
@@ -182,28 +205,51 @@ export function WalletConnect() {
   else if (isHolder) badge = `HOLDER · ${count} CITIZEN${count !== 1 ? "S" : ""}`;
   else badge = "0 CITIZENS";
 
+  // Deep-link the badge so a connected holder can jump straight into
+  // their wallet page (gallery, civ breakdown, hex log, portfolio).
+  // Non-holders go to /sync; error state is a retry button.
+  const badgeHref = isHolder
+    ? `/wallet/${addr.toLowerCase()}`
+    : status === "non-holder"
+      ? `/sync?h=${addr.slice(0, 8)}`
+      : null;
+
   return (
     <div className="wallet-state" data-holder={isHolder ? "1" : "0"}>
       <div className="addr">
         <span className="dot" />
         {short}
       </div>
-      <button
-        onClick={status === "error" ? retry : undefined}
-        className="holder-badge"
-        type="button"
-        disabled={status !== "error"}
-        style={{
-          background: "transparent",
-          border: "none",
-          color: "inherit",
-          font: "inherit",
-          cursor: status === "error" ? "pointer" : "default",
-          padding: 0,
-        }}
-      >
-        {badge}
-      </button>
+      {badgeHref ? (
+        <Link
+          href={badgeHref}
+          className="holder-badge"
+          style={{
+            color: "inherit",
+            textDecoration: "none",
+            font: "inherit",
+          }}
+        >
+          {badge}{isHolder ? " →" : ""}
+        </Link>
+      ) : (
+        <button
+          onClick={status === "error" ? retry : undefined}
+          className="holder-badge"
+          type="button"
+          disabled={status !== "error"}
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "inherit",
+            font: "inherit",
+            cursor: status === "error" ? "pointer" : "default",
+            padding: 0,
+          }}
+        >
+          {badge}
+        </button>
+      )}
       <button onClick={disconnect} className="disconnect" type="button" aria-label="Disconnect">×</button>
       {err && <div className="wallet-err">{err}</div>}
     </div>

@@ -352,7 +352,7 @@ export default async function WalletPage({
               boxShadow: `0 0 8px ${health.color}`,
             }}
           />
-          ⬡ {health.state}
+          CARRIER · {health.state}
         </span>
         <span style={{ color: "var(--ink-2)", fontSize: 13, fontFamily: "var(--mono2)" }}>
           {health.msg}
