@@ -27,6 +27,7 @@ import {
   creditSaleShare,
   creditFreshBlood,
   creditListingBounty,
+  creditSnipeBounties,
 } from "@/lib/economy-extras";
 
 type Citizen = { id: number; civilization: string; tier: string };
@@ -161,6 +162,7 @@ export async function runHolderTick(address: string): Promise<TickResult> {
     creditFreshBlood(address, balance),
     creditSaleShare(address),
     creditListingBounty(address, daysDue),
+    creditSnipeBounties(address, tokens.tokenIds),
   ]);
 
   // Update cursor

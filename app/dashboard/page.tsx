@@ -5,6 +5,7 @@ import { HexNetWorth } from "@/components/HexNetWorth";
 import { HexIndex } from "@/components/HexIndex";
 import { CityStats } from "@/components/CityStats";
 import { LiveSalesFeed } from "@/components/LiveSalesFeed";
+import { RedSignalsFeed } from "@/components/RedSignalsFeed";
 import { HolderDistributionChart } from "@/components/HolderDistributionChart";
 
 export const metadata: Metadata = {
@@ -47,6 +48,9 @@ export default function Dashboard() {
       <div className="dash-grid">
         <CivValueChart />
       </div>
+
+      {/* Red Signals — undervalued listings worth sniping for hex bounties */}
+      <RedSignalsFeed />
 
       {/* Row 4 — Holders + Live sales side by side */}
       <div className="dash-grid dash-grid-2">
