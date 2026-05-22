@@ -99,19 +99,16 @@ export default async function DefendersPage() {
 
       <section style={{ marginTop: "var(--s-7)" }}>
         {rows.length === 0 ? (
-          <p
-            style={{
-              color: "var(--ink-dim)",
-              fontFamily: "var(--mono2)",
-              fontSize: 12,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              padding: "var(--s-5) 0",
-              borderTop: "1px solid var(--line)",
-            }}
-          >
-            No defenders yet. Be the first to hold 30 days.
-          </p>
+          <div className="empty-hero">
+            <span className="kicker">⬡ NO DEFENDERS YET</span>
+            <h2 className="empty-hero-title">30 days until the first</h2>
+            <p className="empty-hero-sub">Hold a citizen 30+ continuous days without transferring out. +50⬡/day per qualifying citizen. The wall starts building when the first defender qualifies.</p>
+            <ol className="ghost-rows">
+              <li><span>01</span><span className="ghost">YOUR WALLET</span><span className="ghost">N citizens</span><span className="ghost">— defender hex</span></li>
+              <li><span>02</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
+              <li><span>03</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
+            </ol>
+          </div>
         ) : (
           <div>
             <div

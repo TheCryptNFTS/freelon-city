@@ -3793,3 +3793,94 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .sf-tag-tier[data-tier="Legendary"]  { color: var(--mars-rust); border-color: rgba(168,79,42,.5); background: rgba(168,79,42,.08); }
 .sf-tag-tier[data-tier="Epic"]       { color: var(--void-purple); border-color: rgba(141,92,255,.4); background: rgba(141,92,255,.06); }
 .sf-tag-tier[data-tier="Rare"]       { color: var(--signal-blue); border-color: rgba(77,141,255,.4); background: rgba(77,141,255,.06); }
+
+/* ============================ HOME ALIVE ANIMATIONS ============================ */
+@keyframes cf-live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.cf-live { animation: cf-live-pulse 1.4s ease-in-out infinite; color: var(--signal-red); }
+.city-feed-item.cf-live, .city-feed-item.cf-live[data-tone] { color: var(--signal-red); }
+@keyframes alert-dot-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.6; } }
+.alert-pill .alert-dot { animation: alert-dot-pulse 2.2s ease-in-out infinite; }
+.alerts-feed .alert-pill .alert-dot { width: 12px; height: 12px; }
+
+/* ============================ EMPTY HERO / GHOST ROWS ============================ */
+.empty-hero {
+  margin: var(--s-6) 0;
+  padding: var(--s-6) var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(200,167,93,.06), transparent 50%),
+    rgba(255,255,255,.02);
+  text-align: center;
+}
+.empty-hero .kicker { display: block; color: var(--gold); margin-bottom: var(--s-3); }
+.empty-hero-title {
+  font-family: var(--display);
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: var(--s-3);
+}
+.empty-hero-sub {
+  max-width: 520px; margin: 0 auto var(--s-4);
+  color: var(--ink-2); font-size: 14px; line-height: 1.55;
+}
+.ghost-rows {
+  list-style: none; padding: 0; margin: var(--s-4) auto 0;
+  max-width: 560px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.ghost-rows li {
+  display: grid; grid-template-columns: 48px 1fr 100px 80px;
+  gap: var(--s-3); align-items: baseline;
+  padding: 10px 14px; border: 1px dashed rgba(255,255,255,.08);
+  border-radius: 8px;
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.ghost-rows li > span:first-child { color: var(--gold); }
+.ghost-rows .ghost { opacity: 0.35; font-style: italic; }
+.ghost-list .ghost { opacity: 0.35; font-style: italic; }
+.ghost-list .ghost-cta {
+  margin-top: var(--s-3);
+  padding: 10px 14px;
+  background: rgba(200,167,93,.06);
+  border: 1px solid rgba(200,167,93,.2);
+  border-radius: 8px;
+  color: var(--gold-bright);
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; text-align: center;
+}
+@media (max-width: 640px) { .ghost-rows li { grid-template-columns: 36px 1fr; } .ghost-rows li > *:nth-child(3), .ghost-rows li > *:nth-child(4) { display: none; } }
+
+/* Shimmer skeleton — reusable */
+@keyframes shimmer-pass {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-row {
+  height: 36px; border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255,255,255,.03) 0%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.03) 100%);
+  background-size: 200% 100%;
+  animation: shimmer-pass 1.6s linear infinite;
+}
+
+/* ============================ TITHE PREVIEW ============================ */
+.tithe-preview {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: var(--s-3) 0 var(--s-3);
+  padding: 12px 16px;
+  background: rgba(200,167,93,.04);
+  border: 1px solid rgba(200,167,93,.18);
+  border-radius: 8px;
+}
+.tithe-preview .tp-label {
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em;
+  color: var(--ink-dim); text-transform: uppercase;
+}
+.tithe-preview .tp-num {
+  font-family: var(--display); font-size: 20px; letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.tithe-preview .tp-arrow { color: var(--gold); margin: 0 4px; }

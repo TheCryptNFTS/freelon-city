@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cityNotice } from "@/lib/city-notice";
 
 type Civ = { slug: string; name: string; color: string };
@@ -20,6 +20,23 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<{ amount: number; civ: string } | null>(null);
+  const [walletHex, setWalletHex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!address) return;
+    let cancelled = false;
+    fetch(`/api/wallet/${address}/hex`)
+      .then((r) => r.json())
+      .then((j: { balance?: number }) => {
+        if (!cancelled && typeof j.balance === "number") setWalletHex(j.balance);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [address]);
+
+  const amountN = parseInt(amount, 10);
+  const validAmount = Number.isFinite(amountN) && amountN >= MIN;
+  const afterBurn = walletHex !== null && validAmount ? Math.max(0, walletHex - amountN) : null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -116,6 +133,15 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
       {ok && (
         <div className="tithe-ok" style={{ borderColor: selected?.color }}>
           ⬡ Burned {ok.amount.toLocaleString()} ⬡ to <strong>{selected?.name}</strong>. See you on /patrons.
+        </div>
+      )}
+      {walletHex !== null && validAmount && afterBurn !== null && (
+        <div className="tithe-preview">
+          <span className="tp-label">BEFORE</span>
+          <span className="tp-num">{walletHex.toLocaleString()} ⬡</span>
+          <span className="tp-arrow">→</span>
+          <span className="tp-label">AFTER</span>
+          <span className="tp-num" style={{ color: selected?.color || "var(--gold-bright)" }}>{afterBurn.toLocaleString()} ⬡</span>
         </div>
       )}
       <div className="tithe-actions">

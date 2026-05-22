@@ -32,9 +32,12 @@ export default async function LeaderboardPage() {
         <section>
           <h2 className="kicker" style={{ display: "block", marginBottom: "var(--s-3)" }}>⬡ CURRENT BALANCE</h2>
           {byBalance.length === 0 ? (
-            <p style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.16em" }}>
-              SYNCING THE LEDGER. CLAIM RANK 01 →
-            </p>
+            <ol className="lb-list ghost-list">
+              <li><span className="lb-rank">01</span><span className="lb-addr ghost">YOUR WALLET</span><span className="lb-amt ghost">— ⬡</span></li>
+              <li><span className="lb-rank">02</span><span className="lb-addr ghost">—</span><span className="lb-amt ghost">—</span></li>
+              <li><span className="lb-rank">03</span><span className="lb-addr ghost">—</span><span className="lb-amt ghost">—</span></li>
+              <li className="ghost-cta">Claim rank 01 — earn before anyone else.</li>
+            </ol>
           ) : (
             <ol className="lb-list">
               {byBalance.map((r, i) => (
@@ -51,9 +54,12 @@ export default async function LeaderboardPage() {
         <section>
           <h2 className="kicker" style={{ display: "block", marginBottom: "var(--s-3)" }}>⬡ LIFETIME EARNED</h2>
           {byLifetime.length === 0 ? (
-            <p style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.16em" }}>
-              SYNCING LIFETIME EARNED. START STACKING →
-            </p>
+            <ol className="lb-list ghost-list">
+              <li><span className="lb-rank">01</span><span className="lb-addr ghost">YOUR WALLET</span><span className="lb-amt ghost">— ⬡</span></li>
+              <li><span className="lb-rank">02</span><span className="lb-addr ghost">—</span><span className="lb-amt ghost">—</span></li>
+              <li><span className="lb-rank">03</span><span className="lb-addr ghost">—</span><span className="lb-amt ghost">—</span></li>
+              <li className="ghost-cta">First to stack wins the wall.</li>
+            </ol>
           ) : (
             <ol className="lb-list">
               {byLifetime.map((r, i) => (

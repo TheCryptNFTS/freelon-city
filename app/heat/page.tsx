@@ -165,21 +165,11 @@ export default async function HeatPage() {
       </p>
 
       {total === 0 ? (
-        <div
-          style={{
-            marginTop: "var(--s-6)",
-            padding: "var(--s-6)",
-            border: "1px solid var(--line)",
-            background: "var(--surface)",
-            color: "var(--ink-dim)",
-            fontFamily: "var(--mono2)",
-            fontSize: 12,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-          }}
-        >
-          No recent sales detected.
-        </div>
+        <section className="empty-hero">
+          <span className="kicker">⬡ THE FLOOR IS QUIET</span>
+          <h2 className="empty-hero-title">No sales in the window</h2>
+          <p className="empty-hero-sub">The market is dormant right now. Heat lights up when citizens trade — civ, tier, caste, and shape patterns will surface here.</p>
+        </section>
       ) : (
         <div className="heat-grid">
           {columns.map((col) => (

@@ -34,14 +34,29 @@ export function CityFeedTicker() {
   if (items.length === 0) return null;
   // Duplicate for seamless marquee
   const doubled = [...items, ...items];
+  const toneColor = (tone?: string) => {
+    if (tone === "gold") return "var(--gold-bright)";
+    if (tone === "blue") return "var(--signal-blue)";
+    if (tone === "rust") return "var(--mars-rust)";
+    return undefined;
+  };
   return (
     <div className="city-feed">
-      <div className="city-feed-track">
-        {doubled.map((it, i) => (
-          <span key={`${it.id}-${i}`} className="city-feed-item" data-tone={it.tone || ""}>
-            <span className="cf-dot" /> {it.text}
-          </span>
-        ))}
+      <div className="city-feed-track" style={{ animationDuration: "50s" }}>
+        {doubled.map((it, i) => {
+          const color = toneColor(it.tone);
+          const isLive = i === 0;
+          return (
+            <span
+              key={`${it.id}-${i}`}
+              className={`city-feed-item${isLive ? " cf-live" : ""}`}
+              data-tone={it.tone || ""}
+              style={{ fontSize: 13, ...(!isLive && color ? { color } : {}) }}
+            >
+              {isLive ? <span className="cf-dot" aria-hidden>●</span> : <span className="cf-dot" />} {it.text}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

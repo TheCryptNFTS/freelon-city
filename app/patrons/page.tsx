@@ -26,6 +26,7 @@ function timeLeft(ts: number) {
 export default async function PatronsPage() {
   const all = await getAllActive();
   const civs = Object.entries(CIVILIZATIONS);
+  const totalActive = Object.values(all).reduce((n, list) => n + list.length, 0);
 
   return (
     <main className="patrons-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
@@ -37,6 +38,19 @@ export default async function PatronsPage() {
         Burn hex points → your name appears here for 7 days, sorted by burn amount.
         It expires. The city remembers regardless. Minimum tithe: 100 ⬡.
       </p>
+
+      {totalActive === 0 && (
+        <section className="empty-hero">
+          <span className="kicker">⬡ THE WALL IS BLANK</span>
+          <h2 className="empty-hero-title">Be the first carved</h2>
+          <p className="empty-hero-sub">No tithes yet across all 10 civilizations. The first names will hold the wall alone for 7 days.</p>
+          <ol className="ghost-rows">
+            <li><span>01</span><span className="ghost">YOUR NAME</span><span className="ghost">YOUR CIV</span><span className="ghost">100 ⬡</span></li>
+            <li><span>02</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
+            <li><span>03</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
+          </ol>
+        </section>
+      )}
 
       <div style={{ display: "grid", gap: "var(--s-5)", marginTop: "var(--s-6)" }}>
         {civs.map(([slug, c]) => {

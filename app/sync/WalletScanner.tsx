@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
+import { cityNotice } from "@/lib/city-notice";
 
 type CivInfo = { slug: string; name: string; color: string };
 type ScanResult = {
@@ -67,6 +68,11 @@ export function WalletScanner() {
         await delay(600);
         setStep(4);
         setResult({ kind: "wallet", address: addr, balance, dominantCiv });
+        cityNotice({
+          title: "THE CITY DETECTED YOU",
+          body: dominantCiv ? `Identity locked · ${dominantCiv.name}` : "Identity locked",
+          delta: `${balance} citizen${balance === 1 ? "" : "s"}`,
+        });
       } else {
         await delay(700);
         setStep(1);
@@ -82,6 +88,10 @@ export function WalletScanner() {
         setResult({
           kind: "handle",
           citizenMatch: { id, civ: "?", color: "#C8A75D" },
+        });
+        cityNotice({
+          title: "SIGNAL MATCH",
+          body: `Citizen #${id.toString().padStart(4, "0")} carries your alignment`,
         });
       }
     } finally {

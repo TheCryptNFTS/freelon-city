@@ -1,7 +1,19 @@
-import Link from "next/link";
-import RandomCitizenButton from "@/components/RandomCitizenButton";
+"use client";
 
-export default function NotFound() {
+import { useEffect } from "react";
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    // surface to console for diagnostics
+    console.error(error);
+  }, [error]);
+
   return (
     <main
       style={{
@@ -27,7 +39,7 @@ export default function NotFound() {
       >
         <h1
           style={{
-            fontSize: "clamp(120px, 28vw, 320px)",
+            fontSize: "clamp(96px, 22vw, 240px)",
             lineHeight: 0.85,
             letterSpacing: "-0.04em",
             margin: 0,
@@ -35,7 +47,7 @@ export default function NotFound() {
             fontWeight: 700,
           }}
         >
-          404
+          ERR
         </h1>
 
         <div
@@ -47,7 +59,7 @@ export default function NotFound() {
             textTransform: "uppercase",
           }}
         >
-          ⬡ HEX NOT FOUND
+          ⬡ THE SIGNAL HAS FAULTED
         </div>
 
         <p
@@ -60,7 +72,7 @@ export default function NotFound() {
             opacity: 0.85,
           }}
         >
-          This route has fallen out of signal range.
+          A transmission broke mid-flight. The hex grid is recalibrating.
         </p>
 
         <div
@@ -72,28 +84,11 @@ export default function NotFound() {
             marginTop: 8,
           }}
         >
-          <Link className="btn btn-primary" href="/">
-            <span className="lbl">RETURN</span>
-            <span className="ttl">RETURN TO THE CITY <span className="ar">→</span></span>
-          </Link>
-          <RandomCitizenButton />
+          <button type="button" className="btn btn-primary" onClick={() => reset()}>
+            <span className="lbl">RETRY</span>
+            <span className="ttl">RETRY THE TRANSMISSION <span className="ar">→</span></span>
+          </button>
         </div>
-
-        <Link
-          href="/the-fifth-bracket"
-          style={{
-            marginTop: 20,
-            fontFamily: "var(--mono2)",
-            fontSize: 11,
-            letterSpacing: "0.28em",
-            textTransform: "uppercase",
-            color: "var(--ink)",
-            opacity: 0.55,
-            textDecoration: "none",
-          }}
-        >
-          ⬡ The Fifth Bracket opens at 04:04 UTC
-        </Link>
       </section>
     </main>
   );

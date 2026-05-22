@@ -144,19 +144,11 @@ export default async function GraveyardPage() {
 
       <section style={{ marginTop: "var(--s-7)" }}>
         {filtered.length === 0 ? (
-          <p
-            style={{
-              color: "var(--ink-dim)",
-              fontFamily: "var(--mono2)",
-              fontSize: 12,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-              padding: "var(--s-5) 0",
-              borderTop: "1px solid var(--line)",
-            }}
-          >
-            The graveyard is silent. No recent transfers.
-          </p>
+          <section className="empty-hero">
+            <span className="kicker">⬡ THE GRAVEYARD IS SILENT</span>
+            <h2 className="empty-hero-title">No citizens have left lately</h2>
+            <p className="empty-hero-sub">When carriers transfer their citizens out, the record lands here. Held days, paid prices, and the wallets that let them go.</p>
+          </section>
         ) : (
           <div>
             <div

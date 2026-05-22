@@ -53,14 +53,21 @@ export function AlertsFeed() {
 
   if (alerts.length === 0) return null;
 
+  const pillStyle: React.CSSProperties = {
+    padding: "18px 24px",
+    animation: "alert-slide-in 400ms cubic-bezier(0.2,0.7,0.2,1) both",
+  };
+  const dotStyle: React.CSSProperties = { width: 12, height: 12 };
+
   return (
     <section className="alerts-feed">
       <span className="kicker">⬡ 404 ALERTS · LIVE SIGNAL</span>
+      <style>{`@keyframes alert-slide-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }`}</style>
       <div className="alerts-list">
         {alerts.map((a) => {
           const inner = (
             <>
-              <span className="alert-dot" aria-hidden />
+              <span className="alert-dot" aria-hidden style={dotStyle} />
               <span className="alert-text">{a.text}</span>
               <span className="alert-time">{relTime(a.ts, now)}</span>
             </>
@@ -76,19 +83,20 @@ export function AlertsFeed() {
                   href={a.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  style={pillStyle}
                 >
                   {inner}
                 </a>
               );
             }
             return (
-              <Link key={a.id} className="alert-pill" data-sev={a.severity} href={a.href}>
+              <Link key={a.id} className="alert-pill" data-sev={a.severity} href={a.href} style={pillStyle}>
                 {inner}
               </Link>
             );
           }
           return (
-            <div key={a.id} className="alert-pill" data-sev={a.severity}>
+            <div key={a.id} className="alert-pill" data-sev={a.severity} style={pillStyle}>
               {inner}
             </div>
           );

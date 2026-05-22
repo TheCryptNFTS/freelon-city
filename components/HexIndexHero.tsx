@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 type Snap = { ts: number; index: number };
@@ -71,6 +71,8 @@ function Sparkline({ history }: { history: Snap[] }) {
 export function HexIndexHero() {
   const [data, setData] = useState<Data | null>(null);
   const [err, setErr] = useState(false);
+  const [displayIdx, setDisplayIdx] = useState<number | null>(null);
+  const animatedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +89,23 @@ export function HexIndexHero() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!data || animatedRef.current) return;
+    animatedRef.current = true;
+    const target = Math.round(data.index);
+    const duration = 1400;
+    const start = performance.now();
+    let raf = 0;
+    const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      setDisplayIdx(Math.round(target * easeOut(t)));
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [data]);
+
   if (err || !data) {
     return (
       <section className="hex-index-hero">
@@ -100,7 +119,7 @@ export function HexIndexHero() {
     );
   }
 
-  const idx = Math.round(data.index);
+  const idx = displayIdx !== null ? displayIdx : Math.round(data.index);
   const cls = pctClass(data.change24h);
   const cls7 = pctClass(data.change7d);
   const history = Array.isArray(data.history) ? data.history.slice(-7) : [];

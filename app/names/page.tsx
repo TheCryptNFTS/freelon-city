@@ -59,9 +59,16 @@ export default async function NamesPage() {
       </div>
 
       {names.length === 0 ? (
-        <div style={{ marginTop: 48, padding: 32, border: "1px solid var(--line)", textAlign: "center", color: "var(--ink-dim)" }}>
-          No citizens have been named yet. Be the first.
-        </div>
+        <section className="empty-hero">
+          <span className="kicker">⬡ NO NAMES YET</span>
+          <h2 className="empty-hero-title">Be the first carved</h2>
+          <p className="empty-hero-sub">100 ⬡ renames a citizen permanently on the wall. Custom names show on /tribute and /citizens for everyone.</p>
+          <ol className="ghost-rows">
+            <li><span>#0001</span><span className="ghost">YOUR CITIZEN'S NAME</span><span className="ghost">your civ</span><span className="ghost">— hex burned</span></li>
+            <li><span>#—</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
+            <li><span>#—</span><span className="ghost">—</span><span className="ghost">—</span><span className="ghost">—</span></li>
+          </ol>
+        </section>
       ) : (
         <div className="names-list">
           {names.map((n) => {

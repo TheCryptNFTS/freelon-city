@@ -136,21 +136,11 @@ export default async function UndervaluedPage() {
       )}
 
       {candidates.length === 0 ? (
-        <div
-          style={{
-            marginTop: "var(--s-6)",
-            padding: "var(--s-6)",
-            border: "1px solid var(--line)",
-            background: "var(--surface)",
-            color: "var(--ink-dim)",
-            fontFamily: "var(--mono2)",
-            fontSize: 12,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-          }}
-        >
-          The market has corrected itself. No mispricings detected.
-        </div>
+        <section className="empty-hero">
+          <span className="kicker">⬡ THE MARKET IS BALANCED</span>
+          <h2 className="empty-hero-title">No mispricings right now</h2>
+          <p className="empty-hero-sub">The city has corrected itself. Rare citizens near floor will appear here when the market drifts.</p>
+        </section>
       ) : (
         <div className="undervalued-grid">
           {candidates.map(({ listing, citizen }) => {
