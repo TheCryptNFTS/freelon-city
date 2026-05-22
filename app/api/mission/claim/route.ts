@@ -72,6 +72,12 @@ export async function POST(req: Request) {
   const rl = await limit(req, "mission:claim", { max: 20, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
 
+  // CSRF: same-origin only
+  const { isSameOrigin, requireSessionBound, getSessionFromRequest } = await import("@/lib/x-session");
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "bad_origin" }, { status: 403 });
+  }
+
   let body: { key?: string; missionId?: string } = {};
   try {
     body = (await req.json()) as { key?: string; missionId?: string };
@@ -81,6 +87,22 @@ export async function POST(req: Request) {
 
   const key = normalizeKey(body.key ?? "");
   if (!key) return NextResponse.json({ error: "invalid_key" }, { status: 400 });
+
+  // Auth gate: if the key is a wallet, require an HMAC X-session bound
+  // to that wallet. If it's a handle, require a session bound to that
+  // handle. Without this, anyone could claim missions for any wallet/handle.
+  const isWallet = /^0x[a-f0-9]{40}$/.test(key);
+  if (isWallet) {
+    if (!requireSessionBound(req, key)) {
+      return NextResponse.json({ error: "session_required" }, { status: 401 });
+    }
+  } else {
+    // Handle path: session must exist and its xHandle must match (case-insensitive)
+    const s = getSessionFromRequest(req);
+    if (!s || (s.xHandle || "").toLowerCase() !== key.toLowerCase()) {
+      return NextResponse.json({ error: "session_required" }, { status: 401 });
+    }
+  }
 
   const today = getDailyMission(new Date());
   const requestedId = (body.missionId ?? "").trim().slice(0, 64);

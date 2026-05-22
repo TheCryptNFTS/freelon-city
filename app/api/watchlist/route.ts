@@ -40,6 +40,12 @@ export async function POST(req: Request) {
   const rl = await limit(req, "watch:post", { max: 10, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
 
+  // CSRF: only accept same-origin browser POSTs
+  const { isSameOrigin, requireSessionBound } = await import("@/lib/x-session");
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "bad_origin" }, { status: 403 });
+  }
+
   let body: { addr?: string; tokenId?: number; action?: string } = {};
   try {
     body = await req.json();
@@ -59,6 +65,14 @@ export async function POST(req: Request) {
   }
   if (action !== "add" && action !== "remove") {
     return NextResponse.json({ error: "invalid_action" }, { status: 400 });
+  }
+
+  // Auth gate: the caller must have an HMAC X-session bound to this wallet
+  // before we touch the wallet's hex balance. Without this, ANY attacker
+  // could POST { addr: <victim> } and drain the victim's hex 50⬡ at a time
+  // by spamming watchlist adds.
+  if (!requireSessionBound(req, addr)) {
+    return NextResponse.json({ error: "session_required" }, { status: 401 });
   }
 
   if (action === "remove") {

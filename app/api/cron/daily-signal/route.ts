@@ -23,15 +23,15 @@ export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   // Vercel cron sends Authorization: Bearer <CRON_SECRET>.
-  // In production, fail closed if CRON_SECRET isn't set — public exposure is unacceptable.
-  const isProd = process.env.VERCEL_ENV === "production";
+  // Fail closed in ALL environments: if the secret isn't set, refuse.
+  // Without this, preview/staging deploys accept unauthenticated cron
+  // invocations and an attacker can spam-post or double-credit hex.
   const auth = req.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
-
-  if (isProd && !secret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 503 });
+  if (!secret) {
+    return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
   }
-  if (secret && auth !== `Bearer ${secret}`) {
+  if (auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -60,7 +60,9 @@ export async function GET(req: Request) {
     const result = await postTweet(text);
     return NextResponse.json({ mode: "posted", tweet: text, response: result });
   } catch (e) {
-    return NextResponse.json({ mode: "error", message: (e as Error).message, would_post: text }, { status: 500 });
+    // Log the real error server-side, return only a generic code to the caller.
+    console.error("[cron/daily-signal] postTweet failed", e);
+    return NextResponse.json({ mode: "error", reason: "post_failed" }, { status: 500 });
   }
 }
 

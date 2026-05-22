@@ -80,6 +80,68 @@ export function verifySession(token: string | undefined | null): XSession | null
 
 export const X_SESSION_COOKIE = COOKIE_NAME;
 
+/**
+ * Read the HMAC X-session from a Request's cookie header. Returns the
+ * verified payload or null. Use this when a route needs to prove the
+ * caller has a valid session.
+ */
+export function getSessionFromRequest(req: Request): XSession | null {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const m = cookieHeader.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]+)`));
+  if (!m) return null;
+  return verifySession(decodeURIComponent(m[1]));
+}
+
+/**
+ * Stronger gate: the caller must have a valid session AND its bind
+ * (the wallet/handle they verified) must match `expected`. Returns
+ * the session on success, null otherwise. Closes the IDOR vector where
+ * an attacker passes another wallet's address in the body.
+ */
+export function requireSessionBound(req: Request, expected: string): XSession | null {
+  const s = getSessionFromRequest(req);
+  if (!s) return null;
+  if ((s.bind || "").toLowerCase() !== expected.toLowerCase()) return null;
+  return s;
+}
+
+/**
+ * CSRF defence: rejects cross-origin POSTs by comparing the Origin /
+ * Referer header against the request's own Host. `SameSite=Lax` blocks
+ * top-level navigations but NOT `fetch(..., {credentials: 'include'})`
+ * from another origin — this header check is the second line of defence.
+ *
+ * Returns true if the request is same-origin (or has no Origin/Referer
+ * at all, which would be a non-browser caller like curl — those are
+ * already blocked by needing a valid signed session above).
+ */
+export function isSameOrigin(req: Request): boolean {
+  const host = req.headers.get("host");
+  if (!host) return false;
+  const origin = req.headers.get("origin");
+  if (origin) {
+    try {
+      const url = new URL(origin);
+      return url.host === host;
+    } catch {
+      return false;
+    }
+  }
+  const referer = req.headers.get("referer");
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      return url.host === host;
+    } catch {
+      return false;
+    }
+  }
+  // No Origin / Referer headers → non-browser (curl, server-to-server).
+  // We accept these here because the session/signature checks above are
+  // the actual authentication; the browser CSRF surface is what this guards.
+  return true;
+}
+
 export function sessionCookieOptions() {
   return {
     httpOnly: true,

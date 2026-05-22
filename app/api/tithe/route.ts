@@ -16,6 +16,12 @@ export async function POST(req: Request) {
   const rl = await limit(req, "tithe:post", { max: 10, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
 
+  // CSRF: same-origin only
+  const { isSameOrigin } = await import("@/lib/x-session");
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "bad_origin" }, { status: 403 });
+  }
+
   let body: { address?: string; civ?: string; amount?: number; display?: string } = {};
   try {
     body = await req.json();
@@ -55,7 +61,14 @@ export async function POST(req: Request) {
   }
 
   // Sanitize display name — strip HTML tags / brackets defense-in-depth
-  const safeDisplay = display.replace(/[<>]/g, "").slice(0, 32);
+  // Stricter sanitizer: strip ALL control chars + HTML metachars + quote
+  // characters. Defense-in-depth — React already escapes JSX output, but
+  // future contexts (raw HTML, attribute interpolation) shouldn't be a
+  // hidden footgun. Allows letters, digits, spaces, and basic punctuation.
+  const safeDisplay = display
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x1f\x7f<>&"'`\\/]/g, "")
+    .slice(0, 32);
 
   // Check balance
   const hex = await getWalletHex(address);

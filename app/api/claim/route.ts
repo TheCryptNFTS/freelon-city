@@ -5,6 +5,7 @@ import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 import { CANON } from "@/lib/canon";
+import { requireSessionBound, isSameOrigin } from "@/lib/x-session";
 
 const STREAK_MILESTONES: Record<number, number> = {
   3: ECONOMY.STREAK_3_BONUS,
@@ -38,6 +39,11 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const rl = await limit(req, "claim:post", { max: 10, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
+  // CSRF: only accept same-origin browser POSTs (or non-browser callers
+  // with a valid session — checked below).
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "bad_origin" }, { status: 403 });
+  }
   let body: { addr?: string } = {};
   try {
     body = (await req.json()) as { addr?: string };
@@ -47,6 +53,12 @@ export async function POST(req: Request) {
   const addr = body.addr || "";
   if (!isValidAddress(addr)) {
     return NextResponse.json({ error: "invalid_address" }, { status: 400 });
+  }
+  // Auth: require an HMAC X-session that is BOUND to this wallet. Without
+  // this check, anyone could POST { addr: <victim> } and claim 10⬡ on
+  // their behalf daily — the route trusted the body wholesale before.
+  if (!requireSessionBound(req, addr)) {
+    return NextResponse.json({ error: "session_required" }, { status: 401 });
   }
   if (!(await canClaimToday(addr))) {
     return NextResponse.json(

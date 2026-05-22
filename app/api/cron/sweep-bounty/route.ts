@@ -54,13 +54,13 @@ type SaleEvent = {
 };
 
 export async function GET(req: Request) {
-  const isProd = process.env.VERCEL_ENV === "production";
+  // Fail closed in ALL environments — see daily-signal/route.ts comment.
   const auth = req.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
-  if (isProd && !secret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 503 });
+  if (!secret) {
+    return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
   }
-  if (secret && auth !== `Bearer ${secret}`) {
+  if (auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   if (!process.env.OPENSEA_API_KEY) {

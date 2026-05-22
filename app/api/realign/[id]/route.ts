@@ -45,6 +45,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const rl = await limit(req, "realign", { max: 4 });
   if (!rl.ok) return tooManyResponse(rl);
 
+  // CSRF: same-origin only. Wallet auth already enforced via signature + X bind.
+  const { isSameOrigin } = await import("@/lib/x-session");
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "bad_origin" }, { status: 403 });
+  }
+
   const { id } = await params;
   const cid = parseInt(id, 10);
   if (!Number.isFinite(cid) || cid < 1 || cid > 4040) {
