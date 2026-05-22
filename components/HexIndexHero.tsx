@@ -95,7 +95,7 @@ export function HexIndexHero() {
         <div className="hx-meta">
           <span className="hx-change flat">CALIBRATING…</span>
         </div>
-        <span className="hx-formula">floor × 10,000 — pure floor signal, not a price</span>
+        <span className="hx-formula">0.005 ETH floor = 50. Bigger number = stronger city.</span>
       </section>
     );
   }
@@ -129,7 +129,7 @@ export function HexIndexHero() {
           <Sparkline history={history} />
         </div>
       ) : null}
-      <span className="hx-formula">floor × 10,000 — pure floor signal, not a price</span>
+      <span className="hx-formula">0.005 ETH floor = 50. Bigger number = stronger city.</span>
     </section>
   );
 }

@@ -59,7 +59,7 @@ export function HexIndex() {
         <span className="hi-floor">FLOOR · {data.floor.toFixed(4)} ETH</span>
       </div>
       <div className="hi-number">{idx.toLocaleString()}</div>
-      <div className="hi-formula">floor × 10,000 — pure floor signal, not a price</div>
+      <div className="hi-formula">0.005 ETH floor = 50. Bigger number = stronger city.</div>
       <div className="hi-changes">
         <div className={`hi-change ${pctClass(data.change24h)}`}>
           <span className="hi-label">24H</span>

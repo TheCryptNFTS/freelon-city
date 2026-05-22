@@ -82,14 +82,13 @@ export function MobileNav() {
     <>
       <button
         type="button"
-        className="mobile-trigger"
+        className={`mobile-trigger ${open ? "open" : ""}`}
         aria-label={open ? "Close navigation" : "Open navigation"}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className={`bar ${open ? "open" : ""}`} />
-        <span className={`bar ${open ? "open" : ""}`} />
-        <span className={`bar ${open ? "open" : ""}`} />
+        <span className="mt-glyph">{open ? "✕" : "⬡"}</span>
+        <span className="mt-label">{open ? "CLOSE" : "MENU"}</span>
       </button>
       {/* Portal the sheet to document.body so it escapes the header's
           backdrop-filter containing block. Without this, position: fixed

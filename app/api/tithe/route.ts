@@ -41,9 +41,21 @@ export async function POST(req: Request) {
     );
   }
 
-  // Require verified X session — anyone-with-address attack defense
+  // Require verified X session AND session must be bound to the burning wallet.
+  // Without this check, any signed-in user could drain any wallet's hex by
+  // passing the target address in body — the X session alone isn't enough.
   const session = await requireXSession(req, {});
   if (session instanceof NextResponse) return session;
+  const sessionBind = (session.bind || "").toLowerCase();
+  if (!/^0x[a-f0-9]{40}$/.test(sessionBind) || sessionBind !== address) {
+    return NextResponse.json(
+      { error: "wallet_not_bound_to_session", hint: "Sign in with X using the wallet you want to burn from." },
+      { status: 403 },
+    );
+  }
+
+  // Sanitize display name — strip HTML tags / brackets defense-in-depth
+  const safeDisplay = display.replace(/[<>]/g, "").slice(0, 32);
 
   // Check balance
   const hex = await getWalletHex(address);
@@ -58,7 +70,7 @@ export async function POST(req: Request) {
   try {
     await debitWalletHex(address, amount, {
       kind: "manual",
-      note: `Tithe to ${civ} (+${display})`,
+      note: `Tithe to ${civ} (+${safeDisplay})`,
     });
   } catch {
     return NextResponse.json({ error: "burn_failed" }, { status: 500 });
@@ -67,7 +79,7 @@ export async function POST(req: Request) {
   const rec = await addTithe({
     civ,
     payerKey: address,
-    display,
+    display: safeDisplay,
     amount,
   });
 

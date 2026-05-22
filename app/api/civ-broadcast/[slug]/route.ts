@@ -51,6 +51,17 @@ export async function POST(
     return NextResponse.json({ error: "invalid_address" }, { status: 400 });
   }
 
+  // CRITICAL: bind must match the wallet the caller verified with X.
+  // Without this, any signed-in user could impersonate any Mayor by
+  // passing the mayor's public wallet address in body.
+  const sessionBind = (session.bind || "").toLowerCase();
+  if (!/^0x[a-f0-9]{40}$/.test(sessionBind) || sessionBind !== address) {
+    return NextResponse.json(
+      { error: "wallet_not_bound_to_session", hint: "Sign in with X using the Mayor wallet." },
+      { status: 403 },
+    );
+  }
+
   const text = (body.text || "").trim();
   if (text.length < 5 || text.length > 140) {
     return NextResponse.json(

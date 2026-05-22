@@ -12,11 +12,12 @@ type Sale = {
 
 type ApiResp = { events?: Sale[] };
 
-// Build a lookup once: tokenId -> civilization slug
-const CIT_INDEX: Record<number, string> = (() => {
-  const out: Record<number, string> = {};
-  const arr = citizensData as Array<{ id: number; civilization: string }>;
-  for (const c of arr) out[c.id] = c.civilization;
+type CitMeta = { civilization: string; tier: string; shape: string; caste: string };
+// Build a lookup once
+const CIT_INDEX: Record<number, CitMeta> = (() => {
+  const out: Record<number, CitMeta> = {};
+  const arr = citizensData as Array<{ id: number; civilization: string; tier: string; shape: string; caste: string }>;
+  for (const c of arr) out[c.id] = { civilization: c.civilization, tier: c.tier, shape: c.shape, caste: c.caste };
   return out;
 })();
 
@@ -93,9 +94,10 @@ export function LiveSalesFeed() {
       </div>
       <div className="sf-list">
         {sales.map((s, i) => {
-          const civSlug = CIT_INDEX[s.tokenId] || "blue-synthesis";
-          const civ = CIVILIZATIONS[civSlug as keyof typeof CIVILIZATIONS];
+          const meta = CIT_INDEX[s.tokenId] || ({ civilization: "blue-synthesis", tier: "Common", shape: "—", caste: "—" } as CitMeta);
+          const civ = CIVILIZATIONS[meta.civilization as keyof typeof CIVILIZATIONS];
           const color = civ?.color || "#777";
+          const isRare = meta.tier !== "Common";
           return (
             <a
               key={`${s.tokenId}-${s.ts}-${i}`}
@@ -113,9 +115,12 @@ export function LiveSalesFeed() {
               />
               <div className="sf-body">
                 <span className="sf-id">#{String(s.tokenId).padStart(4, "0")}</span>
-                <span className="sf-civ" style={{ color }}>
-                  {civ?.name || "—"}
-                </span>
+                <span className="sf-civ" style={{ color }}>{civ?.name || "—"}</span>
+                <div className="sf-tags">
+                  {isRare && <span className="sf-tag sf-tag-tier" data-tier={meta.tier}>{meta.tier.toUpperCase()}</span>}
+                  <span className="sf-tag">{meta.caste}</span>
+                  <span className="sf-tag">{meta.shape}</span>
+                </div>
               </div>
               <div className="sf-meta">
                 <span className="sf-price">{s.priceEth ? `${s.priceEth} ETH` : "—"}</span>

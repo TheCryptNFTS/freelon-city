@@ -3,6 +3,7 @@ import Image from "next/image";
 import { MobileNav } from "@/components/MobileNav";
 import { WalletConnect } from "@/components/WalletConnect";
 import { HeaderHexPill } from "@/components/HeaderHexPill";
+import { HeaderArchives } from "@/components/HeaderArchives";
 
 export function Header() {
   return (
@@ -18,26 +19,7 @@ export function Header() {
           <Link href="/daily" className="nav-link">Signal</Link>
           <Link href="/dashboard" className="nav-link">War Board</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
-          <div className="nav-more">
-            <button type="button" className="nav-link nav-more-trigger" aria-haspopup="true">Archives ▾</button>
-            <div className="nav-more-menu">
-              <Link href="/origin">Origin</Link>
-              <Link href="/lore">Lore</Link>
-              <Link href="/shapes">Shapes</Link>
-              <Link href="/castes">Castes</Link>
-              <Link href="/tribute">Tribute</Link>
-              <Link href="/manifesto">Manifesto</Link>
-              <Link href="/rebuild">Rebuild</Link>
-              <Link href="/secrets" style={{ color: "var(--gold)" }}>⬡ Secrets</Link>
-              <Link href="/lexicon">Lexicon</Link>
-              <Link href="/names">Names</Link>
-              <Link href="/heat">Heat</Link>
-              <Link href="/undervalued">Undervalued</Link>
-              <Link href="/defenders">Defenders</Link>
-              <Link href="/graveyard">Graveyard</Link>
-              <Link href="/pfp">PFP</Link>
-            </div>
-          </div>
+          <HeaderArchives />
           <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Sync</Link>
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
@@ -65,8 +47,7 @@ export function Header() {
           box-shadow: 0 12px 40px -12px rgba(0,0,0,0.6);
           z-index: 200;
         }
-        .nav-more:hover .nav-more-menu,
-        .nav-more:focus-within .nav-more-menu { display: flex; }
+        /* HeaderArchives client component now controls open state via React */
         .nav-more-menu a {
           padding: 10px 18px;
           font-family: var(--mono2);

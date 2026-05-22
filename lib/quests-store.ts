@@ -4,6 +4,39 @@
  */
 
 import { creditWalletHex } from "@/lib/wallet-hex-store";
+import { CIVILIZATIONS } from "@/lib/constants";
+import citizensData from "@/data/citizens.json";
+
+// Allowlists per quest. Reject anything not on the list — closes the
+// "submit fake stepIds to farm the reward" exploit.
+const CIV_SLUGS = new Set(Object.keys(CIVILIZATIONS));
+const HONORARY_IDS = new Set(
+  (citizensData as Array<{ id: number; tier: string }>)
+    .filter((c) => c.tier === "Honorary")
+    .map((c) => `honoree:${c.id.toString().padStart(4, "0")}`),
+);
+const HEX_HUNTER_STEPS = new Set([
+  "code0404",
+  "all-civs",
+  "ghost404",
+  "fifth-bracket",
+  "channels",
+]);
+// Doctrine Master fragment stepIds match the doctrine slugs lowercased
+const DOCTRINE_STEPS = new Set([
+  "synthesis", "corruption", "growth", "oracle", "sovereignty",
+  "void", "luxury", "transmission", "fracture", "machine",
+]);
+
+function isValidStepForQuest(quest: QuestId, stepId: string): boolean {
+  switch (quest) {
+    case "city-tourist":    return CIV_SLUGS.has(stepId);
+    case "archivist":       return HONORARY_IDS.has(stepId);
+    case "hex-hunter":      return HEX_HUNTER_STEPS.has(stepId);
+    case "doctrine-master": return DOCTRINE_STEPS.has(stepId);
+    default:                return false;
+  }
+}
 
 export type QuestId =
   | "city-tourist"   // visit all 10 civilization pages
@@ -107,6 +140,19 @@ export async function markStep(
       justCompleted: false,
       reward: 0,
       progress: target,
+      target,
+    };
+  }
+
+  // SECURITY: reject stepIds not on the allowlist for this quest.
+  // Without this, callers could POST arbitrary strings to farm rewards.
+  if (!isValidStepForQuest(questId, stepId)) {
+    const current = state.progress[questId]?.length ?? 0;
+    return {
+      state,
+      justCompleted: false,
+      reward: 0,
+      progress: current,
       target,
     };
   }

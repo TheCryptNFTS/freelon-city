@@ -81,54 +81,56 @@ export default function Home() {
         </div>
       </section>
 
-      {/* WHY FREELON · the city pays you to live in it */}
+      {/* WHY FREELON · simple cards, plain English */}
       <section className="why-freelon">
-        <span className="kicker">⬡ THE CITY PAYS YOU TO LIVE IN IT</span>
+        <span className="kicker">⬡ HOW IT WORKS</span>
         <h2 className="why-headline">
-          Hold a citizen. <em>Earn the city's credit</em><br />
-          Spend it on legend.
+          Hold a citizen.<br />
+          <em>Earn hex points daily</em>
         </h2>
         <div className="why-grid">
-          <Link href="/earn#hold" className="why-card" style={{ "--accent": "#c8aa64" } as React.CSSProperties}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="why-img" src={heroImageUrl(4040)} alt="" />
+          <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--gold)" } as React.CSSProperties}>
+            <div className="why-stat">
+              <span className="why-num">+200⬡</span>
+              <span className="why-unit">per day</span>
+            </div>
             <div className="why-body">
-              <span className="why-no">⬡ 01 · HOLD</span>
-              <h3>+200⬡/day for 1-of-1s</h3>
-              <p>
-                Every citizen earns hex daily. Tier multiplier up to 2×.
-                Diamond hands (30+ days unlisted) → +50⬡/day per citizen.
-                Honoraries → +50⬡/week. One-of-ones → +200⬡/day.
-              </p>
-              <span className="why-cta">SEE EVERY EARN RULE →</span>
+              <span className="why-no">01 · HOLD</span>
+              <h3>For every 1-of-1 you hold</h3>
+              <p>Every citizen earns hex daily. Common = +1⬡/day, scaling by tier. 1-of-1 = +200⬡/day.</p>
             </div>
           </Link>
-          <Link href="/earn#activity" className="why-card" style={{ "--accent": "#4a8acb" } as React.CSSProperties}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="why-img" src={heroImageUrl(1)} alt="" />
+          <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--signal-blue)" } as React.CSSProperties}>
+            <div className="why-stat">
+              <span className="why-num">+25⬡</span>
+              <span className="why-unit">per sweep</span>
+            </div>
             <div className="why-body">
-              <span className="why-no">⬡ 02 · MOVE</span>
-              <h3>+100⬡ for a 3-sweep streak</h3>
-              <p>
-                Sweep the floor → +25⬡ per citizen + streak bonuses.
-                Share the daily signal on X → +10⬡, +500⬡ at day 30.
-                Complete the 4 hidden quests → +700⬡. The city watches.
-              </p>
-              <span className="why-cta">SEE THE ACTIVITY MAP →</span>
+              <span className="why-no">02 · BUY</span>
+              <h3>Sweep a citizen on OpenSea</h3>
+              <p>Every purchase credits the buyer 25 hex. 3 sweeps in 24h adds +100⬡ streak bonus.</p>
             </div>
           </Link>
-          <Link href="/patrons" className="why-card" style={{ "--accent": "#c54a3a" } as React.CSSProperties}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="why-img" src={heroImageUrl(404)} alt="" />
+          <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--mars-rust)" } as React.CSSProperties}>
+            <div className="why-stat">
+              <span className="why-num">+10⬡</span>
+              <span className="why-unit">per share</span>
+            </div>
             <div className="why-body">
-              <span className="why-no">⬡ 03 · BURN</span>
-              <h3>Names carved into the city</h3>
-              <p>
-                Burn hex to rename your citizen, realign your civilization,
-                buy artifacts in the Shop. Burn 100+ ⬡ to put your name on the
-                Patrons Wall for 7 days. Status that the city remembers.
-              </p>
-              <span className="why-cta">SEE THE PATRONS WALL →</span>
+              <span className="why-no">03 · SHARE</span>
+              <h3>Share the daily signal on X</h3>
+              <p>Once per day. 7-day streak = +100⬡. 30-day streak = +500⬡. The city rewards loyalty.</p>
+            </div>
+          </Link>
+          <Link href="/patrons" className="why-card scan-card" style={{ "--accent": "var(--signal-red)" } as React.CSSProperties}>
+            <div className="why-stat">
+              <span className="why-num">100⬡</span>
+              <span className="why-unit">to start</span>
+            </div>
+            <div className="why-body">
+              <span className="why-no">04 · BURN</span>
+              <h3>Carve your name into the city</h3>
+              <p>Burn hex to name your citizen, realign your civ, or put your name on the Patrons Wall for 7 days.</p>
             </div>
           </Link>
         </div>
