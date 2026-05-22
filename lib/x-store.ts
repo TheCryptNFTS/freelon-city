@@ -7,6 +7,10 @@ export type XVerification = {
   xId: string;
   xHandle: string;
   verifiedAt: number;
+  // The bind key originally passed to setXVerification — usually the wallet
+  // address (lowercased) when verification flows from a wallet sign-in.
+  // Optional for forward compat with older records that lack it.
+  bind?: string;
 };
 
 const memory = new Map<string, XVerification>();
@@ -44,14 +48,31 @@ export async function setXVerification(
   key: string,
   v: XVerification,
 ): Promise<void> {
+  // Persist the original bind on the record so getByHandle can resolve
+  // back to the wallet (when the bind was a wallet).
+  const enriched: XVerification = { ...v, bind: key.toLowerCase() };
   if (!hasUpstash) {
-    memory.set(key.toLowerCase(), v);
-    memory.set(`handle:${v.xHandle.toLowerCase()}`, v);
+    memory.set(key.toLowerCase(), enriched);
+    memory.set(`handle:${enriched.xHandle.toLowerCase()}`, enriched);
     return;
   }
   // 30-day TTL
-  await upstash(["SETEX", KEY(key), "2592000", JSON.stringify(v)]);
-  await upstash(["SETEX", HANDLE_KEY(v.xHandle), "2592000", JSON.stringify(v)]);
+  await upstash(["SETEX", KEY(key), "2592000", JSON.stringify(enriched)]);
+  await upstash(["SETEX", HANDLE_KEY(enriched.xHandle), "2592000", JSON.stringify(enriched)]);
+}
+
+/**
+ * Resolve an X handle to its bound wallet address, if the verification was
+ * performed from a wallet (i.e. bind starts with 0x). Returns null if the
+ * handle is unverified or was bound to a non-wallet key.
+ */
+export async function getWalletByHandle(xHandle: string): Promise<string | null> {
+  const v = await getByHandle(xHandle);
+  if (!v) return null;
+  const bind = v.bind;
+  if (!bind) return null;
+  if (!/^0x[a-f0-9]{40}$/i.test(bind)) return null;
+  return bind.toLowerCase();
 }
 
 export async function getByHandle(xHandle: string): Promise<XVerification | null> {
