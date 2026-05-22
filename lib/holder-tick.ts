@@ -23,6 +23,11 @@ import { getWalletTokens } from "@/lib/wallet-tokens";
 import citizensData from "@/data/citizens.json";
 import { creditWalletHex, getWalletHex, todayUTC } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
+import {
+  creditSaleShare,
+  creditFreshBlood,
+  creditListingBounty,
+} from "@/lib/economy-extras";
 
 type Citizen = { id: number; civilization: string; tier: string };
 
@@ -84,6 +89,28 @@ export async function runHolderTick(address: string): Promise<TickResult> {
   }
   if (daysDue > MAX_CATCHUP_DAYS) daysDue = MAX_CATCHUP_DAYS;
 
+  // ── DECAY GATE ─────────────────────────────────────────────────────
+  // If the wallet hasn't done an active action in ACTIVITY_DECAY_DAYS,
+  // passive earnings are PAUSED. The cursor still advances so we don't
+  // backfill years of credit later, and the next active action will
+  // resume earnings with at most ACTIVITY_RESUME_BACKFILL_DAYS of catch-up.
+  const lastActive = rec.lastActiveDay ?? null;
+  const daysSinceActive = lastActive ? diffDaysUTC(lastActive, today) : 0;
+  const isDecayed = lastActive !== null && daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS;
+  if (isDecayed) {
+    // Stamp the cursor forward and skip credit. UI will show "COLD" state.
+    const cooled = await emptyTick(address, today);
+    return cooled;
+  }
+  // If just resumed after a cold period, cap retroactive credit so a
+  // returning lazy holder can't recoup a month of missed earnings.
+  if (lastActive && daysSinceActive > 0 && daysSinceActive <= ECONOMY.ACTIVITY_DECAY_DAYS) {
+    // Inside the grace window — credit normally up to daysDue.
+  }
+  if (daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS - ECONOMY.ACTIVITY_RESUME_BACKFILL_DAYS) {
+    daysDue = Math.min(daysDue, ECONOMY.ACTIVITY_RESUME_BACKFILL_DAYS);
+  }
+
   // Read on-chain holdings (capped at 500 in getWalletTokens)
   const tokens = await getWalletTokens(address, 500);
   if (!tokens || tokens.balance === 0) {
@@ -127,6 +154,14 @@ export async function runHolderTick(address: string): Promise<TickResult> {
       })`,
     });
   }
+
+  // Active-economy crediters — parallel, each independently fault-tolerant.
+  // Failures fall through silently; they never block the passive credit.
+  await Promise.allSettled([
+    creditFreshBlood(address, balance),
+    creditSaleShare(address),
+    creditListingBounty(address, daysDue),
+  ]);
 
   // Update cursor
   const after = await getWalletHex(address);

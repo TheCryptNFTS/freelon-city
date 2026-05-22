@@ -15,6 +15,8 @@ import {
   getWalletTokens,
   normalizeAddress,
 } from "@/lib/wallet-tokens";
+import { getWalletHex } from "@/lib/wallet-hex-store";
+import { ECONOMY } from "@/lib/economy-constants";
 
 export const revalidate = 300;
 
@@ -196,11 +198,41 @@ export default async function WalletPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, holders, floor] = await Promise.all([
+  const [tokensRes, holders, floor, hexRec] = await Promise.all([
     getWalletTokens(norm, 500),
     fetchAllHolders(),
     fetchFloor(),
+    getWalletHex(norm).catch(() => null),
   ]);
+
+  // Carrier Health: derived from lastActiveDay (claim/sweep/snipe/sale).
+  // ACTIVE  = activity within ECONOMY.ACTIVITY_DECAY_DAYS - 4
+  // COOLING = within 4 days of the cliff
+  // COLD    = decayed; passive earnings paused until next active action
+  const todayISO = new Date().toISOString().slice(0, 10);
+  function daysBetween(from: string | null | undefined, to: string): number {
+    if (!from) return Infinity;
+    const f = Date.parse(from + "T00:00:00Z");
+    const t = Date.parse(to + "T00:00:00Z");
+    if (!isFinite(f) || !isFinite(t)) return Infinity;
+    return Math.max(0, Math.round((t - f) / 86400000));
+  }
+  const daysSinceActive = hexRec?.lastActiveDay
+    ? daysBetween(hexRec.lastActiveDay, todayISO)
+    : null;
+  const isCold = daysSinceActive !== null && daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS;
+  const isCooling =
+    daysSinceActive !== null &&
+    !isCold &&
+    daysSinceActive >= ECONOMY.ACTIVITY_DECAY_DAYS - 4;
+  const health: { state: "ACTIVE" | "COOLING" | "COLD" | "NEW"; color: string; msg: string } =
+    daysSinceActive === null
+      ? { state: "NEW", color: "var(--ink-dim)", msg: "Post to start earning." }
+      : isCold
+      ? { state: "COLD", color: "#FF5A4D", msg: `Earnings paused · ${daysSinceActive}d inactive · post to resume` }
+      : isCooling
+      ? { state: "COOLING", color: "#E8B247", msg: `${ECONOMY.ACTIVITY_DECAY_DAYS - daysSinceActive}d until cold · post to reset` }
+      : { state: "ACTIVE", color: "#7AE08D", msg: `${daysSinceActive}d since last action` };
 
   const tokenIds = tokensRes?.tokenIds ?? [];
   const balance = tokensRes?.balance ?? 0;
@@ -263,13 +295,6 @@ export default async function WalletPage({
             variant="secondary"
             label="SHARE MY RANK ↗"
           />
-          <ShareOG
-            text="I'm a Floor Defender in FREELON CITY:"
-            ogPath={`/api/og/defender/${norm}`}
-            pagePath="/defenders"
-            variant="secondary"
-            label="I'M A DEFENDER ↗"
-          />
         </div>
         <p style={{ marginTop: "var(--s-3)" }}>
           <Link href={`/passport/${norm}`} className="btn btn-primary">
@@ -278,6 +303,50 @@ export default async function WalletPage({
         </p>
       </section>
 
+      <section
+        className="wallet-health"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--s-3)",
+          padding: "var(--s-3) var(--s-4)",
+          margin: "var(--s-4) 0",
+          border: `1px solid ${health.color}33`,
+          background: `${health.color}10`,
+          borderRadius: 12,
+          maxWidth: 1100,
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "var(--mono2)",
+            fontSize: 11,
+            letterSpacing: "0.22em",
+            color: health.color,
+            textTransform: "uppercase",
+            fontWeight: 600,
+          }}
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: health.color,
+              boxShadow: `0 0 8px ${health.color}`,
+            }}
+          />
+          CARRIER · {health.state}
+        </span>
+        <span style={{ color: "var(--ink-2)", fontSize: 13, fontFamily: "var(--mono2)" }}>
+          {health.msg}
+        </span>
+      </section>
       <section className="wallet-stats">
         <div className="wallet-stat">
           <span className="ws-label">FREELON NET WORTH</span>

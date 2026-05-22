@@ -33,6 +33,17 @@ export type WalletHex = {
   lastClaimDay?: string | null;
   /** UTC day of last floor-defender tick (Tier 7 — held citizens 30d+). */
   lastDefenderTickDay?: string | null;
+  /**
+   * UTC day of the wallet's last ACTIVE action (claim, sweep, snipe, sale).
+   * Used by the 14-day decay gate in holder-tick — if a wallet hasn't been
+   * active for ECONOMY.ACTIVITY_DECAY_DAYS, passive earnings pause until
+   * the next active action. Null/undefined = never seen, treated as active.
+   */
+  lastActiveDay?: string | null;
+  /** Cursor for sale-share crediting (newest credited sale timestamp). */
+  lastSaleCreditTs?: number;
+  /** Whether the one-time fresh-blood bounty has been awarded. */
+  freshBloodAwardedAt?: number;
 };
 
 const memory = new Map<string, WalletHex>();
@@ -95,6 +106,14 @@ export async function setWalletHex(rec: WalletHex): Promise<void> {
   await upstash(["SET", KEY(rec.address), JSON.stringify(rec)]);
 }
 
+/** Active-action event kinds — these stamp lastActiveDay (decay reset). */
+const ACTIVE_KINDS: ReadonlySet<HexEvent["kind"]> = new Set([
+  "sweep",
+  "sweep_streak",
+  "quest",
+  "manual", // daily X claim uses kind="manual"
+] as const);
+
 export async function creditWalletHex(
   addr: string,
   amount: number,
@@ -107,8 +126,19 @@ export async function creditWalletHex(
   rec.events.unshift({ ts, kind: ev.kind, amount, note: ev.note });
   if (rec.events.length > 50) rec.events.length = 50;
   rec.lastEventTs = Math.max(rec.lastEventTs, ts);
+  // Stamp activity for the decay gate when this credit is an active action.
+  if (ACTIVE_KINDS.has(ev.kind)) {
+    rec.lastActiveDay = todayUTC();
+  }
   await setWalletHex(rec);
   return rec;
+}
+
+/** Explicitly stamp activity (e.g. snipe/sale events that aren't kind=manual). */
+export async function stampActivity(addr: string): Promise<void> {
+  const rec = await getWalletHex(addr);
+  rec.lastActiveDay = todayUTC();
+  await setWalletHex(rec);
 }
 
 /**

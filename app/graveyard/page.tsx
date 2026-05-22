@@ -236,9 +236,6 @@ export default async function GraveyardPage() {
         >
           <span className="ttl">BUY ON OPENSEA →</span>
         </a>
-        <Link className="btn btn-secondary" href="/defenders">
-          <span className="ttl">FLOOR DEFENDERS →</span>
-        </Link>
         <Link className="btn btn-secondary" href="/leaderboard">
           <span className="ttl">THE LEADERBOARD →</span>
         </Link>

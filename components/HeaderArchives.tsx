@@ -15,7 +15,6 @@ const LINKS: { href: string; label: string; gold?: boolean }[] = [
   { href: "/names",       label: "Names" },
   { href: "/heat",        label: "Heat" },
   { href: "/undervalued", label: "Undervalued" },
-  { href: "/defenders",   label: "Defenders" },
   { href: "/graveyard",   label: "Graveyard" },
   { href: "/pfp",         label: "PFP" },
   { href: "/secrets",     label: "⬡ Secrets", gold: true },
