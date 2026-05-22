@@ -7,6 +7,7 @@ import { CivVisitTracker } from "@/components/CivVisitTracker";
 import { QuestTracker } from "@/components/QuestTracker";
 import { DoctrineFragment } from "@/components/DoctrineFragment";
 import { PropagandaShareButtons } from "@/components/PropagandaShareButtons";
+import { ShareOG } from "@/components/ShareOG";
 import { MayorBroadcast } from "@/components/MayorBroadcast";
 import { getBroadcast } from "@/lib/civ-broadcast-store";
 import doctrineFragments from "@/data/doctrine-fragments.json";
@@ -92,6 +93,16 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <PropagandaShareButtons slug={slug} />
         </section>
       )}
+
+      <section style={{ marginTop: "var(--s-5)" }}>
+        <ShareOG
+          text={`I am ${c.name}. ${c.doctrine}.`}
+          ogPath={`/api/og/civ-pride/${slug}`}
+          pagePath={`/civilizations/${slug}`}
+          variant="secondary"
+          label="SHARE CIV PRIDE ↗"
+        />
+      </section>
 
       <section className="mt-16 border-t border-white/5 pt-12">
         <div className="terminal text-[var(--color-gold)] text-xs tracking-[0.3em]">FEATURED CITIZENS</div>

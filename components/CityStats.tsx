@@ -28,7 +28,11 @@ export function CityStats() {
     return (
       <div className="city-stats city-stats-loading">
         <span className="kicker">⬡ CITY · LIFETIME STATS</span>
-        <span className="cs-empty">SCANNING SIGNAL...</span>
+        <div className="cs-row">
+          <div className="cs-cell"><div className="shimmer-row" style={{ height: 32 }} /></div>
+          <div className="cs-cell"><div className="shimmer-row" style={{ height: 32 }} /></div>
+          <div className="cs-cell"><div className="shimmer-row" style={{ height: 32 }} /></div>
+        </div>
       </div>
     );
   }

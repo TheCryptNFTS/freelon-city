@@ -18,7 +18,7 @@ export default function Page() {
           <Link
             key={slug}
             href={`/civilizations/${slug}`}
-            className="civ-card reveal has-plate"
+            className="civ-card reveal has-plate relic-card scan-card"
             style={{
               "--civ": c.color,
               "--plate": `url(/civs/${slug}.webp)`,

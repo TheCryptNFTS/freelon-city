@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CIVILIZATIONS, CONTRACT } from "@/lib/constants";
 import citizensData from "@/data/citizens.json";
 import type { Citizen } from "@/lib/citizens";
+import { ShareOG } from "@/components/ShareOG";
 
 export const revalidate = 180;
 
@@ -233,6 +234,13 @@ export default async function HeatPage() {
       >
         <Link className="btn btn-primary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
         <Link className="btn btn-secondary" href="/undervalued"><span className="ttl">SEE UNDERVALUED →</span></Link>
+        <ShareOG
+          text="Trait heat in FREELON CITY — last 30 sales:"
+          ogPath="/api/og/heat"
+          pagePath="/heat"
+          variant="secondary"
+          label="SHARE TRAIT HEAT ↗"
+        />
       </div>
     </div>
   );

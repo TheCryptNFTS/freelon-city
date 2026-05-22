@@ -10,6 +10,7 @@ import {
 import { getCitizen, civilizationColor } from "@/lib/citizens";
 import { HexEarningsLog } from "@/components/HexEarningsLog";
 import { TitheForm } from "@/components/TitheForm";
+import { ShareOG } from "@/components/ShareOG";
 import {
   getWalletTokens,
   normalizeAddress,
@@ -254,6 +255,22 @@ export default async function WalletPage({
         <p className="wallet-addr-full">
           <code>{norm}</code>
         </p>
+        <div className="wallet-share-row">
+          <ShareOG
+            text="My rank in FREELON CITY:"
+            ogPath={`/api/og/rank/${norm}`}
+            pagePath="/leaderboard"
+            variant="secondary"
+            label="SHARE MY RANK ↗"
+          />
+          <ShareOG
+            text="I'm a Floor Defender in FREELON CITY:"
+            ogPath={`/api/og/defender/${norm}`}
+            pagePath="/defenders"
+            variant="secondary"
+            label="I'M A DEFENDER ↗"
+          />
+        </div>
         <p style={{ marginTop: "var(--s-3)" }}>
           <Link href={`/passport/${norm}`} className="btn btn-primary">
             <span className="ttl">VIEW PASSPORT →</span>

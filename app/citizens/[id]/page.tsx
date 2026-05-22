@@ -74,7 +74,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     <main className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
       <article className="citizen-grid">
         <aside className="citizen-image">
-          <div className="img-shell">
+          <div className="img-shell relic-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imageUrl(tid)} alt={c.name} />
           </div>

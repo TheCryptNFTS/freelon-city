@@ -186,7 +186,7 @@ export default function Home() {
               <Link
                 key={o.id}
                 href={href}
-                className="oneof-card"
+                className="oneof-card relic-card scan-card"
                 style={{ "--civ": civ?.color } as React.CSSProperties}
               >
                 <div className="img-frame">

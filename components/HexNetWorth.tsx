@@ -34,7 +34,12 @@ export function HexNetWorth() {
       </div>
     );
   }
-  if (loading || !data) return <div className="net-worth-empty">CALCULATING HEX PRESSURE...</div>;
+  if (loading || !data) return (
+    <div className="net-worth-empty">
+      <div className="shimmer-row" style={{ height: 36, marginBottom: 8, width: "60%" }} />
+      <div className="shimmer-row" style={{ height: 12, width: "40%" }} />
+    </div>
+  );
   return (
     <div className="net-worth">
       <span className="kicker">⬡ HEX NET WORTH</span>

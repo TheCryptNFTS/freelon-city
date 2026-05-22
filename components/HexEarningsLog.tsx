@@ -77,7 +77,12 @@ export function HexEarningsLog({ address }: { address: string }) {
     return (
       <div className="hex-log hex-log-loading">
         <span className="kicker">⬡ WALLET HEX</span>
-        <span className="hl-empty">SCANNING CIV LEDGER...</span>
+        <div className="skeleton-stack">
+          <div className="shimmer-row" style={{ height: 56, marginBottom: 12 }} />
+          <div className="shimmer-row" />
+          <div className="shimmer-row" />
+          <div className="shimmer-row" />
+        </div>
       </div>
     );
   }

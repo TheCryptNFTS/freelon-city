@@ -80,7 +80,7 @@ export function CitizensBrowser({ all }: { all: Mini[] }) {
             <Link
               key={c.id}
               href={`/citizens/${c.id}`}
-              className="result-cell"
+              className="result-cell scan-card"
               style={{ "--civ": civObj?.color } as React.CSSProperties}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

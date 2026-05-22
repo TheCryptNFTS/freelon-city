@@ -158,8 +158,18 @@ export default async function PassportPage({
         </p>
       </header>
 
-      <h1 className="passport-class">{klass}</h1>
+      <div className="passport-issued">
+        <span>⬡ ISSUED · {new Date().toISOString().slice(0, 10).toUpperCase()}</span>
+        <span>BEARER · {shortAddr(norm)}</span>
+      </div>
+      <h1
+        className="passport-class"
+        style={{ fontSize: "clamp(72px, 12vw, 160px)", lineHeight: 0.9, letterSpacing: "-0.04em" }}
+      >
+        {klass}
+      </h1>
       <p className="passport-flavor">{flavor}</p>
+      <div className="passport-rule" />
 
       <div className="passport-grid">
         <div className="passport-cell">

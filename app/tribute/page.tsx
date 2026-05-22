@@ -29,7 +29,7 @@ export default function TributeIndex() {
               <Link
                 key={h.id}
                 href={`/tribute/${handle || h.id}`}
-                className="tribute-cell"
+                className="tribute-cell scan-card"
                 style={{ "--civ": civ?.color } as React.CSSProperties}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
