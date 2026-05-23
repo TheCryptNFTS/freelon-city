@@ -9,7 +9,7 @@ const HINTS: { n: number; hint: string }[] = [
   { n: 2, hint: "Visit all ten doctrines. The badge knows." },
   { n: 3, hint: "Be here at the moment the daily signal flips. UTC." },
   { n: 4, hint: "A page that 404s. Until it doesn't." },
-  { n: 5, hint: "Hold the honoree. Hear their private channel." },
+  { n: 5, hint: "Open a channel. 35 honorees have one — /channel/<their-handle>." },
 ];
 
 export function SecretsClient() {

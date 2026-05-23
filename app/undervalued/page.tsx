@@ -156,6 +156,20 @@ export default async function UndervaluedPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={heroImageUrl(citizen.id)} alt={citizen.name} loading="lazy" />
                   <div className="meta" style={{ color }}>#{id4}</div>
+                  {(citizen.transmission_name || citizen.honoree) && (
+                    <div
+                      style={{
+                        fontFamily: "var(--display)",
+                        fontSize: 15,
+                        lineHeight: 1.15,
+                        color: "var(--ink)",
+                        marginTop: 4,
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {citizen.transmission_name || citizen.honoree}
+                    </div>
+                  )}
                   <div className="price">{listing.priceEth.toFixed(4)} ETH</div>
                   <div className="meta" style={{ marginTop: 4 }}>
                     {civName(citizen.civilization)} · {citizen.tier}

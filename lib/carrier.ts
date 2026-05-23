@@ -5,6 +5,26 @@
 import { syncHandle } from "./sync";
 
 const KEY = "freelon::carrier::v1";
+const ACTIVE_HANDLE_KEY = "freelon::carrier::active::v1";
+const PER_HANDLE_PREFIX = "freelon::carrier::v1::"; // append normalized handle
+
+function perHandleKey(handle: string): string {
+  return PER_HANDLE_PREFIX + handle.toLowerCase().replace(/^@/, "");
+}
+
+/** Set which handle is currently "active" in this browser. Multi-handle
+ *  users can switch between their carriers without losing either's state. */
+export function setActiveCarrierHandle(handle: string): void {
+  if (typeof window === "undefined") return;
+  const h = handle.toLowerCase().replace(/^@/, "");
+  localStorage.setItem(ACTIVE_HANDLE_KEY, h);
+}
+
+/** Read which handle the browser thinks is the active carrier. */
+export function getActiveCarrierHandle(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ACTIVE_HANDLE_KEY);
+}
 
 export type CarrierState = {
   handle: string;
@@ -42,24 +62,61 @@ export const COST = {
 
 function dayKey(d = new Date()) { return Math.floor(d.getTime() / 86400000); }
 
-export function loadCarrier(): CarrierState | null {
+/** Load the carrier state for a specific handle (or the active handle).
+ *  Falls back to the legacy single-slot key for users who only ever
+ *  used one handle before per-handle storage was added. */
+export function loadCarrier(handleOverride?: string): CarrierState | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as CarrierState;
-    // Auto-migrate older saved state without hexPoints
-    if (parsed.hexPoints === undefined) {
-      const migrated: CarrierState = { ...parsed, hexPoints: POINTS.STARTING, totalEarned: POINTS.STARTING, totalSpent: 0 };
-      save(migrated);
-      return migrated;
+    const handle = handleOverride
+      ? handleOverride.toLowerCase().replace(/^@/, "")
+      : getActiveCarrierHandle();
+
+    // 1) Per-handle slot (new path — supports multiple X handles in one browser)
+    if (handle) {
+      const raw = localStorage.getItem(perHandleKey(handle));
+      if (raw) {
+        const parsed = JSON.parse(raw) as CarrierState;
+        return migrate(parsed);
+      }
     }
-    return parsed;
+    // 2) Legacy single slot (back-compat)
+    const legacy = localStorage.getItem(KEY);
+    if (!legacy) return null;
+    const parsed = JSON.parse(legacy) as CarrierState;
+    const migrated = migrate(parsed);
+    // Backfill into the per-handle slot so future switches work
+    if (migrated.handle) {
+      localStorage.setItem(perHandleKey(migrated.handle), JSON.stringify(migrated));
+      if (!getActiveCarrierHandle()) setActiveCarrierHandle(migrated.handle);
+    }
+    return migrated;
   } catch { return null; }
 }
 
+/** List every carrier this browser knows about, by enumerating
+ *  per-handle storage keys. Used by the handle switcher UI. */
+export function listKnownCarrierHandles(): string[] {
+  if (typeof window === "undefined") return [];
+  const out: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(PER_HANDLE_PREFIX)) {
+      out.push(k.slice(PER_HANDLE_PREFIX.length));
+    }
+  }
+  return out.sort();
+}
+
 function save(s: CarrierState) {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(s));
+  if (typeof window !== "undefined") {
+    // Write BOTH the per-handle slot and the legacy slot. Legacy stays
+    // as a "last-touched" pointer for back-compat with any code that
+    // still reads it directly.
+    localStorage.setItem(perHandleKey(s.handle), JSON.stringify(s));
+    localStorage.setItem(KEY, JSON.stringify(s));
+    setActiveCarrierHandle(s.handle);
+  }
 }
 
 export function tickDecay(s: CarrierState, now = new Date()): CarrierState {

@@ -45,6 +45,37 @@ const KIND_COLOR: Record<Event["kind"], string> = {
   manual: "#a989c7",
 };
 
+/** Renders "next tick at 00:00 UTC · ~+N ⬡/day".
+ *  Visible to ALL holders — including brand-new ones with no prior tick.
+ *  Stops the "I bought 3 citizens, why didn't I get hex?" confusion. */
+function NextTickForecast({ tick }: { tick: NonNullable<Data["tick"]> }) {
+  // Estimate per-day from the most recent credit if we have one; otherwise
+  // compute from the disclosed tier multiplier (still informative).
+  const perDay =
+    tick.daysCredited > 0 && tick.hexCredited > 0
+      ? Math.round(tick.hexCredited / tick.daysCredited)
+      : null;
+  const now = new Date();
+  const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  const msToTick = tomorrow.getTime() - now.getTime();
+  const h = Math.floor(msToTick / 3_600_000);
+  const m = Math.floor((msToTick % 3_600_000) / 60_000);
+  return (
+    <div style={{ padding: "10px 14px", margin: "8px 0 12px", border: "1px dashed var(--line-2)", borderRadius: 8, background: "rgba(200,167,93,0.04)" }}>
+      <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
+        ⬡ NEXT HOLDING TICK · IN {h}H {m}M
+      </span>
+      <div style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", marginTop: 4, lineHeight: 1.5 }}>
+        {perDay !== null ? (
+          <>~<strong style={{ color: "var(--gold)" }}>+{perDay} ⬡</strong>/day at current rate</>
+        ) : (
+          <>Holding hex auto-credits once per UTC day. Sweeps + bonuses credit instantly.</>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function timeAgo(ts: number) {
   const sec = Math.floor((Date.now() - ts) / 1000);
   if (sec < 60) return `${sec}s`;
@@ -116,16 +147,10 @@ export function HexEarningsLog({ address }: { address: string }) {
         </div>
       )}
 
-      {/* Forecast — what tomorrow's passive will look like at current rate */}
-      {data.tick && data.tick.daysCredited > 0 && data.tick.hexCredited > 0 && (
-        <div style={{ padding: "10px 14px", margin: "8px 0 12px", border: "1px dashed var(--line-2)", borderRadius: 8, background: "rgba(200,167,93,0.04)" }}>
-          <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
-            ⬡ NEXT TICK · FORECAST
-          </span>
-          <div style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", marginTop: 4 }}>
-            ~<strong style={{ color: "var(--gold)" }}>+{Math.round(data.tick.hexCredited / data.tick.daysCredited)} ⬡</strong>/day at current rate · stay active to keep the meter flowing
-          </div>
-        </div>
+      {/* Forecast — always show "next tick at 00:00 UTC" so new-holders
+          don't expect instant credit when they just bought citizens. */}
+      {data.tick && (
+        <NextTickForecast tick={data.tick} />
       )}
 
       {data.defenderTick && data.defenderTick.qualifyingTokens > 0 && (

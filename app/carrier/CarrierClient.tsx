@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CarrierState, loadCarrier, initCarrier, relay, tickDecay, tier, claimDaily, canClaimToday } from "@/lib/carrier";
+import { CarrierState, loadCarrier, initCarrier, relay, tickDecay, tier, claimDaily, canClaimToday, listKnownCarrierHandles, setActiveCarrierHandle } from "@/lib/carrier";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { useHolder } from "@/lib/useHolder";
 import { getDailySignal } from "@/lib/daily-signal";
@@ -155,8 +155,25 @@ export function CarrierClient() {
           </p>
         )}
         {xError && (
-          <div className="x-err">
-            X sign-in failed: <code>{xError}</code>. Retry or use a handle directly.
+          <div className="x-err" style={{ padding: "12px 14px", border: "1px solid #FF5A4D55", background: "rgba(255,90,77,0.08)", borderRadius: 10, fontFamily: "var(--mono2)", fontSize: 12, color: "#FF5A4D", lineHeight: 1.6 }}>
+            <strong>X SIGN-IN FAILED · {xError.toUpperCase()}</strong>
+            <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "var(--ink-2)" }}>
+              {xError === "state_mismatch" && (<li>Browser likely blocked third-party cookies. Try Brave / Firefox / Chrome (not Safari).</li>)}
+              {xError === "missing_cookies" && (<li>Browser blocked our OAuth cookies — usually a Safari ITP issue. Try Brave or Firefox.</li>)}
+              {xError === "not_configured" && (<li>The site's X OAuth keys aren't loaded yet. Tell @freeloncity if this persists.</li>)}
+              {xError.startsWith("token_") && (<li>X rejected the OAuth handshake. Confirm your X account isn't locked / suspended.</li>)}
+              {xError === "user_fetch" && (<li>X API hiccup. Try again in 30 seconds.</li>)}
+              {xError === "bad_user" && (<li>X returned an unexpected response. Try signing out of X first, then retry.</li>)}
+              {!["state_mismatch","missing_cookies","not_configured","user_fetch","bad_user"].includes(xError) && !xError.startsWith("token_") && (<li>Unrecognized error. Try a different browser (Brave / Firefox) or retry in a minute.</li>)}
+              <li>If using Safari → MetaMask isn&apos;t supported. Switch to Brave / Firefox / Chrome.</li>
+              <li>Or use a handle directly without X verification (limited features).</li>
+            </ul>
+            <button
+              onClick={() => setXError(null)}
+              style={{ marginTop: 8, background: "transparent", border: "1px solid #FF5A4D", color: "#FF5A4D", padding: "4px 10px", borderRadius: 6, fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.2em", cursor: "pointer" }}
+            >
+              DISMISS
+            </button>
           </div>
         )}
       </section>
@@ -181,6 +198,14 @@ export function CarrierClient() {
       <div style={{ gridColumn: "1 / -1" }}>
         <DailyMission />
       </div>
+      {/* Multi-handle switcher — for users with more than one X handle
+          on the same browser. Saves each carrier in its own per-handle slot. */}
+      <HandleSwitcher current={state.handle} onSwitch={(h) => {
+        setActiveCarrierHandle(h);
+        const loaded = loadCarrier(h);
+        if (loaded) setState(tickDecay(loaded));
+      }} />
+
       {holder.isHolder && holder.balance !== null && (
         <div className="holder-flex" style={{ gridColumn: "1 / -1" }}>
           <span className="kicker">⬡ VERIFIED HOLDER</span>
@@ -301,5 +326,57 @@ export function CarrierClient() {
         ))}
       </div>
     </section>
+  );
+}
+
+/** Per-browser handle switcher. Only renders when ≥2 carriers exist
+ *  in localStorage — invisible for single-handle users. */
+function HandleSwitcher({ current, onSwitch }: { current: string; onSwitch: (h: string) => void }) {
+  const [handles, setHandles] = useState<string[]>([]);
+  useEffect(() => {
+    setHandles(listKnownCarrierHandles());
+  }, [current]);
+  const others = handles.filter((h) => h.toLowerCase() !== current.toLowerCase());
+  if (others.length === 0) return null;
+  return (
+    <div
+      style={{
+        gridColumn: "1 / -1",
+        padding: "10px 14px",
+        border: "1px solid var(--line-2)",
+        borderRadius: 10,
+        background: "rgba(255,255,255,0.025)",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexWrap: "wrap",
+      }}
+    >
+      <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
+        ⬡ CARRIERS ON THIS BROWSER
+      </span>
+      <span style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--gold)", padding: "3px 8px", border: "1px solid var(--gold)", borderRadius: 999 }}>
+        @{current} · active
+      </span>
+      {others.map((h) => (
+        <button
+          key={h}
+          type="button"
+          onClick={() => onSwitch(h)}
+          style={{
+            fontFamily: "var(--mono2)",
+            fontSize: 11,
+            color: "var(--ink-2)",
+            padding: "3px 8px",
+            border: "1px solid var(--line)",
+            background: "transparent",
+            borderRadius: 999,
+            cursor: "pointer",
+          }}
+        >
+          @{h} · switch
+        </button>
+      ))}
+    </div>
   );
 }
