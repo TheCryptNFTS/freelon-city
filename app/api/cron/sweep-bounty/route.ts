@@ -93,6 +93,10 @@ export async function GET(req: Request) {
   let credited = 0;
   let bonuses = 0;
   let next: string | undefined;
+  // Collected for the every-4h X autopost (lib/sales-pulse). We keep
+  // the full sales batch the cron sees this run; the pulse runner
+  // gates on a timestamp + per-tx dedupe so we never double-tweet.
+  const pulseSales: import("@/lib/sales-pulse").PulseSale[] = [];
 
   try {
     for (let page = 0; page < MAX_PAGES; page++) {
@@ -126,6 +130,19 @@ export async function GET(req: Request) {
           } catch {
             // If Upstash fails, skip this event (better than double-credit)
             continue;
+          }
+        }
+
+        // Collect sale for the 4h X autopost pulse (lib/sales-pulse).
+        // We compute priceEth from the payment field if ETH-like; non-ETH
+        // sales contribute count but not the volume tally.
+        if (isEthLikePayment(ev.payment)) {
+          const qty = ev.payment?.quantity ? BigInt(ev.payment.quantity) : 0n;
+          const dec = ev.payment?.decimals ?? 18;
+          const priceEth = qty > 0n ? Number(qty) / 10 ** dec : 0;
+          const tidNum = parseInt(tokenId, 10);
+          if (priceEth > 0 && Number.isFinite(tidNum)) {
+            pulseSales.push({ tx, tokenId: tidNum, buyer, priceEth, ts });
           }
         }
 
@@ -250,11 +267,25 @@ export async function GET(req: Request) {
     console.error("notify scan error", e);
   }
 
+  // ── Piggyback: 4h X autopost pulse. Same reason — no spare cron
+  // slot on Hobby. The pulse runner gates on a timestamp so this
+  // cron call only actually tweets every 4h, even though sweep
+  // itself runs every 30 min.
+  let pulseResult: Awaited<ReturnType<typeof import("@/lib/sales-pulse").runSalesPulse>> | null = null;
+  try {
+    const { runSalesPulse } = await import("@/lib/sales-pulse");
+    pulseResult = await runSalesPulse(pulseSales);
+  } catch (e) {
+    console.error("sales pulse error", e);
+  }
+
   return NextResponse.json({
     processed,
     creditedHex: credited,
     streakBonuses: bonuses,
     notify: notifyResult,
+    pulse: pulseResult,
+    pulseSalesSeen: pulseSales.length,
     ranAt: Date.now(),
   });
 }

@@ -29,8 +29,9 @@ function pct(s: string): string {
 }
 
 /** OAuth 1.0a header for a request. Mirrors the implementation used in
- *  /api/cron/daily-signal so a single env-var set powers both. */
-function oauth1Header(opts: {
+ *  /api/cron/daily-signal so a single env-var set powers both.
+ *  Exported for reuse by lib/x-autopost.ts (media upload + tweet post). */
+export function oauth1Header(opts: {
   method: string;
   url: string;
   body?: Record<string, unknown>; // unused for JSON body — signature is over query + form params only
