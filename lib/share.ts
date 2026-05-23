@@ -1,14 +1,18 @@
 /**
  * Centralized tweet templates and share URL builders.
  *
- * X (twitter) algorithmically suppresses posts that lead with a link.
- * Every template here:
- *   1. Leads with an @4040hex mention so the post gets discovery boost
- *   2. Carries a hooky one-liner about the user's specific status
- *   3. Ends with the URL ONLY on the last line, often without a
- *      preceding empty line so it reads as a citation, not a CTA
- *   4. Closes with #FREELONCITY #404HEXNOTFOUND so the brand
- *      clusters into a searchable thread
+ * Two X-platform rules every template respects:
+ *   - Don't lead with a URL (X suppresses link-led posts in the feed)
+ *   - Don't lead with an @mention (X treats those as replies and hides
+ *     them from non-followers — this was the original Discord report)
+ *
+ * Solution: every template leads with the canon "⬡" glyph (or another
+ * non-link, non-mention character), THEN includes the @4040hex tag
+ * within the body, and ends with the URL on the last line as a
+ * citation rather than a CTA.
+ *
+ * Hashtag closer is always #FREELONCITY #404HEXNOTFOUND so the brand
+ * clusters into a searchable thread.
  *
  * Every share doubles as recruitment — there is always a way for a
  * reader to participate (sync, claim, watch, snipe, etc).
@@ -40,7 +44,7 @@ export function tweetCarrier(input: {
 }): string {
   const id4 = input.patronId.toString().padStart(4, "0");
   return [
-    `${HANDLE} · I'M A CARRIER OF ${input.civName.toUpperCase()}.`,
+    `⬡ ${HANDLE} · I'M A CARRIER OF ${input.civName.toUpperCase()}.`,
     ``,
     `${input.doctrine.toUpperCase()}.`,
     `Patron citizen · #${id4}`,
@@ -64,7 +68,7 @@ export function tweetCitizen(input: {
   const id4 = input.tokenId.toString().padStart(4, "0");
   const title = input.name || `Citizen #${id4}`;
   return [
-    `${HANDLE} · ${title} · #${id4}`,
+    `⬡ ${HANDLE} · ${title} · #${id4}`,
     ``,
     `${input.civName.toUpperCase()} · ${input.tier.toUpperCase()} · ${input.shape.toUpperCase()}`,
     ``,
@@ -88,7 +92,7 @@ export function tweetListing(input: {
   const id4 = input.tokenId.toString().padStart(4, "0");
   const last = input.lastSaleEth != null ? `${trimEth(input.lastSaleEth)} ETH` : "—";
   return [
-    `${HANDLE} · LISTING #${id4}`,
+    `⬡ ${HANDLE} · LISTING #${id4}`,
     input.name && input.name !== `Citizen #${id4}` ? `"${input.name}"` : null,
     ``,
     `Last sale  ${last}`,
@@ -109,7 +113,7 @@ export function tweetPassport(input: {
   balance: number;
 }): string {
   return [
-    `${HANDLE} · THE CITY RECOGNIZES ME AS A ${input.klass.toUpperCase()}.`,
+    `⬡ ${HANDLE} · THE CITY RECOGNIZES ME AS A ${input.klass.toUpperCase()}.`,
     ``,
     `${input.balance} citizen${input.balance === 1 ? "" : "s"} of FREELON CITY held.`,
     ``,
@@ -127,7 +131,7 @@ export function tweetRank(input: { address: string; rank?: number | null; total?
     ? `RANK #${input.rank} of ${input.total} carriers.`
     : `A CARRIER of FREELON CITY.`;
   return [
-    `${HANDLE} · ${rankLine}`,
+    `⬡ ${HANDLE} · ${rankLine}`,
     ``,
     `The city pays carriers in hex daily.`,
     `Where's your rank?`,
@@ -143,7 +147,7 @@ export function tweetTribute(input: { handle: string; tokenId: number }): string
   const cleanHandle = input.handle.replace(/^@/, "");
   const id4 = input.tokenId.toString().padStart(4, "0");
   return [
-    `${HANDLE} · @${cleanHandle} is citizen #${id4} of FREELON CITY.`,
+    `⬡ ${HANDLE} · @${cleanHandle} is citizen #${id4} of FREELON CITY.`,
     ``,
     `35 honorees. The signal remembers.`,
     `${HASHTAGS}`,
@@ -156,7 +160,7 @@ export function tweetTribute(input: { handle: string; tokenId: number }): string
  */
 export function tweetCivPride(input: { civName: string; doctrine: string; population: number }): string {
   return [
-    `${HANDLE} · I BACK ${input.civName.toUpperCase()}.`,
+    `⬡ ${HANDLE} · I BACK ${input.civName.toUpperCase()}.`,
     ``,
     `${input.doctrine.toUpperCase()}.`,
     `${input.population} of 4040 carry this signal.`,
@@ -172,7 +176,7 @@ export function tweetCivPride(input: { civName: string; doctrine: string; popula
  */
 export function tweetDashboard(text: string): string {
   return [
-    `${HANDLE} · ${text}`,
+    `⬡ ${HANDLE} · ${text}`,
     ``,
     `Live numbers from the city.`,
     `${HASHTAGS}`,
@@ -190,7 +194,7 @@ export function tweetTransmission(input: {
   authorHandle: string;
 }): string {
   return [
-    `${HANDLE} · TRANSMISSION from ${input.civName.toUpperCase()}`,
+    `⬡ ${HANDLE} · TRANSMISSION from ${input.civName.toUpperCase()}`,
     ``,
     `"${input.caption.slice(0, 180)}"`,
     ``,
@@ -207,7 +211,7 @@ export function tweetTransmission(input: {
  */
 export function tweetGeneric(text: string, pageUrl: string): string {
   return [
-    `${HANDLE} · ${text}`,
+    `⬡ ${HANDLE} · ${text}`,
     ``,
     `${HASHTAGS}`,
     `${pageUrl}`,
@@ -233,31 +237,31 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
     id: "civ-pride",
     category: "own-post",
     hook: "REPRESENT YOUR CIV",
-    body: `${HANDLE} · which civilization are you carrying for?\n\nMine is ____.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} · which civilization are you carrying for?\n\nMine is ____.\n\n${HASHTAGS}`,
   },
   {
     id: "signal-found",
     category: "own-post",
     hook: "I FOUND THE SIGNAL",
-    body: `${HANDLE} · the signal found me.\n\nI'm citizen #____ of FREELON CITY.\n\nThe city remembers everything.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} · the signal found me.\n\nI'm citizen #____ of FREELON CITY.\n\nThe city remembers everything.\n\n${HASHTAGS}`,
   },
   {
     id: "daily-claim",
     category: "own-post",
     hook: "DAILY HEX CLAIMED",
-    body: `${HANDLE} · claimed today's signal.\n\nDay ____ of my streak. The meter keeps ticking.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} · claimed today's signal.\n\nDay ____ of my streak. The meter keeps ticking.\n\n${HASHTAGS}`,
   },
   {
     id: "snipe-flex",
     category: "own-post",
     hook: "I SNIPED A RED SIGNAL",
-    body: `${HANDLE} · sniped a 🔴 RED SIGNAL.\n\n____ ⬡ bounty locked in. The city pays carriers who move first.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} · sniped a 🔴 RED SIGNAL.\n\n____ ⬡ bounty locked in. The city pays carriers who move first.\n\n${HASHTAGS}`,
   },
   {
     id: "carrier-call",
     category: "reply",
     hook: "WELCOME NEW CARRIERS",
-    body: `${HANDLE} carriers — welcome to the signal.\n\nFind your civ. Post daily. The city remembers.\n\n${HASHTAGS}`,
+    body: `⬡ Welcome to the signal, ${HANDLE} carriers.\n\nFind your civ. Post daily. The city remembers.\n\n${HASHTAGS}`,
   },
   {
     id: "tag-friend",
@@ -269,25 +273,25 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
     id: "stat-flex",
     category: "own-post",
     hook: "BRAG YOUR STATS",
-    body: `${HANDLE} status update:\n\n• Rank ____\n• ____ ⬡ stacked\n• ____ citizens held\n• Civ: ____\n\nThe city sees everything.\n\n${HASHTAGS}`,
+    body: `⬡ Status update from ${HANDLE}:\n\n• Rank ____\n• ____ ⬡ stacked\n• ____ citizens held\n• Civ: ____\n\nThe city sees everything.\n\n${HASHTAGS}`,
   },
   {
     id: "art-drop",
     category: "own-post",
     hook: "POST YOUR CITIZEN",
-    body: `${HANDLE} · this is mine.\n\n[attach your citizen image]\n\nCivilization: ____\nDoctrine: ____\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} · this is mine.\n\n[attach your citizen image]\n\nCivilization: ____\nDoctrine: ____\n\n${HASHTAGS}`,
   },
   {
     id: "lore-quote",
     category: "own-post",
     hook: "QUOTE A DOCTRINE",
-    body: `${HANDLE} ·\n\n"____" — ${HASHTAGS.split(" ")[0]}\n\nThe ____ doctrine.`,
+    body: `⬡ ${HANDLE} ·\n\n"____" — ${HASHTAGS.split(" ")[0]}\n\nThe ____ doctrine.`,
   },
   {
     id: "transmission-relay",
     category: "quote",
     hook: "RELAY A TRANSMISSION",
-    body: `${HANDLE} carriers transmit their own signal now.\n\nThis is one. Signal back. The top transmission of the week earns 5,000 ⬡.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} carriers transmit their own signal now.\n\nThis is one. Signal back. The top transmission of the week earns 5,000 ⬡.\n\n${HASHTAGS}`,
   },
 ];
 

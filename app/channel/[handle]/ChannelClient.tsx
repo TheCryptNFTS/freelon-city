@@ -3,24 +3,31 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useHolder } from "@/lib/useHolder";
 import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
+import { useViewerAddr } from "@/lib/use-viewer";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { heroImageUrl } from "@/lib/constants";
 import { markChannel } from "@/lib/secrets-store";
 
 // EASTER EGG 5 — /channel/[handle]
-// The page is unlisted (robots noindex, no nav link). Only opens if the
-// connected wallet owns the honorary citizen for that handle.
+// Unlisted (robots noindex, no nav link). Opens if the connected wallet
+// owns the honorary citizen. Now checks both MetaMask-connected wallet
+// AND the freelon_addr cookie (set by paste-address sync) — closes the
+// "I own this but page says I don't" bug from Discord.
 export function ChannelClient({ citizenId, honoree, handle, civSlug }:
   { citizenId: number; honoree: string; handle: string; civSlug: string }) {
   const holder = useHolder();
-  const owns = useOwnsCitizen(citizenId, holder.address);
+  const viewer = useViewerAddr();
+  // Prefer the live MetaMask wallet (just-approved session) but
+  // fall back to the cookie-saved addr so paste-users get the same unlock.
+  const checkAddr = holder.address || viewer.addr;
+  const owns = useOwnsCitizen(citizenId, checkAddr);
   const civ = (CIVILIZATIONS as Record<string, { color: string; name: string; chant: string }>)[civSlug];
 
   useEffect(() => {
     if (owns.isOwner) markChannel(handle);
   }, [owns.isOwner, handle]);
 
-  const loading = holder.loading || owns.loading;
+  const loading = holder.loading || owns.loading || !viewer.ready;
 
   return (
     <main style={{ minHeight: "80vh", padding: "64px 24px", maxWidth: 760, margin: "0 auto" }}>
@@ -41,26 +48,45 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
             </div>
           )}
 
-          {!loading && !holder.address && (
+          {!loading && !checkAddr && (
             <div style={{ padding: 18, border: "1px solid var(--line)" }}>
               <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--ink-2)" }}>
                 NO WALLET CONNECTED
               </div>
               <p style={{ marginTop: 10, fontFamily: "var(--mono2)", fontSize: 12, lineHeight: 1.6 }}>
                 This channel is gated to the owner of FREELON CITY #{citizenId.toString().padStart(4, "0")}.
-                Connect a wallet to attempt sync.
+                Connect a wallet (header) or paste your address at /sync to attempt sync.
               </p>
             </div>
           )}
 
-          {!loading && holder.address && !owns.isOwner && (
+          {!loading && checkAddr && owns.error && (
+            <div style={{ padding: 18, border: "1px solid #E8B24766", background: "rgba(232,178,71,0.05)" }}>
+              <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "#E8B247" }}>
+                ⬡ SIGNAL UNCERTAIN · RETRY
+              </div>
+              <p style={{ marginTop: 10, fontFamily: "var(--mono2)", fontSize: 12, lineHeight: 1.6 }}>
+                Couldn&apos;t reach the chain to verify ownership. Reload the page or check {" "}
+                <Link href={`/wallet/${checkAddr.toLowerCase()}`} style={{ color: "var(--gold)" }}>
+                  your wallet page →
+                </Link>
+              </p>
+            </div>
+          )}
+
+          {!loading && checkAddr && !owns.error && !owns.isOwner && (
             <div style={{ padding: 18, border: "1px solid var(--line)" }}>
               <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--ink-2)" }}>
                 ⬡ SIGNAL REJECTED
               </div>
               <p style={{ marginTop: 10, fontFamily: "var(--mono2)", fontSize: 12, lineHeight: 1.6 }}>
                 Only the holder of citizen #{citizenId.toString().padStart(4, "0")} can read this channel.
-                The honoree carries a private frequency.
+                Checked against <code style={{ color: "var(--ink-2)" }}>{checkAddr.slice(0, 6)}…{checkAddr.slice(-4)}</code>.
+                {owns.ownerAddress && (
+                  <>
+                    {" "}On-chain owner is <code style={{ color: "var(--ink-2)" }}>{owns.ownerAddress.slice(0, 6)}…{owns.ownerAddress.slice(-4)}</code>.
+                  </>
+                )}
               </p>
               <Link href={`/citizens/${citizenId}`} style={{ marginTop: 14, display: "inline-block", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--gold)" }}>
                 VIEW CITIZEN ON-CHAIN →
