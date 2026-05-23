@@ -51,6 +51,22 @@ const hasUpstash = !!(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
 );
 
+/** Per-process memoization: wallets whose defender streak start has been
+ *  ensured this session. Avoids repeated Upstash GET on every credit. */
+const defenderEnsured = new Set<string>();
+async function fireDefenderEnsure(addr: string): Promise<void> {
+  const w = addr.toLowerCase();
+  if (defenderEnsured.has(w)) return;
+  defenderEnsured.add(w);
+  try {
+    const { ensureDefenderStarted } = await import("@/lib/ghost-store");
+    await ensureDefenderStarted(w);
+  } catch {
+    // Allow retry on next credit if the ensure failed (network etc.)
+    defenderEnsured.delete(w);
+  }
+}
+
 const KEY = (addr: string) => `freelon:walletHex:v1:${addr.toLowerCase()}`;
 
 async function upstash(cmd: string[]): Promise<unknown> {
@@ -131,6 +147,10 @@ export async function creditWalletHex(
     rec.lastActiveDay = todayUTC();
   }
   await setWalletHex(rec);
+  // Lazy defender-streak init. Fires once per wallet per process — any earning
+  // event (sweep/claim/sale/manual) starts a defender record from now if the
+  // wallet has never been tracked. Subsequent dumps break it.
+  void fireDefenderEnsure(rec.address);
   return rec;
 }
 

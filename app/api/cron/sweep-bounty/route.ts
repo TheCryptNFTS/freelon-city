@@ -51,8 +51,29 @@ type SaleEvent = {
   event_timestamp?: number;
   buyer?: string;
   nft?: { identifier?: string };
-  payment?: { quantity?: string; decimals?: number };
+  payment?: {
+    quantity?: string;
+    decimals?: number;
+    symbol?: string;
+    token_address?: string;
+  };
 };
+
+const ETH_LIKE_SYMBOLS = new Set(["ETH", "WETH"]);
+const ETH_LIKE_ADDRS = new Set([
+  "0x0000000000000000000000000000000000000000", // native ETH placeholder
+  "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // WETH mainnet
+]);
+function isEthLikePayment(p: SaleEvent["payment"]): boolean {
+  if (!p) return false;
+  const sym = (p.symbol || "").toUpperCase();
+  const addr = (p.token_address || "").toLowerCase();
+  // If we have no metadata at all, assume ETH (OpenSea sometimes omits symbol).
+  if (!sym && !addr) return true;
+  if (sym && ETH_LIKE_SYMBOLS.has(sym)) return true;
+  if (addr && ETH_LIKE_ADDRS.has(addr)) return true;
+  return false;
+}
 
 export async function GET(req: Request) {
   // Fail closed in ALL environments — see daily-signal/route.ts comment.
@@ -116,22 +137,39 @@ export async function GET(req: Request) {
         }
 
         // ── RESCUE detection ────────────────────────────────────────
-        // If this sale closes against a currently-ghosted citizen, the
-        // buyer becomes the RESCUER: they earn a treasury bounty + a
-        // share of the dump discount. The dumper has hex burned from
-        // their balance proportional to the discount.
+        // If this sale closes against a currently-ghosted citizen PAST its
+        // grace window, the buyer becomes the RESCUER: they earn a treasury
+        // bounty + a share of the dump discount. The dumper has hex burned
+        // from their balance proportional to the discount.
+        //
+        // Separate dedupe key from sweep-credit dedupe so a transient failure
+        // here doesn't block retry, and a successful rescue doesn't double-fire.
+        const rescueKey = `freelon:rescue:event:${tx}:${tokenId}`;
+        if (hasUpstash) {
+          try {
+            const already = (await upstash(["GET", rescueKey])) as string | null;
+            if (already) continue;
+          } catch { /* fall through — better to retry than to silently skip */ }
+        }
         try {
           const tid = parseInt(tokenId, 10);
-          if (Number.isFinite(tid) && tid >= 1 && tid <= 4040) {
+          if (
+            Number.isFinite(tid) && tid >= 1 && tid <= 4040 &&
+            isEthLikePayment(ev.payment)
+          ) {
             const { getGhost, clearGhost, recordRescue, appendDumpEntry, breakDefenderStreak } = await import("@/lib/ghost-store");
-            const { debitWalletHex, creditWalletHex } = await import("@/lib/wallet-hex-store");
-            const { ECONOMY } = await import("@/lib/economy-constants");
+            const { debitWalletHex } = await import("@/lib/wallet-hex-store");
             const ghost = await getGhost(tid);
-            // Sale price is in payment.quantity (wei). Compute discount vs ghost.floorEth.
+            // Sale price in wei via payment.quantity. Guarded for ETH-like
+            // payments above so non-ETH sales can't be misread as discounts.
             const qty = ev.payment?.quantity ? BigInt(ev.payment.quantity) : 0n;
             const dec = ev.payment?.decimals ?? 18;
             const priceEth = qty > 0n ? Number(qty) / 10 ** dec : 0;
-            if (ghost && ghost.status === "ghosted" && priceEth > 0 && priceEth <= ghost.floorEth * ECONOMY.DUMP_THRESHOLD) {
+            const gracePast = !!ghost && Date.now() >= ghost.ghostedAt;
+            if (
+              ghost && ghost.status === "ghosted" && gracePast &&
+              priceEth > 0 && priceEth <= ghost.floorEth * ECONOMY.DUMP_THRESHOLD
+            ) {
               const discount = (ghost.floorEth - priceEth) / ghost.floorEth;
               // Rescuer hex: base bounty + 5% of (floor - price) in hex via peg
               const discountEth = Math.max(0, ghost.floorEth - priceEth);
@@ -183,6 +221,12 @@ export async function GET(req: Request) {
                   href: "/graveyard",
                 });
               } catch {/* non-fatal */}
+              // Mark rescue dedupe only AFTER the full success path. If any
+              // step above threw, the catch below skips this and the next
+              // cron run retries cleanly.
+              if (hasUpstash) {
+                try { await upstash(["SETEX", rescueKey, "2592000", "1"]); } catch {}
+              }
             }
           }
         } catch { /* rescue detection is non-blocking */ }

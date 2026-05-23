@@ -136,10 +136,16 @@ export async function GET(req: Request) {
       // If the listing is at or below the dump threshold, ensure a
       // ghost record exists. The grace period decides when the city
       // visibly flips the citizen to SIGNAL LOST.
+      //
+      // When grace elapses while the listing is still active, break
+      // the seller's defender streak (idempotent via defenderBroken
+      // flag). This makes the streak break on graduation, not just on
+      // sale — so a dumper who delists after grace has already paid
+      // the streak cost.
       try {
         const discount = floor > 0 ? (floor - eth) / floor : 0;
         if (discount >= 1 - ECONOMY.DUMP_THRESHOLD) {
-          const { getGhost, setGhost } = await import("@/lib/ghost-store");
+          const { getGhost, setGhost, breakDefenderStreak } = await import("@/lib/ghost-store");
           const existingGhost = await getGhost(tokenId);
           const now = Date.now();
           const graceMs = ECONOMY.GHOST_GRACE_HOURS * 3_600_000;
@@ -147,12 +153,20 @@ export async function GET(req: Request) {
             await setGhost({
               tokenId, seller, priceEth: eth, floorEth: floor, discount,
               firstSeenAt: now, ghostedAt: now + graceMs, status: "ghosted",
+              defenderBroken: false,
             });
           } else if (existingGhost.status === "ghosted") {
             // already known — refresh price/floor in case it moved
             existingGhost.priceEth = eth;
             existingGhost.floorEth = floor;
             existingGhost.discount = discount;
+            // Graduation: grace has elapsed and we haven't broken the
+            // dumper's streak yet → do it now, mark flag so repeated scans
+            // don't keep calling the breaker.
+            if (now >= existingGhost.ghostedAt && !existingGhost.defenderBroken) {
+              try { await breakDefenderStreak(existingGhost.seller); } catch {}
+              existingGhost.defenderBroken = true;
+            }
             await setGhost(existingGhost);
           }
         }

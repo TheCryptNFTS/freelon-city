@@ -7,17 +7,38 @@
  * period), the children are visually replaced with the SIGNAL LOST
  * canon state.
  *
- * Implementation: one fetch on mount. Result cached for the session via
- * a module-level Map so re-renders are free. Falsy/loading states
- * render the original children — never flash a wrong ghost.
+ * Implementation: one batch fetch per session to /api/ghost/list populates
+ * a module-level Set of ghosted ids. Individual masks check the Set
+ * synchronously — no per-card fetch. Falls back to per-id /api/ghost/[id]
+ * only if the batch fetch failed.
  *
- * For grid surfaces, prefer feeding a pre-fetched `force` prop from a
- * parent that called /api/ghost/list once. Keeps card count cheap.
+ * Dump rate is low (~0 ghosts most of the time), so the common case is a
+ * single tiny "[]" response shared across every card on the page.
  */
 import { useEffect, useState } from "react";
 
 const memCache = new Map<number, { ghosted: boolean; discount?: number; ts: number }>();
 const TTL_MS = 60_000;
+
+// ── Global ghost set (one fetch per session) ─────────────────────────
+let globalSet: Set<number> | null = null;
+let globalPromise: Promise<Set<number>> | null = null;
+function loadGlobalSet(): Promise<Set<number>> {
+  if (globalSet) return Promise.resolve(globalSet);
+  if (globalPromise) return globalPromise;
+  globalPromise = fetch("/api/ghost/list", { cache: "no-store" })
+    .then((r) => r.ok ? r.json() : { ids: [] })
+    .then((j: { ids?: number[] }) => {
+      const set = new Set<number>(Array.isArray(j.ids) ? j.ids : []);
+      globalSet = set;
+      return set;
+    })
+    .catch(() => {
+      globalPromise = null; // allow retry next time
+      return new Set<number>();
+    });
+  return globalPromise;
+}
 
 export function GhostedMask({
   tokenId,
@@ -47,16 +68,32 @@ export function GhostedMask({
       return;
     }
     let cancelled = false;
-    fetch(`/api/ghost/${tokenId}`, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j: { ghosted?: boolean; discount?: number }) => {
-        if (cancelled) return;
-        const g = !!j.ghosted;
-        memCache.set(tokenId, { ghosted: g, discount: j.discount, ts: Date.now() });
-        setGhosted(g);
-        setDiscount(j.discount ?? null);
-      })
-      .catch(() => { if (!cancelled) setGhosted(false); });
+    // Try the global batch first. If it's already loaded or in flight, we
+    // get the full ghosted-id set with one fetch shared across the page.
+    loadGlobalSet().then((set) => {
+      if (cancelled) return;
+      if (!set.has(tokenId)) {
+        memCache.set(tokenId, { ghosted: false, ts: Date.now() });
+        setGhosted(false);
+        return;
+      }
+      // Token IS in the set — fetch the detail (discount %) for the badge.
+      fetch(`/api/ghost/${tokenId}`, { cache: "no-store" })
+        .then((r) => r.json())
+        .then((j: { ghosted?: boolean; discount?: number }) => {
+          if (cancelled) return;
+          const g = !!j.ghosted;
+          memCache.set(tokenId, { ghosted: g, discount: j.discount, ts: Date.now() });
+          setGhosted(g);
+          setDiscount(j.discount ?? null);
+        })
+        .catch(() => {
+          // Detail fetch failed but we know it's in the global set — show mask without discount.
+          if (cancelled) return;
+          memCache.set(tokenId, { ghosted: true, ts: Date.now() });
+          setGhosted(true);
+        });
+    });
     return () => { cancelled = true; };
   }, [tokenId, force]);
 

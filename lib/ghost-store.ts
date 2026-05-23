@@ -41,6 +41,10 @@ export type GhostRecord = {
   /** "ghosted" | "resolved" (sold/delisted). Resolved entries are kept
    * briefly so the UI can show a "RESCUED" celebration before clearing. */
   status: "ghosted" | "resolved";
+  /** True once the dumper's defender streak has been broken for this ghost.
+   *  Set when the grace period elapses (red-signals refresh path) OR when a
+   *  rescue closes the ghost. Prevents double-breaking on repeated scans. */
+  defenderBroken?: boolean;
 };
 
 export type RescueRecord = {
@@ -250,6 +254,8 @@ export async function breakDefenderStreak(wallet: string): Promise<void> {
 export function defenderBonusPct(since: number | null): number {
   if (!since) return 0;
   const months = Math.floor((Date.now() - since) / (30 * 86400 * 1000));
-  const raw = months * ECONOMY.DEFENDER_BONUS_PCT_PER_MONTH;
+  // Clamp to 0 first — clock skew or manual edits could put `since` in the
+  // future, which would yield a negative bonus. Then cap on the upside.
+  const raw = Math.max(0, months) * ECONOMY.DEFENDER_BONUS_PCT_PER_MONTH;
   return Math.min(raw, ECONOMY.DEFENDER_BONUS_PCT_CAP);
 }
