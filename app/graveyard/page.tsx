@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { heroImageUrl } from "@/lib/constants";
+import { listDumpLedger, type DumpLedgerEntry } from "@/lib/ghost-store";
 
 const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
 
@@ -88,7 +89,10 @@ function timeAgo(ts: number | null | undefined) {
 }
 
 export default async function GraveyardPage() {
-  const transfers = await fetchTransfers();
+  const [transfers, dumps] = await Promise.all([
+    fetchTransfers(),
+    listDumpLedger(50).catch((): DumpLedgerEntry[] => []),
+  ]);
   const filtered = transfers.filter(
     (t) =>
       t.from &&
@@ -212,6 +216,116 @@ export default async function GraveyardPage() {
                     }}
                   >
                     {timeAgo(t.ts)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section style={{ marginTop: "var(--s-7)" }}>
+        <span className="kicker">⬡ DUMP LEDGER · CITY-VERIFIED</span>
+        <h2
+          style={{
+            fontFamily: "var(--display)",
+            fontSize: "clamp(28px, 4vw, 44px)",
+            lineHeight: 1.05,
+            marginTop: "var(--s-2)",
+          }}
+        >
+          Citizens dumped under floor
+        </h2>
+        <p style={{ color: "var(--ink-2)", maxWidth: 680, marginTop: "var(--s-2)" }}>
+          Listings priced ≤ 85% of floor for more than 24h are <strong>ghosted</strong>:
+          the city replaces image, name, and civ color with SIGNAL LOST on every surface.
+          When a rescuer buys, attribution is permanent and the dumper&apos;s hex burns
+          proportional to the discount.
+        </p>
+        {dumps.length === 0 ? (
+          <div
+            style={{
+              marginTop: "var(--s-4)",
+              padding: "var(--s-4)",
+              border: "1px dashed var(--line)",
+              color: "var(--ink-dim)",
+              fontFamily: "var(--mono2)",
+              fontSize: 12,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+            }}
+          >
+            No dumps recorded. The floor holds.
+          </div>
+        ) : (
+          <div style={{ marginTop: "var(--s-4)" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "56px 1fr auto auto auto",
+                gap: "var(--s-3)",
+                padding: "8px 0",
+                fontFamily: "var(--mono2)",
+                fontSize: 10,
+                letterSpacing: "0.22em",
+                color: "var(--ink-dim)",
+                textTransform: "uppercase",
+                borderBottom: "1px solid var(--line)",
+              }}
+            >
+              <span>CITIZEN</span>
+              <span>DUMPER → RESCUER</span>
+              <span>UNDER FLOOR</span>
+              <span>PRICE</span>
+              <span>WHEN</span>
+            </div>
+            {dumps.map((d, i) => {
+              const pct = Math.round(d.discount * 100);
+              return (
+                <div
+                  key={`${d.tokenId}-${d.ts}-${i}`}
+                  className="grave-row"
+                  style={{ gridTemplateColumns: "56px 1fr auto auto auto" }}
+                >
+                  <Link href={`/citizens/${d.tokenId}`}>
+                    <Image
+                      src={heroImageUrl(d.tokenId)}
+                      alt={`Citizen #${d.tokenId}`}
+                      width={56}
+                      height={56}
+                      unoptimized
+                      style={{ filter: "grayscale(1) brightness(0.45)" }}
+                    />
+                  </Link>
+                  <span>
+                    <span className="id">#{String(d.tokenId).padStart(4, "0")}</span>{" "}
+                    <Link href={`/wallet/${d.dumper}`} className="addr" style={{ textDecoration: "none", color: "#b8423d" }}>
+                      {shortAddr(d.dumper)}
+                    </Link>
+                    <span className="arrow">→</span>
+                    {d.rescuer ? (
+                      <Link href={`/wallet/${d.rescuer}`} className="addr" style={{ textDecoration: "none", color: "#9ad4a8" }}>
+                        {shortAddr(d.rescuer)}
+                      </Link>
+                    ) : (
+                      <span style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 11 }}>
+                        DELISTED
+                      </span>
+                    )}
+                  </span>
+                  <span className="stat" style={{ color: "#b8423d" }}>{pct}%↓</span>
+                  <span className="stat" style={{ fontFamily: "var(--mono2)", fontSize: 11 }}>
+                    {d.priceEth.toFixed(3)} Ξ
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--ink-dim)",
+                      fontFamily: "var(--mono2)",
+                      fontSize: 11,
+                      letterSpacing: "0.14em",
+                    }}
+                  >
+                    {timeAgo(Math.floor(d.ts / 1000))}
                   </span>
                 </div>
               );

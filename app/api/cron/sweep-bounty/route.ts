@@ -51,6 +51,7 @@ type SaleEvent = {
   event_timestamp?: number;
   buyer?: string;
   nft?: { identifier?: string };
+  payment?: { quantity?: string; decimals?: number };
 };
 
 export async function GET(req: Request) {
@@ -113,6 +114,78 @@ export async function GET(req: Request) {
           credited += result.credited;
           if (result.bonus) bonuses++;
         }
+
+        // ── RESCUE detection ────────────────────────────────────────
+        // If this sale closes against a currently-ghosted citizen, the
+        // buyer becomes the RESCUER: they earn a treasury bounty + a
+        // share of the dump discount. The dumper has hex burned from
+        // their balance proportional to the discount.
+        try {
+          const tid = parseInt(tokenId, 10);
+          if (Number.isFinite(tid) && tid >= 1 && tid <= 4040) {
+            const { getGhost, clearGhost, recordRescue, appendDumpEntry, breakDefenderStreak } = await import("@/lib/ghost-store");
+            const { debitWalletHex, creditWalletHex } = await import("@/lib/wallet-hex-store");
+            const { ECONOMY } = await import("@/lib/economy-constants");
+            const ghost = await getGhost(tid);
+            // Sale price is in payment.quantity (wei). Compute discount vs ghost.floorEth.
+            const qty = ev.payment?.quantity ? BigInt(ev.payment.quantity) : 0n;
+            const dec = ev.payment?.decimals ?? 18;
+            const priceEth = qty > 0n ? Number(qty) / 10 ** dec : 0;
+            if (ghost && ghost.status === "ghosted" && priceEth > 0 && priceEth <= ghost.floorEth * ECONOMY.DUMP_THRESHOLD) {
+              const discount = (ghost.floorEth - priceEth) / ghost.floorEth;
+              // Rescuer hex: base bounty + 5% of (floor - price) in hex via peg
+              const discountEth = Math.max(0, ghost.floorEth - priceEth);
+              const discountHex = Math.round((discountEth * ECONOMY.HEX_PER_ETH * ECONOMY.RESCUE_DISCOUNT_PCT_TO_HEX) / 100);
+              const rescuerPaid = ECONOMY.RESCUE_BOUNTY_BASE + discountHex;
+              await creditWalletHex(buyer, rescuerPaid, {
+                kind: "manual",
+                note: `Rescue · #${String(tid).padStart(4, "0")} · ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡`,
+              });
+              // Dumper hex burn: proportional to discount, capped
+              const burnRaw = Math.round(ECONOMY.HEX_PER_ETH * discountEth * (ECONOMY.DUMP_BURN_PCT_OF_DISCOUNT / 100));
+              const burnAmt = Math.min(burnRaw, ECONOMY.DUMP_BURN_CAP);
+              if (burnAmt > 0) {
+                try {
+                  await debitWalletHex(ghost.seller, burnAmt, {
+                    kind: "manual",
+                    note: `Dump burn · #${String(tid).padStart(4, "0")} · ${(discount * 100).toFixed(0)}% under floor · -${burnAmt}⬡`,
+                  });
+                } catch { /* dumper has insufficient hex — burn capped at their balance via debit's own check */ }
+              }
+              // Persist attribution + ledger
+              await recordRescue({
+                tokenId: tid, rescuer: buyer, dumper: ghost.seller,
+                priceEth, floorEth: ghost.floorEth,
+                hexPaid: rescuerPaid, hexBurned: burnAmt,
+                rescuedAt: ts,
+              });
+              await appendDumpEntry({
+                tokenId: tid, dumper: ghost.seller, rescuer: buyer,
+                priceEth, floorEth: ghost.floorEth, discount, ts,
+              });
+              await breakDefenderStreak(ghost.seller);
+              await clearGhost(tid);
+              // Notify both parties
+              try {
+                const { notify } = await import("@/lib/notify");
+                await notify({
+                  wallet: buyer,
+                  eventKey: `rescue:${tid}:${ts}`,
+                  kind: "fresh-citizen",
+                  body: `🛡 RESCUED #${String(tid).padStart(4, "0")} at ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡ + permanent attribution`,
+                  href: `/citizens/${tid}`,
+                });
+                await notify({
+                  wallet: ghost.seller,
+                  eventKey: `dump-burn:${tid}:${ts}`,
+                  kind: "decay-warning",
+                  body: `⚠ #${String(tid).padStart(4, "0")} sold at ${(discount * 100).toFixed(0)}% under floor · -${burnAmt}⬡ burned · defender streak reset`,
+                  href: "/graveyard",
+                });
+              } catch {/* non-fatal */}
+            }
+          }
+        } catch { /* rescue detection is non-blocking */ }
       }
       next = d.next;
       if (!next) break;

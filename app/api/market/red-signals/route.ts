@@ -131,6 +131,32 @@ export async function GET(req: Request) {
       const privateUntil = privateNow ? rs.flaggedAt + 24 * 60 * 60 * 1000 : undefined;
 
       out.push({ ...rs, bountyHex: snipeBounty(rs), privateUntil });
+
+      // ── GHOST detection (display-layer dump deterrent) ──────────
+      // If the listing is at or below the dump threshold, ensure a
+      // ghost record exists. The grace period decides when the city
+      // visibly flips the citizen to SIGNAL LOST.
+      try {
+        const discount = floor > 0 ? (floor - eth) / floor : 0;
+        if (discount >= 1 - ECONOMY.DUMP_THRESHOLD) {
+          const { getGhost, setGhost } = await import("@/lib/ghost-store");
+          const existingGhost = await getGhost(tokenId);
+          const now = Date.now();
+          const graceMs = ECONOMY.GHOST_GRACE_HOURS * 3_600_000;
+          if (!existingGhost) {
+            await setGhost({
+              tokenId, seller, priceEth: eth, floorEth: floor, discount,
+              firstSeenAt: now, ghostedAt: now + graceMs, status: "ghosted",
+            });
+          } else if (existingGhost.status === "ghosted") {
+            // already known — refresh price/floor in case it moved
+            existingGhost.priceEth = eth;
+            existingGhost.floorEth = floor;
+            existingGhost.discount = discount;
+            await setGhost(existingGhost);
+          }
+        }
+      } catch { /* ghost detection is non-blocking */ }
     }
 
     out.sort((a, b) => (b.floorEth - b.priceEth) - (a.floorEth - a.priceEth));

@@ -17,6 +17,7 @@ import { epithetFor } from "@/lib/epithets";
 import { rarityRank } from "@/lib/rarity";
 import { getCitizenMeta, type CitizenMeta } from "@/lib/citizen-meta";
 import { tweetTribute, tweetIntent } from "@/lib/share";
+import { getGhost, getRescue } from "@/lib/ghost-store";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -82,18 +83,45 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     ),
   ]);
 
+  // Ghost / rescue status — server-side so the SIGNAL LOST state is baked
+  // into the HTML and survives no-JS / OG bots.
+  const ghost = await getGhost(tid).catch(() => null);
+  const isGhosted = !!(ghost && ghost.status === "ghosted" && Date.now() >= ghost.ghostedAt);
+  const rescue = !isGhosted ? await getRescue(tid).catch(() => null) : null;
+  const ghostPct = ghost ? Math.round(ghost.discount * 100) : null;
+
   return (
     <main className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
       <article className="citizen-grid">
         <aside className="citizen-image">
-          <div className="img-shell relic-card">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl(tid)} alt={c.name} />
+          <div className="img-shell relic-card" style={isGhosted ? { background: "#050505", aspectRatio: "1 / 1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#888", fontFamily: "var(--mono2)", letterSpacing: "0.28em", textTransform: "uppercase" } : undefined}>
+            {isGhosted ? (
+              <>
+                <div style={{ fontSize: 14, color: "#aaa" }}>⬡ 404</div>
+                <div style={{ fontSize: 18, color: "#ccc", marginTop: 10 }}>SIGNAL LOST</div>
+                <div style={{ fontSize: 11, color: "#b8423d", marginTop: 14, letterSpacing: "0.2em" }}>
+                  DUMPED · {ghostPct}% UNDER FLOOR
+                </div>
+                <div style={{ fontSize: 9, color: "#6a6a6a", marginTop: 24, maxWidth: 280, textAlign: "center", lineHeight: 1.6, letterSpacing: "0.14em" }}>
+                  THE CITY NO LONGER RECOGNIZES THIS CITIZEN. A RESCUER WHO BUYS BELOW FLOOR REINSTATES THE SIGNAL AND COLLECTS A BOUNTY.
+                </div>
+              </>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={imageUrl(tid)} alt={c.name} />
+            )}
           </div>
           <div className="img-meta">
             <span className="big-id">#{id4}</span>
-            <span className="big-tier" style={{ color }}>{c.tier}</span>
+            <span className="big-tier" style={{ color: isGhosted ? "#5a5a5a" : color }}>
+              {isGhosted ? "GHOSTED" : c.tier}
+            </span>
           </div>
+          {rescue && (
+            <div style={{ marginTop: "var(--s-3)", padding: "10px 12px", border: "1px solid #2a5a3a", background: "rgba(20,40,30,0.4)", fontFamily: "var(--mono2)", fontSize: 11, color: "#9ad4a8", letterSpacing: "0.14em" }}>
+              🛡 RESCUED · permanent attribution to {rescue.rescuer.slice(0, 6)}…{rescue.rescuer.slice(-4)} · +{rescue.hexPaid}⬡
+            </div>
+          )}
         </aside>
 
         <section className="citizen-body">

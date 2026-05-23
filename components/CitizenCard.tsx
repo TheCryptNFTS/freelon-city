@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Citizen, civilizationColor } from "@/lib/citizens";
 import { imageUrl } from "@/lib/constants";
+import { GhostedMask } from "@/components/GhostedMask";
 
 export function CitizenCard({ citizen, size = "md" }: { citizen: Citizen; size?: "sm" | "md" | "lg" }) {
   const color = civilizationColor(citizen.civilization);
@@ -12,13 +13,15 @@ export function CitizenCard({ citizen, size = "md" }: { citizen: Citizen; size?:
       style={{ borderTopColor: color, borderTopWidth: 2 }}
     >
       <div className="relative aspect-square bg-black">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageUrl(citizen.id)}
-          alt={citizen.name}
-          loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
-        />
+        <GhostedMask tokenId={citizen.id} variant="card">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl(citizen.id)}
+            alt={citizen.name}
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+          />
+        </GhostedMask>
       </div>
       <div className="p-3">
         <div className="terminal text-xs text-[var(--color-gold)]">#{id4}</div>
