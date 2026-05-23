@@ -54,9 +54,43 @@ export default async function TransmissionsPage({
         </p>
       </section>
 
-      {/* Submit form (gated client-side) */}
+      {/* Submit form — collapsed by default so the page leads with the
+          gallery of existing transmissions, not a big empty form. */}
       <section style={{ marginBottom: "var(--s-5)" }}>
-        <TransmissionSubmit />
+        <details
+          style={{
+            border: "1px solid var(--gold)44",
+            background: "linear-gradient(180deg, rgba(200,167,93,0.05), rgba(0,0,0,0.3))",
+            borderRadius: 14,
+            overflow: "hidden",
+          }}
+        >
+          <summary
+            style={{
+              listStyle: "none",
+              cursor: "pointer",
+              padding: "var(--s-4) var(--s-5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ SEND A SIGNAL</span>
+              <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", marginTop: 4, lineHeight: 1.5 }}>
+                Burn 100 ⬡ to transmit. Image + caption + civ. Top weekly transmission earns 5,000 ⬡.
+              </p>
+            </div>
+            <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--gold)", border: "1px solid var(--gold)", padding: "6px 12px", borderRadius: 999 }}>
+              OPEN ▾
+            </span>
+          </summary>
+          <div style={{ padding: "0 var(--s-5) var(--s-5)" }}>
+            <TransmissionSubmit />
+          </div>
+        </details>
       </section>
 
       {/* Filters */}

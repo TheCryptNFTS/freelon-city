@@ -40,6 +40,16 @@ export default function Citizens() {
         </div>
       </section>
 
+      {/* BROWSE moved above ones — the chip filter is the actual job-to-be-done.
+          Curated tier sections live below for inspiration / hero-citizen FOMO. */}
+      <section className="citizens-section reveal" id="browse">
+        <header className="sec-head">
+          <span className="kicker">SEARCH · FILTER · {all.length} TOTAL</span>
+          <h2>Browse all <em>{all.length}</em></h2>
+        </header>
+        <CitizensBrowser all={mini} />
+      </section>
+
       <section className="citizens-section reveal">
         <header className="sec-head">
           <span className="kicker">ONE OF ONES</span>
@@ -115,14 +125,6 @@ export default function Citizens() {
             );
           })}
         </div>
-      </section>
-
-      <section className="citizens-section reveal">
-        <header className="sec-head">
-          <span className="kicker">SEARCH · FILTER · SCROLL</span>
-          <h2>Browse all <em>4040</em></h2>
-        </header>
-        <CitizensBrowser all={mini} />
       </section>
 
       <section style={{ marginTop: "var(--s-6)" }}>

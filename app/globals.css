@@ -2493,7 +2493,10 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .wallet-addr-h1 { font-family: var(--mono2); font-size: 56px; letter-spacing: 0.04em; margin: var(--s-3) 0 var(--s-1); color: var(--ink); font-weight: 400; }
 .wallet-addr-full { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.18em; color: var(--ink-dim); word-break: break-all; }
 .wallet-addr-full code { color: var(--ink-dim); }
-.wallet-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin: var(--s-6) 0 var(--s-6); }
+/* Stat grid: auto-fit handles 3 OR 4 stats, never wraps to a single
+   awkward orphan cell. Below 480px forces a single column for clarity. */
+.wallet-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-4); margin: var(--s-6) 0 var(--s-6); }
+@media (max-width: 480px) { .wallet-stats { grid-template-columns: 1fr; gap: var(--s-3); } }
 .wallet-stat { background: var(--panel, #0c0f16); border: 1px solid var(--line); padding: var(--s-5); border-radius: 4px; display: flex; flex-direction: column; gap: var(--s-1); }
 .wallet-stat .ws-label { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.24em; color: var(--ink-dim); }
 .wallet-stat .ws-value { font-family: var(--mono2); font-size: 30px; color: var(--gold); letter-spacing: 0.02em; }
@@ -4077,3 +4080,53 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .cm-lbl { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-dim); text-transform: uppercase; }
 .cm-val { font-family: var(--display); font-size: 22px; letter-spacing: -0.005em; color: var(--ink); }
 .cm-val small { font-family: var(--mono2); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.16em; margin-left: 4px; }
+
+/* ── Layout upgrades · batch 2026-05-23 ─────────────────────────────────
+   Targeted mobile fixes from the layout audit. Keep at the bottom so
+   they override the page-scoped rules above without re-specifying
+   selectors. */
+
+/* /pfp — cap the canvas so the controls column has room on tablets.
+   Was 100% fluid which crushed the right-side controls below 1024px. */
+.pfp-studio { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, 1fr); gap: var(--s-5); align-items: start; }
+.pfp-studio .canvas-col { max-width: 560px; width: 100%; justify-self: start; }
+.pfp-studio .pfp-canvas { width: 100%; max-width: 560px; height: auto; aspect-ratio: 1 / 1; display: block; }
+@media (max-width: 880px) {
+  .pfp-studio { grid-template-columns: 1fr; }
+  .pfp-studio .canvas-col { max-width: 100%; justify-self: stretch; }
+}
+
+/* /civilizations/[slug] — featured-citizens row currently overflows
+   on narrow screens. Force a 2-column wrap below 600px. The selectors
+   target both the new and legacy class names used on the civ page. */
+@media (max-width: 600px) {
+  .civ-featured-row,
+  .civ-page .featured-grid,
+  .civilization-page .featured-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    overflow-x: visible !important;
+  }
+}
+
+/* /dashboard — LiveHeatGrid cells become postage-stamp size when
+   auto-fit drops to minmax(120px, 1fr) on a 360px phone. Force at most
+   2 cells per row below 480px so each cell is readable. */
+@media (max-width: 480px) {
+  .heat-cell { min-height: 86px; }
+  /* The grid wrapper is the parent <div> with display:grid and
+     auto-fit columns. Target only its heat-cell children to avoid
+     leaking the rule to other auto-fit grids. */
+  div:has(> .heat-cell) {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* /carrier mobile reorder — daily mission was eating the fold and
+   pushing the claim CTA below view. Reorder via flex-order on mobile
+   so the daily-claim-card renders BEFORE the daily mission. */
+@media (max-width: 760px) {
+  .carrier-dash { display: flex; flex-direction: column; gap: var(--s-4); }
+  .carrier-dash > .daily-claim-card { order: -1; }
+  .carrier-dash > .holder-flex { order: -2; }
+}
+

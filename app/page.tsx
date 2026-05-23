@@ -266,16 +266,17 @@ export default function Home() {
       </section>
 
       {/* HONOREE BAND */}
+      {/* HONOREES — compact teaser (7 instead of 14). Full grid lives at /tribute. */}
       <section className="honoree-band reveal">
         <div className="section-bar">
           <div className="left-col">
             <span className="kicker">35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span>
             <h2>The <em>honoraries</em></h2>
           </div>
-          <Link className="more" href="/tribute">SEND A TRIBUTE TWEET →</Link>
+          <Link className="more" href="/tribute">SEE ALL 35 →</Link>
         </div>
         <div className="honoree-grid">
-          {honoraries.slice(0, 14).map((h) => (
+          {honoraries.slice(0, 7).map((h) => (
             <Link
               key={h.id}
               href={`/tribute/${(h.honoree_handle || "").replace(/^@/, "") || h.id}`}
@@ -292,17 +293,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURED CITIZENS */}
+      {/* FEATURED CITIZENS — 8 instead of 16, browse CTA does the work */}
       <section className="featured-band reveal">
         <div className="section-bar">
           <div className="left-col">
-            <span className="kicker">SIXTEEN OF FOUR THOUSAND FORTY</span>
-            <h2>16 <em>citizens</em><br />4,024 more behind them</h2>
+            <span className="kicker">EIGHT OF FOUR THOUSAND FORTY</span>
+            <h2>8 <em>citizens</em><br />4,032 more behind them</h2>
           </div>
           <Link className="more" href="/citizens">BROWSE ALL 4040 →</Link>
         </div>
         <div className="featured-grid">
-          {featured.map((c) => {
+          {featured.slice(0, 8).map((c) => {
             const civ = (CIVILIZATIONS as Record<string, { color: string; doctrine: string }>)[c.civilization];
             return (
               <Link
@@ -332,51 +333,7 @@ export default function Home() {
       {/* TOP PATRONS · 7-DAY BURN */}
       <TopPatronsStrip />
 
-      {/* RIVALRIES */}
-      <section className="rivalries-section reveal">
-        <div className="section-bar">
-          <div className="left-col">
-            <span className="kicker">FIVE NAMED RIVALRIES · TEN DOCTRINES AT WAR</span>
-            <h2>The civilizations <em>do not agree</em></h2>
-          </div>
-          <Link className="more" href="/lore">READ THE LORE →</Link>
-        </div>
-        <div className="rivalries-grid">
-          {(() => {
-            const seen = new Set<string>();
-            const pairs: Array<{ a: string; b: string }> = [];
-            for (const [slug, civ] of Object.entries(CIVILIZATIONS)) {
-              const rival = (civ as { rival?: string }).rival;
-              if (!rival) continue;
-              const key = [slug, rival].sort().join("|");
-              if (seen.has(key)) continue;
-              seen.add(key);
-              pairs.push({ a: slug, b: rival });
-              if (pairs.length >= 5) break;
-            }
-            return pairs.map(({ a, b }) => {
-              const civA = (CIVILIZATIONS as Record<string, { name: string; color: string; doctrine: string; rivalLine?: string }>)[a];
-              const civB = (CIVILIZATIONS as Record<string, { name: string; color: string; doctrine: string }>)[b];
-              if (!civA || !civB) return null;
-              return (
-                <Link key={`${a}-${b}`} href="/lore" className="rivalry-card">
-                  <div className="rivalry-card-pair">
-                    <span className="side" style={{ color: civA.color }}>{civA.name.split(" ").slice(-1)[0].toUpperCase()}</span>
-                    <span className="cross">⬡</span>
-                    <span className="side" style={{ color: civB.color }}>{civB.name.split(" ").slice(-1)[0].toUpperCase()}</span>
-                  </div>
-                  <p className="rivalry-card-line">&ldquo;{civA.rivalLine}&rdquo;</p>
-                  <div className="rivalry-card-meta">
-                    <span style={{ color: civA.color }}>{civA.doctrine.toUpperCase()}</span>
-                    <span className="sep">VS</span>
-                    <span style={{ color: civB.color }}>{civB.doctrine.toUpperCase()}</span>
-                  </div>
-                </Link>
-              );
-            });
-          })()}
-        </div>
-      </section>
+      {/* RIVALRIES — moved to /lore where they get full context. Single CTA only. */}
 
       {/* RECENT TRANSMISSIONS */}
       <RecentTransmissions />
