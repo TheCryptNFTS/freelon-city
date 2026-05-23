@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllCitizens, getHonoraries } from "@/lib/citizens";
 import { CIVILIZATIONS } from "@/lib/constants";
 
-const BASE = "https://freeloncity.com";
+const BASE = "https://www.freeloncity.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

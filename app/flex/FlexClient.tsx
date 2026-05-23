@@ -134,7 +134,7 @@ export function FlexClient() {
   const tweet = balance > 0
     ? `I minted FREELON CITY for free.\n\n${balance} citizens · ${civDef?.name ?? "synthetic Mars"}.\nStatus: EARLY.\n\nfreeloncity.com/flex`
     : "I am a citizen of FREELON CITY. freeloncity.com/flex";
-  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(`https://freeloncity.com${ogUrl}`)}`;
+  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(`https://www.freeloncity.com${ogUrl}`)}`;
 
   return (
     <div className="machine-result" style={{ borderColor: civDef?.color || "var(--gold)" }}>

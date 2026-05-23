@@ -9,7 +9,7 @@
  * Every tweet ends with a way for a reader to claim their own thing.
  */
 
-export const SITE = "https://freeloncity.com";
+export const SITE = "https://www.freeloncity.com";
 const HASHTAGS = "#FREELONCITY #404HEXNOTFOUND";
 
 /** Build a twitter intent URL. */

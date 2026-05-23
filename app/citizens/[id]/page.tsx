@@ -228,7 +228,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 <span className="ttl">TRIBUTE PAGE →</span>
               </Link>
             )}
-            <ShareButtons citizen={c} siteUrl="https://freeloncity.com" />
+            <ShareButtons citizen={c} siteUrl="https://www.freeloncity.com" />
           </div>
 
           <nav className="citizen-nav">

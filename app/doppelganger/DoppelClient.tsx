@@ -75,7 +75,7 @@ export function DoppelClient() {
     ? `@${match.handle} → CITIZEN #${match.id.toString().padStart(4, "0")}\n\nMy doppelganger in FREELON CITY: ${match.name}\n${match.civName}\n\nfreeloncity.com/doppelganger`
     : "";
   const intent = match
-    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(`https://freeloncity.com${ogUrl}`)}`
+    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(`https://www.freeloncity.com${ogUrl}`)}`
     : "";
 
   return (

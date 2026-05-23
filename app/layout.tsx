@@ -13,7 +13,7 @@ import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://freeloncity.com"),
+  metadataBase: new URL("https://www.freeloncity.com"),
   title: {
     default: "404 — FREELON CITY",
     template: "%s · FREELON CITY",

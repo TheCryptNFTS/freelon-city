@@ -10,7 +10,7 @@ type CivDef = {
   rivalLine?: string;
 };
 
-const SITE = "https://freeloncity.com";
+const SITE = "https://www.freeloncity.com";
 
 function tweetIntent(text: string, url: string): string {
   const params = new URLSearchParams({ text, url });

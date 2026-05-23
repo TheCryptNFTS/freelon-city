@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", images: ["/api/og/hex-index"] },
 };
 
-const SITE = "https://freeloncity.com";
+const SITE = "https://www.freeloncity.com";
 const tweetUrl = (text: string) =>
   `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     `${text}\n\n${SITE}/dashboard\n\n#FreelonCity #404HEXNOTFOUND`,

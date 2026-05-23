@@ -103,7 +103,7 @@ export function RegretForm() {
     ? `/api/og/regret?id=${result.id}&past=${result.past}&current=${result.current.toFixed(6)}&pct=${result.pct.toFixed(2)}`
     : "";
   const intent = result
-    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(`https://freeloncity.com${ogUrl}`)}`
+    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(`https://www.freeloncity.com${ogUrl}`)}`
     : "";
 
   return (

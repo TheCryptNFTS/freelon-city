@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/_next/"],
       },
     ],
-    sitemap: "https://freeloncity.com/sitemap.xml",
-    host: "https://freeloncity.com",
+    sitemap: "https://www.freeloncity.com/sitemap.xml",
+    host: "https://www.freeloncity.com",
   };
 }
