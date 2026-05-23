@@ -121,10 +121,23 @@ export async function GET(req: Request) {
     console.error("sweep cron error", e);
   }
 
+  // ── Piggyback: run the notification scan in the same cron slot.
+  // Vercel Hobby caps us at 2 daily crons, both used. Folding the
+  // notify scan in here is cheap (it reads the wallet records we
+  // already touched) and idempotent via per-event dedupe.
+  let notifyResult: Awaited<ReturnType<typeof import("@/lib/notify-scanner").runNotifyScan>> | null = null;
+  try {
+    const { runNotifyScan } = await import("@/lib/notify-scanner");
+    notifyResult = await runNotifyScan();
+  } catch (e) {
+    console.error("notify scan error", e);
+  }
+
   return NextResponse.json({
     processed,
     creditedHex: credited,
     streakBonuses: bonuses,
+    notify: notifyResult,
     ranAt: Date.now(),
   });
 }

@@ -80,6 +80,16 @@ export async function POST(
         kind: "manual",
         note: `Transmission royalty · ${id.slice(0, 8)} · +${royalty}⬡`,
       });
+      // Fire-and-forget notification so the author sees the boost next
+      // visit (and gets a DM if they opted in). Dedupe per boost event.
+      const { notify } = await import("@/lib/notify");
+      void notify({
+        wallet: t.author,
+        eventKey: `transmission-boost:${id}:${addr}:${Date.now()}`,
+        kind: "transmission-boosted",
+        body: `🔥 Your transmission got boosted +${hex} ⬡ · you earned +${royalty} ⬡ royalty.`,
+        href: `/transmissions/${id}`,
+      }).catch(() => {});
     } catch {/* non-fatal; the boost still counts toward score */}
   }
 

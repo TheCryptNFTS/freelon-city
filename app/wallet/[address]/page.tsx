@@ -19,6 +19,7 @@ import { getWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 import { StampViewerAddr } from "@/components/StampViewerAddr";
 import { CarrierHealthCta } from "@/components/CarrierHealthCta";
+import { NotificationInbox } from "@/components/NotificationInbox";
 import { CANON } from "@/lib/canon";
 
 export const revalidate = 300;
@@ -415,6 +416,8 @@ export default async function WalletPage({
           )}
         </div>
       </section>
+
+      <NotificationInbox />
 
       <section className="wallet-hex-section" style={{ marginTop: "var(--s-6)" }}>
         <HexEarningsLog address={norm} />

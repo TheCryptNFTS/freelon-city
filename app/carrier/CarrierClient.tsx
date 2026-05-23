@@ -12,6 +12,7 @@ import { cityNotice } from "@/lib/city-notice";
 import { CANON } from "@/lib/canon";
 import { StreakBadge } from "@/components/StreakBadge";
 import { useViewerAddr } from "@/lib/use-viewer";
+import { NotificationInbox } from "@/components/NotificationInbox";
 
 export function CarrierClient() {
   const viewer = useViewerAddr();
@@ -195,6 +196,12 @@ export function CarrierClient() {
 
   return (
     <section className="carrier-dash" style={{ "--civ": civ?.color || "var(--gold)" } as React.CSSProperties}>
+      {/* Inbox first — this is what drives the retention loop. Decay
+          warnings, watchlist hits, streak T-1, transmission boosts all
+          land here. */}
+      <div style={{ gridColumn: "1 / -1" }}>
+        <NotificationInbox />
+      </div>
       <div style={{ gridColumn: "1 / -1" }}>
         <DailyMission />
       </div>

@@ -157,6 +157,18 @@ export async function creditFreshBlood(
   const after = await getWalletHex(address);
   after.freshBloodAwardedAt = Date.now();
   await setWalletHex(after);
+  // Welcome notification — first-citizen moment is the highest leverage
+  // onboarding hook in the entire economy.
+  try {
+    const { notify } = await import("@/lib/notify");
+    void notify({
+      wallet: address,
+      eventKey: `fresh-blood:${address.toLowerCase()}`,
+      kind: "fresh-citizen",
+      body: `⬡ Welcome, carrier. +${ECONOMY.FRESH_BLOOD_BOUNTY} ⬡ for your first citizen. Post daily to keep the meter alive.`,
+      href: "/carrier",
+    }).catch(() => {});
+  } catch {/* non-fatal */}
   return { credited: ECONOMY.FRESH_BLOOD_BOUNTY };
 }
 
