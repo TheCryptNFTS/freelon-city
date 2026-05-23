@@ -92,12 +92,13 @@ export default function Home() {
       <section className="why-freelon">
         <span className="kicker">⬡ THE LEDGER</span>
         <h2 className="why-headline">
-          You&apos;re a carrier.<br />
-          <em>The city pays you for work</em>
+          We&apos;re all building the city.<br />
+          <em>Hex flows to the ones who carry it.</em>
         </h2>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 580, margin: "0 auto var(--s-4)", textAlign: "center" }}>
-          Hex flows to active carriers — snipe red signals, sweep the floor, sell into liquidity, post daily.
-          Sit still for 14 days and the meter pauses. Active beats passive.
+          The city isn&apos;t a product — it&apos;s a thing we build together.
+          Snipe red signals, sweep the floor, sell into liquidity, post daily.
+          Sit still for 14 days and the meter pauses. The city remembers what you carried.
         </p>
         <div className="why-grid">
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--gold)" } as React.CSSProperties}>

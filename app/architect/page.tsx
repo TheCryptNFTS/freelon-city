@@ -22,12 +22,13 @@ export default function ArchitectPage() {
         <span className="kicker">⬡ THE ARCHITECT</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(44px, 7vw, 80px)", lineHeight: 0.94, letterSpacing: "-0.02em", margin: "10px 0 14px" }}>
           One architect.<br />
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>The city is the work.</em>
+          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>Every carrier builds the city.</em>
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 14, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 640 }}>
           FREELON CITY is built and operated by a single architect, working
-          independently and daily. No VC, no roadmap deadline pressure, no exit
-          plan — the city is the work, not a step toward something else.
+          independently and daily — but the city itself is built by every
+          carrier who posts, sweeps, transmits, or names a citizen. No VC,
+          no roadmap pressure, no exit plan. We&apos;re building this thing together.
         </p>
       </section>
 

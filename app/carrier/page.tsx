@@ -16,9 +16,10 @@ export default function CarrierPage() {
           <em>Carriers hold the signal</em>
         </h1>
         <p className="lead">
-          The city pays you for work. Sign in with X, relay today&apos;s signal,
-          claim your hex. Every post resets the 14-day decay timer and keeps your passive baseline alive.
-          Skip too many days and the meter pauses until you come back.
+          We&apos;re building the city together. Sign in with X, relay today&apos;s
+          signal, claim your hex. Every post resets the 14-day decay timer and keeps
+          your passive baseline alive. Skip too many days and the meter pauses until
+          you carry again.
         </p>
       </section>
       <CarrierClient />
