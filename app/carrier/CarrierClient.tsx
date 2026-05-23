@@ -244,14 +244,73 @@ export function CarrierClient() {
                 <a className="btn btn-secondary" href={dailyIntent} target="_blank" rel="noreferrer" onClick={() => setShared(true)}>
                   <span className="ttl">1. SHARE ON X →</span>
                 </a>
-                <button className="btn btn-primary" disabled={!shared || !claimable} onClick={() => {
+                <button className="btn btn-primary" disabled={!shared || !claimable} onClick={async () => {
+                  // 1. Local UI feedback — update carrier hex (handle-scoped,
+                  //    localStorage). This is the historical behaviour and the
+                  //    user expects the local counter to bump immediately.
                   const next = claimDaily();
-                  if (next) {
-                    setState(next);
+                  if (next) setState(next);
+
+                  // 2. THE REAL CREDIT — POST /api/claim so the WALLET hex
+                  //    ledger gets +10 (the balance shown on /wallet, /numbers,
+                  //    leaderboard, transmissions burn checks). Requires the
+                  //    connected wallet to have a signed X session bound to it.
+                  //
+                  //    Before today, the carrier claim only updated localStorage,
+                  //    so users who posted + claimed never saw their wallet hex
+                  //    change. Discord bug 2026-05-24 (@Lady Magic): "I just did
+                  //    4 posts and swept one today and have not received any
+                  //    credit for it" — root cause was here.
+                  const wallet = viewer.addr || holder.address;
+                  if (wallet) {
+                    try {
+                      const r = await fetch("/api/claim", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ addr: wallet }),
+                      });
+                      if (r.ok) {
+                        const j = await r.json() as { awarded?: number; streak?: number; streakBonus?: number };
+                        const total = (j.awarded || 0) + (j.streakBonus || 0);
+                        cityNotice({
+                          title: CANON.HEX_RESTORED,
+                          body: j.streakBonus
+                            ? `Day ${j.streak} streak · +${j.streakBonus} ⬡ bonus`
+                            : "Wallet hex credited · the meter holds.",
+                          delta: `+${total} ⬡`,
+                        });
+                      } else if (r.status === 401) {
+                        cityNotice({
+                          title: "SIGN IN WITH X",
+                          body: "Carrier hex credited, but your X session isn't bound to this wallet — wallet hex needs that to credit.",
+                          delta: "+10 ⬡ local",
+                        });
+                      } else if (r.status === 409) {
+                        // Already claimed today — local +10 still applied to UI
+                        cityNotice({
+                          title: "ALREADY CLAIMED",
+                          body: "You've already claimed today on the wallet ledger.",
+                          delta: "0 ⬡",
+                        });
+                      } else {
+                        cityNotice({
+                          title: CANON.HEX_RESTORED,
+                          body: "Daily signal claimed · the meter holds.",
+                          delta: "+10 ⬡",
+                        });
+                      }
+                    } catch {
+                      cityNotice({
+                        title: CANON.HEX_RESTORED,
+                        body: "Daily signal claimed locally — couldn't reach the wallet ledger.",
+                        delta: "+10 ⬡",
+                      });
+                    }
+                  } else {
                     cityNotice({
-                      title: CANON.HEX_RESTORED,
-                      body: "Daily signal claimed · the meter holds.",
-                      delta: "+10 ⬡",
+                      title: "CONNECT WALLET",
+                      body: "Carrier hex credited locally. Connect a wallet to mirror it onto your wallet ledger.",
+                      delta: "+10 ⬡ local",
                     });
                   }
                 }}>
