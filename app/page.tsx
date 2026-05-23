@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CityFeedTicker } from "@/components/CityFeedTicker";
+import { DoThisNow } from "@/components/DoThisNow";
 import { WalletScanner } from "@/app/sync/WalletScanner";
 import { BecomeACarrier } from "@/components/BecomeACarrier";
 import { LiveStats } from "@/components/LiveStats";
@@ -81,6 +82,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* DO THIS NOW · personalized funnel — addresses the Discord report
+          where holders couldn't find the path to their first hex. Shows
+          ONE primary action based on viewer state. */}
+      <DoThisNow />
 
       {/* WHY FREELON · simple cards, plain English */}
       <section className="why-freelon">

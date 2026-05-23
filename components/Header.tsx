@@ -20,6 +20,13 @@ export function Header() {
           <Link href="/dashboard" className="nav-link">The Numbers</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
           <HeaderArchives />
+          {/* EARN HEX pill — Discord asked "how do people get points?" — make it
+              visible from every page so the funnel is one click away. */}
+          <Link href="/earn" className="nav-earn-pill" title="Every way to earn hex">
+            <span aria-hidden>⬡</span>
+            <span>EARN HEX</span>
+            <span aria-hidden>→</span>
+          </Link>
           <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Sync</Link>
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
@@ -32,6 +39,18 @@ export function Header() {
         .nav-link { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); transition: color .2s ease; }
         .nav-link:hover { color: var(--gold-bright); }
         .nav-sync { text-transform: uppercase; letter-spacing: 0.22em; }
+        .nav-earn-pill {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 6px 12px; border-radius: 999px;
+          border: 1px solid var(--gold);
+          background: rgba(200,167,93,0.07);
+          color: var(--gold);
+          font-family: var(--mono2); font-size: 10px;
+          letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600;
+          transition: background 120ms ease, transform 120ms ease;
+          text-decoration: none;
+        }
+        .nav-earn-pill:hover { background: rgba(200,167,93,0.16); transform: translateY(-1px); }
         @media (max-width: 980px) { .desktop-nav { display: none !important; } }
         @media (min-width: 981px) { .mobile-trigger, .mobile-sheet { display: none !important; } }
         .nav-more { position: relative; }

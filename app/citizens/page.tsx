@@ -27,7 +27,51 @@ export default function Citizens() {
     tier: c.tier,
     honoree: c.honoree || undefined,
     transmission_name: c.transmission_name || undefined,
+    sub_archetype: c.sub_archetype || undefined,
+    aura: c.aura || undefined,
+    hex_state: c.hex_state || undefined,
   }));
+
+  // Server-side compute: which citizens carry at least one RARE trait
+  // value — defined as appearing ≤ RARE_THRESHOLD times across the
+  // whole collection? Done here (not in the client browser) so we
+  // don't ship the 4040-row counting work to every visitor.
+  //
+  // The dataset has no truly-1/1 trait values (min count is 8) — only
+  // the 4 named One-of-Ones (IDs 1, 404, 1337, 4040) are unique. So
+  // we surface the rarest trait carriers instead, which is what @Eldox
+  // on Discord was actually looking for ("the Opera house collar").
+  const RARE_THRESHOLD = 20;
+  const TRAIT_KEYS: Array<keyof typeof mini[number]> = [
+    "shape", "caste", "sub_archetype", "aura", "hex_state",
+  ];
+  const counts: Record<string, Map<string, number>> = {};
+  for (const k of TRAIT_KEYS) counts[k as string] = new Map();
+  for (const c of mini) {
+    for (const k of TRAIT_KEYS) {
+      const v = c[k] as string | undefined;
+      if (!v || v === "None") continue;
+      const m = counts[k as string];
+      m.set(v, (m.get(v) || 0) + 1);
+    }
+  }
+  const rareTraitIds = new Set<number>();
+  for (const c of mini) {
+    // One-of-Ones always qualify regardless of trait counts
+    if (c.tier === "One of One") {
+      rareTraitIds.add(c.id);
+      continue;
+    }
+    for (const k of TRAIT_KEYS) {
+      const v = c[k] as string | undefined;
+      if (!v || v === "None") continue;
+      const n = counts[k as string].get(v) || 0;
+      if (n > 0 && n <= RARE_THRESHOLD) {
+        rareTraitIds.add(c.id);
+        break;
+      }
+    }
+  }
 
   return (
     <main className="citizens-page">
@@ -47,7 +91,7 @@ export default function Citizens() {
           <span className="kicker">SEARCH · FILTER · {all.length} TOTAL</span>
           <h2>Browse all <em>{all.length}</em></h2>
         </header>
-        <CitizensBrowser all={mini} />
+        <CitizensBrowser all={mini} rareTraitIds={rareTraitIds} rareThreshold={RARE_THRESHOLD} />
       </section>
 
       <section className="citizens-section reveal">

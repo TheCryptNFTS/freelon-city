@@ -7,8 +7,13 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { CONTRACT, TOTAL } from "@/lib/constants";
+
+// Force-dynamic — same webpack chunking quirk we hit on /channel.
+// Server components with image-heavy nested helpers triggered a
+// prerender TypeError. Rendering on demand sidesteps the static
+// generation path entirely.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Press Kit · FREELON CITY",
@@ -188,12 +193,11 @@ function Quote({ children }: { children: React.ReactNode }) {
 }
 
 function Asset({ label, href, preview, size }: { label: string; href: string; preview: string; size: "square" | "banner" }) {
-  const w = size === "square" ? 240 : 600;
-  const h = size === "square" ? 240 : 200;
   return (
     <article style={{ padding: "var(--s-3)", border: "1px solid var(--line)", borderRadius: 12, background: "rgba(255,255,255,0.02)" }}>
       <div style={{ position: "relative", width: "100%", aspectRatio: size === "square" ? "1/1" : "3/1", overflow: "hidden", borderRadius: 8, background: "#000", marginBottom: 10 }}>
-        <Image src={preview} alt={label} width={w} height={h} unoptimized style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={preview} alt={label} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
       <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase", marginBottom: 8 }}>{label}</div>
       <a
