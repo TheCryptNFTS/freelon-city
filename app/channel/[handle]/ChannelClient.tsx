@@ -165,6 +165,10 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
       <p style={{ marginTop: 40, fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-2)" }}>
         UNLISTED · NOT INDEXED · HOLDER-ONLY · CITIZEN #{citizenId.toString().padStart(4, "0")}
       </p>
+      <style>{`
+        .channel-claim-tile { transition: background 120ms ease, border-color 120ms ease, transform 120ms ease; }
+        .channel-claim-tile:hover { transform: translateY(-1px); filter: brightness(1.25); }
+      `}</style>
     </main>
   );
 }
@@ -173,6 +177,10 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
 // claim pre-typed so the channel owner can fire it with one click — no
 // more "Coordinate via DM" dead-end. @Nonz reported the middle tile
 // (RELAY SLOT) had no interaction; all three are now buttons.
+//
+// CSS-only hover (className + <style> tag above) to avoid an inline
+// React event handler that triggered a webpack chunking failure at
+// static prerender time on Next 15.5.
 function ClaimTile({
   n, label, blurb, intent, handle, civColor,
 }: {
@@ -191,6 +199,7 @@ function ClaimTile({
       target="_blank"
       rel="noreferrer"
       aria-label={`Claim ${label} for @${handle}`}
+      className="channel-claim-tile"
       style={{
         display: "block",
         padding: "10px 12px",
@@ -200,15 +209,6 @@ function ClaimTile({
         textDecoration: "none",
         color: "var(--ink)",
         fontFamily: "var(--mono2)",
-        transition: "background 120ms ease, border-color 120ms ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = `${color}1a`;
-        e.currentTarget.style.borderColor = color;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = `${color}0a`;
-        e.currentTarget.style.borderColor = `${color}55`;
       }}
     >
       <div style={{ fontSize: 9, letterSpacing: "0.26em", color, textTransform: "uppercase" }}>
