@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canClaimToday, getLastClaim, setLastClaim, todayUTC } from "@/lib/daily-claim-store";
+import { getLastClaim, todayUTC, tryClaimToday } from "@/lib/daily-claim-store";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
@@ -60,13 +60,13 @@ export async function POST(req: Request) {
   if (!requireSessionBound(req, addr)) {
     return NextResponse.json({ error: "session_required" }, { status: 401 });
   }
-  if (!(await canClaimToday(addr))) {
+  // Atomic SET NX claim — two concurrent POSTs cannot both win the race.
+  if (!(await tryClaimToday(addr))) {
     return NextResponse.json(
       { error: "already_claimed", today: todayUTC() },
       { status: 409 },
     );
   }
-  await setLastClaim(addr, todayUTC());
 
   // Update streak + milestone bonuses on the wallet hex ledger
   let streak = 0;

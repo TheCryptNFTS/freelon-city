@@ -72,10 +72,6 @@ export async function setReferrer(
   const r = referrer.toLowerCase();
   if (!j || !r || j === r) return null;
 
-  // First-ref-wins: if joiner already has a referrer, bail out.
-  const existing = await getReferral(j);
-  if (existing) return null;
-
   const row: Referral = {
     referrer: r,
     joiner: j,
@@ -84,6 +80,8 @@ export async function setReferrer(
   };
 
   if (!hasUpstash) {
+    // First-ref-wins, atomic in JS single-thread land.
+    if (memoryByJoiner.has(j)) return null;
     memoryByJoiner.set(j, row);
     const arr = memoryByReferrer.get(r) ?? [];
     arr.push(row);
@@ -92,7 +90,15 @@ export async function setReferrer(
   }
 
   try {
-    await upstash(["SET", KEY_JOINER(j), JSON.stringify(row)]);
+    // Atomic first-ref-wins via SET NX. Two concurrent setReferrer calls
+    // cannot both win — only one's NX succeeds, the other returns null.
+    // Closes the "referral hijack" race where two concurrent requests
+    // both passed the getReferral() check and overwrote each other.
+    const claim = await upstash(["SET", KEY_JOINER(j), JSON.stringify(row), "NX"]);
+    if (claim !== "OK") return null;
+    // Append to referrer's invited list. Not atomic, but safe — at worst
+    // we'd duplicate or drop one entry under heavy contention, and the
+    // authoritative joiner→referrer mapping is already locked above.
     const prev = (await upstash(["GET", KEY_REFERRER(r)])) as string | null;
     const arr: Referral[] = prev ? (JSON.parse(prev) as Referral[]) : [];
     arr.push(row);

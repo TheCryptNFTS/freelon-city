@@ -8,7 +8,7 @@ import {
 } from "@/lib/transmissions-store";
 import { isSameOrigin, requireSessionBound } from "@/lib/x-session";
 import { isValidAddress, getWalletBalanceVerified } from "@/lib/wallet-tokens";
-import { debitWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
+import { creditWalletHex, debitWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 import { CIVILIZATIONS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -107,7 +107,9 @@ export async function POST(req: Request) {
     );
   }
 
-  // Debit BEFORE save (rollback save if debit fails is harder than rollback debit)
+  // Debit BEFORE save. If saveTransmission throws, refund the burn so
+  // the user isn't out 100⬡ for nothing. Previously the comment promised
+  // a manual rollback but no refund code existed — silent hex loss.
   try {
     await debitWalletHex(addr, SUBMISSION_COST, {
       kind: "manual",
@@ -130,7 +132,20 @@ export async function POST(req: Request) {
     reports: 0,
     status: "live",
   };
-  await saveTransmission(t);
+  try {
+    await saveTransmission(t);
+  } catch (e) {
+    // Save failed after debit — refund the burn so the user isn't out
+    // 100⬡ for a transmission that never landed.
+    try {
+      await creditWalletHex(addr, SUBMISSION_COST, {
+        kind: "manual",
+        note: `Refund · transmission save failed`,
+      });
+    } catch {/* best-effort refund */}
+    console.error("transmission save failed", e);
+    return NextResponse.json({ error: "save_failed" }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, id: t.id, burned: SUBMISSION_COST });
 }

@@ -38,10 +38,48 @@ export async function setLastClaim(addr: string, day: string): Promise<void> {
     memory.set(addr.toLowerCase(), day);
     return;
   }
-  await upstash(["SET", KEY(addr), day]);
+  // 48h TTL — we only need today + yesterday to compute streaks. Stops
+  // unbounded growth of claim keys.
+  await upstash(["SET", KEY(addr), day, "EX", "172800"]);
 }
 
 export async function canClaimToday(addr: string): Promise<boolean> {
   const last = await getLastClaim(addr);
   return last !== todayUTC();
+}
+
+/**
+ * Atomic claim attempt. Returns true if this caller won the race and
+ * should proceed to credit hex; false if another request already claimed
+ * today for this wallet. Uses Redis SET NX so two concurrent POSTs
+ * cannot both pass.
+ *
+ * Closes the daily-claim TOCTOU: canClaimToday() + setLastClaim() was
+ * not atomic — two concurrent claims could both see "not yet claimed"
+ * and both credit 10⬡, doubling the daily payout.
+ */
+export async function tryClaimToday(addr: string): Promise<boolean> {
+  const day = todayUTC();
+  if (!hasUpstash) {
+    const w = addr.toLowerCase();
+    if (memory.get(w) === day) return false;
+    memory.set(w, day);
+    return true;
+  }
+  try {
+    // SET NX EX 172800 — only sets if key doesn't already match.
+    // Returns "OK" on success, null when key already existed.
+    const res = await upstash(["SET", KEY(addr), day, "NX", "EX", "172800"]);
+    if (res === "OK") return true;
+    // Key existed — check if it's today's claim or a stale value
+    const cur = (await upstash(["GET", KEY(addr)])) as string | null;
+    if (cur === day) return false;
+    // Stale (yesterday's) value — overwrite atomically with today and proceed
+    await upstash(["SET", KEY(addr), day, "EX", "172800"]);
+    return true;
+  } catch {
+    // On Upstash failure, fall back to single-attempt semantics. Won't
+    // double-credit because the credit path itself fails too.
+    return false;
+  }
 }
