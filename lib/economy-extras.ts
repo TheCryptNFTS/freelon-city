@@ -85,10 +85,9 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
 
     let totalCredit = 0;
     let newestTs = cursor;
+    const { paymentToEth } = await import("@/lib/eth-math");
     for (const ev of eligible) {
-      const qty = ev.payment?.quantity ? BigInt(ev.payment.quantity) : 0n;
-      const dec = ev.payment?.decimals ?? 18;
-      const eth = qty > 0n ? Number(qty) / 10 ** dec : 0;
+      const eth = paymentToEth(ev.payment);
       const share = (eth * ECONOMY.SALE_SHARE_PCT) / 100;
       const hex = ethToHex(share);
       if (hex > 0) {

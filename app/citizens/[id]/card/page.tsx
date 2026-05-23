@@ -21,9 +21,8 @@ async function getLastSale(tokenId: number): Promise<number | null> {
     const d = await r.json();
     const event = d.asset_events?.[0];
     if (!event) return null;
-    const decimals = Number(event.payment?.decimals ?? 18);
-    const amount = BigInt(event.payment?.quantity ?? "0");
-    return Number(amount) / 10 ** decimals;
+    const { paymentToEth } = await import("@/lib/eth-math");
+    return paymentToEth(event.payment);
   } catch {
     return null;
   }

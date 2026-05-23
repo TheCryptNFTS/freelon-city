@@ -137,9 +137,8 @@ export async function GET(req: Request) {
         // We compute priceEth from the payment field if ETH-like; non-ETH
         // sales contribute count but not the volume tally.
         if (isEthLikePayment(ev.payment)) {
-          const qty = ev.payment?.quantity ? BigInt(ev.payment.quantity) : 0n;
-          const dec = ev.payment?.decimals ?? 18;
-          const priceEth = qty > 0n ? Number(qty) / 10 ** dec : 0;
+          const { paymentToEth } = await import("@/lib/eth-math");
+          const priceEth = paymentToEth(ev.payment);
           const tidNum = parseInt(tokenId, 10);
           if (priceEth > 0 && Number.isFinite(tidNum)) {
             pulseSales.push({ tx, tokenId: tidNum, buyer, priceEth, ts });
@@ -179,9 +178,8 @@ export async function GET(req: Request) {
             const ghost = await getGhost(tid);
             // Sale price in wei via payment.quantity. Guarded for ETH-like
             // payments above so non-ETH sales can't be misread as discounts.
-            const qty = ev.payment?.quantity ? BigInt(ev.payment.quantity) : 0n;
-            const dec = ev.payment?.decimals ?? 18;
-            const priceEth = qty > 0n ? Number(qty) / 10 ** dec : 0;
+            const { paymentToEth } = await import("@/lib/eth-math");
+            const priceEth = paymentToEth(ev.payment);
             const gracePast = !!ghost && Date.now() >= ghost.ghostedAt;
             if (
               ghost && ghost.status === "ghosted" && gracePast &&

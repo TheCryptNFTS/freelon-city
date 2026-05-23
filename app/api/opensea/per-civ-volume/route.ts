@@ -48,8 +48,8 @@ export async function GET() {
         const p = ev.payment;
         if (!p?.quantity) continue;
         if (p.symbol && p.symbol !== "ETH" && p.symbol !== "WETH") continue;
-        const decimals = Number(p.decimals ?? 18);
-        const eth = Number(BigInt(p.quantity)) / 10 ** decimals;
+        const { weiToEth } = await import("@/lib/eth-math");
+        const eth = weiToEth(p.quantity, Number(p.decimals ?? 18));
         if (!isFinite(eth) || eth <= 0) continue;
         perCivVol[civ] = (perCivVol[civ] || 0) + eth;
         perCivCount[civ] = (perCivCount[civ] || 0) + 1;

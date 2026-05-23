@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { weiToEth } from "@/lib/eth-math";
 
 export const revalidate = 120; // 2 min cache
 
@@ -42,7 +43,7 @@ export async function GET() {
         const perTokenWei = bundleSize > 1 ? totalWei / BigInt(bundleSize) : totalWei;
         const decimals = e.payment?.decimals ?? 18;
         const perTokenEth = totalWei > 0n
-          ? (Number(perTokenWei) / 10 ** decimals).toFixed(4)
+          ? weiToEth(perTokenWei, decimals).toFixed(4)
           : null;
         return {
           tokenId: e.nft?.identifier ? Number(e.nft.identifier) : null,

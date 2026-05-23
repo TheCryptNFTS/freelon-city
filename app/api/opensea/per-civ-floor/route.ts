@@ -54,7 +54,8 @@ export async function GET() {
         // Only count ETH/WETH listings
         if (cur.currency && cur.currency !== "ETH" && cur.currency !== "WETH") continue;
         const decimals = Number(cur.decimals ?? 18);
-        const eth = Number(BigInt(cur.value)) / 10 ** decimals;
+        const { weiToEth } = await import("@/lib/eth-math");
+        const eth = weiToEth(cur.value, decimals);
         if (!isFinite(eth) || eth <= 0) continue;
         if (perCivMin[civ] === undefined || eth < perCivMin[civ]) {
           perCivMin[civ] = eth;

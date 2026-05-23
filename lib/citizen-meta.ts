@@ -66,8 +66,8 @@ export async function getCitizenMeta(tokenId: number): Promise<CitizenMeta> {
       const d = (await r.json()) as { asset_events?: SaleEvent[] };
       const ev = d.asset_events?.[0];
       if (ev?.payment?.quantity) {
-        const decimals = ev.payment.decimals ?? 18;
-        lastSaleEth = Number(ev.payment.quantity) / 10 ** decimals;
+        const { paymentToEth } = await import("@/lib/eth-math");
+        lastSaleEth = paymentToEth(ev.payment);
         lastSaleTs = ev.event_timestamp ?? null;
       }
     }

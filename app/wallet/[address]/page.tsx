@@ -120,17 +120,18 @@ async function fetchLongestHeld(
         next: { revalidate: 600 },
       });
       if (!res.ok) break;
-      const data = (await res.json()) as {
-        asset_events?: Array<{
-          event_type?: string;
-          to_address?: string;
-          to_account?: { address?: string };
-          event_timestamp?: number;
-          nft?: { contract?: string; identifier?: string };
-        }>;
-        next?: string | null;
+      type RawTransferEv = {
+        event_type?: string;
+        to_address?: string;
+        to_account?: { address?: string };
+        event_timestamp?: number;
+        nft?: { contract?: string; identifier?: string };
       };
-      const evts = data.asset_events || [];
+      const data = (await res.json()) as { asset_events?: RawTransferEv[]; events?: RawTransferEv[]; next?: string | null };
+      // OpenSea has historically shipped these under both `asset_events`
+      // (current) and `events` (legacy/some endpoints). Accept either.
+      const { extractEvents } = await import("@/lib/opensea-fetch");
+      const evts = extractEvents<RawTransferEv>(data);
       for (const e of evts) {
         const toAddr = (
           e.to_address ||

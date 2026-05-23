@@ -48,7 +48,8 @@ export async function GET() {
         if (!cur?.value) continue;
         if (cur.currency && cur.currency !== "ETH" && cur.currency !== "WETH") continue;
         const decimals = Number(cur.decimals ?? 18);
-        const eth = Number(BigInt(cur.value)) / 10 ** decimals;
+        const { weiToEth } = await import("@/lib/eth-math");
+        const eth = weiToEth(cur.value, decimals);
         if (!isFinite(eth) || eth <= 0) continue;
         const prev = seen.get(tid);
         if (prev === undefined || eth < prev) seen.set(tid, eth);

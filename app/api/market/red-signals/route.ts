@@ -89,7 +89,8 @@ export async function GET(req: Request) {
       const wei = l.current_price || l.price?.current?.value;
       if (!wei) continue;
       const decimals = l.price?.current?.decimals ?? 18;
-      const eth = Number(BigInt(wei)) / 10 ** decimals;
+      const { weiToEth } = await import("@/lib/eth-math");
+      const eth = weiToEth(wei, decimals);
       if (!isRedSignal(eth, floor)) continue;
 
       const seller = (l.protocol_data?.parameters?.offerer || l.maker?.address || "").toLowerCase();
