@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { markStep, getQuests, QUEST_REWARDS, QUEST_TARGETS, type QuestId } from "@/lib/quests-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { isSameOrigin, requireSessionBound, verifySession, X_SESSION_COOKIE } from "@/lib/x-session";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,10 @@ export async function POST(
 ) {
   const rl = await limit(req, "quest:post", { max: 40, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
+  // CSRF: only accept same-origin browser POSTs.
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "bad_origin" }, { status: 403 });
+  }
 
   const { questId } = await params;
   if (!isValidQuest(questId)) {
@@ -41,6 +46,27 @@ export async function POST(
   const stepId = (body.stepId ?? "").trim().slice(0, 64);
   if (!key) return NextResponse.json({ error: "invalid_key" }, { status: 400 });
   if (!stepId) return NextResponse.json({ error: "missing_stepId" }, { status: 400 });
+
+  // Auth: require an X session that matches the key being mutated.
+  //   - wallet key (0x…): require session bound to that wallet
+  //   - handle key (handle:…): require session whose xHandle matches
+  // Previously: no auth — anyone could POST quest progress for any
+  // wallet or handle (rate-limit was the only gate).
+  if (/^0x[a-f0-9]{40}$/.test(key)) {
+    if (!requireSessionBound(req, key)) {
+      return NextResponse.json({ error: "session_required" }, { status: 401 });
+    }
+  } else if (key.startsWith("handle:")) {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const m = cookieHeader.match(new RegExp(`(?:^|; )${X_SESSION_COOKIE}=([^;]+)`));
+    const session = m ? verifySession(decodeURIComponent(m[1])) : null;
+    const claimedHandle = key.slice("handle:".length);
+    if (!session || (session.xHandle || "").toLowerCase() !== claimedHandle) {
+      return NextResponse.json({ error: "session_required" }, { status: 401 });
+    }
+  } else {
+    return NextResponse.json({ error: "invalid_key" }, { status: 400 });
+  }
 
   const result = await markStep(key, questId, stepId);
   return NextResponse.json({

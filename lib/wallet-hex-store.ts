@@ -172,14 +172,20 @@ export async function listWalletHexRecords(limit = 500): Promise<WalletHex[]> {
   try {
     const url = process.env.UPSTASH_REDIS_REST_URL!;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-    // SCAN with MATCH pattern
+    // SCAN with MATCH pattern. COUNT bumped to 1000 — Upstash REST
+    // each call is its own HTTP round-trip, so a higher COUNT cuts
+    // round-trips proportionally. Also a hard wall-clock budget so
+    // a busy Upstash instance can't blow the function timeout.
     const pattern = "freelon:walletHex:v1:*";
     const keys: string[] = [];
     let cursor = "0";
     let pages = 0;
+    const startedAt = Date.now();
+    const HARD_BUDGET_MS = 5000;
     do {
+      if (Date.now() - startedAt > HARD_BUDGET_MS) break;
       const res = await fetch(
-        `${url}/SCAN/${encodeURIComponent(cursor)}/MATCH/${encodeURIComponent(pattern)}/COUNT/200`,
+        `${url}/SCAN/${encodeURIComponent(cursor)}/MATCH/${encodeURIComponent(pattern)}/COUNT/1000`,
         {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",

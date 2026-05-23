@@ -36,11 +36,21 @@ export function useViewerAddr(): ViewerState {
 
   useEffect(() => {
     setState({ addr: readAddrCookie(), ready: true });
-    // Listen for storage / focus events so the wallet badge changes
-    // reflect across other open tabs / after MetaMask connect events.
+    // Refresh viewer state on:
+    //  - focus       → user comes back to this tab
+    //  - storage     → another tab connected/disconnected a wallet
+    //  - visibility  → tab unhide (mobile / bfcache)
+    // Previously only `focus` was hooked, so cross-tab connect events
+    // didn't propagate and the wallet badge would lie until next click.
     const refresh = () => setState({ addr: readAddrCookie(), ready: true });
     window.addEventListener("focus", refresh);
-    return () => window.removeEventListener("focus", refresh);
+    window.addEventListener("storage", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
 
   return state;

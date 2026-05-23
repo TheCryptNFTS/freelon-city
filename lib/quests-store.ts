@@ -116,6 +116,33 @@ async function setQuests(rec: QuestState): Promise<void> {
 }
 
 /**
+ * Advisory mutex per quest-key to serialize the read-modify-write in
+ * markStep. Closes the classic race where two concurrent step submissions
+ * read the same initial state, add their own step locally, and the second
+ * write clobbers the first — losing one step of progress.
+ *
+ * 3s TTL means a crash mid-update self-heals within 3s.
+ */
+async function acquireLock(key: string, retries = 5): Promise<boolean> {
+  if (!hasUpstash) return true; // in-process JS is single-threaded
+  const lockKey = `freelon:quests:lock:${key.toLowerCase()}`;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await upstash(["SET", lockKey, "1", "NX", "EX", "3"]);
+      if (res === "OK") return true;
+    } catch { return false; }
+    await new Promise((r) => setTimeout(r, 80 + i * 40));
+  }
+  return false;
+}
+
+async function releaseLock(key: string): Promise<void> {
+  if (!hasUpstash) return;
+  const lockKey = `freelon:quests:lock:${key.toLowerCase()}`;
+  try { await upstash(["DEL", lockKey]); } catch {}
+}
+
+/**
  * Mark a step of a quest as done. If this completes the quest and it wasn't
  * already complete, award the reward to the wallet (key must be an address
  * for the credit to land in the hex ledger — for handle-keyed callers, the
@@ -132,61 +159,70 @@ export async function markStep(
   progress: number;
   target: number;
 }> {
-  const state = await getQuests(key);
-  const target = QUEST_TARGETS[questId];
+  // Serialize concurrent submissions for this key to prevent step loss
+  // under contention. If we can't grab the lock in ~600ms, proceed
+  // anyway — a lost step is a recoverable annoyance, not a security
+  // issue, and we don't want to block legitimate users on a hot key.
+  const gotLock = await acquireLock(key);
+  try {
+    const state = await getQuests(key);
+    const target = QUEST_TARGETS[questId];
 
-  if (state.completed.includes(questId)) {
-    return {
-      state,
-      justCompleted: false,
-      reward: 0,
-      progress: target,
-      target,
-    };
-  }
-
-  // SECURITY: reject stepIds not on the allowlist for this quest.
-  // Without this, callers could POST arbitrary strings to farm rewards.
-  if (!isValidStepForQuest(questId, stepId)) {
-    const current = state.progress[questId]?.length ?? 0;
-    return {
-      state,
-      justCompleted: false,
-      reward: 0,
-      progress: current,
-      target,
-    };
-  }
-
-  const steps = new Set(state.progress[questId] || []);
-  steps.add(stepId);
-  state.progress[questId] = Array.from(steps);
-  await setQuests(state);
-
-  if (steps.size >= target) {
-    state.completed.push(questId);
-    state.lastUpdate = Date.now();
-    await setQuests(state);
-    const reward = QUEST_REWARDS[questId];
-    // Credit hex if key looks like a 0x address
-    if (/^0x[a-f0-9]{40}$/i.test(state.key)) {
-      try {
-        await creditWalletHex(state.key, reward, {
-          kind: "quest",
-          note: `Quest: ${questId} (+${reward}⬡)`,
-        });
-      } catch {
-        /* non-fatal */
-      }
+    if (state.completed.includes(questId)) {
+      return {
+        state,
+        justCompleted: false,
+        reward: 0,
+        progress: target,
+        target,
+      };
     }
-    return { state, justCompleted: true, reward, progress: target, target };
-  }
 
-  return {
-    state,
-    justCompleted: false,
-    reward: 0,
-    progress: steps.size,
-    target,
-  };
+    // SECURITY: reject stepIds not on the allowlist for this quest.
+    // Without this, callers could POST arbitrary strings to farm rewards.
+    if (!isValidStepForQuest(questId, stepId)) {
+      const current = state.progress[questId]?.length ?? 0;
+      return {
+        state,
+        justCompleted: false,
+        reward: 0,
+        progress: current,
+        target,
+      };
+    }
+
+    const steps = new Set(state.progress[questId] || []);
+    steps.add(stepId);
+    state.progress[questId] = Array.from(steps);
+    await setQuests(state);
+
+    if (steps.size >= target) {
+      state.completed.push(questId);
+      state.lastUpdate = Date.now();
+      await setQuests(state);
+      const reward = QUEST_REWARDS[questId];
+      // Credit hex if key looks like a 0x address
+      if (/^0x[a-f0-9]{40}$/i.test(state.key)) {
+        try {
+          await creditWalletHex(state.key, reward, {
+            kind: "quest",
+            note: `Quest: ${questId} (+${reward}⬡)`,
+          });
+        } catch {
+          /* non-fatal */
+        }
+      }
+      return { state, justCompleted: true, reward, progress: target, target };
+    }
+
+    return {
+      state,
+      justCompleted: false,
+      reward: 0,
+      progress: steps.size,
+      target,
+    };
+  } finally {
+    if (gotLock) await releaseLock(key);
+  }
 }

@@ -97,9 +97,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "session_required" }, { status: 401 });
     }
   } else {
-    // Handle path: session must exist and its xHandle must match (case-insensitive)
+    // Handle path: session must exist and its xHandle must match the
+    // handle inside the storage key. The storage key is `handle:<name>`
+    // (with the prefix added by normalizeKey) — strip it before compare,
+    // otherwise the check always fails. Bug fix: this previously
+    // compared "name" against "handle:name" so handle-claims always 401'd.
     const s = getSessionFromRequest(req);
-    if (!s || (s.xHandle || "").toLowerCase() !== key.toLowerCase()) {
+    const claimedHandle = key.startsWith("handle:") ? key.slice("handle:".length) : key;
+    if (!s || (s.xHandle || "").toLowerCase() !== claimedHandle.toLowerCase()) {
       return NextResponse.json({ error: "session_required" }, { status: 401 });
     }
   }

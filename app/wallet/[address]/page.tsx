@@ -37,19 +37,31 @@ async function fetchAllHolders(): Promise<HolderRow[]> {
   // 10s function timeout. 10 pages × 200 = 2000 NFTs, which covers >99% of
   // wallets. Larger wallets simply show a partial holders set; their rank
   // computation will be conservative but the page still renders fast.
+  //
+  // Also enforce a hard wall-clock budget (7s) — when OpenSea is slow,
+  // pagination alone could blow past 10s. If we run out of time, return
+  // what we've got and let the rank be approximate.
   const MAX_PAGES = 10;
+  const HARD_BUDGET_MS = 7000;
+  const startedAt = Date.now();
   const limit = 200;
 
   try {
     do {
+      if (Date.now() - startedAt > HARD_BUDGET_MS) break;
       const url = `https://api.opensea.io/api/v2/chain/ethereum/contract/${CONTRACT}/nfts?limit=${limit}${
         next ? `&next=${encodeURIComponent(next)}` : ""
       }`;
+      const remainingMs = Math.max(500, HARD_BUDGET_MS - (Date.now() - startedAt));
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), remainingMs);
       const res = await fetch(url, {
         headers: { "X-API-KEY": apiKey, accept: "application/json" },
         next: { revalidate: 300 },
-      });
-      if (!res.ok) break;
+        signal: ac.signal,
+      }).catch(() => null);
+      clearTimeout(timer);
+      if (!res || !res.ok) break;
       const data = (await res.json()) as {
         nfts?: Array<{
           identifier?: string;

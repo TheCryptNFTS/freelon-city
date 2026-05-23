@@ -27,12 +27,18 @@ export async function POST(
     return NextResponse.json({ error: "bad_origin" }, { status: 403 });
   }
 
-  let body: { addr?: string; hex?: number } = {};
+  let body: { addr?: string; hex?: number; idemKey?: string } = {};
   try { body = await req.json(); } catch {
     return NextResponse.json({ error: "bad_json" }, { status: 400 });
   }
   const addr = (body.addr || "").toLowerCase();
   const hex = Math.floor(Number(body.hex || 0));
+  // Optional client-supplied idempotency key. The client should generate
+  // a fresh nonce (UUID/crypto.randomUUID) per boost intent; if the user
+  // double-clicks or the network retries, the second call returns the
+  // first result instead of double-debiting. Sanitized to [a-z0-9-]{8,64}.
+  const rawIdem = (body.idemKey || "").trim().toLowerCase().slice(0, 64);
+  const idemKey = /^[a-z0-9-]{8,64}$/.test(rawIdem) ? rawIdem : "";
   if (!isValidAddress(addr)) {
     return NextResponse.json({ error: "invalid_address" }, { status: 400 });
   }
@@ -41,6 +47,28 @@ export async function POST(
   }
   if (!requireSessionBound(req, addr)) {
     return NextResponse.json({ error: "session_required" }, { status: 401 });
+  }
+
+  // Idempotency check: if a previous identical boost succeeded with
+  // this key, replay the result without re-debiting. 24h TTL covers
+  // any reasonable retry window.
+  const idemStorageKey = idemKey ? `freelon:boost:idem:${addr}:${idemKey}` : "";
+  const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  if (idemStorageKey && hasUpstash) {
+    try {
+      const url = process.env.UPSTASH_REDIS_REST_URL!;
+      const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
+      const cached = await fetch(`${url}/GET/${encodeURIComponent(idemStorageKey)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }).then((r) => r.ok ? r.json() : null) as { result: string | null } | null;
+      if (cached?.result) {
+        return new NextResponse(cached.result, {
+          status: 200,
+          headers: { "content-type": "application/json", "x-idempotent-replay": "1" },
+        });
+      }
+    } catch {/* non-fatal — fall through to fresh debit */}
   }
 
   const { id } = await params;
@@ -95,11 +123,24 @@ export async function POST(
 
   // Bump score
   const r = await boostTransmission(id, addr, hex);
-  return NextResponse.json({
+  const payload = {
     ok: true,
     burned: hex,
     royaltyToAuthor: royalty,
     boostHex: r.t?.boostHex ?? 0,
     signals: r.t?.signals ?? 0,
-  });
+  };
+  // Cache the response under the idempotency key for 24h so retries
+  // replay instead of re-debiting.
+  if (idemStorageKey && hasUpstash) {
+    try {
+      const url = process.env.UPSTASH_REDIS_REST_URL!;
+      const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
+      await fetch(`${url}/SETEX/${encodeURIComponent(idemStorageKey)}/86400/${encodeURIComponent(JSON.stringify(payload))}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+    } catch {/* non-fatal */}
+  }
+  return NextResponse.json(payload);
 }

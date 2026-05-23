@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { getTransmission, toPublic } from "@/lib/transmissions-store";
 
-export const revalidate = 30;
+// Signals/boosts mutate the transmission in real time. A 30s revalidate
+// meant the detail page lagged behind boosts by up to 30s and felt
+// broken (boost → score didn't change). Force dynamic + no-store so
+// every fetch returns live state. Rate limit above is the real cap.
+export const dynamic = "force-dynamic";
 
 export async function GET(
   req: Request,
@@ -15,5 +19,11 @@ export async function GET(
   if (!t || t.status !== "live") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
-  return NextResponse.json(toPublic(t));
+  return new NextResponse(JSON.stringify(toPublic(t)), {
+    status: 200,
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "no-store, no-cache, must-revalidate",
+    },
+  });
 }

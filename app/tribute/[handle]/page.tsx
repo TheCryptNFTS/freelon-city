@@ -57,14 +57,17 @@ export default async function TributePage({ params }: { params: Promise<{ handle
     }
   }
 
-  // Look up current on-chain holder — 2s budget so the build doesn't stall.
-  // If RPC is slow or unavailable, simply omit the badge (graceful).
+  // Look up current on-chain holder — 6s budget. 2s was too aggressive:
+  // a single RPC call to a busy public node often takes 1-2s, and
+  // owner-of uses the 4-RPC fallback chain which can serially try each.
+  // Frequent timeouts here were the root of the "patron badge missing"
+  // reports. If RPC truly fails, simply omit the badge (graceful).
   let currentPatron: string | null = null;
   try {
     const { ownerOf } = await import("@/lib/owner-of");
     currentPatron = await Promise.race<string | null>([
       ownerOf(h.id),
-      new Promise<null>((r) => setTimeout(() => r(null), 2000)),
+      new Promise<null>((r) => setTimeout(() => r(null), 6000)),
     ]);
   } catch {
     /* non-fatal */

@@ -60,15 +60,23 @@ export async function POST(req: Request) {
     );
   }
 
-  // Sanitize display name — strip HTML tags / brackets defense-in-depth
-  // Stricter sanitizer: strip ALL control chars + HTML metachars + quote
-  // characters. Defense-in-depth — React already escapes JSX output, but
-  // future contexts (raw HTML, attribute interpolation) shouldn't be a
-  // hidden footgun. Allows letters, digits, spaces, and basic punctuation.
+  // Sanitize display name — multiple layers:
+  //   1. Strip control chars (incl. zero-width joiners that smuggle hidden text)
+  //   2. Strip HTML metachars + quotes
+  //   3. Normalize unicode to NFC so combining marks don't render as
+  //      visually identical look-alikes to brand names
+  //   4. Reject if the result is empty after cleaning (was just punctuation)
   const safeDisplay = display
+    .normalize("NFC")
     // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x1f\x7f<>&"'`\\/]/g, "")
-    .slice(0, 32);
+    // Strip zero-width and bidi-control runs (homoglyph attack vector)
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "")
+    .slice(0, 32)
+    .trim();
+  if (!safeDisplay) {
+    return NextResponse.json({ error: "invalid_display" }, { status: 400 });
+  }
 
   // Check balance
   const hex = await getWalletHex(address);

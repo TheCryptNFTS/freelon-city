@@ -76,11 +76,14 @@ export function TransmissionCard({ t: initialT, compact }: { t: Public; compact?
     const hex = Math.floor(Number(boostAmt));
     if (!Number.isFinite(hex) || hex < 10) { setErr("MIN BOOST 10⬡"); return; }
     setBoosting(true);
+    // Idempotency key — server dedupes retries against this so a
+    // network blip + retry doesn't double-debit.
+    const idemKey = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`).toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 64);
     try {
       const r = await fetch(`/api/transmissions/${t.id}/boost`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ addr: viewer.addr, hex }),
+        body: JSON.stringify({ addr: viewer.addr, hex, idemKey }),
       });
       const j = await r.json();
       if (!r.ok) {
