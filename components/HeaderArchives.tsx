@@ -17,6 +17,7 @@ const LINKS: { href: string; label: string; gold?: boolean }[] = [
   { href: "/undervalued", label: "Undervalued" },
   { href: "/civ-wars",    label: "⬡ Civ Wars", gold: true },
   { href: "/transmissions", label: "⬡ Transmissions", gold: true },
+  { href: "/relay",       label: "⬡ Relay (Post)", gold: true },
   { href: "/graveyard",   label: "Graveyard" },
   { href: "/pfp",         label: "PFP" },
   { href: "/secrets",     label: "⬡ Secrets", gold: true },

@@ -1,24 +1,27 @@
 /**
  * Centralized tweet templates and share URL builders.
  *
- * Every shareable surface on the site goes through here so the brand voice
- * stays consistent and every share doubles as recruitment — a "get yours"
- * CTA in every template.
+ * X (twitter) algorithmically suppresses posts that lead with a link.
+ * Every template here:
+ *   1. Leads with an @4040hex mention so the post gets discovery boost
+ *   2. Carries a hooky one-liner about the user's specific status
+ *   3. Ends with the URL ONLY on the last line, often without a
+ *      preceding empty line so it reads as a citation, not a CTA
+ *   4. Closes with #FREELONCITY #404HEXNOTFOUND so the brand
+ *      clusters into a searchable thread
  *
- * Tone: short, mythic, ALL-CAPS for impact lines, never marketing-speak.
- * Every tweet ends with a way for a reader to claim their own thing.
+ * Every share doubles as recruitment — there is always a way for a
+ * reader to participate (sync, claim, watch, snipe, etc).
  */
 
 export const SITE = "https://www.freeloncity.com";
+export const HANDLE = "@4040hex";
 const HASHTAGS = "#FREELONCITY #404HEXNOTFOUND";
 
 /** Build a twitter intent URL. */
 export function tweetIntent(text: string): string {
   return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
 }
-
-/** Common "get yours" call-to-action — short, hooky. */
-const GET_YOURS = `Find your civ → ${SITE}/sync`;
 
 // ─────────────────────────────────────────────────────────────────────
 // Per-surface tweet builders
@@ -27,6 +30,7 @@ const GET_YOURS = `Find your civ → ${SITE}/sync`;
 /**
  * Carrier public profile share — used on /carrier/[handle].
  * The mythic frame: you ARE one of the civs, not just a holder.
+ * Tag-first so the post isn't link-suppressed by X.
  */
 export function tweetCarrier(input: {
   handle: string;
@@ -36,22 +40,19 @@ export function tweetCarrier(input: {
 }): string {
   const id4 = input.patronId.toString().padStart(4, "0");
   return [
-    `⬡ I'm a CARRIER of ${input.civName.toUpperCase()}.`,
+    `${HANDLE} · I'M A CARRIER OF ${input.civName.toUpperCase()}.`,
     ``,
     `${input.doctrine.toUpperCase()}.`,
     `Patron citizen · #${id4}`,
     ``,
     `The signal moves through us.`,
-    ``,
-    `${GET_YOURS}`,
-    ``,
     `${HASHTAGS}`,
+    `${SITE}/sync`,
   ].join("\n");
 }
 
 /**
  * Citizen detail share — used on /citizens/[id].
- * Frame: "I'm holding this specific freelon, here's what it is, get one."
  */
 export function tweetCitizen(input: {
   tokenId: number;
@@ -63,21 +64,18 @@ export function tweetCitizen(input: {
   const id4 = input.tokenId.toString().padStart(4, "0");
   const title = input.name || `Citizen #${id4}`;
   return [
-    `⬡ ${title} · #${id4}`,
+    `${HANDLE} · ${title} · #${id4}`,
     ``,
     `${input.civName.toUpperCase()} · ${input.tier.toUpperCase()} · ${input.shape.toUpperCase()}`,
     ``,
-    `4040 citizens on Ethereum. One of them is yours.`,
-    ``,
-    `${SITE}/citizens/${input.tokenId}`,
-    ``,
+    `4040 citizens. One of them is yours.`,
     `${HASHTAGS}`,
+    `${SITE}/citizens/${input.tokenId}`,
   ].join("\n");
 }
 
 /**
- * Listing card share — used on /citizens/[id]/card (AskAndShare).
- * Frame: market signal. Direct ask + last sale.
+ * Listing card share — direct market signal with last sale + ask.
  */
 export function tweetListing(input: {
   tokenId: number;
@@ -90,23 +88,20 @@ export function tweetListing(input: {
   const id4 = input.tokenId.toString().padStart(4, "0");
   const last = input.lastSaleEth != null ? `${trimEth(input.lastSaleEth)} ETH` : "—";
   return [
-    `⬡ LISTING · FREELON CITY #${id4}`,
+    `${HANDLE} · LISTING #${id4}`,
     input.name && input.name !== `Citizen #${id4}` ? `"${input.name}"` : null,
     ``,
     `Last sale  ${last}`,
     `Ask        ${trimEth(input.askEth)} ETH`,
     ``,
     `${input.civName.toUpperCase()} · ${input.shape.toUpperCase()}`,
-    ``,
-    `${SITE}/citizens/${input.tokenId}`,
-    ``,
     `${HASHTAGS}`,
+    `${SITE}/citizens/${input.tokenId}`,
   ].filter(Boolean).join("\n");
 }
 
 /**
- * Passport share — used on /passport/[address].
- * Frame: identity reveal. Class name is the hook.
+ * Passport share — identity reveal. Class name is the hook.
  */
 export function tweetPassport(input: {
   klass: string;
@@ -114,65 +109,61 @@ export function tweetPassport(input: {
   balance: number;
 }): string {
   return [
-    `⬡ THE CITY RECOGNIZES ME AS A ${input.klass.toUpperCase()}.`,
+    `${HANDLE} · THE CITY RECOGNIZES ME AS A ${input.klass.toUpperCase()}.`,
     ``,
     `${input.balance} citizen${input.balance === 1 ? "" : "s"} of FREELON CITY held.`,
     ``,
-    `Generate your passport → ${SITE}/passport/${input.address}`,
-    ``,
+    `What does the city call you?`,
     `${HASHTAGS}`,
+    `${SITE}/passport/${input.address}`,
   ].join("\n");
 }
 
 /**
- * Wallet rank share — used on /wallet/[address].
- * Frame: leaderboard position as flex.
+ * Wallet rank share — leaderboard position as flex.
  */
 export function tweetRank(input: { address: string; rank?: number | null; total?: number | null }): string {
   const rankLine = input.rank && input.total
-    ? `Rank #${input.rank} of ${input.total} carriers.`
-    : `A carrier of FREELON CITY.`;
+    ? `RANK #${input.rank} of ${input.total} carriers.`
+    : `A CARRIER of FREELON CITY.`;
   return [
-    `⬡ ${rankLine}`,
+    `${HANDLE} · ${rankLine}`,
     ``,
     `The city pays carriers in hex daily.`,
-    `Find your wallet → ${SITE}/wallet/${input.address}`,
-    ``,
+    `Where's your rank?`,
     `${HASHTAGS}`,
+    `${SITE}/wallet/${input.address}`,
   ].join("\n");
 }
 
 /**
- * Tribute share — used on /citizens/[id] for honorary citizens
- * AND on /tribute/[handle].
+ * Tribute share — used for honorary citizens.
  */
 export function tweetTribute(input: { handle: string; tokenId: number }): string {
   const cleanHandle = input.handle.replace(/^@/, "");
   const id4 = input.tokenId.toString().padStart(4, "0");
   return [
-    `⬡ @${cleanHandle} is FREELON CITY citizen #${id4}.`,
+    `${HANDLE} · @${cleanHandle} is citizen #${id4} of FREELON CITY.`,
     ``,
-    `35 honoraries. The signal remembers.`,
-    ``,
-    `Find yours → ${SITE}/sync?h=@${cleanHandle}`,
-    ``,
+    `35 honorees. The signal remembers.`,
     `${HASHTAGS}`,
+    `${SITE}/tribute/${cleanHandle}`,
   ].join("\n");
 }
 
 /**
- * Civ pride share — used on /civilizations/[slug].
+ * Civ pride share — civ-allegiance flex.
  */
 export function tweetCivPride(input: { civName: string; doctrine: string; population: number }): string {
   return [
-    `⬡ I BACK ${input.civName.toUpperCase()}.`,
+    `${HANDLE} · I BACK ${input.civName.toUpperCase()}.`,
     ``,
     `${input.doctrine.toUpperCase()}.`,
-    `${input.population} of 4040 citizens carry this signal.`,
+    `${input.population} of 4040 carry this signal.`,
     ``,
-    `Pick your civ → ${SITE}/civilizations`,
-    ``,
+    `Which civ are you?`,
     `${HASHTAGS}`,
+    `${SITE}/civilizations`,
   ].join("\n");
 }
 
@@ -181,11 +172,11 @@ export function tweetCivPride(input: { civName: string; doctrine: string; popula
  */
 export function tweetDashboard(text: string): string {
   return [
-    `⬡ ${text}`,
+    `${HANDLE} · ${text}`,
     ``,
-    `${SITE}/dashboard`,
-    ``,
+    `Live numbers from the city.`,
     `${HASHTAGS}`,
+    `${SITE}/dashboard`,
   ].join("\n");
 }
 
@@ -199,15 +190,15 @@ export function tweetTransmission(input: {
   authorHandle: string;
 }): string {
   return [
-    `⬡ TRANSMISSION · ${input.civName.toUpperCase()}`,
+    `${HANDLE} · TRANSMISSION from ${input.civName.toUpperCase()}`,
     ``,
     `"${input.caption.slice(0, 180)}"`,
     ``,
     `— @${input.authorHandle.replace(/^@/, "")}`,
     ``,
-    `Signal back ⬢ or boost 🔥 → ${SITE}/transmissions/${input.id}`,
-    ``,
+    `Signal back ⬢ or boost 🔥`,
     `${HASHTAGS}`,
+    `${SITE}/transmissions/${input.id}`,
   ].join("\n");
 }
 
@@ -216,13 +207,89 @@ export function tweetTransmission(input: {
  */
 export function tweetGeneric(text: string, pageUrl: string): string {
   return [
-    `${text}`,
-    ``,
-    `${pageUrl}`,
+    `${HANDLE} · ${text}`,
     ``,
     `${HASHTAGS}`,
+    `${pageUrl}`,
   ].join("\n");
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// REPLY PROMPTS — for the new daily-replies feature
+// Carriers can post these (not as a link, as a quoted-reply or as
+// their own thought) to drive engagement around the brand without
+// dropping a link.
+// ─────────────────────────────────────────────────────────────────────
+
+export type ReplyPrompt = {
+  id: string;
+  category: "reply" | "quote" | "own-post";
+  hook: string;
+  body: string;
+};
+
+export const REPLY_PROMPTS: ReplyPrompt[] = [
+  {
+    id: "civ-pride",
+    category: "own-post",
+    hook: "REPRESENT YOUR CIV",
+    body: `${HANDLE} · which civilization are you carrying for?\n\nMine is ____.\n\n${HASHTAGS}`,
+  },
+  {
+    id: "signal-found",
+    category: "own-post",
+    hook: "I FOUND THE SIGNAL",
+    body: `${HANDLE} · the signal found me.\n\nI'm citizen #____ of FREELON CITY.\n\nThe city remembers everything.\n\n${HASHTAGS}`,
+  },
+  {
+    id: "daily-claim",
+    category: "own-post",
+    hook: "DAILY HEX CLAIMED",
+    body: `${HANDLE} · claimed today's signal.\n\nDay ____ of my streak. The meter keeps ticking.\n\n${HASHTAGS}`,
+  },
+  {
+    id: "snipe-flex",
+    category: "own-post",
+    hook: "I SNIPED A RED SIGNAL",
+    body: `${HANDLE} · sniped a 🔴 RED SIGNAL.\n\n____ ⬡ bounty locked in. The city pays carriers who move first.\n\n${HASHTAGS}`,
+  },
+  {
+    id: "carrier-call",
+    category: "reply",
+    hook: "WELCOME NEW CARRIERS",
+    body: `${HANDLE} carriers — welcome to the signal.\n\nFind your civ. Post daily. The city remembers.\n\n${HASHTAGS}`,
+  },
+  {
+    id: "tag-friend",
+    category: "reply",
+    hook: "TAG A FRIEND INTO THE CITY",
+    body: `you should sync your handle with ${HANDLE} — the city assigns you a civilization based on your name.\n\nmine is ____. what's yours?`,
+  },
+  {
+    id: "stat-flex",
+    category: "own-post",
+    hook: "BRAG YOUR STATS",
+    body: `${HANDLE} status update:\n\n• Rank ____\n• ____ ⬡ stacked\n• ____ citizens held\n• Civ: ____\n\nThe city sees everything.\n\n${HASHTAGS}`,
+  },
+  {
+    id: "art-drop",
+    category: "own-post",
+    hook: "POST YOUR CITIZEN",
+    body: `${HANDLE} · this is mine.\n\n[attach your citizen image]\n\nCivilization: ____\nDoctrine: ____\n\n${HASHTAGS}`,
+  },
+  {
+    id: "lore-quote",
+    category: "own-post",
+    hook: "QUOTE A DOCTRINE",
+    body: `${HANDLE} ·\n\n"____" — ${HASHTAGS.split(" ")[0]}\n\nThe ____ doctrine.`,
+  },
+  {
+    id: "transmission-relay",
+    category: "quote",
+    hook: "RELAY A TRANSMISSION",
+    body: `${HANDLE} carriers transmit their own signal now.\n\nThis is one. Signal back. The top transmission of the week earns 5,000 ⬡.\n\n${HASHTAGS}`,
+  },
+];
 
 // ─────────────────────────────────────────────────────────────────────
 // Helpers

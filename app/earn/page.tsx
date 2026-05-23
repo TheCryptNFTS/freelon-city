@@ -200,9 +200,14 @@ export default async function EarnPage() {
             ⬡ To keep passive earnings flowing you need {ECONOMY.ACTIVITY_MIN_DAYS_PER_WINDOW} active days per {ECONOMY.ACTIVITY_DECAY_DAYS}-day window.
             Posting daily is the easiest way.
           </p>
-          <Link href="/carrier" className="btn btn-primary">
-            <span className="ttl">CLAIM TODAY&apos;S {ECONOMY.DAILY_CLAIM} ⬡ →</span>
-          </Link>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link href="/carrier" className="btn btn-primary">
+              <span className="ttl">CLAIM TODAY&apos;S {ECONOMY.DAILY_CLAIM} ⬡ →</span>
+            </Link>
+            <Link href="/relay" className="btn btn-secondary">
+              <span className="ttl">⬡ RELAY · POST TEMPLATES →</span>
+            </Link>
+          </div>
         </div>
       </section>
 
