@@ -277,6 +277,17 @@ export async function GET(req: Request) {
     console.error("sales pulse error", e);
   }
 
+  // ── Piggyback: weekly receipts. Runs every Sunday UTC, gated by
+  // a once-per-week Redis timestamp. Posts a thread with the week's
+  // volume + holders + hex flow + top transmission + rescues.
+  let receiptsResult: Awaited<ReturnType<typeof import("@/lib/weekly-receipts").runWeeklyReceipts>> | null = null;
+  try {
+    const { runWeeklyReceipts } = await import("@/lib/weekly-receipts");
+    receiptsResult = await runWeeklyReceipts();
+  } catch (e) {
+    console.error("weekly receipts error", e);
+  }
+
   return NextResponse.json({
     processed,
     creditedHex: credited,
@@ -284,6 +295,7 @@ export async function GET(req: Request) {
     notify: notifyResult,
     pulse: pulseResult,
     pulseSalesSeen: pulseSales.length,
+    receipts: receiptsResult,
     ranAt: Date.now(),
   });
 }

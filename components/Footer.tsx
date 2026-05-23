@@ -36,6 +36,10 @@ export function Footer() {
         </div>
       </div>
       <div className="max-w-6xl mx-auto px-6 pb-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--color-ink-dim)] terminal border-t border-white/5 pt-6">
+        <Link href="/numbers">Numbers</Link>
+        <Link href="/architect">Architect</Link>
+        <Link href="/roadmap">Roadmap</Link>
+        <Link href="/press">Press</Link>
         <Link href="/legal/terms">Terms</Link>
         <Link href="/legal/privacy">Privacy</Link>
         <Link href="/legal/honorary-notice">Honorary Notice</Link>
