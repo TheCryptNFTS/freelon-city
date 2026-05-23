@@ -19,7 +19,7 @@ import { getWalletBalanceVerified, isValidAddress } from "@/lib/wallet-tokens";
 export const revalidate = 90;
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ address: string }> },
 ) {
   const { address } = await params;
@@ -29,7 +29,11 @@ export async function GET(
       { status: 400 },
     );
   }
-  const result = await getWalletBalanceVerified(address);
+  // ?nocache=1 forces a fresh RPC+OpenSea lookup. Used by the
+  // WalletConnect "refresh" button so users can force a recount
+  // after a transfer instead of waiting 90s for the cache to expire.
+  const bypassCache = new URL(req.url).searchParams.get("nocache") === "1";
+  const result = await getWalletBalanceVerified(address, { bypassCache });
   if (result === null) {
     return NextResponse.json(
       { address: address.toLowerCase(), balance: null, verified: false },

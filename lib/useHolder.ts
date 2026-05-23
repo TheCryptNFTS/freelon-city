@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, fallback } from "viem";
 import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
 
@@ -14,7 +14,26 @@ const ABI = [
   },
 ] as const;
 
-const publicClient = createPublicClient({ chain: mainnet, transport: http() });
+// Same 4-RPC fallback chain as lib/wallet-tokens.ts — stops the
+// "undercount" bug when the default endpoint rate-limits or
+// returns a stale block.
+const CONFIGURED = process.env.NEXT_PUBLIC_ETH_RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || null;
+const FALLBACKS = [
+  "https://eth.llamarpc.com",
+  "https://rpc.ankr.com/eth",
+  "https://ethereum-rpc.publicnode.com",
+  "https://eth.drpc.org",
+];
+const publicClient = createPublicClient({
+  chain: mainnet,
+  transport: fallback(
+    [
+      ...(CONFIGURED ? [http(CONFIGURED, { timeout: 5_000 })] : []),
+      ...FALLBACKS.map((u) => http(u, { timeout: 4_000 })),
+    ],
+    { rank: false, retryCount: 1 },
+  ),
+});
 
 // window.ethereum type lives in lib/ethereum.d.ts
 

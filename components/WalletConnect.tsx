@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, fallback } from "viem";
 import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
 
@@ -33,17 +33,30 @@ const ABI = [
   },
 ] as const;
 
-// Use the configured RPC if present — falling back to viem's default public
-// endpoint causes "NOT A HOLDER" false negatives under load because the
-// default cloudflare-eth.com gateway rate-limits aggressively.
-const RPC_URL =
+// Use the configured RPC first, then a curated list of reliable public
+// endpoints. viem's `fallback` rotates on failure — closes the
+// "undercount NFTs because cloudflare-eth rate-limited" gap.
+const CONFIGURED_RPC =
   process.env.NEXT_PUBLIC_ETH_RPC_URL ||
   process.env.NEXT_PUBLIC_RPC_URL ||
-  undefined;
+  null;
+
+const FALLBACK_RPCS = [
+  "https://eth.llamarpc.com",
+  "https://rpc.ankr.com/eth",
+  "https://ethereum-rpc.publicnode.com",
+  "https://eth.drpc.org",
+];
 
 const publicClient = createPublicClient({
   chain: mainnet,
-  transport: http(RPC_URL),
+  transport: fallback(
+    [
+      ...(CONFIGURED_RPC ? [http(CONFIGURED_RPC, { timeout: 5_000 })] : []),
+      ...FALLBACK_RPCS.map((u) => http(u, { timeout: 4_000 })),
+    ],
+    { rank: false, retryCount: 1 },
+  ),
 });
 
 // window.ethereum type lives in lib/ethereum.d.ts
@@ -64,7 +77,7 @@ export function WalletConnect() {
    *   2. OpenSea collection-nfts-by-account fallback if RPC fails
    * Only resolve to "non-holder" when BOTH agree the wallet holds 0.
    */
-  const checkHolder = useCallback(async (address: string) => {
+  const checkHolder = useCallback(async (address: string, force = false) => {
     setStatus("checking");
     setCount(null);
     // Stamp the viewer cookie immediately so personal modules across the
@@ -96,9 +109,11 @@ export function WalletConnect() {
     // counts on-chain holdings via OpenSea v2). Authoritative for balance.
     let openSeaCount: number | null = null;
     try {
-      const res = await fetch(`/api/wallet/${address.toLowerCase()}/balance`, {
-        cache: "no-store",
-      });
+      // ?nocache=1 forces the server to skip the 90s balance cache. Used
+      // by the refresh button + by any explicit retry — stops a stale
+      // OpenSea count (post-transfer lag) from pinning for 90 seconds.
+      const url = `/api/wallet/${address.toLowerCase()}/balance${force ? "?nocache=1" : ""}`;
+      const res = await fetch(url, { cache: "no-store" });
       if (res.ok) {
         const j = (await res.json()) as { balance?: number | null; verified?: boolean };
         // Only trust the server when it confirmed a source resolved.
@@ -181,7 +196,9 @@ export function WalletConnect() {
 
   function retry() {
     if (!addr) return;
-    void checkHolder(addr);
+    // Force-refresh bypasses the server cache so a stale undercount
+    // (e.g. just after a transfer, OpenSea lagging) won't pin.
+    void checkHolder(addr, true);
   }
 
   const isHolder = status === "holder" && (count ?? 0) > 0;
@@ -250,6 +267,28 @@ export function WalletConnect() {
           {badge}
         </button>
       )}
+      <button
+        onClick={retry}
+        className="refresh"
+        type="button"
+        aria-label="Refresh count"
+        title="Refresh holdings (force re-check after a buy/sell)"
+        disabled={status === "checking"}
+        style={{
+          background: "transparent",
+          border: "1px solid var(--line-2)",
+          color: "var(--ink-dim)",
+          fontSize: 11,
+          padding: "2px 6px",
+          marginLeft: 6,
+          borderRadius: 999,
+          cursor: "pointer",
+          fontFamily: "var(--mono2)",
+          letterSpacing: "0.1em",
+        }}
+      >
+        ↻
+      </button>
       <button onClick={disconnect} className="disconnect" type="button" aria-label="Disconnect">×</button>
       {err && <div className="wallet-err">{err}</div>}
     </div>

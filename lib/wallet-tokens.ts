@@ -100,14 +100,21 @@ export async function getWalletBalance(addr: string): Promise<number> {
   return result ?? 0;
 }
 
-/** Like getWalletBalance but returns null when truly unknown (both sources failed). */
-export async function getWalletBalanceVerified(addr: string): Promise<number | null> {
+/** Like getWalletBalance but returns null when truly unknown (both sources failed).
+ *  Pass `bypassCache: true` to force a fresh lookup (used by the
+ *  WalletConnect retry button + `?nocache=1` on the API route). */
+export async function getWalletBalanceVerified(addr: string, opts: { bypassCache?: boolean } = {}): Promise<number | null> {
   if (!isValidAddress(addr)) return 0;
   const lower = addr.toLowerCase();
 
   // Cache hit — avoid hammering RPC + OpenSea on repeated lookups
-  const cached = cacheGet(lower);
-  if (cached !== null) return cached;
+  if (!opts.bypassCache) {
+    const cached = cacheGet(lower);
+    if (cached !== null) return cached;
+  } else {
+    // Force-refresh: clear stale entry
+    balanceCache.delete(lower);
+  }
 
   // Source 1: RPC
   let rpcBal: number | null = null;
@@ -149,7 +156,9 @@ export async function getWalletBalanceVerified(addr: string): Promise<number | n
           (n) => (n.contract || "").toLowerCase() === CONTRACT.toLowerCase(),
         );
         if (ours.length > 0) {
-          cacheSet(lower, ours.length);
+          // DO NOT cache OpenSea-derived counts. OpenSea can lag 5-10 min
+          // after a chain transfer, so caching a stale undercount would
+          // pin the wrong number for 90s. Only RPC counts get cached.
           return ours.length;
         }
         // If OpenSea agrees zero AND we have a confirmed RPC zero → real zero.
