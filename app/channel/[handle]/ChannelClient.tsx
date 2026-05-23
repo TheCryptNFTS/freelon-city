@@ -107,22 +107,56 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
                 The chant of {civ?.name} — <em>{civ?.chant}</em> — is theirs to repeat or rewrite.
                 When this citizen changes hands, the channel changes hands. Until then, it is yours.
               </p>
-              <p style={{ marginTop: 14, fontFamily: "var(--mono2)", fontSize: 12, lineHeight: 1.7, color: "var(--ink-2)" }}>
-                Channel rights: name the doctrine for a day, claim a verified relay slot in the daily signal queue,
-                and one annual coordinate inside FREELON CITY canon. Coordinate via DM.
-              </p>
-              <Link
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                  `⬡ Channel @${handle} · open.\n\n${civ?.chant ?? "WE CARRY. WE DELIVER."}\n\nfreeloncity.com/channel/${handle}`,
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-primary"
-                style={{ marginTop: 18 }}
-              >
-                <span className="lbl">ACKNOWLEDGE</span>
-                <span className="ttl">POST ON X <span className="ar">→</span></span>
-              </Link>
+              <div style={{ marginTop: 18 }}>
+                <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.28em", color: "var(--ink-2)", textTransform: "uppercase" }}>
+                  ⬡ Channel rights · click to claim
+                </span>
+                <div
+                  style={{
+                    marginTop: 10,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                    gap: 8,
+                  }}
+                >
+                  <ClaimTile
+                    n="01"
+                    label="DOCTRINE"
+                    blurb="Name the doctrine for a day"
+                    handle={handle}
+                    civColor={civ?.color}
+                    intent={`⬡ @4040hex · claiming DOCTRINE FOR A DAY — channel @${handle}.\n\nProposed line: "____"\n\nLogged on freeloncity.com/channel/${handle}`}
+                  />
+                  <ClaimTile
+                    n="02"
+                    label="RELAY SLOT"
+                    blurb="Verified slot in today's signal queue"
+                    handle={handle}
+                    civColor={civ?.color}
+                    intent={`⬡ @4040hex · claiming VERIFIED RELAY SLOT for today's signal queue — channel @${handle}.\n\nLogged on freeloncity.com/channel/${handle}`}
+                  />
+                  <ClaimTile
+                    n="03"
+                    label="COORDINATE"
+                    blurb="Annual canon coordinate"
+                    handle={handle}
+                    civColor={civ?.color}
+                    intent={`⬡ @4040hex · claiming ANNUAL CANON COORDINATE — channel @${handle}.\n\nLogged on freeloncity.com/channel/${handle}`}
+                  />
+                </div>
+                <Link
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                    `⬡ Channel @${handle} · open.\n\n${civ?.chant ?? "WE CARRY. WE DELIVER."}\n\nfreeloncity.com/channel/${handle}`,
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-primary"
+                  style={{ marginTop: 14 }}
+                >
+                  <span className="lbl">ACKNOWLEDGE</span>
+                  <span className="ttl">POST ON X <span className="ar">→</span></span>
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -132,5 +166,60 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
         UNLISTED · NOT INDEXED · HOLDER-ONLY · CITIZEN #{citizenId.toString().padStart(4, "0")}
       </p>
     </main>
+  );
+}
+
+// Per-right claim tile. Each opens a tweet-intent at @4040hex with the
+// claim pre-typed so the channel owner can fire it with one click — no
+// more "Coordinate via DM" dead-end. @Nonz reported the middle tile
+// (RELAY SLOT) had no interaction; all three are now buttons.
+function ClaimTile({
+  n, label, blurb, intent, handle, civColor,
+}: {
+  n: string;
+  label: string;
+  blurb: string;
+  intent: string;
+  handle: string;
+  civColor?: string;
+}) {
+  const color = civColor || "var(--gold)";
+  const href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(intent)}`;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Claim ${label} for @${handle}`}
+      style={{
+        display: "block",
+        padding: "10px 12px",
+        border: `1px solid ${color}55`,
+        background: `${color}0a`,
+        borderRadius: 8,
+        textDecoration: "none",
+        color: "var(--ink)",
+        fontFamily: "var(--mono2)",
+        transition: "background 120ms ease, border-color 120ms ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = `${color}1a`;
+        e.currentTarget.style.borderColor = color;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = `${color}0a`;
+        e.currentTarget.style.borderColor = `${color}55`;
+      }}
+    >
+      <div style={{ fontSize: 9, letterSpacing: "0.26em", color, textTransform: "uppercase" }}>
+        {n} · {label}
+      </div>
+      <div style={{ marginTop: 6, fontSize: 11, lineHeight: 1.4, color: "var(--ink)" }}>
+        {blurb}
+      </div>
+      <div style={{ marginTop: 6, fontSize: 9, letterSpacing: "0.18em", color: "var(--ink-2)", textTransform: "uppercase" }}>
+        CLAIM ON X →
+      </div>
+    </a>
   );
 }
