@@ -71,8 +71,10 @@ export function DoppelClient() {
   }
 
   const ogUrl = match ? `/api/og/doppel?h=${encodeURIComponent(match.handle)}` : "";
+  // Lead with ⬡ — leading with @${handle} would make X treat the post
+  // as a reply directed at that account and hide it from non-followers.
   const tweet = match
-    ? `@${match.handle} → CITIZEN #${match.id.toString().padStart(4, "0")}\n\nMy doppelganger in FREELON CITY: ${match.name}\n${match.civName}\n\nfreeloncity.com/doppelganger`
+    ? `⬡ @4040hex · doppelganger match for @${match.handle}\n\nFREELON CITY #${match.id.toString().padStart(4, "0")} · ${match.name}\n${match.civName}\n\nfreeloncity.com/doppelganger`
     : "";
   const intent = match
     ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(`https://www.freeloncity.com${ogUrl}`)}`

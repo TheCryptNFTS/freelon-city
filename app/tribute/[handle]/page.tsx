@@ -70,12 +70,16 @@ export default async function TributePage({ params }: { params: Promise<{ handle
     /* non-fatal */
   }
 
+  // Lead with ⬡ — if honoree_handle starts with @ (common case), leading
+  // with it would make X treat the tweet as a reply directed at that
+  // account and suppress it for non-followers.
   const tweet =
-    `${h.honoree_handle || h.honoree} — citizen #${id4} of FREELON CITY carries your name.\n\n` +
+    `⬡ @4040hex · tribute · ${h.honoree_handle || h.honoree}\n\n` +
+    `Citizen #${id4} of FREELON CITY carries your name.\n` +
     `Civilization: ${civ?.name}.\n` +
     `Doctrine: ${civ?.doctrine}.\n` +
     `The signal remembers.\n\n` +
-    `→ freeloncity.com/tribute/${cleanHandle || h.id}`;
+    `freeloncity.com/tribute/${cleanHandle || h.id}`;
 
   const twitterIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
 

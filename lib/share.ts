@@ -1,15 +1,20 @@
 /**
  * Centralized tweet templates and share URL builders.
  *
- * Two X-platform rules every template respects:
- *   - Don't lead with a URL (X suppresses link-led posts in the feed)
- *   - Don't lead with an @mention (X treats those as replies and hides
- *     them from non-followers — this was the original Discord report)
+ * THREE X-platform rules every template respects (in order of
+ * importance — break the first two and your post disappears from
+ * non-followers' timelines):
+ *   1. Don't lead with a URL (X suppresses link-led posts).
+ *   2. Don't lead with an @mention (X treats those as replies and
+ *      hides them from non-followers — original Discord report).
+ *   3. EVERY @4040hex mention is preceded by ⬡ — the brand glyph
+ *      always wraps the handle so the eye locks on it. Same rule
+ *      applies inline, not just at the start. @Nonz called this
+ *      out on Discord — search for "its not doing a hexagon".
  *
- * Solution: every template leads with the canon "⬡" glyph (or another
- * non-link, non-mention character), THEN includes the @4040hex tag
- * within the body, and ends with the URL on the last line as a
- * citation rather than a CTA.
+ * Pattern: `⬡ ${HANDLE} · …` at the start, or for mid-line mentions
+ * `… ⬡ ${HANDLE} …`. NEVER write `${HANDLE}` without a `⬡` directly
+ * before it.
  *
  * Hashtag closer is always #FREELONCITY #404HEXNOTFOUND so the brand
  * clusters into a searchable thread.
@@ -261,19 +266,19 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
     id: "carrier-call",
     category: "reply",
     hook: "WELCOME NEW CARRIERS",
-    body: `⬡ Welcome to the signal, ${HANDLE} carriers.\n\nFind your civ. Post daily. The city remembers.\n\n${HASHTAGS}`,
+    body: `⬡ Welcome to the signal — ⬡ ${HANDLE} carriers.\n\nFind your civ. Post daily. The city remembers.\n\n${HASHTAGS}`,
   },
   {
     id: "tag-friend",
     category: "reply",
     hook: "TAG A FRIEND INTO THE CITY",
-    body: `you should sync your handle with ${HANDLE} — the city assigns you a civilization based on your name.\n\nmine is ____. what's yours?`,
+    body: `⬡ sync your handle with ⬡ ${HANDLE} — the city assigns you a civilization based on your name.\n\nmine is ____. what's yours?`,
   },
   {
     id: "stat-flex",
     category: "own-post",
     hook: "BRAG YOUR STATS",
-    body: `⬡ Status update from ${HANDLE}:\n\n• Rank ____\n• ____ ⬡ stacked\n• ____ citizens held\n• Civ: ____\n\nThe city sees everything.\n\n${HASHTAGS}`,
+    body: `⬡ Status update — ⬡ ${HANDLE}:\n\n• Rank ____\n• ____ ⬡ stacked\n• ____ citizens held\n• Civ: ____\n\nThe city sees everything.\n\n${HASHTAGS}`,
   },
   {
     id: "art-drop",
