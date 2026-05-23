@@ -83,14 +83,15 @@ export async function uploadMedia(imageUrl: string): Promise<string | null> {
 export type PostResult = { ok: true; id: string } | { ok: false; reason: string };
 
 /**
- * Post a tweet via X v2. Optionally attaches one media_id from uploadMedia().
- * Returns the new tweet id on success.
+ * Post a tweet via X v2. Optionally attaches one media_id from uploadMedia()
+ * and/or chains as a reply to an existing tweet (for threads).
  *
  * Text limit: 280 chars. We truncate with an ellipsis if longer.
  */
 export async function postTweet(
   text: string,
   mediaIds?: string[],
+  opts: { replyToId?: string } = {},
 ): Promise<PostResult> {
   if (!postingCapable()) return { ok: false, reason: "creds_missing" };
   if (!text) return { ok: false, reason: "empty_text" };
@@ -103,6 +104,9 @@ export async function postTweet(
   const body: Record<string, unknown> = { text };
   if (mediaIds && mediaIds.length > 0) {
     body.media = { media_ids: mediaIds.slice(0, 4) };
+  }
+  if (opts.replyToId) {
+    body.reply = { in_reply_to_tweet_id: opts.replyToId };
   }
 
   try {

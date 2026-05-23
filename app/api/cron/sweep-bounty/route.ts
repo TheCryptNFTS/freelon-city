@@ -288,6 +288,16 @@ export async function GET(req: Request) {
     console.error("weekly receipts error", e);
   }
 
+  // ── Piggyback: reply engagement scan. Replies submitted ≥24h ago
+  // get their like count checked; ≥3 likes earns the bonus.
+  let engagementResult: Awaited<ReturnType<typeof import("@/lib/reply-engagement-scan").runReplyEngagementScan>> | null = null;
+  try {
+    const { runReplyEngagementScan } = await import("@/lib/reply-engagement-scan");
+    engagementResult = await runReplyEngagementScan();
+  } catch (e) {
+    console.error("reply engagement scan error", e);
+  }
+
   return NextResponse.json({
     processed,
     creditedHex: credited,
@@ -296,6 +306,7 @@ export async function GET(req: Request) {
     pulse: pulseResult,
     pulseSalesSeen: pulseSales.length,
     receipts: receiptsResult,
+    engagement: engagementResult,
     ranAt: Date.now(),
   });
 }

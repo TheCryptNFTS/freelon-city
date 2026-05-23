@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { REPLY_PROMPTS, tweetIntent } from "@/lib/share";
 import { CopyToClipboardButton } from "@/components/CopyToClipboardButton";
+import { ReplySubmit } from "@/components/ReplySubmit";
 
 export const metadata: Metadata = {
   title: "Relay · post the signal · FREELON CITY",
@@ -39,6 +40,11 @@ export default function RelayPage() {
           Pick one. Fill in the blanks. Post. Earn hex when the city sees it.
         </p>
       </section>
+
+      {/* Reply economy — leads everything else because replies are 270×
+          more valuable to the X algo than likes. Carriers paste their
+          reply URL, get hex immediately, plus a 24h engagement bonus. */}
+      <ReplySubmit />
 
       {/* How it pays */}
       <section

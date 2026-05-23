@@ -158,6 +158,24 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
     return { ok: false, reason: `post_failed_${post.reason}` };
   }
 
+  // Record so carriers can reply for hex via /api/reply.
+  try {
+    const { rememberAutopostTweet } = await import("@/lib/reply-store");
+    await rememberAutopostTweet(post.id);
+  } catch {/* non-fatal */}
+
+  // Thread: post a reply tweet directly off the lead with the live
+  // stats URL. X algo rewards thread dwell time, ~2× impressions.
+  try {
+    const reply = [
+      `⬡ Every number above is live.`,
+      `Auto-updated every 5 minutes. No screenshots, no curation.`,
+      ``,
+      `freeloncity.com/numbers`,
+    ].join("\n");
+    await postTweet(reply, undefined, { replyToId: post.id });
+  } catch {/* non-fatal */}
+
   if (hasUpstash) {
     try {
       // 8-day TTL on the gate so a missed week self-heals into the next.

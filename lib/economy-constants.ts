@@ -43,6 +43,18 @@ export const ECONOMY = {
   SWEEP_DAILY_CAP: 250,
   SWEEP_DAILY_CAP_COUNT: 10,
 
+  // ─── Reply economy (app/api/reply/route.ts) ─────────────────────────
+  // X algorithm weights replies ~270× a like. We pay accordingly.
+  //   - Base reply to @4040hex post = +15 ⬡ (3× a share)
+  //   - Engagement bonus when reply earns ≥3 likes within 24h = +50 ⬡
+  //   - Daily reply cap so this doesn't become a bot farm
+  REPLY_BOUNTY: 15,
+  REPLY_ENGAGEMENT_THRESHOLD: 3,
+  REPLY_ENGAGEMENT_BONUS: 50,
+  REPLY_DAILY_CAP: 5,           // max paid replies per wallet per UTC day
+  REPLY_BURST_WINDOW_MIN: 30,   // 2× multiplier window after each @4040hex post
+  REPLY_BURST_FIRST_N: 10,      // first N replies inside the window get the 2×
+
   // ─── Daily X share claim (app/api/claim/route.ts) ───────────────────
   DAILY_CLAIM: 10,
   STREAK_3_BONUS: 25,

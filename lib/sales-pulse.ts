@@ -199,6 +199,27 @@ export async function runSalesPulse(sales: PulseSale[]): Promise<PulseResult> {
     return { ok: false, reason: `post_failed_${post.reason}` };
   }
 
+  // Record the tweet ID so the reply route knows it was ours — carriers
+  // who reply to this post earn hex via /api/reply.
+  try {
+    const { rememberAutopostTweet } = await import("@/lib/reply-store");
+    await rememberAutopostTweet(post.id);
+  } catch {/* non-fatal */}
+
+  // ── THREAD: post a reply tweet directly off the lead. X algo gives
+  // thread dwell time a boost; a second tweet doubles impressions on
+  // average. Format: a single-line CTA pointing carriers at the city.
+  // Failure is non-fatal — the lead post already credits as success.
+  try {
+    const ctaLines = [
+      `⬡ Reply to this post to earn hex —`,
+      `first 10 replies in 30 min get 2× the bounty.`,
+      ``,
+      `freeloncity.com/sync`,
+    ];
+    await postTweet(ctaLines.join("\n"), undefined, { replyToId: post.id });
+  } catch {/* non-fatal */}
+
   // ── 5. Refresh gate + dedupe ─────────────────────────────────
   if (hasUpstash) {
     try {
