@@ -119,7 +119,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           </div>
           {rescue && (
             <div style={{ marginTop: "var(--s-3)", padding: "10px 12px", border: "1px solid #2a5a3a", background: "rgba(20,40,30,0.4)", fontFamily: "var(--mono2)", fontSize: 11, color: "#9ad4a8", letterSpacing: "0.14em" }}>
-              🛡 RESCUED · permanent attribution to {rescue.rescuer.slice(0, 6)}…{rescue.rescuer.slice(-4)} · +{rescue.hexPaid}⬡
+              ⬡ RESCUED · permanent attribution to {rescue.rescuer.slice(0, 6)}…{rescue.rescuer.slice(-4)} · +{rescue.hexPaid}⬡
             </div>
           )}
         </aside>
@@ -234,7 +234,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             currentRealignment={realign}
           />
 
-          <div className="cta-row">
+          <div className="cta-row ui-cta-row">
             <a className="btn" href={openseaUrl(tid)} target="_blank" rel="noreferrer">
               <span className="ttl">VIEW ON OPENSEA ↗</span>
             </a>

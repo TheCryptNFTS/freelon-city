@@ -8,18 +8,16 @@ import { CityTerminal } from "@/components/CityTerminal";
 import { CivGlyph } from "@/components/CivGlyph";
 import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
 import { WalletScanner } from "@/app/sync/WalletScanner";
-import { BecomeACarrier } from "@/components/BecomeACarrier";
 import { LiveStats } from "@/components/LiveStats";
 import { RecentTransmissions } from "@/components/RecentTransmissions";
 import { CivWarBoard } from "@/components/CivWarBoard";
-import { DailySignal } from "@/components/DailySignal";
-import { DailyMission } from "@/components/DailyMission";
 import { TopPatronsStrip } from "@/components/TopPatronsStrip";
-import { AlertsFeed } from "@/components/AlertsFeed";
-import { HexIndexHero } from "@/components/HexIndexHero";
-import { CitizenOfDay } from "@/components/CitizenOfDay";
 import { getOneOfOnes, getAllCitizens, getHonoraries } from "@/lib/citizens";
 import { CIVILIZATIONS, CONTRACT, METADATA_CID, imageUrl, heroImageUrl } from "@/lib/constants";
+// REMOVED in Phase 3 (redundant with CityTerminal + DoThisNow):
+//   BecomeACarrier (dup of /start funnel) · DailySignal (dup of CityTerminal panel)
+//   DailyMission (dup of DoThisNow) · AlertsFeed (dup of CityFeedTicker marquee)
+//   HexIndexHero (dup of CityTerminal panel) · CitizenOfDay (low-frequency moment)
 
 const ONE_OF_ONE_TAGLINES: Record<number, string> = {
   1:    "Origin Signal does not lead. Origin Signal is.",
@@ -144,23 +142,21 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* STATE OF THE CITY · live terminal panel. Bloomberg-style.
-          The first surface to answer "what's happening RIGHT NOW in
-          the city" — 6 dense panels, system states (active/warning/
-          surge/offline), tabular numerics, sparse padding. This is
-          the architecture template for the broader UI redesign. */}
-      <CityTerminal />
-
-      {/* DO THIS NOW · personalized funnel — addresses the Discord report
-          where holders couldn't find the path to their first hex. Shows
-          ONE primary action based on viewer state. */}
+      {/* DO THIS NOW · personalized funnel — promoted to top of the
+          post-hero stack in Phase 3. The personalized "what should I do
+          next" answer lands BEFORE the Bloomberg state panel because
+          the user wants action, not analytics, first. */}
       <DoThisNow />
 
-      {/* HOLD THE LINE banner — distributed bid wall mission. The single
-          floor-pump move recommended by the specialist. Carries the
-          live defender count + bid count so it builds social proof
-          as it fills. */}
+      {/* HOLD THE LINE banner — distributed bid wall mission. Live
+          defender count builds social proof as it fills. */}
       <HoldTheLineBanner />
+
+      {/* STATE OF THE CITY · Bloomberg-style live terminal panel.
+          Moved below DoThisNow + HoldTheLine in Phase 3 so personal
+          action + collective mission land first. The terminal answers
+          "what's happening right now" once you've seen what to do. */}
+      <CityTerminal />
 
       {/* WHY FREELON · simple cards, plain English */}
       <section className="why-freelon">
@@ -182,7 +178,7 @@ export default async function Home() {
             </div>
             <div className="why-body">
               <span className="why-no">01 · SNIPE</span>
-              <h3>Snipe a 🔴 Red Signal</h3>
+              <h3>Snipe a <span style={{ color: "var(--state-danger)" }}>Red Signal</span></h3>
               <p>Listings priced ≤ 90% of floor get flagged. Buy one, hold 14 days, the city pays the spread in hex — up to +500⬡ per snipe.</p>
             </div>
           </Link>
@@ -228,28 +224,16 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CIVILIZATION WAR SCOREBOARD — moved up from below.
-          Live tribal gameplay is the highest-engagement element on the page;
-          it deserves the slot right after the mechanics announce. */}
+      {/* CIVILIZATION WAR SCOREBOARD — live tribal gameplay.
+          Highest-engagement element after the mechanic announces. */}
       <CivWarBoard />
 
-      {/* 404 ALERTS · LIVE SIGNAL FEED */}
-      <AlertsFeed />
-
-      {/* HEX INDEX · MASTER NUMBER */}
-      <HexIndexHero />
-
-      {/* DAILY SIGNAL */}
-      <DailySignal />
-
-      {/* 404TH CITIZEN OF THE DAY */}
-      <CitizenOfDay />
-
-      {/* BECOME A CARRIER · 2-step onboarding */}
-      <BecomeACarrier />
-
-      {/* DAILY MISSION */}
-      <DailyMission />
+      {/* Phase 3: removed AlertsFeed (dup of CityFeedTicker marquee),
+         HexIndexHero (dup of CityTerminal Hex Index panel),
+         DailySignal (dup of CityTerminal Today's Signal panel),
+         CitizenOfDay (low-frequency moment, lives at /citizens),
+         BecomeACarrier (dup of /start funnel + DoThisNow sync card),
+         DailyMission (dup of DoThisNow claim card). */}
 
       {/* SIGNAL CHECK · the signature interaction */}
       <section className="signal-check reveal">
@@ -301,27 +285,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* STATEMENT */}
-      <section className="statement reveal">
-        <div className="grid">
-          <div>
-            <span className="kicker">⬡ THE NUMBERS ARE THE CITY</span>
-            <h2 className="lead">
-              One contract<br />
-              4040 souls<br />
-              The signal moves <em>through us</em>
-            </h2>
-          </div>
-          <div className="stat-row">
-            <Stat n="4040" l="Citizens, all minted" />
-            <Stat n="10" l="Civilizations" />
-            <Stat n="7" l="Castes" />
-            <Stat n="16" l="Sacred shapes" />
-            <Stat n="35" l="Honorary tributes" />
-            <Stat n="4" l="One-of-ones" />
-          </div>
-        </div>
-      </section>
+      {/* Phase 3: removed STATEMENT block — its 6 stats are already
+         carried by the .why-trust strip inside WHY FREELON above. */}
 
       {/* CIVILIZATIONS */}
       <section className="civs-section reveal">
@@ -476,11 +441,3 @@ export default async function Home() {
   );
 }
 
-function Stat({ n, l }: { n: string; l: string }) {
-  return (
-    <div className="stat">
-      <span className="n">{n}</span>
-      <span className="l">{l}</span>
-    </div>
-  );
-}

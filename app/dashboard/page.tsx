@@ -36,20 +36,24 @@ export default function Dashboard() {
         </p>
       </section>
 
-      {/* Row 1 — Master stats: lifetime + index */}
+      {/* Row 1 — HOLDER NUMBERS FIRST (Phase 3 directive).
+          Investor question #1 is "who owns this collection?". Lead
+          with the holder map + per-civ value cap before any generic
+          floor / index stats. */}
       <div className="dash-grid dash-grid-2">
-        <CityStats />
-        <HexIndex />
+        <HolderDistributionChart />
+        <CivValueChart />
       </div>
 
-      {/* Row 2 — Your wallet (full width when present, empty state otherwise) */}
+      {/* Row 2 — Your wallet stake in the city (when present). */}
       <div className="dash-grid">
         <HexNetWorth />
       </div>
 
-      {/* Row 3 — Civ value chart */}
-      <div className="dash-grid">
-        <CivValueChart />
+      {/* Row 3 — generic city stats below the holder + civ context. */}
+      <div className="dash-grid dash-grid-2">
+        <CityStats />
+        <HexIndex />
       </div>
 
       {/* Red Signals — undervalued listings worth sniping for hex bounties */}
@@ -58,15 +62,14 @@ export default function Dashboard() {
       {/* Live Heat Grid — per-civ activity pulse */}
       <LiveHeatGrid />
 
-      {/* Row 4 — Holders + Live sales side by side */}
-      <div className="dash-grid dash-grid-2">
-        <HolderDistributionChart />
+      {/* Live sales feed */}
+      <div className="dash-grid">
         <LiveSalesFeed />
       </div>
 
       <section className="dash-share">
         <span className="kicker">⬡ SHARE THE CITY</span>
-        <div className="dash-share-row">
+        <div className="ui-cta-row dash-share-row">
           <a href={tweetUrl("HEX INDEX — live signal of FREELON CITY:")} target="_blank" rel="noreferrer" className="btn btn-primary">
             <span className="ttl">SHARE HEX INDEX <span className="ar">↗</span></span>
           </a>
@@ -81,7 +84,7 @@ export default function Dashboard() {
 
       <section className="dash-next">
         <span className="kicker">⬡ NEXT SIGNAL</span>
-        <div className="dash-next-row">
+        <div className="ui-cta-row dash-next-row">
           <a
             className="btn btn-primary"
             href="https://opensea.io/assets/ethereum/0xa79e73c9828db3fcd7c77be7d9f356fb684b5504"

@@ -48,31 +48,49 @@ export default async function CivWarsPage() {
         </div>
       </section>
 
+      {/* Phase 3: HOW SCORING WORKS lifted to right after hero.
+          Rules before results — readers should know what they're
+          looking at before the podium reveals who's winning. */}
+      <section style={{ marginTop: "var(--s-4)", padding: "var(--s-4)", borderRadius: 14, border: "1px solid var(--line)", background: "rgba(255,255,255,0.02)" }}>
+        <span className="kicker">⬡ HOW SCORING WORKS</span>
+        <ul style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", margin: "var(--s-2) 0 0", paddingLeft: 18, lineHeight: 1.7 }}>
+          <li>Every active hex event (snipe, sale, sweep, listing bounty, naming burn) tagged with a token id scores for that citizen&apos;s civilization.</li>
+          <li>Daily X claims and quest payouts are <em>neutral</em> — they don&apos;t score for any civ.</li>
+          <li>Week resets every Monday 00:00 UTC.</li>
+          <li>Winning civ earns +10% on all hex earnings the following week. Settles at week&apos;s end.</li>
+        </ul>
+      </section>
+
       {/* Personal: your civ allocation */}
       <MyCivStandings />
 
-      {/* Podium */}
+      {/* Podium — Phase 3: 1st place spans 2 columns at wide widths so
+          the leading civ visually dominates. 2nd + 3rd share the right
+          column. Collapses cleanly via .civ-podium grid below. */}
       {top && top.totalHex > 0 ? (
-        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "var(--s-3)", margin: "var(--s-5) 0 var(--s-4)" }}>
+        <section className="civ-podium">
           {top3.map((c, i) => {
-            const place = ["🥇 1ST", "🥈 2ND", "🥉 3RD"][i];
+            const place = ["01 · 1ST", "02 · 2ND", "03 · 3RD"][i];
+            const isFirst = i === 0;
             return (
               <article
                 key={c.slug}
+                className={isFirst ? "civ-podium__first" : "civ-podium__rest"}
                 style={{
-                  padding: "var(--s-4)",
+                  padding: isFirst ? "var(--s-5)" : "var(--s-4)",
                   borderRadius: 14,
-                  border: `2px solid ${c.color}88`,
-                  background: `linear-gradient(180deg, ${c.color}15 0%, rgba(0,0,0,0.4) 100%)`,
+                  border: `${isFirst ? "3" : "1"}px solid ${c.color}${isFirst ? "" : "88"}`,
+                  background: `linear-gradient(180deg, ${c.color}${isFirst ? "22" : "15"} 0%, rgba(0,0,0,0.4) 100%)`,
                   display: "flex",
                   flexDirection: "column",
                   gap: 10,
+                  boxShadow: isFirst ? `0 0 60px -20px ${c.color}88` : "none",
                 }}
               >
-                <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: c.color, fontWeight: 600 }}>{place}</span>
-                <h2 style={{ fontFamily: "var(--display)", fontSize: 24, margin: 0, color: "var(--ink)" }}>{c.name}</h2>
-                <div style={{ fontFamily: "var(--display)", fontSize: 32, color: c.color, lineHeight: 1 }}>
-                  {c.totalHex.toLocaleString()} <small style={{ fontSize: 16, color: "var(--ink-dim)" }}>⬡</small>
+                <span style={{ fontFamily: "var(--mono2)", fontSize: isFirst ? 13 : 11, letterSpacing: "0.22em", color: c.color, fontWeight: 700 }}>{place}</span>
+                <h2 style={{ fontFamily: "var(--display)", fontSize: isFirst ? 36 : 22, margin: 0, color: "var(--ink)", lineHeight: 1 }}>{c.name}</h2>
+                <div style={{ fontFamily: "var(--display)", fontSize: isFirst ? 48 : 28, color: c.color, lineHeight: 1 }}>
+                  {c.totalHex.toLocaleString()} <small style={{ fontSize: isFirst ? 22 : 14, color: "var(--ink-dim)" }}>⬡</small>
                 </div>
                 <div style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.12em" }}>
                   {c.events} event{c.events === 1 ? "" : "s"}
@@ -106,27 +124,20 @@ export default async function CivWarsPage() {
       {/* Full standings */}
       <section>
         <h2 className="kicker" style={{ marginBottom: 12 }}>⬡ ALL CIVILIZATIONS</h2>
-        <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+        <ol className="ui-table-stack" style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {standings.map((c, i) => {
             const pct = totalScoredHex > 0 ? (c.totalHex / totalScoredHex) * 100 : 0;
             return (
               <li
                 key={c.slug}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "32px 1fr 100px 80px",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "12px 14px",
-                  border: "1px solid var(--line)",
-                  borderRadius: 8,
-                  background: "rgba(255,255,255,0.02)",
-                }}
+                className="ui-table-stack__row"
+                style={{ ["--row-cols" as string]: "32px 1fr 100px 80px" }}
               >
-                <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", letterSpacing: "0.18em" }}>
+                <span className="ui-table-stack__cell ui-table-stack__cell--rank">
+                  <span className="ui-table-stack__label">Rank</span>
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div className="ui-table-stack__cell" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <Link
                     href={`/civilizations/${c.slug}`}
                     style={{ fontFamily: "var(--display)", fontSize: 15, color: c.color, textDecoration: "none", letterSpacing: "-0.005em" }}
@@ -137,10 +148,12 @@ export default async function CivWarsPage() {
                     <div style={{ position: "absolute", inset: 0, width: `${pct}%`, background: c.color, transition: "width 400ms ease" }} />
                   </div>
                 </div>
-                <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink)", textAlign: "right" }}>
+                <span className="ui-table-stack__cell ui-table-stack__cell--num">
+                  <span className="ui-table-stack__label">Hex</span>
                   {c.totalHex.toLocaleString()} ⬡
                 </span>
-                <span style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", letterSpacing: "0.12em", textAlign: "right" }}>
+                <span className="ui-table-stack__cell ui-table-stack__cell--num">
+                  <span className="ui-table-stack__label">Share</span>
                   {pct.toFixed(1)}%
                 </span>
               </li>
@@ -149,20 +162,11 @@ export default async function CivWarsPage() {
         </ol>
       </section>
 
-      {/* How it works */}
-      <section style={{ marginTop: "var(--s-6)", padding: "var(--s-4)", borderRadius: 14, border: "1px solid var(--line)", background: "rgba(255,255,255,0.02)" }}>
-        <span className="kicker">⬡ HOW SCORING WORKS</span>
-        <ul style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", margin: "var(--s-2) 0 0", paddingLeft: 18, lineHeight: 1.7 }}>
-          <li>Every active hex event (snipe, sale, sweep, listing bounty, naming burn) tagged with a token id scores for that citizen&apos;s civilization.</li>
-          <li>Daily X claims and quest payouts are <em>neutral</em> — they don&apos;t score for any civ.</li>
-          <li>Week resets every Monday 00:00 UTC.</li>
-          <li>Winning civ earns +10% on all hex earnings the following week. Settles at week&apos;s end.</li>
-        </ul>
-      </section>
+      {/* Phase 3: rules block moved to top of page — no duplicate here. */}
 
       <section style={{ marginTop: "var(--s-6)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
-        <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
+        <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/dashboard"><span className="ttl">SNIPE A RED SIGNAL →</span></Link>
           <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">PICK YOUR CIV →</span></Link>
           <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">LEADERBOARD →</span></Link>

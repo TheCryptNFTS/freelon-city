@@ -154,17 +154,20 @@ export default function CanonPage() {
       {/* ── INDEX ── */}
       <Index />
 
-      {/* ── TABS ── */}
+      {/* ── TABS ── Phase 3: only the first section open by default.
+          A wall of 7 expanded blocks makes the index useless and tanks
+          mobile load. Index links still anchor-jump into any tab and
+          expand it (native <details> behaviour). */}
       <section style={{ marginTop: "var(--s-5)" }}>
-        {TABS.map((t) => (
-          <TabBlock key={t.id} t={t} />
+        {TABS.map((t, i) => (
+          <TabBlock key={t.id} t={t} defaultOpen={i === 0} />
         ))}
       </section>
 
       {/* ── NEXT ── */}
       <section style={{ marginTop: "var(--s-6)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
-        <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
+        <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/sync"><span className="ttl">SYNC NOW →</span></Link>
           <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
           <Link className="btn btn-secondary" href="/start"><span className="ttl">START HERE →</span></Link>
@@ -232,11 +235,11 @@ function Index() {
   );
 }
 
-function TabBlock({ t }: { t: Tab }) {
+function TabBlock({ t, defaultOpen = false }: { t: Tab; defaultOpen?: boolean }) {
   return (
     <details
       id={t.id}
-      open
+      {...(defaultOpen ? { open: true } : {})}
       style={{
         marginBottom: "var(--s-3)",
         padding: "var(--s-3) var(--s-4)",

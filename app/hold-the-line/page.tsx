@@ -63,15 +63,14 @@ export default async function HoldTheLinePage() {
 
       {/* LIVE COUNTERS */}
       <section
+        className="ui-auto-fit-cards"
         style={{
           marginBottom: "var(--s-5)",
           padding: "var(--s-4) var(--s-5)",
           background: "linear-gradient(135deg, rgba(255,90,77,0.10), rgba(200,167,93,0.05))",
           border: "1px solid rgba(255,90,77,0.35)",
           borderRadius: 14,
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "var(--s-3)",
+          ["--min-w" as string]: "180px",
         }}
       >
         <CounterCell label="Defenders" value={stats.totalDefenders.toLocaleString()} sub="carriers who placed a bid" />
@@ -101,14 +100,16 @@ export default async function HoldTheLinePage() {
         </div>
       </section>
 
-      {/* BID TIERS */}
-      <section style={{ marginBottom: "var(--s-6)" }}>
+      {/* Phase 3: BID TIERS + CLAIM FORM grouped as one flow.
+          Reduced separation between them so the visual sequence reads
+          "pick a tier → place bid → claim hex" without a section break. */}
+      <section style={{ marginBottom: "var(--s-3)" }}>
         <span className="kicker">⬡ SUGGESTED TIERS</span>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.65, marginTop: "var(--s-2)", marginBottom: "var(--s-3)" }}>
           Three tiers. The middle one is the highest impact for normal carriers.
           Open OpenSea, click <em style={{ fontStyle: "normal", color: "var(--gold)" }}>Make collection offer</em>, set the price, sign.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--s-3)" }}>
+        <div className="ui-auto-fit-cards" style={{ ["--min-w" as string]: "200px" }}>
           <BidTier eth="0.0035" label="LIGHT" sub="1.4× current floor · cheapest defender slot" />
           <BidTier eth="0.0050" label="STANDARD" sub="2× floor · the wall lives here" highlight />
           <BidTier eth="0.0075" label="HEAVY" sub="3× floor · sends the strongest signal" />
@@ -143,15 +144,13 @@ export default async function HoldTheLinePage() {
             {stats.topDefenders.map((d, i) => (
               <div
                 key={d.wallet}
+                className="ui-row-stack"
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "baseline",
                   padding: "10px 18px",
                   borderTop: i > 0 ? "1px solid var(--line)" : "none",
                   background: i === 0 ? "rgba(200,167,93,0.06)" : "transparent",
                   fontFamily: "var(--mono2)",
-                  fontSize: 12,
+                  fontSize: 13,
                   color: "var(--ink)",
                 }}
               >

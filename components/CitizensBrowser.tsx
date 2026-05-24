@@ -80,38 +80,15 @@ export function CitizensBrowser({
   return (
     <section className="citizens-browser">
       {/* ── Sticky filter bar ────────────────────────────────────── */}
-      <div
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-          background: "rgba(5,5,5,0.92)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderBottom: "1px solid var(--line)",
-          padding: "var(--s-3) 0",
-          margin: "0 calc(-1 * var(--s-4))",
-          marginBottom: "var(--s-3)",
-        }}
-      >
-        <div style={{ padding: "0 var(--s-4)" }}>
+      <div className="citizens-filter-bar">
+        <div className="citizens-filter-bar__inner">
           {/* Search input */}
           <input
             type="text"
             placeholder="search by #id, honoree, name, caste…"
             value={q}
             onChange={(e) => { setQ(e.target.value); setShown(60); }}
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              fontSize: 14,
-              fontFamily: "var(--mono2)",
-              color: "var(--ink)",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid var(--line-2)",
-              borderRadius: 10,
-              marginBottom: 10,
-            }}
+            className="citizens-search"
           />
 
           {/* Civ chips */}
@@ -291,11 +268,9 @@ export function CitizensBrowser({
 
 function ChipRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", margin: "6px 0", flexWrap: "wrap" }}>
-      <span style={{ fontFamily: "var(--mono2)", fontSize: 9, letterSpacing: "0.22em", color: "var(--ink-dim)", marginRight: 4, flexShrink: 0 }}>
-        {label}
-      </span>
-      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", flex: 1 }}>
+    <div className="citizens-chip-row">
+      <span className="citizens-chip-row__label">{label}</span>
+      <div className="ui-filter-bar citizens-chip-row__chips">
         {children}
       </div>
     </div>
@@ -317,20 +292,12 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      style={{
-        padding: "4px 10px",
-        border: `1px solid ${active ? color : "var(--line)"}`,
-        background: active ? `${color}1a` : "transparent",
-        color: active ? color : "var(--ink-dim)",
-        borderRadius: 999,
-        fontFamily: "var(--mono2)",
-        fontSize: 10,
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
-        cursor: "pointer",
-        fontWeight: active ? 600 : 400,
-        whiteSpace: "nowrap",
-      }}
+      className={`ui-chip${active ? " ui-chip--active" : ""}`}
+      style={
+        active && color !== "var(--gold)"
+          ? { borderColor: color, color: color, background: `${color}1a` }
+          : undefined
+      }
     >
       {label}
     </button>

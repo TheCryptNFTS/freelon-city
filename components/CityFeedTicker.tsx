@@ -28,7 +28,7 @@ export function CityFeedTicker() {
       (redSignals?.signals ?? []).slice(0, 4).forEach((s, i) => {
         out.push({
           id: `red-${i}`,
-          text: `🔴 #${s.tokenId.toString().padStart(4, "0")} FLAGGED · +${s.bountyHex} ⬡ BOUNTY`,
+          text: `● #${s.tokenId.toString().padStart(4, "0")} FLAGGED · +${s.bountyHex} ⬡ BOUNTY`,
           tone: "red",
         });
       });

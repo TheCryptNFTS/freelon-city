@@ -84,15 +84,12 @@ export default function Citizens() {
         </div>
       </section>
 
-      {/* BROWSE moved above ones — the chip filter is the actual job-to-be-done.
-          Curated tier sections live below for inspiration / hero-citizen FOMO. */}
-      <section className="citizens-section reveal" id="browse">
-        <header className="sec-head">
-          <span className="kicker">SEARCH · FILTER · {all.length} TOTAL</span>
-          <h2>Browse all <em>{all.length}</em></h2>
-        </header>
-        <CitizensBrowser all={mini} rareTraitIds={rareTraitIds} rareThreshold={RARE_THRESHOLD} />
-      </section>
+      {/* Phase 3: CURATED FIRST. The original order put the 4040-item
+          mass browser above the 4 one-of-ones — terrible mobile experience
+          (endless scroll before seeing the brand's hero citizens). The
+          ones / honoraries / legendaries are the FOMO + brand surface;
+          they land first now. Mass browser is still anchor-linkable
+          from the hero via #browse. */}
 
       <section className="citizens-section reveal">
         <header className="sec-head">
@@ -171,9 +168,19 @@ export default function Citizens() {
         </div>
       </section>
 
+      {/* Mass browser below curated. Anchor target for the hero "BROWSE ALL"
+          link so users who specifically want the filter UI can jump down. */}
+      <section className="citizens-section reveal" id="browse">
+        <header className="sec-head">
+          <span className="kicker">SEARCH · FILTER · {all.length} TOTAL</span>
+          <h2>Browse all <em>{all.length}</em></h2>
+        </header>
+        <CitizensBrowser all={mini} rareTraitIds={rareTraitIds} rareThreshold={RARE_THRESHOLD} />
+      </section>
+
       <section style={{ marginTop: "var(--s-6)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
-        <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
+        <div className="ui-cta-row" style={{ marginTop: "var(--s-3)" }}>
           <Link className="btn btn-primary" href="/sync"><span className="ttl">FIND YOUR CITIZEN →</span></Link>
           <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
           <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>

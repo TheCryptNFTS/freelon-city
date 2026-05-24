@@ -122,7 +122,7 @@ export default async function EarnPage() {
                 animation: "pulseGlow 2s ease-in-out infinite",
               }}
             >
-              🔴 {live.redSignalCount} LIVE
+              ● {live.redSignalCount} LIVE
             </span>
           )}
         </header>
@@ -289,7 +289,7 @@ export default async function EarnPage() {
         <details style={{ border: "1px solid var(--line)", borderRadius: 12, background: "rgba(255,255,255,0.02)" }}>
           <summary style={{ cursor: "pointer", padding: "16px var(--s-4)", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span className="kicker" style={{ color: "#FF8A4D" }}>🔥 BURN · WHERE HEX GOES</span>
+              <span className="kicker" style={{ color: "#FF8A4D" }}>⬡ BURN · WHERE HEX GOES</span>
               <span style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.05em" }}>
                 Naming · realign · boost · feature · signal burst · custom title · tithe · shop · watchlist
               </span>

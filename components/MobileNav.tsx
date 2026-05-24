@@ -11,7 +11,7 @@ const LINKS = [
   { href: "/civilizations",   label: "City" },
   { href: "/citizens",        label: "Citizens" },
   { href: "/daily",           label: "Signal" },
-  { href: "/dashboard",       label: "The Numbers" },
+  { href: "/numbers",         label: "Pulse" },
   { href: "/shop",            label: "Shop" },
   { href: "/earn",            label: "The Ledger ⬡", gold: true },
   { href: "/carrier",         label: "Carrier", gold: true },

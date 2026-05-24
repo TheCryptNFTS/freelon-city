@@ -54,10 +54,13 @@ export default async function TransmissionsPage({
         </p>
       </section>
 
-      {/* Submit form — collapsed by default so the page leads with the
-          gallery of existing transmissions, not a big empty form. */}
+      {/* Phase 3: submit action OPEN by default. "Submit" is the primary
+          conversion event on this page; hiding it behind a collapsed
+          details element was burying the funnel. Keeps the details
+          shell so users can re-collapse if they prefer the gallery. */}
       <section style={{ marginBottom: "var(--s-5)" }}>
         <details
+          open
           style={{
             border: "1px solid var(--gold)44",
             background: "linear-gradient(180deg, rgba(200,167,93,0.05), rgba(0,0,0,0.3))",
@@ -121,7 +124,7 @@ export default async function TransmissionsPage({
           </p>
         </section>
       ) : (
-        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--s-3)" }}>
+        <section className="ui-auto-fit-cards" style={{ ["--min-w" as string]: "260px" }}>
           {items.map((t) => (
             <TransmissionCard key={t.id} t={t} />
           ))}
@@ -130,7 +133,7 @@ export default async function TransmissionsPage({
 
       <section style={{ marginTop: "var(--s-7)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
-        <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
+        <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
           <Link className="btn btn-secondary" href="/civilizations">
             <span className="ttl">PICK YOUR CIV →</span>
           </Link>

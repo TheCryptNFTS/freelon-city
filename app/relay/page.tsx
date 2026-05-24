@@ -75,7 +75,7 @@ export default function RelayPage() {
       </section>
 
       {/* Prompt cards */}
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "var(--s-3)" }}>
+      <section className="ui-auto-fit-cards" style={{ ["--min-w" as string]: "300px" }}>
         {REPLY_PROMPTS.map((p) => {
           const cat = CAT_LABEL[p.category];
           return (
@@ -128,12 +128,12 @@ export default function RelayPage() {
                 }}
               >{p.body}</pre>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div className="ui-cta-row" style={{ marginTop: "auto" }}>
                 <a
                   href={tweetIntent(p.body)}
                   target="_blank"
                   rel="noreferrer"
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-primary btn-sm ui-tap"
                   style={{ flex: 1, textAlign: "center" }}
                 >
                   <span className="ttl">POST TO X →</span>
