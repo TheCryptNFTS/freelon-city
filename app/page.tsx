@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { DoThisNow } from "@/components/DoThisNow";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
+import { FloorPill } from "@/components/FloorPill";
+import { HonoreeStrip } from "@/components/HonoreeStrip";
+import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
 import { WalletScanner } from "@/app/sync/WalletScanner";
 import { BecomeACarrier } from "@/components/BecomeACarrier";
 import { LiveStats } from "@/components/LiveStats";
@@ -22,7 +25,7 @@ const ONE_OF_ONE_TAGLINES: Record<number, string> = {
   4040: "When the city ends, this is who turns out the lights.",
 };
 
-export default function Home() {
+export default async function Home() {
   const ones = getOneOfOnes();
   const honoraries = getHonoraries();
   const all = getAllCitizens();
@@ -30,6 +33,9 @@ export default function Home() {
     const inCiv = all.filter((c) => c.civilization === slug && c.tier !== "One of One" && c.tier !== "Honorary");
     return inCiv.slice(0, 2);
   }).slice(0, 16);
+  // USD anchor for the mechanic cards — solves the "hex is fictional
+  // currency until proven otherwise" CRO finding. 1h cached server-side.
+  const usdPerEth = await getUsdPerEth();
 
   return (
     <main>
@@ -42,39 +48,58 @@ export default function Home() {
                 handle, citizen count, hex balance). The brand statement
                 stays below it intact for newcomers. */}
             <IdentityGreeting />
-            <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
-            {/* NEW HERE pill — Discord feedback 2026-05-24 (@Munch via @Lucifer):
-                "I was massively overwhelmed... most holders are like that already".
-                Make the dummies guide impossible to miss. */}
-            <Link
-              href="/start"
-              className="new-here-pill"
-              aria-label="New here? Start with the 2-minute guide"
-            >
-              <span aria-hidden>⬡</span>
-              <span>NEW HERE? · 2-MIN GUIDE</span>
-              <span aria-hidden>→</span>
-            </Link>
+
+            {/* Lore kicker — the iconic line, now a kicker not the headline.
+                Pros said the headline was burning prime real estate on lore;
+                this keeps the brand vibe but lets the category lead. */}
+            <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND · THE HEX MOVED HERE</span>
+
+            {/* Live floor + 24h delta + holders. CRO pro: highest-leverage
+                copy fix on the site. Anchors price above the fold. */}
+            <FloorPill />
+
+            {/* Category-first headline — passes the 8-second test now.
+                Stranger lands → understands it's a 4040 ERC-721 on Ethereum
+                with sealed supply, in 2 seconds, before reading lore. */}
             <h1 className="hero-headline">
-              The hex didn&apos;t<br />
-              disappear<br />
-              <em>It moved</em>
+              4040 on-chain<br />
+              citizens<br />
+              <em>sealed forever</em>
             </h1>
             <p className="hero-sub">
-              <strong>4040 citizens</strong> on Ethereum. 10 civilizations.
-              Supply sealed. Hold one — the city pays you in hex daily.
-              Burn hex — carve your name into the wall.
+              Hand-crafted on Ethereum. 10 civilizations. 35 honoraries.
+              Hold one — the city pays daily in hex. Burn hex — carve your
+              name into the wall.
             </p>
+
+            {/* Single primary CTA — pros: kill the second CTA, one decision.
+                Buy on OpenSea wins over Sync because that's where revenue is.
+                Newcomer route to /start kept as the small secondary pill. */}
             <div className="hero-ctas">
-              <Link className="btn btn-primary" href="/sync">
-                <span className="lbl">FIND YOUR PLACE</span>
-                <span className="ttl">CHECK YOUR WALLET <span className="ar">⬡ →</span></span>
-              </Link>
-              <Link className="btn btn-secondary" href="/citizens">
-                <span className="lbl">4040 ON CHAIN</span>
-                <span className="ttl">EXPLORE CITIZENS <span className="ar">→</span></span>
+              <a
+                className="btn btn-primary"
+                href="https://opensea.io/collection/freelons"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span className="lbl">BUY A CITIZEN</span>
+                <span className="ttl">VIEW ON OPENSEA <span className="ar">↗</span></span>
+              </a>
+              <Link
+                href="/start"
+                className="new-here-pill new-here-pill--hero"
+                aria-label="New here? Start with the 2-minute guide"
+              >
+                <span aria-hidden>⬡</span>
+                <span>NEW HERE? · 2-MIN GUIDE</span>
+                <span aria-hidden>→</span>
               </Link>
             </div>
+
+            {/* Honoree thumbnails — Vitalik / Beeple / punk6529 / xcopy
+                as social proof bar. Pros: fastest trust signal a stranger
+                could get and we already have the assets. */}
+            <HonoreeStrip max={7} />
           </div>
           <LiveStats />
         </div>
@@ -139,7 +164,7 @@ export default function Home() {
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--gold)" } as React.CSSProperties}>
             <div className="why-stat">
               <span className="why-num">+500⬡</span>
-              <span className="why-unit">per snipe</span>
+              <span className="why-unit">per snipe · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(500, usdPerEth)}</em></span>
             </div>
             <div className="why-body">
               <span className="why-no">01 · SNIPE</span>
@@ -150,7 +175,7 @@ export default function Home() {
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--signal-blue)" } as React.CSSProperties}>
             <div className="why-stat">
               <span className="why-num">+25⬡</span>
-              <span className="why-unit">per sweep</span>
+              <span className="why-unit">per sweep · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(25, usdPerEth)}</em></span>
             </div>
             <div className="why-body">
               <span className="why-no">02 · BUY</span>
@@ -161,7 +186,7 @@ export default function Home() {
           <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--mars-rust)" } as React.CSSProperties}>
             <div className="why-stat">
               <span className="why-num">+10⬡</span>
-              <span className="why-unit">per share</span>
+              <span className="why-unit">per share · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(10, usdPerEth)}</em></span>
             </div>
             <div className="why-body">
               <span className="why-no">03 · SHARE</span>
@@ -172,7 +197,7 @@ export default function Home() {
           <Link href="/patrons" className="why-card scan-card" style={{ "--accent": "var(--signal-red)" } as React.CSSProperties}>
             <div className="why-stat">
               <span className="why-num">100⬡</span>
-              <span className="why-unit">to start</span>
+              <span className="why-unit">to start · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(100, usdPerEth)}</em></span>
             </div>
             <div className="why-body">
               <span className="why-no">04 · BURN</span>
