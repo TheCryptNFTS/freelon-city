@@ -407,3 +407,62 @@ export async function getTopCitizensByValue(limit: number, floorEth: number): Pr
 export function _clearTraitRarityCache(): void {
   traitRarityCache = null;
 }
+
+/* -------------------------------------------------------------------------- *
+ *  CITIZEN AGE
+ * -------------------------------------------------------------------------- *
+ * Founder spec (2026-05-25): every citizen starts at age 404 (lore — the
+ * signal was already old when it broke). Then ages 1 tick per real day
+ * since the most recent transferTs. So a token that just changed hands
+ * shows "404 ticks" and a long-held citizen shows "404 + N days under
+ * current carrier."
+ *
+ * If we have no transferTs (cron hasn't seen a sale yet for this token),
+ * we still return 404 — the floor. The age is part of identity, not
+ * something earned.
+ */
+
+export const CITIZEN_BASE_AGE_TICKS = 404;
+
+export function citizenAgeTicks(stats: { transferTs: number }, nowSec: number = Math.floor(Date.now() / 1000)): {
+  ticks: number;
+  baseTicks: number;
+  carrierDays: number;
+} {
+  const carrierSec = stats.transferTs > 0 ? Math.max(0, nowSec - stats.transferTs) : 0;
+  const carrierDays = Math.floor(carrierSec / 86400);
+  return {
+    ticks: CITIZEN_BASE_AGE_TICKS + carrierDays,
+    baseTicks: CITIZEN_BASE_AGE_TICKS,
+    carrierDays,
+  };
+}
+
+/* -------------------------------------------------------------------------- *
+ *  ACCEPTANCE TIER
+ * -------------------------------------------------------------------------- *
+ * Founder spec (2026-05-25): "tiers where the city accepts you." Map the
+ * 0-1000 value into 7 lore-named bands so a holder can read a glance-state
+ * without doing math. Bands are deliberately compressed at the bottom
+ * (most tokens stay there) and stretched at the top (rare to reach).
+ *
+ * Names lean into the canon: signal vocabulary, no participation-trophy.
+ */
+export type AcceptanceTier =
+  | "STATIC"        // 0-99    — the signal hasn't found you
+  | "FAINT"         // 100-199 — barely audible
+  | "HEARD"         // 200-349 — the city knows your name
+  | "CARRIER"       // 350-499 — you carry weight
+  | "VERIFIED"      // 500-699 — the architect logs you
+  | "DOCTRINE"      // 700-849 — you ARE the civilization
+  | "MONOLITH";     // 850-1000 — the city is built around you
+
+export function acceptanceTier(value: number): { tier: AcceptanceTier; band: [number, number]; nextAt: number | null } {
+  if (value >= 850) return { tier: "MONOLITH", band: [850, 1000], nextAt: null };
+  if (value >= 700) return { tier: "DOCTRINE", band: [700, 849], nextAt: 850 };
+  if (value >= 500) return { tier: "VERIFIED", band: [500, 699], nextAt: 700 };
+  if (value >= 350) return { tier: "CARRIER", band: [350, 499], nextAt: 500 };
+  if (value >= 200) return { tier: "HEARD", band: [200, 349], nextAt: 350 };
+  if (value >= 100) return { tier: "FAINT", band: [100, 199], nextAt: 200 };
+  return { tier: "STATIC", band: [0, 99], nextAt: 100 };
+}
