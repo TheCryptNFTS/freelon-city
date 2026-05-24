@@ -89,15 +89,22 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // Fail-quiet wrapper so an Upstash hiccup never breaks the citizen page.
   const valueCard = await (async () => {
     try {
-      const { getCitizenStats, computeCitizenValue, getCitizenCivRank } =
-        await import("@/lib/citizen-value-store");
+      const {
+        getCitizenStats,
+        computeCitizenValue,
+        getCitizenCivRank,
+        citizenAgeTicks,
+        acceptanceTier,
+      } = await import("@/lib/citizen-value-store");
       const floor = typeof meta.lastSaleEth === "number" && meta.lastSaleEth > 0
         ? meta.lastSaleEth
         : 0.003; // fallback floor used only for sale ratio; harmless if wrong
       const stats = await getCitizenStats(tid);
       const computed = computeCitizenValue(tid, stats, floor);
       const civRank = await getCitizenCivRank(tid, floor).catch(() => null);
-      return { stats, computed, civRank };
+      const age = citizenAgeTicks(stats);
+      const tier = acceptanceTier(computed.value);
+      return { stats, computed, civRank, age, tier };
     } catch {
       return null;
     }
@@ -279,6 +286,66 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   · {valueCard.stats.hex.toLocaleString()} ⬡ accumulated
                 </span>
               </div>
+
+              {/* Acceptance tier + age (2026-05-25). Tier is the lore-named
+                  band so a holder reads "MONOLITH" instead of "923/1000".
+                  Age starts at 404 ticks (the signal was already old) and
+                  adds +1 per real day held by the current carrier. */}
+              <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "5px 11px",
+                    border: `1px solid ${color}`,
+                    background: `${color}18`,
+                    color,
+                    borderRadius: 999,
+                    fontFamily: "var(--mono2)",
+                    fontSize: 11,
+                    letterSpacing: "0.22em",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                  }}
+                  title={`The city accepts you at this band (${valueCard.tier.band[0]}-${valueCard.tier.band[1]} value).${
+                    valueCard.tier.nextAt
+                      ? ` Next tier at ${valueCard.tier.nextAt}.`
+                      : ` Top tier reached.`
+                  }`}
+                >
+                  ⬡ {valueCard.tier.tier}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--mono2)",
+                    fontSize: 11,
+                    color: "var(--ink-dim)",
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                  }}
+                  title={`Every citizen starts at 404 ticks (the signal was already old). +1 tick per real day under current carrier.`}
+                >
+                  AGE · <strong style={{ color: "var(--ink-2)" }}>{valueCard.age.ticks.toLocaleString()}</strong> TICKS
+                  {valueCard.age.carrierDays > 0 && (
+                    <> · <strong style={{ color: "var(--ink-2)" }}>{valueCard.age.carrierDays}</strong>D UNDER CARRIER</>
+                  )}
+                </span>
+                {valueCard.tier.nextAt && (
+                  <span
+                    style={{
+                      fontFamily: "var(--mono2)",
+                      fontSize: 10,
+                      color: "var(--ink-dim)",
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    NEXT · {valueCard.tier.nextAt - valueCard.computed.value} TO ASCEND
+                  </span>
+                )}
+              </div>
+
               <ul
                 style={{
                   marginTop: 14,
