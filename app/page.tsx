@@ -39,6 +39,18 @@ export default function Home() {
         <div className="hero-left">
           <div>
             <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
+            {/* NEW HERE pill — Discord feedback 2026-05-24 (@Munch via @Lucifer):
+                "I was massively overwhelmed... most holders are like that already".
+                Make the dummies guide impossible to miss. */}
+            <Link
+              href="/start"
+              className="new-here-pill"
+              aria-label="New here? Start with the 2-minute guide"
+            >
+              <span aria-hidden>⬡</span>
+              <span>NEW HERE? · 2-MIN GUIDE</span>
+              <span aria-hidden>→</span>
+            </Link>
             <h1 className="hero-headline">
               The hex didn&apos;t<br />
               disappear<br />
@@ -62,6 +74,25 @@ export default function Home() {
           </div>
           <LiveStats />
         </div>
+        <style>{`
+          .new-here-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            margin: 10px 0 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--gold);
+            background: rgba(200,167,93,0.10);
+            color: var(--gold);
+            font-family: var(--mono2);
+            font-size: 10px;
+            letter-spacing: 0.26em;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 120ms ease, transform 120ms ease;
+          }
+          .new-here-pill:hover { background: rgba(200,167,93,0.20); transform: translateY(-1px); }
+        `}</style>
         <div className="hero-right">
           <div className="img-frame">
             {/* eslint-disable-next-line @next/next/no-img-element */}

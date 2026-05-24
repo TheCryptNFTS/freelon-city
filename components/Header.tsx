@@ -14,6 +14,7 @@ export function Header() {
           <span style={{ fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.24em", textTransform: "uppercase", color: "var(--ink)" }}>404 · FREELON CITY</span>
         </Link>
         <nav className="desktop-nav" style={{ display: "flex", gap: 18, alignItems: "center" }}>
+          <Link href="/start" className="nav-link nav-start">Start</Link>
           <Link href="/civilizations" className="nav-link">City</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
           <Link href="/daily" className="nav-link">Signal</Link>
@@ -38,6 +39,9 @@ export function Header() {
         .desktop-nav { gap: 18px; }
         .nav-link { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); transition: color .2s ease; }
         .nav-link:hover { color: var(--gold-bright); }
+        /* Subtle highlight on "Start" so newcomers spot it first */
+        .nav-start { color: var(--gold); font-weight: 600; }
+        .nav-start:hover { color: var(--gold-bright); }
         .nav-sync { text-transform: uppercase; letter-spacing: 0.22em; }
         .nav-earn-pill {
           display: inline-flex; align-items: center; gap: 6px;

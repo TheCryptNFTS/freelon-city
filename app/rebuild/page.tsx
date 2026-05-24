@@ -18,7 +18,7 @@ const SECTIONS = [
     h: "02",
     t: "THE TEN CIVILIZATIONS",
     body:
-      "Every citizen belongs to one of ten signal doctrines. Civilization is set on-chain at mint and determines color, caste eligibility, and yield bonus. The doctrines: synthesis, corruption, growth, oracle, transmission, fracture, sovereignty, void, luxury, machine.",
+      "Every citizen belongs to one of ten signal doctrines. Civilization is set on-chain at mint and determines color, caste eligibility, and in-city earning bonuses. The doctrines: synthesis, corruption, growth, oracle, transmission, fracture, sovereignty, void, luxury, machine.",
   },
   {
     h: "03",

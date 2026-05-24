@@ -84,8 +84,13 @@ const ITEMS: Array<{
   // ─── NEXT ───
   {
     status: "NEXT",
-    title: "Hex redemption surface",
-    body: "Hex becomes usable beyond on-site sinks. Direction: unlock discounts on partner drops, supplementary collections, and city-issued merch. Cleanly scoped — no token, no securities surface.",
+    title: "Hex utility expansion",
+    body: "Hex unlocks discounts on partner drops, supplementary collections, and city-issued merch. Hex is in-game city credits — it is not a token, it is not redeemable, and it is not an investment. The more you can spend it on, the more reasons to earn it.",
+  },
+  {
+    status: "NEXT",
+    title: "The Signal Chooses (weekly allocation)",
+    body: "Once a week the city allocates resources — a cosmetic frame, a featured citizen slot, a 1/1 mention — to a random active carrier. Participation-based, not pro-rata. Lore-driven, not financial.",
   },
   {
     status: "NEXT",

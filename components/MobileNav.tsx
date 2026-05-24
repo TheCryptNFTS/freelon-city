@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 const LINKS = [
+  { href: "/start",           label: "⬡ Start Here · 2-min guide", gold: true },
   { href: "/civilizations",   label: "City" },
   { href: "/citizens",        label: "Citizens" },
   { href: "/daily",           label: "Signal" },

@@ -194,11 +194,10 @@ export default async function EarnPage() {
             Share today&apos;s signal on X →
             claim <strong style={{ color: "var(--gold)", fontFamily: "var(--display)", fontSize: 18 }}>+{ECONOMY.DAILY_CLAIM} ⬡</strong>
             {" "}(+{ECONOMY.STREAK_3_BONUS} at 3d, +{ECONOMY.STREAK_7_BONUS} at 7d, +{ECONOMY.STREAK_30_BONUS} at 30d).
-            This resets the {ECONOMY.ACTIVITY_DECAY_DAYS}-day decay clock and keeps your passive baseline alive.
+            This resets the {ECONOMY.ACTIVITY_DECAY_DAYS}-day decay clock and keeps your background hex ticking.
           </p>
           <p style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", lineHeight: 1.6, marginBottom: 14, letterSpacing: "0.05em" }}>
-            ⬡ To keep passive earnings flowing you need {ECONOMY.ACTIVITY_MIN_DAYS_PER_WINDOW} active days per {ECONOMY.ACTIVITY_DECAY_DAYS}-day window.
-            Posting daily is the easiest way.
+            ⬡ The city only ticks for active carriers. Hit at least {ECONOMY.ACTIVITY_MIN_DAYS_PER_WINDOW} active days per {ECONOMY.ACTIVITY_DECAY_DAYS}-day window or background hex pauses. Posting daily is the easiest way.
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Link href="/carrier" className="btn btn-primary">
