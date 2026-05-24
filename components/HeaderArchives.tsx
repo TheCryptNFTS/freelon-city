@@ -20,12 +20,14 @@ const GROUPS: Group[] = [
   {
     heading: "CANON",
     items: [
-      { href: "/canon", label: "All reference · Origin · Civs · Castes · Shapes · Lexicon · Manifesto", gold: true },
+      { href: "/canon",         label: "All reference · Origin · Civs · Castes · Shapes · Lexicon · Manifesto", gold: true },
+      { href: "/civilizations", label: "City · the 10 civilizations" },
     ],
   },
   {
     heading: "PLAY",
     items: [
+      { href: "/daily",         label: "⬡ Daily Signal",  gold: true },
       { href: "/civ-wars",      label: "⬡ Civ Wars",      gold: true },
       { href: "/transmissions", label: "⬡ Transmissions", gold: true },
       { href: "/relay",         label: "⬡ Relay (Post)",  gold: true },
@@ -38,6 +40,14 @@ const GROUPS: Group[] = [
       { href: "/heat",        label: "Heat" },
       { href: "/undervalued", label: "Undervalued" },
       { href: "/graveyard",   label: "Graveyard" },
+    ],
+  },
+  {
+    heading: "HOLDER TOOLS",
+    items: [
+      { href: "/vault",   label: "⬡ Vault · safe transfer", gold: true },
+      { href: "/carrier", label: "Carrier hub" },
+      { href: "/sync",    label: "Sync wallet / handle" },
     ],
   },
   {

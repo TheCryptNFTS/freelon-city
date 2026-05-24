@@ -13,13 +13,13 @@ export function Header() {
           <Image src="/logo.png" alt="FREELON CITY" width={36} height={36} priority style={{ display: "block" }} />
           <span style={{ fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.24em", textTransform: "uppercase", color: "var(--ink)" }}>404 · FREELON CITY</span>
         </Link>
+        {/* Primary nav — trimmed to 4 items per the CRO + Growth pros'
+            convergent feedback (was 8). Vault / Canon / City / Signal
+            moved into <HeaderArchives /> groups. Mobile nav still lists
+            everything explicitly. */}
         <nav className="desktop-nav" style={{ display: "flex", gap: 18, alignItems: "center" }}>
           <Link href="/start" className="nav-link nav-start">Start</Link>
-          <Link href="/vault" className="nav-link nav-start">Vault</Link>
-          <Link href="/civilizations" className="nav-link">City</Link>
-          <Link href="/canon" className="nav-link">Canon</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
-          <Link href="/daily" className="nav-link">Signal</Link>
           <Link href="/dashboard" className="nav-link">The Numbers</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
           <HeaderArchives />

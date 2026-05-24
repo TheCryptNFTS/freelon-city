@@ -132,9 +132,29 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
   const weeklyRescues = weeklyDumps.filter((d) => d.rescuer).length;
 
   // ── Compose tweet (X anti-suppression rules respected) ────────
+  // Template variation per CT culture pro feedback — same pattern as
+  // sales-pulse. Deterministic from ISO week so the same week always
+  // picks the same template (retry safety) but consecutive weeks rotate.
   const isoWeek = isoWeekNumber(now);
-  const lines = [
+
+  const LEADS = [
     `⬡ ⬡ @4040hex · WEEK ${isoWeek} RECEIPTS`,
+    `⬡ Week ${isoWeek} · the ledger speaks ↓`,
+    `⬡ Seven days in the city ⬡ week ${isoWeek}:`,
+    `⬡ What week ${isoWeek} carried, on-chain:`,
+  ];
+  const CLOSERS = [
+    `The city remembers everything.`,
+    `Receipts kept. Carriers carried.`,
+    `Nothing forgotten. Nothing curated.`,
+    `One week. Written down.`,
+  ];
+
+  const lead = LEADS[isoWeek % LEADS.length];
+  const closer = CLOSERS[(isoWeek + 1) % CLOSERS.length];
+
+  const lines = [
+    lead,
     ``,
     `· ${sales} sale${sales === 1 ? "" : "s"} · ${trimEth(volEth)} Ξ`,
     `· ${holders} holder${holders === 1 ? "" : "s"} (lifetime)`,
@@ -147,7 +167,7 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
     lines.push(`· top transmission · @${topTx.authorHandle.replace(/^@/, "")} · score ${topTx.score}`);
   }
   lines.push(``);
-  lines.push(`The city remembers everything.`);
+  lines.push(closer);
   lines.push(`#FREELONCITY #404HEXNOTFOUND`);
   lines.push(`https://www.freeloncity.com/numbers`);
   const text = lines.join("\n");

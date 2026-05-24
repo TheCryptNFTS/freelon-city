@@ -78,28 +78,62 @@ function shortAddr(a: string): string {
 
 /**
  * Compose the digest text for a pulse window.
+ *
  * X rules respected: leads with ⬡ (not link, not @mention), URL on last line.
+ *
+ * TEMPLATE VARIATION — CT culture pro flagged that every autopost reading
+ * the same was an algo demote signal ("the account is talking AT the
+ * timeline, not WITH it"). We rotate across 4 lead-ins + 4 closers so
+ * consecutive posts don't pattern-match as bot output. Selection is
+ * tx-hash-deterministic so a retry of the same window picks the same
+ * template (no flicker if a post errored and retries).
  */
-function composeText(input: {
+type ComposeInput = {
   count: number;
   volumeEth: number;
   top: PulseSale;
   topCivName: string | null;
   topBuyerHandle: string | null;
-}): string {
+};
+
+const LEAD_INS = [
+  (i: ComposeInput) => `⬡ 4H SIGNAL PULSE`,
+  (i: ComposeInput) => `⬡ The city moved · ${i.count} hand${i.count === 1 ? "" : "s"} changed`,
+  (i: ComposeInput) => `⬡ Quiet 4h. Then this:`,
+  (i: ComposeInput) => `⬡ The signal kept transmitting.`,
+];
+
+const CLOSERS = [
+  `The city keeps moving.`,
+  `The hex moved here.`,
+  `Carriers carried.`,
+  `Sealed supply. Live floor.`,
+];
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function composeText(input: ComposeInput): string {
   const { count, volumeEth, top, topCivName, topBuyerHandle } = input;
   const id4 = top.tokenId.toString().padStart(4, "0");
-  const buyerLine = topBuyerHandle
-    ? ` · to @${topBuyerHandle}`
-    : "";
+  const buyerLine = topBuyerHandle ? ` · to @${topBuyerHandle}` : "";
   const civSlug = topCivName ? ` · ${topCivName.toUpperCase()}` : "";
+
+  // Deterministic template selection by tx hash — same window, same templates
+  const seed = hashStr(top.tx || `${top.tokenId}-${top.ts}`);
+  const lead = LEAD_INS[seed % LEAD_INS.length](input);
+  const closer = CLOSERS[(seed >> 3) % CLOSERS.length];
+
   const lines = [
-    `⬡ 4H SIGNAL PULSE`,
+    lead,
     ``,
     `${count} citizen${count === 1 ? "" : "s"} · ${trimEth(volumeEth)} Ξ volume`,
     `Top · #${id4}${civSlug} · ${trimEth(top.priceEth)} Ξ${buyerLine}`,
     ``,
-    `The city keeps moving.`,
+    closer,
     `#FREELONCITY #404HEXNOTFOUND`,
     `https://www.freeloncity.com/citizens/${top.tokenId}`,
   ];
