@@ -16,6 +16,7 @@ export function Footer() {
           <div className="text-[var(--color-ink)] text-xs uppercase tracking-widest mb-3">Navigate</div>
           <ul className="space-y-1 text-[var(--color-ink-dim)]">
             <li><Link href="/">Home</Link></li>
+            <li><Link href="/vault" style={{ color: "var(--color-gold)" }}>Vault · Safe Transfer</Link></li>
             <li><Link href="/origin">Origin</Link></li>
             <li><Link href="/civilizations">Civilizations</Link></li>
             <li><Link href="/shapes">Shapes</Link></li>
@@ -37,6 +38,7 @@ export function Footer() {
       </div>
       <div className="max-w-6xl mx-auto px-6 pb-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--color-ink-dim)] terminal border-t border-white/5 pt-6">
         <Link href="/start" style={{ color: "var(--color-gold)", fontWeight: 600 }}>Start Here</Link>
+        <Link href="/canon" style={{ color: "var(--color-gold)", fontWeight: 600 }}>Canon</Link>
         <Link href="/numbers">Numbers</Link>
         <Link href="/architect">Architect</Link>
         <Link href="/roadmap">Roadmap</Link>

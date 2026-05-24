@@ -15,7 +15,9 @@ export function Header() {
         </Link>
         <nav className="desktop-nav" style={{ display: "flex", gap: 18, alignItems: "center" }}>
           <Link href="/start" className="nav-link nav-start">Start</Link>
+          <Link href="/vault" className="nav-link nav-start">Vault</Link>
           <Link href="/civilizations" className="nav-link">City</Link>
+          <Link href="/canon" className="nav-link">Canon</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
           <Link href="/daily" className="nav-link">Signal</Link>
           <Link href="/dashboard" className="nav-link">The Numbers</Link>

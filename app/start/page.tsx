@@ -195,6 +195,12 @@ export default function StartPage() {
         <Faq q="I don't want to write tweets myself.">
           Use <Link href="/relay" style={{ color: "var(--gold)" }}>/relay</Link>. Pre-written templates. Click POST, fill the blanks, done.
         </Faq>
+        <Faq q="How do I safely move my citizens to another wallet?">
+          Use <Link href="/vault" style={{ color: "var(--gold)" }}>/vault</Link>. It lets you batch-transfer
+          citizens (to cold storage, a fresh wallet, or as a gift) one transaction at a time, with a
+          test-send safeguard. The contract is standard ERC-721 so each move is a separate signed
+          transaction — but the vault page sequences them and shows live progress so nothing slips.
+        </Faq>
         <Faq q="Who runs this?">
           One architect, building daily. See <Link href="/architect" style={{ color: "var(--gold)" }}>/architect</Link>.
           Independent, no VC, no exit plan.

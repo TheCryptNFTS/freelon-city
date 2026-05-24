@@ -189,6 +189,11 @@ export default function Home() {
         </div>
       </section>
 
+      {/* CIVILIZATION WAR SCOREBOARD — moved up from below.
+          Live tribal gameplay is the highest-engagement element on the page;
+          it deserves the slot right after the mechanics announce. */}
+      <CivWarBoard />
+
       {/* 404 ALERTS · LIVE SIGNAL FEED */}
       <AlertsFeed />
 
@@ -369,9 +374,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CIVILIZATION WAR SCOREBOARD */}
-      <CivWarBoard />
-
       {/* TOP PATRONS · 7-DAY BURN */}
       <TopPatronsStrip />
 
@@ -387,6 +389,17 @@ export default function Home() {
           The people <em>became</em> the frame.
         </q>
         <div className="cred">⬡ FREELON CITY · FINAL TRANSMISSION</div>
+        {/* CTA below the closer — best line on the site shouldn't dead-end.
+            Single button, single instruction, brand voice. */}
+        <div style={{ marginTop: "var(--s-5)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap", justifyContent: "center" }}>
+          <Link className="btn btn-primary" href="/sync">
+            <span className="lbl">JOIN THE FRAME</span>
+            <span className="ttl">ENTER THE CITY <span className="ar">⬡ →</span></span>
+          </Link>
+          <Link className="btn btn-secondary" href="/start">
+            <span className="ttl">NEW HERE? · 2-MIN GUIDE →</span>
+          </Link>
+        </div>
       </section>
 
       {/* ON-CHAIN */}

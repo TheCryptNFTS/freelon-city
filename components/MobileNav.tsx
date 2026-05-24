@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 
 const LINKS = [
   { href: "/start",           label: "⬡ Start Here · 2-min guide", gold: true },
+  { href: "/vault",           label: "⬡ Vault · safe transfer", gold: true },
+  { href: "/canon",           label: "⬡ Canon · reference library", gold: true },
   { href: "/civilizations",   label: "City" },
   { href: "/citizens",        label: "Citizens" },
   { href: "/daily",           label: "Signal" },
