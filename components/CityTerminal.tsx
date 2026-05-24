@@ -4,29 +4,15 @@
  * The user feedback: "Bloomberg Terminal for a digital civilization."
  * Every screen should answer: "What is happening RIGHT NOW in the city?"
  *
- * This is the first surface to actually embody that. Server component,
- * reads in parallel:
- *   - OpenSea floor + 24h volume / sales
- *   - Hex-index (live + 24h delta)
- *   - Collapse state
- *   - Defender stats (bids placed / defenders / hex distributed)
- *   - Top civilization by sales volume
- *   - Last sale
- *
- * Layout: 6 dense panels in a CSS grid that collapses to vertical on
- * mobile. Each panel has a "system state" (active/unstable/warning/
- * surge) reflected by left-edge color + tiny pulse dot.
- *
- * Typography: small terse tabular numerics in mono, headline numbers
- * in display. Sparse padding + dense data per panel = the density
- * contrast the brief asked for.
- *
- * No emojis. No gradient bloat. Reference: Bloomberg, Dune UI restraint.
+ * Reads (in parallel) OpenSea floor/24h, hex index, collapse state,
+ * defender stats, civ leader, last sale. Renders 6 dense panels via
+ * the shared <Panel /> primitive — no inline styles, no hardcoded
+ * state colors.
  */
-import Link from "next/link";
 import { getCollapseState } from "@/lib/collapse-mode";
 import { getStats as getDefenderStats } from "@/lib/defender-store";
 import { getUsdPerEth } from "@/lib/eth-price";
+import { Panel, ResponsiveGrid, SectionHeader } from "@/components/ui";
 
 const COLLECTION_SLUG = "freelons";
 
@@ -116,44 +102,26 @@ export async function CityTerminal() {
   const oneDay = os?.intervals?.find((i) => i.interval === "one_day");
   const sevenDay = os?.intervals?.find((i) => i.interval === "seven_day");
 
-  // Civ leader by 24h then lifetime volume
   const civLeader = (civs?.civs || [])
     .filter((c) => c.volEth > 0 || c.sales > 0)
     .sort((a, b) => b.volEth - a.volEth)[0] || null;
 
-  // Determine system state
-  const collapseState: "active" | "unstable" | "warning" | "surge" = collapse.active ? "warning" : "active";
+  const cityState: "warning" | "active" = collapse.active ? "warning" : "active";
+  const cityLabel = collapse.active ? "STATUS · COLLAPSE" : "STATUS · ACTIVE";
 
   return (
     <section
       aria-label="City state terminal"
-      style={{
-        maxWidth: "var(--maxw)",
-        margin: "var(--s-4) auto",
-        padding: "0 var(--pad)",
-      }}
+      style={{ maxWidth: "var(--maxw)", margin: "var(--s-4) auto", padding: "0 var(--pad)" }}
     >
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: 10,
-          fontFamily: "var(--mono2)",
-          fontSize: 10,
-          letterSpacing: "0.32em",
-          textTransform: "uppercase",
-          color: "var(--ink-dim)",
-        }}
-      >
-        <span>STATE OF THE CITY · LIVE</span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: collapse.active ? "#FF8A6E" : "#7AE08D", boxShadow: `0 0 8px ${collapse.active ? "#FF8A6E" : "#7AE08D"}` }} />
-          {collapse.active ? `STATUS · COLLAPSE` : `STATUS · ${collapseState.toUpperCase()}`}
-        </span>
-      </header>
+      <SectionHeader
+        label="STATE OF THE CITY · LIVE"
+        live
+        liveState={cityState}
+        liveLabel={cityLabel}
+      />
 
-      <div className="city-terminal-grid">
+      <ResponsiveGrid cols={3} colsMd={2}>
         {/* FLOOR + MARKET */}
         <Panel
           state={floor > 0 ? "active" : "offline"}
@@ -175,7 +143,11 @@ export async function CityTerminal() {
           state={hex?.change24h != null && hex.change24h < -10 ? "warning" : "active"}
           label="Hex Index"
           primary={hex?.change24h != null ? `${hex.change24h > 0 ? "+" : ""}${hex.change24h.toFixed(1)}%` : "—"}
-          primaryColor={hex?.change24h != null ? (hex.change24h >= 0 ? "#7AE08D" : "#FF8A6E") : undefined}
+          primaryColor={
+            hex?.change24h != null
+              ? hex.change24h >= 0 ? "var(--state-active)" : "var(--state-warning)"
+              : undefined
+          }
           secondary="24h change"
           rows={[
             ["Floor", fmtEth(floor, 4)],
@@ -238,125 +210,7 @@ export async function CityTerminal() {
           href="/daily"
           cta="CLAIM"
         />
-      </div>
-
-      <style>{`
-        .city-terminal-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 1px;
-          background: var(--line);
-          border: 1px solid var(--line);
-          border-radius: 12px;
-          overflow: hidden;
-        }
-        @media (max-width: 920px) {
-          .city-terminal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (max-width: 540px) {
-          .city-terminal-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
+      </ResponsiveGrid>
     </section>
-  );
-}
-
-type PanelState = "active" | "unstable" | "warning" | "offline" | "surge";
-
-function stateBorder(s: PanelState): string {
-  switch (s) {
-    case "surge":   return "#E8B247";
-    case "warning": return "#FF8A6E";
-    case "unstable":return "#FFD27A";
-    case "offline": return "#3a3a3a";
-    case "active":
-    default:        return "#7AE08D";
-  }
-}
-
-function Panel({
-  state, label, primary, primaryColor, secondary, rows, href, cta, external,
-}: {
-  state: PanelState;
-  label: string;
-  primary: React.ReactNode;
-  primaryColor?: string;
-  secondary?: string;
-  rows?: Array<[string, string]>;
-  href?: string;
-  cta?: string;
-  external?: boolean;
-}) {
-  const stateColor = stateBorder(state);
-  const inner = (
-    <article
-      style={{
-        background: "rgba(8,10,14,0.95)",
-        padding: "14px 16px 12px",
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        minHeight: 168,
-        transition: "background 140ms ease",
-      }}
-      className="city-terminal-panel"
-    >
-      {/* state strip */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute", top: 0, left: 0, bottom: 0,
-          width: 3, background: stateColor,
-          opacity: state === "offline" ? 0.4 : 1,
-        }}
-      />
-
-      {/* header row */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={{ fontFamily: "var(--mono2)", fontSize: 9, letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--ink-dim)" }}>
-          {label}
-        </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "var(--mono2)", fontSize: 8, letterSpacing: "0.22em", color: stateColor, textTransform: "uppercase" }}>
-          <span style={{ width: 5, height: 5, borderRadius: "50%", background: stateColor, boxShadow: state !== "offline" ? `0 0 6px ${stateColor}` : "none" }} />
-          {state}
-        </span>
-      </div>
-
-      {/* primary */}
-      <div style={{ fontFamily: "var(--display)", fontSize: "clamp(22px, 2.4vw, 30px)", letterSpacing: "-0.005em", lineHeight: 1.05, color: primaryColor || "var(--ink)", fontVariantNumeric: "tabular-nums" }}>
-        {primary}
-      </div>
-      {secondary && (
-        <div style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-2)", letterSpacing: "0.06em" }}>
-          {secondary}
-        </div>
-      )}
-
-      {/* row grid */}
-      {rows && rows.length > 0 && (
-        <div style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", lineHeight: 1.5 }}>
-          {rows.map(([k, v], i) => (
-            <>
-              <span key={`k${i}`} style={{ letterSpacing: "0.14em", textTransform: "uppercase" }}>{k}</span>
-              <span key={`v${i}`} style={{ color: "var(--ink-2)", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{v}</span>
-            </>
-          ))}
-        </div>
-      )}
-
-      {/* cta hint */}
-      {cta && (
-        <span style={{ position: "absolute", bottom: 10, right: 14, fontFamily: "var(--mono2)", fontSize: 9, letterSpacing: "0.26em", color: stateColor, textTransform: "uppercase" }}>
-          {cta} →
-        </span>
-      )}
-    </article>
-  );
-  if (!href) return inner;
-  return external ? (
-    <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: "none", color: "inherit", display: "block" }}>{inner}</a>
-  ) : (
-    <Link href={href} style={{ textDecoration: "none", color: "inherit", display: "block" }}>{inner}</Link>
   );
 }

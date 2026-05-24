@@ -4,21 +4,16 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /**
- * Archives dropdown — grouped, not a flat dump of 17 unrelated routes.
+ * Archives dropdown — grouped by intent (LIVE / MARKET / HOLDER /
+ * COMMUNITY / CANON) instead of a flat dump.
  *
- * Lore pages (Origin / Lore / Shapes / Castes / Manifesto / Rebuild /
- * Lexicon) all collapse into a single Canon link — they're individually
- * reachable but the consolidated reference library is the better entry.
- *
- * Remaining items live under four small headers so the eye groups them
- * by intent: CANON · PLAY · MARKET · COMMUNITY.
+ * All visual rules live in the .nav-archives-* classes below — no
+ * inline styles. The component owns: positioning math, open/close,
+ * group data.
  */
 type Item = { href: string; label: string; gold?: boolean };
 type Group = { heading: string; items: Item[] };
 
-// Labels kept short — they sit in a fixed-width dropdown and used to
-// wrap into paragraphs. Single line, terse, no decoration except a
-// leading glyph for live/active items.
 const GROUPS: Group[] = [
   {
     heading: "LIVE",
@@ -71,18 +66,14 @@ export function HeaderArchives() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  // Compute fixed-position coordinates from trigger's bounding rect when opening.
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) return;
     function compute() {
       const el = triggerRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      // Anchor menu's top-right to trigger's bottom-right, with a small gap.
       const top = r.bottom + 14;
       const right = Math.max(8, window.innerWidth - r.right);
       setPos({ top, right });
@@ -116,7 +107,7 @@ export function HeaderArchives() {
   }, [open]);
 
   return (
-    <div className="nav-more" style={{ position: "relative" }}>
+    <div className="nav-more nav-archives">
       <button
         ref={triggerRef}
         type="button"
@@ -130,65 +121,20 @@ export function HeaderArchives() {
       {mounted && open && pos && createPortal(
         <div
           ref={menuRef}
-          className="nav-more-menu-portal"
+          className="nav-archives-menu"
           role="menu"
-          style={{
-            position: "fixed",
-            top: pos.top,
-            right: pos.right,
-            width: 240,
-            maxWidth: "calc(100vw - 16px)",
-            background: "var(--surface)",
-            border: "1px solid var(--line)",
-            padding: "8px 0 12px",
-            boxShadow: "0 12px 40px -12px rgba(0,0,0,0.6)",
-            zIndex: 10000,
-          }}
+          style={{ top: pos.top, right: pos.right }}
         >
           {GROUPS.map((g, gi) => (
-            <div key={g.heading} style={{ display: "block" }}>
-              {gi > 0 && (
-                <div
-                  aria-hidden
-                  style={{
-                    height: 1,
-                    background: "var(--line)",
-                    margin: "8px 16px",
-                    opacity: 0.5,
-                  }}
-                />
-              )}
-              <div
-                style={{
-                  padding: "8px 16px 4px",
-                  fontFamily: "var(--mono2)",
-                  fontSize: 9,
-                  letterSpacing: "0.32em",
-                  color: "var(--ink-dim)",
-                  textTransform: "uppercase",
-                }}
-              >
-                {g.heading}
-              </div>
+            <div key={g.heading} className="nav-archives-group">
+              {gi > 0 && <div aria-hidden className="nav-archives-divider" />}
+              <div className="nav-archives-heading">{g.heading}</div>
               {g.items.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  style={{
-                    display: "block",
-                    padding: "7px 16px",
-                    fontFamily: "var(--mono2)",
-                    fontSize: 11,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    color: l.gold ? "var(--gold)" : "var(--ink-2)",
-                    textDecoration: "none",
-                    lineHeight: 1.3,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
+                  className={`nav-archives-item${l.gold ? " nav-archives-item--gold" : ""}`}
                 >
                   {l.label}
                 </Link>
@@ -196,8 +142,53 @@ export function HeaderArchives() {
             </div>
           ))}
         </div>,
-        document.body
+        document.body,
       )}
+      <style>{`
+        .nav-archives { position: relative; }
+        .nav-archives-menu {
+          position: fixed;
+          width: 240px;
+          max-width: calc(100vw - 16px);
+          background: var(--surface);
+          border: 1px solid var(--line);
+          padding: 8px 0 12px;
+          box-shadow: var(--sh-1);
+          z-index: 10000;
+          border-radius: var(--r-2);
+        }
+        .nav-archives-group { display: block; }
+        .nav-archives-divider {
+          height: 1px;
+          background: var(--line);
+          margin: 8px 16px;
+          opacity: 0.5;
+        }
+        .nav-archives-heading {
+          padding: 8px 16px 4px;
+          font-family: var(--mono2);
+          font-size: var(--t-mono-xxs);
+          letter-spacing: var(--tr-mono);
+          color: var(--ink-dim);
+          text-transform: uppercase;
+        }
+        .nav-archives-item {
+          display: block;
+          padding: 7px 16px;
+          font-family: var(--mono2);
+          font-size: var(--t-mono-sm);
+          letter-spacing: var(--tr-loose);
+          text-transform: uppercase;
+          color: var(--ink-2);
+          text-decoration: none;
+          line-height: 1.3;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .nav-archives-item:hover { color: var(--gold-bright); background: var(--tint-gold); }
+        .nav-archives-item--gold { color: var(--gold); }
+      `}</style>
     </div>
   );
 }
