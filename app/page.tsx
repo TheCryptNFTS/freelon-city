@@ -45,31 +45,29 @@ export default async function Home() {
           <div>
             {/* Live identity greeting — wallet-aware. For known viewers
                 the page transforms into a personal experience (civ color,
-                handle, citizen count, hex balance). The brand statement
-                stays below it intact for newcomers. */}
+                handle, citizen count, hex balance). */}
             <IdentityGreeting />
 
-            {/* Lore kicker — the iconic line, now a kicker not the headline.
-                Pros said the headline was burning prime real estate on lore;
-                this keeps the brand vibe but lets the category lead. */}
-            <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND · THE HEX MOVED HERE</span>
+            {/* Brand badge */}
+            <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
 
-            {/* Live floor + 24h delta + holders. CRO pro: highest-leverage
-                copy fix on the site. Anchors price above the fold. */}
+            {/* Live floor + 24h delta + holders. The category + price
+                anchor lives HERE — so the headline below stays the iconic
+                lore line (which the hero typography was sized for). */}
             <FloorPill />
 
-            {/* Category-first headline — passes the 8-second test now.
-                Stranger lands → understands it's a 4040 ERC-721 on Ethereum
-                with sealed supply, in 2 seconds, before reading lore. */}
+            {/* Iconic lore headline — fits the existing type system
+                because each line is short. Category info is carried by
+                the FloorPill directly above. */}
             <h1 className="hero-headline">
-              4040 on-chain<br />
-              citizens<br />
-              <em>sealed forever</em>
+              The hex didn&apos;t<br />
+              disappear<br />
+              <em>It moved</em>
             </h1>
             <p className="hero-sub">
-              Hand-crafted on Ethereum. 10 civilizations. 35 honoraries.
-              Hold one — the city pays daily in hex. Burn hex — carve your
-              name into the wall.
+              <strong>4040 citizens</strong> on Ethereum. 10 civilizations.
+              Sealed supply. Hold one — the city pays daily in hex.
+              Burn hex — carve your name into the wall.
             </p>
 
             {/* Single primary CTA — pros: kill the second CTA, one decision.
