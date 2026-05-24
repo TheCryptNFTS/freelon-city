@@ -3,6 +3,7 @@ import { DoThisNow } from "@/components/DoThisNow";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { FloorPill } from "@/components/FloorPill";
 import { HonoreeStrip } from "@/components/HonoreeStrip";
+import { HoldTheLineBanner } from "@/components/HoldTheLineBanner";
 import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
 import { WalletScanner } from "@/app/sync/WalletScanner";
 import { BecomeACarrier } from "@/components/BecomeACarrier";
@@ -145,6 +146,12 @@ export default async function Home() {
           where holders couldn't find the path to their first hex. Shows
           ONE primary action based on viewer state. */}
       <DoThisNow />
+
+      {/* HOLD THE LINE banner — distributed bid wall mission. The single
+          floor-pump move recommended by the specialist. Carries the
+          live defender count + bid count so it builds social proof
+          as it fills. */}
+      <HoldTheLineBanner />
 
       {/* WHY FREELON · simple cards, plain English */}
       <section className="why-freelon">

@@ -27,6 +27,7 @@ const GROUPS: Group[] = [
   {
     heading: "PLAY",
     items: [
+      { href: "/hold-the-line", label: "⚠ Hold the Line · defend the floor", gold: true },
       { href: "/daily",         label: "⬡ Daily Signal",  gold: true },
       { href: "/civ-wars",      label: "⬡ Civ Wars",      gold: true },
       { href: "/transmissions", label: "⬡ Transmissions", gold: true },
