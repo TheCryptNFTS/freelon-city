@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
+import { CivGlyph } from "@/components/CivGlyph";
 
 export const metadata = { title: "10 Civilizations" };
 
@@ -26,7 +27,10 @@ export default function Page() {
           >
             <header>
               <div className="left">
-                <span className="stamp" style={{ color: c.color }}>{c.stamp}</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                  <CivGlyph slug={slug} color={c.color} size={24} title={c.name} />
+                  <span className="stamp" style={{ color: c.color }}>{c.stamp}</span>
+                </div>
                 <span className="full-name" style={{ color: c.color }}>{c.name}</span>
                 <h2>{c.doctrine}</h2>
               </div>

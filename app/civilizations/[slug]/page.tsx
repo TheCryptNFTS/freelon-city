@@ -10,6 +10,7 @@ import { PropagandaShareButtons } from "@/components/PropagandaShareButtons";
 import { ShareOG } from "@/components/ShareOG";
 import { MayorBroadcast } from "@/components/MayorBroadcast";
 import { getBroadcast } from "@/lib/civ-broadcast-store";
+import { CivGlyph } from "@/components/CivGlyph";
 import doctrineFragments from "@/data/doctrine-fragments.json";
 
 export function generateStaticParams() {
@@ -47,7 +48,42 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     <div className="max-w-6xl mx-auto px-6 py-12">
       <CivVisitTracker slug={slug} />
       <QuestTracker questId="city-tourist" stepId={slug} />
-      <div className="terminal text-xs tracking-[0.3em]" style={{ color: c.color }}>{c.name.toUpperCase()}</div>
+      {/* Generated civilization banner — wide cinematic atmosphere image
+          themed to the civ palette. Bleeds across the full width above
+          the headline. */}
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: "1536 / 640",
+          maxHeight: 360,
+          overflow: "hidden",
+          borderRadius: 12,
+          border: `1px solid ${c.color}33`,
+          marginBottom: 28,
+          background: "#000",
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/generated/civ-banner-${slug}.png`}
+          alt={`${c.name} — civilization banner`}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", objectPosition: "center 35%" }}
+        />
+        {/* Bottom gradient for legibility of any caption later */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%)",
+          }}
+        />
+      </div>
+      <div className="terminal text-xs tracking-[0.3em]" style={{ color: c.color, display: "inline-flex", alignItems: "center", gap: 10 }}>
+        <CivGlyph slug={slug} color={c.color} size={20} title={c.name} />
+        {c.name.toUpperCase()}
+      </div>
       <h1 className="mt-2 text-6xl font-light" style={{ color: c.color }}>{c.doctrine}</h1>
       {mayor && (
         <a className="civ-mayor" href={`/wallet/${mayor.address}`} style={{ borderColor: c.color }}>

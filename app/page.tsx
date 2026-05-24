@@ -5,6 +5,7 @@ import { FloorPill } from "@/components/FloorPill";
 import { HonoreeStrip } from "@/components/HonoreeStrip";
 import { HoldTheLineBanner } from "@/components/HoldTheLineBanner";
 import { CityTerminal } from "@/components/CityTerminal";
+import { CivGlyph } from "@/components/CivGlyph";
 import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
 import { WalletScanner } from "@/app/sync/WalletScanner";
 import { BecomeACarrier } from "@/components/BecomeACarrier";
@@ -338,7 +339,8 @@ export default async function Home() {
               href={`/civilizations/${slug}`}
               style={{ "--civ": c.color } as React.CSSProperties}
             >
-              <div className="top">
+              <div className="top" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <CivGlyph slug={slug} color={c.color} size={22} title={c.name} />
                 <span className="idx">{c.stamp}</span>
                 <span className="name">{c.doctrine}</span>
               </div>
