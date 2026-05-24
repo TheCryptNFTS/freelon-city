@@ -4,6 +4,7 @@ import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { FloorPill } from "@/components/FloorPill";
 import { HonoreeStrip } from "@/components/HonoreeStrip";
 import { HoldTheLineBanner } from "@/components/HoldTheLineBanner";
+import { CityTerminal } from "@/components/CityTerminal";
 import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
 import { WalletScanner } from "@/app/sync/WalletScanner";
 import { BecomeACarrier } from "@/components/BecomeACarrier";
@@ -141,6 +142,13 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* STATE OF THE CITY · live terminal panel. Bloomberg-style.
+          The first surface to answer "what's happening RIGHT NOW in
+          the city" — 6 dense panels, system states (active/warning/
+          surge/offline), tabular numerics, sparse padding. This is
+          the architecture template for the broader UI redesign. */}
+      <CityTerminal />
 
       {/* DO THIS NOW · personalized funnel — addresses the Discord report
           where holders couldn't find the path to their first hex. Shows

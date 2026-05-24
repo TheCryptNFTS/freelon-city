@@ -16,23 +16,18 @@ import { createPortal } from "react-dom";
 type Item = { href: string; label: string; gold?: boolean };
 type Group = { heading: string; items: Item[] };
 
+// Labels kept short — they sit in a fixed-width dropdown and used to
+// wrap into paragraphs. Single line, terse, no decoration except a
+// leading glyph for live/active items.
 const GROUPS: Group[] = [
   {
-    heading: "CANON",
+    heading: "LIVE",
     items: [
-      { href: "/canon",         label: "All reference · Origin · Civs · Castes · Shapes · Lexicon · Manifesto", gold: true },
-      { href: "/civilizations", label: "City · the 10 civilizations" },
-    ],
-  },
-  {
-    heading: "PLAY",
-    items: [
-      { href: "/hold-the-line", label: "⚠ Hold the Line · defend the floor", gold: true },
-      { href: "/daily",         label: "⬡ Daily Signal",  gold: true },
-      { href: "/civ-wars",      label: "⬡ Civ Wars",      gold: true },
-      { href: "/transmissions", label: "⬡ Transmissions", gold: true },
-      { href: "/relay",         label: "⬡ Relay (Post)",  gold: true },
-      { href: "/secrets",       label: "⬡ Secrets",       gold: true },
+      { href: "/hold-the-line", label: "⚠ Hold the Line", gold: true },
+      { href: "/civ-wars",      label: "⬢ Civ Wars",      gold: true },
+      { href: "/daily",         label: "⬢ Daily Signal",  gold: true },
+      { href: "/transmissions", label: "⬢ Transmissions", gold: true },
+      { href: "/relay",         label: "⬢ Relay",         gold: true },
     ],
   },
   {
@@ -44,19 +39,27 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    heading: "HOLDER TOOLS",
+    heading: "HOLDER",
     items: [
-      { href: "/vault",   label: "⬡ Vault · safe transfer", gold: true },
-      { href: "/carrier", label: "Carrier hub" },
-      { href: "/sync",    label: "Sync wallet / handle" },
+      { href: "/vault",   label: "⬢ Vault",  gold: true },
+      { href: "/carrier", label: "Carrier" },
+      { href: "/sync",    label: "Sync" },
     ],
   },
   {
     heading: "COMMUNITY",
     items: [
-      { href: "/tribute", label: "Tribute · 35 honoraries" },
+      { href: "/tribute", label: "Tribute" },
       { href: "/names",   label: "Hall of Names" },
       { href: "/pfp",     label: "PFP Studio" },
+    ],
+  },
+  {
+    heading: "CANON",
+    items: [
+      { href: "/canon",         label: "Canon · all reference" },
+      { href: "/civilizations", label: "10 Civilizations" },
+      { href: "/secrets",       label: "Secrets" },
     ],
   },
 ];
@@ -175,14 +178,17 @@ export function HeaderArchives() {
                   href={l.href}
                   onClick={() => setOpen(false)}
                   style={{
-                    padding: "8px 18px",
+                    padding: "6px 18px",
                     fontFamily: "var(--mono2)",
                     fontSize: 11,
-                    letterSpacing: "0.16em",
+                    letterSpacing: "0.14em",
                     textTransform: "uppercase",
                     color: l.gold ? "var(--gold)" : "var(--ink-2)",
                     textDecoration: "none",
                     lineHeight: 1.4,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {l.label}

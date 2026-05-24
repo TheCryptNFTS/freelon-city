@@ -317,6 +317,18 @@ export async function GET(req: Request) {
     console.error("reply engagement scan error", e);
   }
 
+  // ── Piggyback: defender bid wall auto-detection. Pulls active
+  // OpenSea collection offers, credits hex for new qualifying bids
+  // (≥ 1.4× floor), awards 7-day hold bonuses. SETNX dedupe means
+  // running every cron tick is safe.
+  let defenderResult: Awaited<ReturnType<typeof import("@/lib/defender-scan").runDefenderScan>> | null = null;
+  try {
+    const { runDefenderScan } = await import("@/lib/defender-scan");
+    defenderResult = await runDefenderScan();
+  } catch (e) {
+    console.error("defender scan error", e);
+  }
+
   return NextResponse.json({
     processed,
     creditedHex: credited,
@@ -326,6 +338,7 @@ export async function GET(req: Request) {
     pulseSalesSeen: pulseSales.length,
     receipts: receiptsResult,
     engagement: engagementResult,
+    defenders: defenderResult,
     ranAt: Date.now(),
   });
 }
