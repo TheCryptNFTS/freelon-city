@@ -329,6 +329,18 @@ export async function GET(req: Request) {
     console.error("defender scan error", e);
   }
 
+  // ── Piggyback: SWEEP BURST autopost. Fires when ≥5 fresh citizens
+  // sold in a 4h window. Posts a 3×2 grid X tweet + broadcasts an
+  // in-app notification to the top ~100 holders. Independent 4h gate
+  // from sales-pulse so they don't silence each other.
+  let burstResult: Awaited<ReturnType<typeof import("@/lib/sweep-burst").runSweepBurst>> | null = null;
+  try {
+    const { runSweepBurst } = await import("@/lib/sweep-burst");
+    burstResult = await runSweepBurst(pulseSales);
+  } catch (e) {
+    console.error("sweep burst error", e);
+  }
+
   return NextResponse.json({
     processed,
     creditedHex: credited,
@@ -339,6 +351,7 @@ export async function GET(req: Request) {
     receipts: receiptsResult,
     engagement: engagementResult,
     defenders: defenderResult,
+    burst: burstResult,
     ranAt: Date.now(),
   });
 }

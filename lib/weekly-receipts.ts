@@ -138,7 +138,7 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
   const isoWeek = isoWeekNumber(now);
 
   const LEADS = [
-    `⬡ ⬡ @4040hex · WEEK ${isoWeek} RECEIPTS`,
+    `⬡ WEEK ${isoWeek} RECEIPTS · ⬡ @4040hex`,
     `⬡ Week ${isoWeek} · the ledger speaks ↓`,
     `⬡ Seven days in the city ⬡ week ${isoWeek}:`,
     `⬡ What week ${isoWeek} carried, on-chain:`,

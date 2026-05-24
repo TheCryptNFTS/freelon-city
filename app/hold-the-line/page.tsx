@@ -17,6 +17,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HoldTheLineClient } from "@/components/HoldTheLineClient";
 import { getStats } from "@/lib/defender-store";
+import { tickDefenderOnVisitFireAndForget } from "@/lib/defender-tick-on-visit";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,11 @@ export const metadata: Metadata = {
 };
 
 export default async function HoldTheLinePage() {
+  // Fire-and-forget: kick a fresh defender scan if last visit-tick was
+  // >5 min ago. Belt-and-braces backstop for the cron — guarantees that
+  // a real visitor never sees stale data more than 5 min old, regardless
+  // of whether the cron is current. No-ops if a recent tick has run.
+  tickDefenderOnVisitFireAndForget();
   const stats = await getStats();
 
   return (
