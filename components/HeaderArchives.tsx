@@ -136,33 +136,31 @@ export function HeaderArchives() {
             position: "fixed",
             top: pos.top,
             right: pos.right,
-            minWidth: 280,
-            maxWidth: 360,
+            width: 240,
+            maxWidth: "calc(100vw - 16px)",
             background: "var(--surface)",
             border: "1px solid var(--line)",
-            padding: "6px 0 10px",
-            display: "flex",
-            flexDirection: "column",
+            padding: "8px 0 12px",
             boxShadow: "0 12px 40px -12px rgba(0,0,0,0.6)",
             zIndex: 10000,
           }}
         >
           {GROUPS.map((g, gi) => (
-            <div key={g.heading}>
+            <div key={g.heading} style={{ display: "block" }}>
               {gi > 0 && (
                 <div
                   aria-hidden
                   style={{
                     height: 1,
                     background: "var(--line)",
-                    margin: "6px 14px",
-                    opacity: 0.6,
+                    margin: "8px 16px",
+                    opacity: 0.5,
                   }}
                 />
               )}
               <div
                 style={{
-                  padding: "10px 18px 4px",
+                  padding: "8px 16px 4px",
                   fontFamily: "var(--mono2)",
                   fontSize: 9,
                   letterSpacing: "0.32em",
@@ -170,7 +168,7 @@ export function HeaderArchives() {
                   textTransform: "uppercase",
                 }}
               >
-                ⬡ {g.heading}
+                {g.heading}
               </div>
               {g.items.map((l) => (
                 <Link
@@ -178,14 +176,15 @@ export function HeaderArchives() {
                   href={l.href}
                   onClick={() => setOpen(false)}
                   style={{
-                    padding: "6px 18px",
+                    display: "block",
+                    padding: "7px 16px",
                     fontFamily: "var(--mono2)",
                     fontSize: 11,
                     letterSpacing: "0.14em",
                     textTransform: "uppercase",
                     color: l.gold ? "var(--gold)" : "var(--ink-2)",
                     textDecoration: "none",
-                    lineHeight: 1.4,
+                    lineHeight: 1.3,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",

@@ -137,13 +137,29 @@ export function GhostedMask({
       }}
       aria-label="Ghosted citizen — signal lost"
     >
-      {/* Static-noise backdrop using a tiny inline SVG */}
+      {/* Generated "SIGNAL LOST" illustration — fractured kintsugi figure.
+          Sits behind the text labels at low opacity for atmosphere. */}
+      <img
+        aria-hidden
+        src="/generated/signal-lost.png"
+        alt=""
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: 0.55,
+          filter: "grayscale(0.3)",
+        }}
+      />
+      {/* Static-noise overlay on top of the illustration */}
       <div
         aria-hidden
         style={{
           position: "absolute",
           inset: 0,
-          opacity: 0.18,
+          opacity: 0.12,
           backgroundImage:
             'url("data:image/svg+xml;utf8,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"120\\" height=\\"120\\"><filter id=\\"n\\"><feTurbulence type=\\"fractalNoise\\" baseFrequency=\\"1.4\\" numOctaves=\\"2\\" seed=\\"7\\"/><feColorMatrix values=\\"0 0 0 0 0.35  0 0 0 0 0.35  0 0 0 0 0.35  0 0 0 0.9 0\\"/></filter><rect width=\\"100%\\" height=\\"100%\\" filter=\\"url(%23n)\\"/></svg>")',
           backgroundSize: "120px 120px",

@@ -339,8 +339,8 @@ export default async function WalletPage({
               marginTop: "var(--s-3)",
               display: "inline-flex",
               alignItems: "center",
-              gap: 10,
-              padding: "8px 14px",
+              gap: 12,
+              padding: "8px 16px 8px 8px",
               border: "1px solid #2a5a3a",
               background: "rgba(20,40,30,0.4)",
               borderRadius: 999,
@@ -352,7 +352,15 @@ export default async function WalletPage({
             }}
             title="Has never listed a citizen under the dump threshold. +1% earnings per month, cap 25%."
           >
-            <span aria-hidden>🛡</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/generated/defender-badge.png"
+              alt=""
+              aria-hidden
+              width={28}
+              height={28}
+              style={{ width: 28, height: 28, objectFit: "contain", display: "block" }}
+            />
             DEFENDER · {defenderMonths}MO · +{defenderBonus}%
           </div>
         )}
