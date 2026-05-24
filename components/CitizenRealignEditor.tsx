@@ -58,9 +58,22 @@ export function CitizenRealignEditor({ citizenId, tier, originalCiv, currentReal
 
   if (tier !== "Common") return null;
   if (h.loading || o.loading) return null;
-  if (!o.isOwner) return null;
 
   const id4 = citizenId.toString().padStart(4, "0");
+
+  // RPC + OpenSea both failed — show retry instead of silently hiding.
+  if (o.error && h.address) {
+    return (
+      <section className="realign-editor">
+        <span className="kicker">⬡ HOLDER · REALIGN CITIZEN #{id4}</span>
+        <p className="name-msg name-err">
+          ⬡ SIGNAL DISRUPTED · the city couldn&apos;t read your chain credentials · retry
+        </p>
+      </section>
+    );
+  }
+
+  if (!o.isOwner) return null;
 
   const onCooldown =
     realignment && Date.now() - realignment.setAt < COOLDOWN_MS;

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { createPublicClient, http, verifyMessage } from "viem";
-import { mainnet } from "viem/chains";
-import { CONTRACT, CIVILIZATIONS } from "@/lib/constants";
+import { verifyMessage } from "viem";
+import { CIVILIZATIONS } from "@/lib/constants";
 import { getCitizen } from "@/lib/citizens";
 import { getCarrier, putCarrier } from "@/lib/carrier-store";
 import { CarrierState } from "@/lib/carrier";
@@ -10,21 +9,10 @@ import { getRealignment, setRealignment } from "@/lib/realignment-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { ECONOMY } from "@/lib/economy-constants";
 import { getXVerification } from "@/lib/x-store";
+import { verifyOwnership } from "@/lib/owner-of";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const ABI = [
-  {
-    name: "ownerOf",
-    type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "tokenId", type: "uint256" }],
-    outputs: [{ name: "", type: "address" }],
-  },
-] as const;
-
-const client = createPublicClient({ chain: mainnet, transport: http() });
 
 const COOLDOWN_MS = 90 * 86400000;
 const REALIGN_COST = ECONOMY.REALIGN_COST;
@@ -126,21 +114,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   if (!sigOk) return NextResponse.json({ error: "signature verification failed" }, { status: 401 });
 
-  let owner: string;
-  try {
-    owner = String(
-      await client.readContract({
-        address: CONTRACT as `0x${string}`,
-        abi: ABI,
-        functionName: "ownerOf",
-        args: [BigInt(cid)],
-      }),
-    ).toLowerCase();
-  } catch {
-    return NextResponse.json({ error: "could not verify ownership" }, { status: 503 });
+  // Multi-source ownership check — see lib/owner-of.ts. Stops the
+  // "could not verify ownership" false-negative when public RPCs throttle.
+  const verdict = await verifyOwnership(cid, address);
+  if (verdict.status === "unknown") {
+    return NextResponse.json(
+      { error: "⬡ SIGNAL DISRUPTED · the city couldn't read your chain credentials · retry" },
+      { status: 503 },
+    );
   }
-
-  if (owner !== address) {
+  if (verdict.status === "not-owner") {
     return NextResponse.json({ error: "you do not own this citizen" }, { status: 403 });
   }
 
@@ -162,17 +145,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       { status: 404 },
     );
   }
-  if (carrier.hexPoints < REALIGN_COST) {
+  // Collapse-mode sink discount
+  const { getCollapseState, applySinkMultiplier } = await import("@/lib/collapse-mode");
+  const collapse = await getCollapseState();
+  const cost = applySinkMultiplier(REALIGN_COST, collapse);
+
+  if (carrier.hexPoints < cost) {
     return NextResponse.json(
-      { error: "insufficient hex points", required: REALIGN_COST, have: carrier.hexPoints },
+      { error: "insufficient hex points", required: cost, have: carrier.hexPoints },
       { status: 402 },
     );
   }
 
   const nextCarrier: CarrierState = {
     ...carrier,
-    hexPoints: carrier.hexPoints - REALIGN_COST,
-    totalSpent: carrier.totalSpent + REALIGN_COST,
+    hexPoints: carrier.hexPoints - cost,
+    totalSpent: carrier.totalSpent + cost,
   };
   await putCarrier(nextCarrier);
 
@@ -188,7 +176,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   return NextResponse.json({
     ok: true,
     record: rec,
-    cost: REALIGN_COST,
+    cost,
+    originalCost: REALIGN_COST,
+    collapseDiscountApplied: collapse.active,
     state: nextCarrier,
   });
 }

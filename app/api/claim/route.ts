@@ -80,10 +80,16 @@ export async function POST(req: Request) {
     rec.lastClaimDay = todayUTC();
     await setWalletHex(rec);
 
+    // Collapse-mode earn multiplier
+    const { getCollapseState, applyEarnMultiplier } = await import("@/lib/collapse-mode");
+    const collapse = await getCollapseState();
+    const dailyHex = applyEarnMultiplier(ECONOMY.DAILY_CLAIM, collapse);
+    const noteSuffix = collapse.active ? " (collapse ½)" : "";
+
     // Base claim
-    await creditWalletHex(addr, ECONOMY.DAILY_CLAIM, {
+    await creditWalletHex(addr, dailyHex, {
       kind: "manual",
-      note: `Daily X share · streak ${streak}d`,
+      note: `Daily X share · streak ${streak}d · +${dailyHex}⬡${noteSuffix}`,
     });
 
     bonus = STREAK_MILESTONES[streak] || 0;
@@ -91,10 +97,12 @@ export async function POST(req: Request) {
       // 30-day streak is the milestone-of-milestones — earns the rare
       // 404 RESOLVED canon label. Lesser streaks use plain phrasing.
       const label = streak === 30 ? CANON.RESOLVED : "Streak milestone";
-      await creditWalletHex(addr, bonus, {
+      const bonusHex = applyEarnMultiplier(bonus, collapse);
+      await creditWalletHex(addr, bonusHex, {
         kind: "manual",
-        note: `${label} · ${streak}d · +${bonus}⬡`,
+        note: `${label} · ${streak}d · +${bonusHex}⬡${noteSuffix}`,
       });
+      bonus = bonusHex; // return the actual amount paid
     }
   } catch {
     /* non-fatal */

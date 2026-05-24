@@ -11,6 +11,7 @@ import { QuestToast } from "@/components/QuestToast";
 import { CityNotice } from "@/components/CityNotice";
 import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
+import { CollapseBanner } from "@/components/CollapseBanner";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.freeloncity.com"),
@@ -57,6 +58,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>
         <Header />
+        {/* Lore-framed status banner — only renders when the city is
+            in measurable collapse. Server component, cheap (60s cache). */}
+        <CollapseBanner />
         <FourOFourEvent />
         <main id="main">{children}</main>
         <Footer />

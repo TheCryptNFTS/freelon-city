@@ -1,26 +1,13 @@
 import { NextResponse } from "next/server";
-import { createPublicClient, http, verifyMessage } from "viem";
-import { mainnet } from "viem/chains";
-import { CONTRACT } from "@/lib/constants";
+import { verifyMessage } from "viem";
 import { getName, setName, validName } from "@/lib/name-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { debitWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
+import { verifyOwnership } from "@/lib/owner-of";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const ABI = [
-  {
-    name: "ownerOf",
-    type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "tokenId", type: "uint256" }],
-    outputs: [{ name: "", type: "address" }],
-  },
-] as const;
-
-const client = createPublicClient({ chain: mainnet, transport: http() });
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const rl = await limit(req, "name-get", { max: 60 });
@@ -80,41 +67,43 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   if (!sigOk) return NextResponse.json({ error: "signature verification failed" }, { status: 401 });
 
-  let owner: string;
-  try {
-    owner = String(
-      await client.readContract({
-        address: CONTRACT as `0x${string}`,
-        abi: ABI,
-        functionName: "ownerOf",
-        args: [BigInt(cid)],
-      }),
-    ).toLowerCase();
-  } catch {
-    return NextResponse.json({ error: "could not verify ownership" }, { status: 503 });
+  // Multi-source ownership check (RPC ownerOf with 4-RPC fallback, then
+  // OpenSea-backed wallet/tokens). Fixes the Discord bug where a single
+  // rate-limited RPC produced "could not verify ownership" for real holders.
+  const verdict = await verifyOwnership(cid, address);
+  if (verdict.status === "unknown") {
+    return NextResponse.json(
+      { error: "⬡ SIGNAL DISRUPTED · the city couldn't read your chain credentials · retry" },
+      { status: 503 },
+    );
   }
-
-  if (owner !== address) {
+  if (verdict.status === "not-owner") {
     return NextResponse.json({ error: "you do not own this citizen" }, { status: 403 });
   }
+
+  // Collapse-mode sink discount — naming costs less when the city is
+  // dimming, so balances actually burn.
+  const { getCollapseState, applySinkMultiplier } = await import("@/lib/collapse-mode");
+  const collapse = await getCollapseState();
+  const cost = applySinkMultiplier(ECONOMY.NAMING_COST, collapse);
 
   // Hex burn — NAMING_COST. Verify balance first to give a friendly error,
   // then debit (debitWalletHex itself throws on insufficient as a safety net).
   const rec = await getWalletHex(address);
-  if (rec.balance < ECONOMY.NAMING_COST) {
+  if (rec.balance < cost) {
     return NextResponse.json(
       {
         error: "insufficient_hex",
-        required: ECONOMY.NAMING_COST,
+        required: cost,
         balance: rec.balance,
       },
       { status: 402 },
     );
   }
   try {
-    await debitWalletHex(address, ECONOMY.NAMING_COST, {
+    await debitWalletHex(address, cost, {
       kind: "manual",
-      note: `Naming · #${String(cid).padStart(4, "0")} → "${name}"`,
+      note: `Naming · #${String(cid).padStart(4, "0")} → "${name}"${collapse.active ? ` · COLLAPSE -${Math.round((1 - collapse.sinkMultiplier) * 100)}%` : ""}`,
     });
   } catch {
     return NextResponse.json({ error: "debit_failed" }, { status: 402 });
@@ -125,6 +114,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     ok: true,
     name,
     owner: address,
-    burned: ECONOMY.NAMING_COST,
+    burned: cost,
+    collapseDiscountApplied: collapse.active,
+    originalCost: ECONOMY.NAMING_COST,
   });
 }

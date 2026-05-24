@@ -160,7 +160,12 @@ export async function POST(req: Request) {
   const burstWinner =
     elapsedMin <= ECONOMY.REPLY_BURST_WINDOW_MIN &&
     priorCount < ECONOMY.REPLY_BURST_FIRST_N;
-  const basePaid = burstWinner ? ECONOMY.REPLY_BOUNTY * 2 : ECONOMY.REPLY_BOUNTY;
+  const beforeCollapse = burstWinner ? ECONOMY.REPLY_BOUNTY * 2 : ECONOMY.REPLY_BOUNTY;
+
+  // Collapse-mode earn multiplier
+  const { getCollapseState, applyEarnMultiplier } = await import("@/lib/collapse-mode");
+  const collapse = await getCollapseState();
+  const basePaid = applyEarnMultiplier(beforeCollapse, collapse);
 
   const rec: ReplyRecord = {
     replyId,

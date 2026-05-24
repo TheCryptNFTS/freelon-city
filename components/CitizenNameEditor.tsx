@@ -16,9 +16,23 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
   useEffect(() => { setName(currentName || ""); }, [currentName]);
 
   if (h.loading || o.loading) return null;
-  if (!o.isOwner) return null;
 
   const id4 = citizenId.toString().padStart(4, "0");
+
+  // RPC + OpenSea both failed — surface a retry state instead of silently
+  // hiding the form from a real holder. Same pattern as PFP studio / channel.
+  if (o.error && h.address) {
+    return (
+      <section className="name-editor">
+        <span className="kicker">⬡ HOLDER · NAME CITIZEN #{id4}</span>
+        <p className="name-msg name-err">
+          ⬡ SIGNAL DISRUPTED · the city couldn&apos;t read your chain credentials · retry
+        </p>
+      </section>
+    );
+  }
+
+  if (!o.isOwner) return null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

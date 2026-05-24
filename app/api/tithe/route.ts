@@ -78,20 +78,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_display" }, { status: 400 });
   }
 
-  // Check balance
+  // Collapse-mode sink discount — when the city is dimming, burns are
+  // honored at a fraction of the asked amount. Carriers can either pay
+  // the discounted price (and have the wall record the post-discount
+  // burn) OR overpay; we accept the body amount as a ceiling.
+  const { getCollapseState, applySinkMultiplier } = await import("@/lib/collapse-mode");
+  const collapse = await getCollapseState();
+  const effectiveBurn = collapse.active ? applySinkMultiplier(amount, collapse) : amount;
+
+  // Check balance against the effective (post-discount) burn
   const hex = await getWalletHex(address);
-  if (hex.balance < amount) {
+  if (hex.balance < effectiveBurn) {
     return NextResponse.json(
-      { error: "insufficient_hex", balance: hex.balance, needed: amount },
+      { error: "insufficient_hex", balance: hex.balance, needed: effectiveBurn },
       { status: 402 },
     );
   }
 
   // Burn + record
   try {
-    await debitWalletHex(address, amount, {
+    await debitWalletHex(address, effectiveBurn, {
       kind: "manual",
-      note: `Tithe to ${civ} (+${safeDisplay})`,
+      note: `Tithe to ${civ} (+${safeDisplay})${collapse.active ? ` · COLLAPSE -${Math.round((1 - collapse.sinkMultiplier) * 100)}%` : ""}`,
     });
   } catch {
     return NextResponse.json({ error: "burn_failed" }, { status: 500 });
@@ -101,8 +109,14 @@ export async function POST(req: Request) {
     civ,
     payerKey: address,
     display: safeDisplay,
-    amount,
+    amount: effectiveBurn,
   });
 
-  return NextResponse.json({ ok: true, tithe: rec });
+  return NextResponse.json({
+    ok: true,
+    tithe: rec,
+    collapseDiscountApplied: collapse.active,
+    originalAmount: amount,
+    burned: effectiveBurn,
+  });
 }

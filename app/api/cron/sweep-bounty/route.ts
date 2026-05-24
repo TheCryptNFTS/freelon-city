@@ -145,6 +145,8 @@ export async function GET(req: Request) {
           }
         }
 
+        // Collapse-mode earn multiplier applied inside creditSweep itself
+        // so the dedupe key still represents "this event was processed".
         const result = await creditSweep(buyer, ts);
         if (result.credited > 0) {
           processed++;
@@ -187,16 +189,33 @@ export async function GET(req: Request) {
             ) {
               const discount = (ghost.floorEth - priceEth) / ghost.floorEth;
               // Rescuer hex: base bounty + 5% of (floor - price) in hex via peg
+              // Collapse-mode escalation: rescue is more lucrative + dump
+              // burns harder when the floor is sliding. Loaded inside the
+              // try block so a collapse-store failure can't kill rescue.
+              const { getCollapseState } = await import("@/lib/collapse-mode");
+              const collapse = await getCollapseState();
+
               const discountEth = Math.max(0, ghost.floorEth - priceEth);
               const discountHex = Math.round((discountEth * ECONOMY.HEX_PER_ETH * ECONOMY.RESCUE_DISCOUNT_PCT_TO_HEX) / 100);
-              const rescuerPaid = ECONOMY.RESCUE_BOUNTY_BASE + discountHex;
+              const baseBounty = ECONOMY.RESCUE_BOUNTY_BASE + discountHex;
+              const rescuerPaid = collapse.active
+                ? Math.round(baseBounty * collapse.rescueBountyMultiplier)
+                : baseBounty;
               await creditWalletHex(buyer, rescuerPaid, {
                 kind: "manual",
-                note: `Rescue · #${String(tid).padStart(4, "0")} · ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡`,
+                note: `Rescue · #${String(tid).padStart(4, "0")} · ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡${collapse.active ? " (COLLAPSE 3×)" : ""}`,
               });
-              // Dumper hex burn: proportional to discount, capped
-              const burnRaw = Math.round(ECONOMY.HEX_PER_ETH * discountEth * (ECONOMY.DUMP_BURN_PCT_OF_DISCOUNT / 100));
-              const burnAmt = Math.min(burnRaw, ECONOMY.DUMP_BURN_CAP);
+              // Dumper hex burn: proportional to discount, capped. Under
+              // collapse, BOTH the % of discount and the cap escalate so
+              // dumping during a downturn actually costs.
+              const burnPct = collapse.active
+                ? ECONOMY.DUMP_BURN_PCT_OF_DISCOUNT * collapse.dumpBurnMultiplier
+                : ECONOMY.DUMP_BURN_PCT_OF_DISCOUNT;
+              const burnRaw = Math.round(ECONOMY.HEX_PER_ETH * discountEth * (burnPct / 100));
+              const burnCap = collapse.active
+                ? ECONOMY.DUMP_BURN_CAP * collapse.dumpBurnMultiplier
+                : ECONOMY.DUMP_BURN_CAP;
+              const burnAmt = Math.min(burnRaw, burnCap);
               if (burnAmt > 0) {
                 try {
                   await debitWalletHex(ghost.seller, burnAmt, {
@@ -330,10 +349,17 @@ async function creditSweep(
     return { credited: 0, bonus: false };
   }
 
-  await creditWalletHex(buyer, PER_SWEEP, {
+  // Collapse-mode earn multiplier — when floor is low and the index
+  // is sliding, halve the sweep bounty so inflation stops outpacing burn.
+  const { getCollapseState, applyEarnMultiplier } = await import("@/lib/collapse-mode");
+  const collapse = await getCollapseState();
+  const sweepHex = applyEarnMultiplier(PER_SWEEP, collapse);
+  const noteSuffix = collapse.active ? " (collapse ½)" : "";
+
+  await creditWalletHex(buyer, sweepHex, {
     kind: "sweep",
     ts,
-    note: `Sweep · +${PER_SWEEP}⬡`,
+    note: `Sweep · +${sweepHex}⬡${noteSuffix}`,
   });
   const after = await getWalletHex(buyer);
   after.sweepsToday = (after.sweepsToday || 0) + 1;
@@ -348,13 +374,14 @@ async function creditSweep(
     (e) => e.kind === "sweep_streak" && Date.now() - e.ts < STREAK_WINDOW_MS,
   );
   if (recentSweeps >= STREAK_THRESHOLD && !alreadyBonus) {
-    await creditWalletHex(buyer, STREAK_BONUS, {
+    const streakHex = applyEarnMultiplier(STREAK_BONUS, collapse);
+    await creditWalletHex(buyer, streakHex, {
       kind: "sweep_streak",
       ts,
-      note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${STREAK_BONUS}⬡`,
+      note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${streakHex}⬡${noteSuffix}`,
     });
     bonus = true;
   }
 
-  return { credited: PER_SWEEP, bonus };
+  return { credited: sweepHex, bonus };
 }
