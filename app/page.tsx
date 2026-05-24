@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { CityFeedTicker } from "@/components/CityFeedTicker";
 import { DoThisNow } from "@/components/DoThisNow";
+import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { WalletScanner } from "@/app/sync/WalletScanner";
 import { BecomeACarrier } from "@/components/BecomeACarrier";
 import { LiveStats } from "@/components/LiveStats";
@@ -33,11 +33,15 @@ export default function Home() {
 
   return (
     <main>
-      <CityFeedTicker />
       {/* HERO */}
       <section className="hero">
         <div className="hero-left">
           <div>
+            {/* Live identity greeting — wallet-aware. For known viewers
+                the page transforms into a personal experience (civ color,
+                handle, citizen count, hex balance). The brand statement
+                stays below it intact for newcomers. */}
+            <IdentityGreeting />
             <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
             {/* NEW HERE pill — Discord feedback 2026-05-24 (@Munch via @Lucifer):
                 "I was massively overwhelmed... most holders are like that already".

@@ -12,6 +12,7 @@ import { CityNotice } from "@/components/CityNotice";
 import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
+import { CityFeedTicker } from "@/components/CityFeedTicker";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.freeloncity.com"),
@@ -61,6 +62,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Lore-framed status banner — only renders when the city is
             in measurable collapse. Server component, cheap (60s cache). */}
         <CollapseBanner />
+        {/* Persistent site-wide ticker — sales / red signals / floor /
+            holders / alerts. Constant motion = the city feels alive on
+            every page, not just the homepage. */}
+        <CityFeedTicker />
         <FourOFourEvent />
         <main id="main">{children}</main>
         <Footer />
