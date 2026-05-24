@@ -24,8 +24,11 @@ async function fetchRecentSales(limitCount: number): Promise<Citizen[]> {
   const out: Citizen[] = [];
   let next: string | undefined;
   for (let page = 0; page < 4 && out.length < limitCount; page++) {
+    // OpenSea v2: collection slug, NOT chain/contract — the latter
+    // returns 404 (discovered 2026-05-24). CONTRACT no longer used.
+    void CONTRACT;
     const u = new URL(
-      `https://api.opensea.io/api/v2/events/chain/ethereum/contract/${CONTRACT}`,
+      `https://api.opensea.io/api/v2/events/collection/freelons`,
     );
     u.searchParams.set("event_type", "sale");
     u.searchParams.set("limit", "50");

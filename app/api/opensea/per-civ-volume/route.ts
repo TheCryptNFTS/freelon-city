@@ -26,8 +26,10 @@ export async function GET() {
   let next: string | undefined;
   try {
     for (let page = 0; page < MAX_PAGES; page++) {
+      // OpenSea v2: collection slug, NOT chain/contract (404).
+      void CONTRACT;
       const u = new URL(
-        `https://api.opensea.io/api/v2/events/chain/ethereum/contract/${CONTRACT}`,
+        `https://api.opensea.io/api/v2/events/collection/freelons`,
       );
       u.searchParams.set("event_type", "sale");
       u.searchParams.set("limit", "50");

@@ -100,8 +100,14 @@ export async function GET(req: Request) {
 
   try {
     for (let page = 0; page < MAX_PAGES; page++) {
+      // OpenSea v2 events: collection slug, NOT chain/contract.
+      // The chain/contract variant returns 404 — discovered 2026-05-24
+      // after weeks of silent zero-event runs. CONTRACT no longer used
+      // here but kept as a build-time check that we're on the right
+      // collection (slug "freelons" maps to that address).
+      void CONTRACT;
       const u = new URL(
-        `https://api.opensea.io/api/v2/events/chain/ethereum/contract/${CONTRACT}`,
+        `https://api.opensea.io/api/v2/events/collection/freelons`,
       );
       u.searchParams.set("event_type", "sale");
       u.searchParams.set("limit", "50");
