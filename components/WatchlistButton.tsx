@@ -175,7 +175,7 @@ export function WatchlistButton({ tokenId }: Props) {
             {busy
               ? "..."
               : watching
-                ? "🔴 WATCHING · remove"
+                ? "● WATCHING · remove"
                 : insufficient
                   ? `⬡ Need ${cost} ⬡ (you have ${balance})`
                   : `⬡ Watch this citizen · ${cost} ⬡`}

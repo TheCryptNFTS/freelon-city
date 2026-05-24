@@ -244,7 +244,7 @@ export async function GET(req: Request) {
                   wallet: buyer,
                   eventKey: `rescue:${tid}:${ts}`,
                   kind: "fresh-citizen",
-                  body: `🛡 RESCUED #${String(tid).padStart(4, "0")} at ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡ + permanent attribution`,
+                  body: `⬡ RESCUED #${String(tid).padStart(4, "0")} at ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡ + permanent attribution`,
                   href: `/citizens/${tid}`,
                 });
                 await notify({

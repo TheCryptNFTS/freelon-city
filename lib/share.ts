@@ -205,7 +205,7 @@ export function tweetTransmission(input: {
     ``,
     `— @${input.authorHandle.replace(/^@/, "")}`,
     ``,
-    `Signal back ⬢ or boost 🔥`,
+    `Signal back ⬢ or boost ↑`,
     `${HASHTAGS}`,
     `${SITE}/transmissions/${input.id}`,
   ].join("\n");
@@ -260,7 +260,7 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
     id: "snipe-flex",
     category: "own-post",
     hook: "I SNIPED A RED SIGNAL",
-    body: `⬡ ${HANDLE} · sniped a 🔴 RED SIGNAL.\n\n____ ⬡ bounty locked in. The city pays carriers who move first.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} · sniped a RED SIGNAL.\n\n____ ⬡ bounty locked in. The city pays carriers who move first.\n\n${HASHTAGS}`,
   },
   {
     id: "carrier-call",

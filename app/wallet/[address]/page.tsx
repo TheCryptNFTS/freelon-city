@@ -366,53 +366,10 @@ export default async function WalletPage({
         )}
       </section>
 
-      <section
-        className="wallet-health"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--s-3)",
-          padding: "var(--s-3) var(--s-4)",
-          margin: "var(--s-4) 0",
-          border: `1px solid ${health.color}33`,
-          background: `${health.color}10`,
-          borderRadius: 12,
-          maxWidth: 1100,
-          marginLeft: "auto",
-          marginRight: "auto",
-        }}
-      >
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            fontFamily: "var(--mono2)",
-            fontSize: 11,
-            letterSpacing: "0.22em",
-            color: health.color,
-            textTransform: "uppercase",
-            fontWeight: 600,
-          }}
-        >
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: health.color,
-              boxShadow: `0 0 8px ${health.color}`,
-            }}
-          />
-          CARRIER · {health.state}
-        </span>
-        <span style={{ color: "var(--ink-2)", fontSize: 13, fontFamily: "var(--mono2)" }}>
-          {health.msg}
-        </span>
-        {(health.state === CANON.IDENTITY || health.state === CANON.LOST || health.state === "COOLING") && (
-          <CarrierHealthCta pageWallet={norm} baseColor={health.color} />
-        )}
-      </section>
+      {/* Phase 3: STATS FIRST. The investor question — "what does this
+          wallet own + what's it worth" — lands before any carrier-health
+          state. Carrier health stays on the page but moves below as a
+          smaller status strip. */}
       <section className="wallet-stats">
         <div className="wallet-stat">
           <span className="ws-label">FREELON NET WORTH</span>
@@ -465,6 +422,56 @@ export default async function WalletPage({
             </>
           )}
         </div>
+      </section>
+
+      {/* Phase 3: carrier-health relocated here (below stats). Same data,
+          less visual dominance — a quiet status strip rather than the
+          loudest card on the page. */}
+      <section
+        className="wallet-health"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--s-3)",
+          padding: "10px var(--s-4)",
+          margin: "var(--s-4) auto",
+          border: `1px solid ${health.color}33`,
+          background: `${health.color}08`,
+          borderRadius: 999,
+          maxWidth: 1100,
+          flexWrap: "wrap",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "var(--mono2)",
+            fontSize: 11,
+            letterSpacing: "0.22em",
+            color: health.color,
+            textTransform: "uppercase",
+            fontWeight: 600,
+          }}
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: health.color,
+              boxShadow: `0 0 8px ${health.color}`,
+            }}
+          />
+          CARRIER · {health.state}
+        </span>
+        <span style={{ color: "var(--ink-2)", fontSize: 13, fontFamily: "var(--mono2)" }}>
+          {health.msg}
+        </span>
+        {(health.state === CANON.IDENTITY || health.state === CANON.LOST || health.state === "COOLING") && (
+          <CarrierHealthCta pageWallet={norm} baseColor={health.color} />
+        )}
       </section>
 
       <NotificationInbox />

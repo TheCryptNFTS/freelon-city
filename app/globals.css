@@ -88,6 +88,61 @@
   --t-body:    16px;
   --t-small:   13px;
   --t-mono:    11px;
+
+  /* ---------------------------------------------------------------- */
+  /* PHASE 1 — design system tokens. Every primitive in components/ui  */
+  /* MUST read from these. No hex literals in component files.         */
+  /* ---------------------------------------------------------------- */
+
+  /* STATE COLORS — semantic, one per system state */
+  --state-active:    #7AE08D;   /* healthy / online / live */
+  --state-surge:     #E8B247;   /* gold surge / earning event */
+  --state-unstable:  #FFD27A;   /* yellow caution */
+  --state-warning:   #FF8A6E;   /* collapse / red warning */
+  --state-danger:    #FF5A4D;   /* hard alert */
+  --state-offline:   #3a3a3a;   /* dim / no signal */
+
+  /* STATE TINTS — translucent surfaces tinted by state */
+  --tint-active:   rgba(122,224,141,0.10);
+  --tint-surge:    rgba(232,178,71,0.10);
+  --tint-warning:  rgba(255,138,110,0.16);
+  --tint-danger:   rgba(255,90,77,0.18);
+  --tint-gold:     rgba(200,167,93,0.10);
+  --tint-gold-2:   rgba(200,167,93,0.20);
+
+  /* PANEL SURFACES — opaque dark canvas for cards */
+  --panel-bg:      rgba(8,10,14,0.95);
+  --panel-bg-2:    rgba(255,255,255,0.02);
+  --panel-bg-3:    rgba(255,255,255,0.03);
+
+  /* BORDER RADII */
+  --r-1:    4px;
+  --r-2:    8px;
+  --r-3:    12px;
+  --r-4:    14px;
+  --r-pill: 999px;
+
+  /* ELEVATION */
+  --sh-1:        0 12px 40px -12px rgba(0,0,0,0.6);
+  --sh-glow-gold:0 12px 40px rgba(245,242,232,.16);
+
+  /* DOT SIZES */
+  --dot-sm: 5px;
+  --dot-md: 6px;
+  --dot-lg: 8px;
+
+  /* MONO TYPE TOKENS — used by Pill / KpiRow / kicker variants */
+  --t-mono-xxs: 9px;
+  --t-mono-xs:  10px;
+  --t-mono-sm:  11px;
+  --t-mono-md:  13px;
+
+  /* TRACKING — repeated letter-spacing values */
+  --tr-tight:   0.06em;
+  --tr-loose:   0.14em;
+  --tr-pill:    0.22em;
+  --tr-kicker:  0.28em;
+  --tr-mono:    0.32em;
 }
 
 * { box-sizing: border-box; }
@@ -3412,6 +3467,47 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .grave-row { opacity: 0.7; }
 .grave-row .arrow { color: var(--ink-dim); margin: 0 6px; }
 .grave-row img { width: 56px; height: 56px; object-fit: cover; background: var(--bg); border: 1px solid var(--line); }
+/* Mobile: collapse the rigid 4/5-col grid into a stacked card. The
+   citizen image stays small in the top-left, address line wraps under,
+   stats become a small dim row. */
+@media (max-width: 540px) {
+  .defender-row, .grave-row {
+    grid-template-columns: 56px 1fr !important;
+    grid-template-areas: "img addr" "img stats";
+    row-gap: 4px;
+    padding: 10px 12px;
+    align-items: start;
+  }
+  .defender-row > :first-child, .grave-row > :first-child { grid-area: img; }
+  .defender-row > :nth-child(2), .grave-row > :nth-child(2) {
+    grid-area: addr;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+  /* Remaining stat columns flow inline under address, dim, comma-sized */
+  .defender-row > :nth-child(n+3), .grave-row > :nth-child(n+3) {
+    grid-area: stats;
+    display: inline;
+    margin-right: 10px;
+    color: var(--ink-dim);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .grave-row .stat, .defender-row .stat { font-size: 13px; }
+  /* The 5-col dump-ledger rows reuse .grave-row but pass an inline
+     grid-template-columns override — we override their override here. */
+  .grave-row[style*="56px 1fr auto auto auto"] {
+    grid-template-columns: 56px 1fr !important;
+  }
+}
+/* Header rows above the list also need to collapse — use a class so the
+   inline header row's grid-template-columns gets neutralized. */
+.grave-headrow { display: grid; grid-template-columns: 56px 1fr auto auto; gap: var(--s-3); padding: 8px 0; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-dim); text-transform: uppercase; border-bottom: 1px solid var(--line); }
+.grave-headrow--5 { grid-template-columns: 56px 1fr auto auto auto; }
+@media (max-width: 540px) {
+  .grave-headrow, .grave-headrow--5 { display: none; }
+}
 
 /* ============================ CITY NOTICE ============================ */
 .city-notice-stack {
@@ -3754,6 +3850,16 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .holders-chart .hc-row-count {
   font-family: var(--display); font-size: 18px;
   color: var(--ink); text-align: right;
+}
+@media (max-width: 540px) {
+  .holders-chart .hc-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+  }
+  .holders-chart .hc-row:first-child { border-top: 0; }
+  .holders-chart .hc-row-count { text-align: left; font-size: 16px; }
 }
 .holders-chart .hc-top { margin-top: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line); }
 .holders-chart .hc-top-head {
@@ -4128,5 +4234,531 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   .carrier-dash { display: flex; flex-direction: column; gap: var(--s-4); }
   .carrier-dash > .daily-claim-card { order: -1; }
   .carrier-dash > .holder-flex { order: -2; }
+}
+
+/* =================================================================
+   PHASE 1 PRIMITIVES — visual-language layer.
+   Components in components/ui/ render these class names. Everything
+   in here reads from tokens defined in :root above. Do not hard-code
+   colors, padding, radii, or shadows in component files — extend a
+   token or add a modifier here instead.
+   ================================================================= */
+
+/* ---------- ui-panel ---------- */
+.ui-panel {
+  position: relative;
+  background: var(--panel-bg);
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-height: 168px;
+  transition: background 140ms ease;
+}
+.ui-panel--inert { padding: var(--s-4); min-height: 0; }
+/* Reserve space at the bottom when an absolute CTA is rendered, so
+   it can't overlap the last KPI row. */
+.ui-panel--has-cta { padding-bottom: 28px; }
+.ui-panel__strip {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px;
+}
+.ui-panel__strip--offline { opacity: 0.4; }
+.ui-panel__head {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.ui-panel__primary {
+  font-family: var(--display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  letter-spacing: -0.005em;
+  line-height: 1.05;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.ui-panel__secondary {
+  font-family: var(--mono2);
+  font-size: var(--t-mono-sm);
+  color: var(--ink-2);
+  letter-spacing: var(--tr-tight);
+}
+.ui-panel__cta {
+  position: absolute; bottom: 10px; right: 14px;
+  font-family: var(--mono2);
+  font-size: var(--t-mono-xxs);
+  letter-spacing: var(--tr-kicker);
+  text-transform: uppercase;
+}
+.ui-panel-link { text-decoration: none; color: inherit; display: block; }
+
+/* ---------- ui-pill ---------- */
+.ui-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  font-family: var(--mono2);
+  font-size: var(--t-mono-sm);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--line);
+  background: var(--panel-bg-3);
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: background 120ms ease, transform 120ms ease;
+  max-width: 100%;
+  flex-wrap: wrap;
+  font-weight: 500;
+}
+.ui-pill--sm { padding: 6px 12px; font-size: var(--t-mono-xs); gap: 6px; }
+.ui-pill--gold {
+  border-color: var(--gold);
+  background: var(--tint-gold);
+  color: var(--gold);
+  font-weight: 700;
+  letter-spacing: var(--tr-pill);
+}
+.ui-pill--gold:hover { background: var(--tint-gold-2); transform: translateY(-1px); }
+.ui-pill--warning {
+  border-color: var(--state-warning);
+  background: var(--tint-warning);
+  color: #FFE3CC;
+  font-weight: 700;
+  letter-spacing: var(--tr-pill);
+}
+.ui-pill--civ {
+  border-color: var(--pill-civ, var(--gold));
+  background: color-mix(in oklab, var(--pill-civ, var(--gold)) 8%, transparent);
+  color: var(--ink);
+  box-shadow: 0 0 24px -4px color-mix(in oklab, var(--pill-civ, var(--gold)) 25%, transparent);
+}
+.ui-pill__num { font-variant-numeric: tabular-nums; }
+.ui-pill__sep { opacity: 0.4; }
+@media (max-width: 540px) {
+  .ui-pill { font-size: var(--t-mono-xs); gap: 6px; padding: 6px 10px; letter-spacing: 0.08em; }
+}
+
+/* ---------- ui-dot ---------- */
+.ui-dot {
+  display: inline-block;
+  width: var(--dot-md); height: var(--dot-md);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ui-dot--sm { width: var(--dot-sm); height: var(--dot-sm); }
+.ui-dot--lg { width: var(--dot-lg); height: var(--dot-lg); }
+.ui-dot--glow { box-shadow: 0 0 6px currentColor; }
+
+/* ---------- ui-kpi (label · value row) ---------- */
+.ui-kpis {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  font-family: var(--mono2);
+  font-size: var(--t-mono-xs);
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+.ui-kpis--auto-bottom { margin-top: auto; }
+.ui-kpis .k { letter-spacing: var(--tr-loose); text-transform: uppercase; }
+.ui-kpis .v { color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ---------- ui-action-card ---------- */
+.ui-action-card {
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  background: var(--panel-bg-2);
+  border-radius: var(--r-3);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 120ms ease, border-color 120ms ease;
+  text-decoration: none; color: inherit;
+}
+.ui-action-card:hover { background: var(--panel-bg-3); border-color: var(--line-2); }
+.ui-action-card--hero {
+  padding: var(--s-4) var(--s-5);
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--tint-gold), rgba(200,167,93,0.02));
+  border-radius: var(--r-4);
+  gap: 10px;
+}
+.ui-action-card__title {
+  font-family: var(--display);
+  font-size: 18px;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+.ui-action-card__title--hero {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.ui-action-card__sub {
+  font-family: var(--mono2);
+  font-size: var(--t-mono-sm);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin: 0;
+}
+.ui-action-card__sub--hero { font-size: var(--t-mono-md); line-height: 1.6; }
+.ui-action-card__more {
+  margin-top: auto;
+  font-family: var(--mono2);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-pill);
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+/* ---------- ui-section-header ---------- */
+.ui-section-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 10px;
+  font-family: var(--mono2);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.ui-section-header__live {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+
+/* ---------- ui-grid (responsive panel grid) ---------- */
+.ui-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ui-cols, 3), minmax(0, 1fr));
+  gap: var(--ui-gap, 1px);
+  background: var(--ui-grid-bg, var(--line));
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  overflow: hidden;
+}
+.ui-grid--cards {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  gap: var(--s-3);
+}
+@media (max-width: 920px) {
+  .ui-grid { grid-template-columns: repeat(var(--ui-cols-md, 2), minmax(0, 1fr)); }
+}
+@media (max-width: 540px) {
+  .ui-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- ui-stack (mobile-vertical container) ---------- */
+.ui-stack {
+  display: grid;
+  gap: var(--s-3);
+}
+
+/* ---------- ui-banner (CollapseBanner / HoldTheLineBanner) ---------- */
+.ui-banner {
+  background: linear-gradient(90deg, var(--tint-danger), var(--tint-surge));
+  border: 1px solid rgba(255,90,77,0.45);
+  padding: 10px var(--pad);
+  font-family: var(--mono2);
+  font-size: var(--t-mono-sm);
+  letter-spacing: var(--tr-pill);
+  text-transform: uppercase;
+  color: #FFD0C0;
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; flex-wrap: wrap;
+}
+.ui-banner--block { border-radius: var(--r-3); margin: var(--s-4) auto; max-width: var(--maxw); padding: 12px var(--pad); }
+.ui-banner--top { border-left: none; border-right: none; border-top: none; }
+.ui-banner__title { color: var(--state-warning); font-weight: 700; }
+.ui-banner__accent { color: #FFE3CC; }
+
+/* =================================================================
+   PHASE 2 — Mobile system.
+   Real 375px breakpoint pass. Three rules:
+     1. No fixed-px grid columns under 540px (collapse to stacks).
+     2. No tap target under 44px on mobile.
+     3. No body/stat text under 12px on mobile.
+   Anything that needs mobile reflow should use one of the
+   .ui-* utilities below instead of bespoke @media in each file.
+   ================================================================= */
+
+:root {
+  --bp-mobile:  540px;
+  --bp-narrow:  375px;
+  --tap-min:    44px;
+  --row-h:      44px;
+  --t-mobile-min: 12px;
+}
+
+/* ---------- .ui-table-stack
+   A label/value table grid that collapses to a stacked card list on
+   mobile. Each row becomes `[label · value]` on two lines instead of
+   crushing into 80px columns. Used by civ-wars standings, graveyard
+   ledgers, hold-the-line leaderboard. */
+.ui-table-stack {
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+.ui-table-stack__head,
+.ui-table-stack__row {
+  display: grid;
+  grid-template-columns: var(--row-cols, 1fr);
+  align-items: center;
+  gap: var(--s-3);
+  padding: 12px 14px;
+  background: var(--panel-bg);
+  min-height: var(--row-h);
+  font-family: var(--mono2);
+  font-size: var(--t-mono-md);
+  line-height: 1.4;
+}
+.ui-table-stack__head {
+  background: var(--panel-bg-3);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  min-height: 0;
+  padding: 10px 14px;
+}
+.ui-table-stack__cell { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ui-table-stack__cell--num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--ink-2);
+}
+.ui-table-stack__cell--rank {
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 540px) {
+  .ui-table-stack__head { display: none; }
+  .ui-table-stack__row {
+    grid-template-columns: 1fr !important;
+    gap: 4px;
+    padding: 12px 14px;
+  }
+  .ui-table-stack__row .ui-table-stack__cell--num { text-align: left; }
+  .ui-table-stack__row .ui-table-stack__label {
+    font-size: var(--t-mono-xxs);
+    letter-spacing: var(--tr-loose);
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+}
+/* Mobile-only label, hidden on desktop (where the header row carries
+   the column name). */
+.ui-table-stack__label { display: none; }
+@media (max-width: 540px) {
+  .ui-table-stack__label { display: inline; margin-right: 6px; }
+}
+
+/* ---------- .ui-cta-row
+   The "row of CTA buttons under a header" pattern. Wraps on tablet,
+   stacks vertically on mobile so every button is full-width + tap-44.
+   Replaces 4-6 buttons in a flex row that wraps chaotically. */
+.ui-cta-row {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.ui-cta-row > * { min-height: var(--tap-min); }
+@media (max-width: 540px) {
+  .ui-cta-row { flex-direction: column; align-items: stretch; }
+  .ui-cta-row > * { width: 100%; justify-content: center; }
+}
+
+/* ---------- .ui-row-stack
+   Generic horizontal row that becomes vertical at narrow widths.
+   Used by leaderboard rows, ledger rows where label + value compete
+   for ~250px. */
+.ui-row-stack {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  min-height: var(--row-h);
+}
+@media (max-width: 540px) {
+  .ui-row-stack {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* ---------- .ui-chip
+   The single approved filter chip. 44px min height on mobile. Replaces
+   ad-hoc `padding: 4px 10px` chips in CitizensBrowser. */
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--panel-bg-3);
+  color: var(--ink-2);
+  font-family: var(--mono2);
+  font-size: var(--t-mono-sm);
+  letter-spacing: var(--tr-loose);
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 36px;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+.ui-chip:hover { border-color: var(--line-2); color: var(--ink); }
+.ui-chip--active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--tint-gold);
+}
+@media (max-width: 540px) {
+  .ui-chip {
+    min-height: var(--tap-min);
+    font-size: var(--t-mobile-min);
+  }
+}
+
+/* ---------- .ui-filter-bar
+   The horizontal filter strip used by /citizens. Becomes a horizontal
+   scroll strip on mobile (no sticky-eats-half-screen), with the chips
+   themselves at full tap height. */
+.ui-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+@media (max-width: 540px) {
+  .ui-filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    /* Hide scrollbar in WebKit; the chips themselves show the affordance */
+    scrollbar-width: thin;
+  }
+  .ui-filter-bar > * { flex: 0 0 auto; }
+}
+
+/* ---------- .ui-auto-fit-cards
+   The "responsive card list" pattern. Defaults to a sane 280px-min
+   auto-fit. Use `--min-w` to override. Falls back to single column at
+   320px so 340px-min cards stop overflowing the viewport. */
+.ui-auto-fit-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--min-w, 280px), 1fr));
+  gap: var(--s-3);
+}
+@media (max-width: 540px) {
+  .ui-auto-fit-cards { grid-template-columns: 1fr; }
+}
+
+/* ---------- Tap-target enforcement
+   Class to slap on any button/link/anchor that should never go below
+   44px on mobile, regardless of base styling. */
+.ui-tap {
+  min-height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Mobile body floor
+   Global rule: no body text under 12px on mobile, no matter what a
+   bespoke style says inline. This is the single biggest a11y +
+   readability win for the audit's "stat text below 12px" hits. */
+@media (max-width: 540px) {
+  body { font-size: max(14px, 1rem); }
+}
+
+/* ---------- Civ wars podium (Phase 3) — 1st place spans 2 cols. */
+.civ-podium {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas: "first second" "first third";
+  gap: var(--s-3);
+  margin: var(--s-5) 0 var(--s-4);
+}
+.civ-podium__first { grid-area: first; min-height: 280px; }
+.civ-podium__rest:nth-of-type(2) { grid-area: second; }
+.civ-podium__rest:nth-of-type(3) { grid-area: third; }
+@media (max-width: 760px) {
+  .civ-podium {
+    grid-template-columns: 1fr;
+    grid-template-areas: "first" "second" "third";
+  }
+  .civ-podium__first { min-height: 0; }
+}
+
+/* ---------- Citizens browser filter bar
+   On desktop: sticky, breaks out of section padding via negative margin
+   to span edge-to-edge. On mobile: NO negative margin (was overflowing
+   the viewport), chips become horizontal scroll strips, search input
+   stays full width + tap-44. */
+.citizens-filter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(5,5,5,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: var(--s-3) 0;
+  margin: 0 calc(-1 * var(--s-4)) var(--s-3);
+}
+.citizens-filter-bar__inner { padding: 0 var(--s-4); }
+@media (max-width: 540px) {
+  .citizens-filter-bar {
+    margin-left: 0;
+    margin-right: 0;
+    padding: var(--s-2) 0;
+  }
+  .citizens-filter-bar__inner { padding: 0 var(--s-3); }
+}
+.citizens-search {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: var(--mono2);
+  color: var(--ink);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  margin-bottom: 10px;
+  min-height: var(--tap-min);
+}
+.citizens-chip-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0;
+}
+.citizens-chip-row__label {
+  font-family: var(--mono2);
+  font-size: var(--t-mono-xxs);
+  letter-spacing: var(--tr-pill);
+  color: var(--ink-dim);
+  margin-right: 4px;
+  flex-shrink: 0;
+  min-width: 38px;
+}
+.citizens-chip-row__chips { flex: 1; min-width: 0; }
+@media (max-width: 540px) {
+  .citizens-chip-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .citizens-chip-row__label { margin-bottom: 2px; }
+  .citizens-chip-row__chips { width: 100%; }
 }
 

@@ -154,20 +154,7 @@ export default async function GraveyardPage() {
           </section>
         ) : (
           <div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "56px 1fr auto auto",
-                gap: "var(--s-3)",
-                padding: "8px 0",
-                fontFamily: "var(--mono2)",
-                fontSize: 10,
-                letterSpacing: "0.22em",
-                color: "var(--ink-dim)",
-                textTransform: "uppercase",
-                borderBottom: "1px solid var(--line)",
-              }}
-            >
+            <div className="grave-headrow">
               <span>CITIZEN</span>
               <span>FORMER → NEW CARRIER</span>
               <span>HELD</span>
@@ -259,20 +246,7 @@ export default async function GraveyardPage() {
           </div>
         ) : (
           <div style={{ marginTop: "var(--s-4)" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "56px 1fr auto auto auto",
-                gap: "var(--s-3)",
-                padding: "8px 0",
-                fontFamily: "var(--mono2)",
-                fontSize: 10,
-                letterSpacing: "0.22em",
-                color: "var(--ink-dim)",
-                textTransform: "uppercase",
-                borderBottom: "1px solid var(--line)",
-              }}
-            >
+            <div className="grave-headrow grave-headrow--5">
               <span>CITIZEN</span>
               <span>DUMPER → RESCUER</span>
               <span>UNDER FLOOR</span>

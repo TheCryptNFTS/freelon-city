@@ -5,26 +5,30 @@ import { WalletConnect } from "@/components/WalletConnect";
 import { HeaderHexPill } from "@/components/HeaderHexPill";
 import { HeaderArchives } from "@/components/HeaderArchives";
 
+/**
+ * Site header. Primary nav trimmed to 4 items (Start / Citizens / The
+ * Numbers / Shop) + Archives dropdown + EARN HEX + Sync + hex pill +
+ * wallet. All chrome is class-based — local styles live in the
+ * <style> block at the bottom of this file, which itself reads from
+ * Phase 1 tokens.
+ */
 export function Header() {
   return (
-    <header className="border-b" style={{ borderColor: "var(--line)", background: "rgba(10,12,18,0.85)", backdropFilter: "blur(16px) saturate(120%)", WebkitBackdropFilter: "blur(16px) saturate(120%)", position: "sticky", top: 0, zIndex: 100 }}>
+    <header className="site-header">
       <div className="bar">
-        <Link href="/" className="brand" style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
-          <Image src="/logo.png" alt="FREELON CITY" width={36} height={36} priority style={{ display: "block" }} />
-          <span style={{ fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.24em", textTransform: "uppercase", color: "var(--ink)" }}>404 · FREELON CITY</span>
+        <Link href="/" className="brand">
+          <Image src="/logo.png" alt="FREELON CITY" width={36} height={36} priority className="brand-logo" />
+          <span className="brand-text">404 · FREELON CITY</span>
         </Link>
-        {/* Primary nav — trimmed to 4 items per the CRO + Growth pros'
-            convergent feedback (was 8). Vault / Canon / City / Signal
-            moved into <HeaderArchives /> groups. Mobile nav still lists
-            everything explicitly. */}
-        <nav className="desktop-nav" style={{ display: "flex", gap: 18, alignItems: "center" }}>
+
+        <nav className="desktop-nav">
           <Link href="/start" className="nav-link nav-start">Start</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
-          <Link href="/dashboard" className="nav-link">The Numbers</Link>
+          <Link href="/numbers" className="nav-link">Pulse</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
           <HeaderArchives />
-          {/* EARN HEX pill — Discord asked "how do people get points?" — make it
-              visible from every page so the funnel is one click away. */}
+          {/* EARN HEX pill — Discord asked "how do people get points?" — keep visible
+              from every page so the funnel is one click away. */}
           <Link href="/earn" className="nav-earn-pill" title="Every way to earn hex">
             <span aria-hidden>⬡</span>
             <span>EARN HEX</span>
@@ -34,55 +38,81 @@ export function Header() {
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>
+
         <MobileNav />
       </div>
+
       <style>{`
-        header .bar { display: flex; align-items: center; justify-content: space-between; height: 72px; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad); }
-        .desktop-nav { gap: 18px; }
-        .nav-link { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); transition: color .2s ease; }
+        .site-header {
+          border-bottom: 1px solid var(--line);
+          background: rgba(10,12,18,0.85);
+          backdrop-filter: blur(16px) saturate(120%);
+          -webkit-backdrop-filter: blur(16px) saturate(120%);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+        .site-header .bar {
+          display: flex; align-items: center; justify-content: space-between;
+          height: 72px;
+          max-width: var(--maxw);
+          margin: 0 auto;
+          padding: 0 var(--pad);
+        }
+        .brand { display: inline-flex; align-items: center; gap: 12px; }
+        .brand-logo { display: block; }
+        .brand-text {
+          font-family: var(--mono2);
+          font-size: 12px;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+          color: var(--ink);
+        }
+        .desktop-nav { display: flex; gap: 18px; align-items: center; }
+        .nav-link {
+          font-family: var(--mono2);
+          font-size: var(--t-mono-sm);
+          letter-spacing: var(--tr-pill);
+          text-transform: uppercase;
+          color: var(--ink-2);
+          transition: color .2s ease;
+        }
         .nav-link:hover { color: var(--gold-bright); }
-        /* Subtle highlight on "Start" so newcomers spot it first */
         .nav-start { color: var(--gold); font-weight: 600; }
         .nav-start:hover { color: var(--gold-bright); }
-        .nav-sync { text-transform: uppercase; letter-spacing: 0.22em; }
+        .nav-sync { text-transform: uppercase; letter-spacing: var(--tr-pill); }
         .nav-earn-pill {
           display: inline-flex; align-items: center; gap: 6px;
-          padding: 6px 12px; border-radius: 999px;
+          padding: 6px 12px; border-radius: var(--r-pill);
           border: 1px solid var(--gold);
-          background: rgba(200,167,93,0.07);
+          background: var(--tint-gold);
           color: var(--gold);
-          font-family: var(--mono2); font-size: 10px;
-          letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600;
+          font-family: var(--mono2);
+          font-size: var(--t-mono-xs);
+          letter-spacing: var(--tr-pill);
+          text-transform: uppercase;
+          font-weight: 600;
           transition: background 120ms ease, transform 120ms ease;
           text-decoration: none;
         }
-        .nav-earn-pill:hover { background: rgba(200,167,93,0.16); transform: translateY(-1px); }
+        .nav-earn-pill:hover {
+          background: var(--tint-gold-2);
+          transform: translateY(-1px);
+        }
         @media (max-width: 980px) { .desktop-nav { display: none !important; } }
         @media (min-width: 981px) { .mobile-trigger, .mobile-sheet { display: none !important; } }
-        .nav-more { position: relative; }
-        .nav-more-trigger { background: transparent; border: none; cursor: pointer; padding: 0; font: inherit; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.22em; font-size: 11px; font-family: var(--mono2); }
-        .nav-more-menu {
-          position: absolute; top: calc(100% + 14px); right: 0;
-          min-width: 200px;
-          background: var(--surface);
-          border: 1px solid var(--line);
-          padding: 8px 0;
-          display: none;
-          flex-direction: column;
-          box-shadow: 0 12px 40px -12px rgba(0,0,0,0.6);
-          z-index: 200;
-        }
-        /* HeaderArchives client component now controls open state via React */
-        .nav-more-menu a {
-          padding: 10px 18px;
-          font-family: var(--mono2);
-          font-size: 11px;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
+        .nav-more-trigger {
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          font: inherit;
           color: var(--ink-2);
-          text-decoration: none;
+          text-transform: uppercase;
+          letter-spacing: var(--tr-pill);
+          font-size: var(--t-mono-sm);
+          font-family: var(--mono2);
         }
-        .nav-more-menu a:hover { color: var(--gold-bright); background: rgba(200,170,100,0.06); }
       `}</style>
     </header>
   );

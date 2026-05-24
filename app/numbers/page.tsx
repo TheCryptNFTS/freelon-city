@@ -18,13 +18,14 @@ import { SITE } from "@/lib/share";
 import { listWalletHexRecords } from "@/lib/wallet-hex-store";
 import { listTransmissions } from "@/lib/transmissions-store";
 import { listGhostedIds, listDumpLedger } from "@/lib/ghost-store";
+import { getCollapseState } from "@/lib/collapse-mode";
 
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "The Numbers · FREELON CITY",
+  title: "Pulse · FREELON CITY",
   description:
-    "Live receipts. Sales, holders, hex flow, transmissions, dumps caught, rescuers paid. All public, all auto-updated.",
+    "Live city pulse. One hero stat, current state, then every receipt below. Sales, holders, hex flow, transmissions, dumps caught, rescuers paid. All public, all auto-updated.",
 };
 
 const COLLECTION_SLUG = "freelons";
@@ -74,12 +75,13 @@ function shortAddr(a: string): string {
 }
 
 export default async function NumbersPage() {
-  const [stats, hexRecords, txs, ghostIds, dumps] = await Promise.all([
+  const [stats, hexRecords, txs, ghostIds, dumps, collapse] = await Promise.all([
     fetchOpenSeaStats(),
     listWalletHexRecords(500).catch(() => []),
     listTransmissions({ by: "score", limit: 100 }).catch(() => []),
     listGhostedIds(200).catch(() => []),
     listDumpLedger(200).catch(() => []),
+    getCollapseState().catch(() => ({ active: false })),
   ]);
 
   // OpenSea
@@ -112,17 +114,105 @@ export default async function NumbersPage() {
     .filter((d) => d.rescuer)
     .reduce((a, d) => a + Math.max(0, d.floorEth - d.priceEth), 0);
 
+  // Phase 3: Pulse hero — one number that defines the city's
+  // current state. Floor × supply is the cleanest single answer to
+  // "what is FREELON CITY worth right now?" — paired with a live
+  // status pill (ACTIVE / COLLAPSE) so a single glance tells you
+  // value + health.
+  const stateActive = !collapse.active;
+  const stateColor = stateActive ? "var(--state-active)" : "var(--state-warning)";
+  const stateLabel = stateActive ? "ACTIVE" : "COLLAPSE";
+
   return (
     <main className="numbers-page" style={{ maxWidth: 1200, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+      {/* Phase 3: PULSE hero — one hero stat + live city state. */}
       <section style={{ marginBottom: "var(--s-5)" }}>
-        <span className="kicker">⬡ THE NUMBERS · LIVE</span>
+        <span className="kicker">⬡ PULSE · LIVE FROM THE CITY</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(40px, 6vw, 72px)", lineHeight: 0.96, letterSpacing: "-0.02em", margin: "10px 0 8px" }}>
-          The city, by the receipts.
+          The Pulse.
         </h1>
-        <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 640 }}>
-          Every number on this page is live. No screenshots, no curated highlights.
-          The city moves; the city reports. Auto-updated every 5 minutes.
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 640, marginBottom: "var(--s-4)" }}>
+          One pulse — market cap at floor × current state. Every receipt
+          below. No screenshots, no curated highlights. Auto-updated every
+          5 minutes.
         </p>
+
+        <div
+          className="pulse-hero"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1fr)",
+            gap: "var(--s-3)",
+            marginTop: "var(--s-3)",
+          }}
+        >
+          <div
+            style={{
+              padding: "var(--s-5) var(--s-5) var(--s-4)",
+              borderRadius: 18,
+              border: `2px solid ${stateColor}`,
+              background: `linear-gradient(135deg, ${stateColor}14, rgba(0,0,0,0.5))`,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.28em", color: stateColor, textTransform: "uppercase", fontWeight: 700 }}>
+              MARKET CAP · AT FLOOR
+            </span>
+            <div style={{ fontFamily: "var(--display)", fontSize: "clamp(48px, 8vw, 96px)", lineHeight: 0.95, color: "var(--ink)", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>
+              {fmtEth(
+                total?.market_cap ||
+                  (Number(total?.floor_price || 0) * TOTAL),
+                2,
+              )}
+            </div>
+            <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", letterSpacing: "0.06em" }}>
+              floor × {TOTAL.toLocaleString()} supply · {fmtInt(total?.num_owners)} holders
+            </span>
+          </div>
+
+          <div
+            style={{
+              padding: "var(--s-4)",
+              borderRadius: 18,
+              border: `1px solid ${stateColor}55`,
+              background: `${stateColor}0a`,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              justifyContent: "center",
+            }}
+          >
+            <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.28em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
+              CITY STATE
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span
+                style={{
+                  width: 12, height: 12, borderRadius: "50%",
+                  background: stateColor,
+                  boxShadow: `0 0 14px ${stateColor}`,
+                }}
+                aria-hidden
+              />
+              <span style={{ fontFamily: "var(--display)", fontSize: 32, color: stateColor, fontWeight: 400, letterSpacing: "-0.005em" }}>
+                {stateLabel}
+              </span>
+            </div>
+            <span style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-2)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
+              {stateActive
+                ? "Earnings flow at 1.0×. Burns at 1.0×. The grid holds."
+                : "Earnings reduced. Burns reduced. Defenders called to the floor."}
+            </span>
+          </div>
+        </div>
+
+        <style>{`
+          @media (max-width: 760px) {
+            .pulse-hero { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
       </section>
 
       {/* ── MARKET ── */}
@@ -145,7 +235,7 @@ export default async function NumbersPage() {
       <Section title="Hex economy">
         <Grid>
           <Stat label="Hex in circulation" value={`${fmtInt(hexBalanceTotal)} ⬡`} sub="sum of all wallet balances" />
-          <Stat label="Hex burned (lifetime)" value={`${fmtInt(hexBurnedTotal)} ⬡`} sub="all sinks · titheS, names, realigns, transmissions, boosts" />
+          <Stat label="Hex burned (lifetime)" value={`${fmtInt(hexBurnedTotal)} ⬡`} sub="all sinks · tithes, names, realigns, transmissions, boosts" />
           <Stat label="Tracked wallets" value={fmtInt(trackedWallets)} sub={`${fmtInt(activeWallets)} active · hex > 0`} />
           <Stat label="Daily-claim streakers" value={fmtInt(carriersWithClaimStreak)} sub="wallets with an unbroken claim streak" />
         </Grid>
@@ -220,7 +310,7 @@ export default async function NumbersPage() {
 
       <section style={{ marginTop: "var(--s-6)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
-        <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
+        <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/leaderboard">
             <span className="ttl">THE LEADERBOARD →</span>
           </Link>

@@ -197,7 +197,7 @@ export function TransmissionCard({ t: initialT, compact }: { t: Public; compact?
               whiteSpace: "nowrap",
             }}
           >
-            {boosting ? "…" : "🔥 BOOST"}
+            {boosting ? "…" : "↑ BOOST"}
           </button>
         </div>
 

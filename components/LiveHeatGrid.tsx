@@ -83,7 +83,7 @@ export function LiveHeatGrid() {
           {total === 0 ? "QUIET · NO ACTIVITY" : `${total} EVENTS · POLLED 30S`}
         </span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
+      <div className="heat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 10 }}>
         {cells.map((c) => {
           const intensity = Math.min(1, (c.sales + c.signals) / 5);
           const pulseKey = pulses[c.slug] || 0;

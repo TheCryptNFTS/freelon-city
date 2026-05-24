@@ -105,7 +105,7 @@ export async function runNotifyScan(): Promise<ScanResult> {
           wallet: w,
           eventKey: `watchlist-flag:${flag.tokenId}:${flag.flaggedAt}`,
           kind: "watchlist-flag",
-          body: `🔴 Citizen #${String(flag.tokenId).padStart(4, "0")} you watch is flagged · ${flag.priceEth.toFixed(4)} ETH · ~+${flag.bountyHex} ⬡ snipe bounty if you buy + hold ${ECONOMY.SNIPE_HOLD_DAYS}d.`,
+          body: `● Citizen #${String(flag.tokenId).padStart(4, "0")} you watch is flagged · ${flag.priceEth.toFixed(4)} ETH · ~+${flag.bountyHex} ⬡ snipe bounty if you buy + hold ${ECONOMY.SNIPE_HOLD_DAYS}d.`,
           href: "/dashboard",
         });
         if (r.inboxed) result.watchlistHits++;

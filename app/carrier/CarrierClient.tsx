@@ -196,30 +196,10 @@ export function CarrierClient() {
 
   return (
     <section className="carrier-dash" style={{ "--civ": civ?.color || "var(--gold)" } as React.CSSProperties}>
-      {/* Inbox first — this is what drives the retention loop. Decay
-          warnings, watchlist hits, streak T-1, transmission boosts all
-          land here. */}
-      <div style={{ gridColumn: "1 / -1" }}>
-        <NotificationInbox />
-      </div>
-      <div style={{ gridColumn: "1 / -1" }}>
-        <DailyMission />
-      </div>
-      {/* Multi-handle switcher — for users with more than one X handle
-          on the same browser. Saves each carrier in its own per-handle slot. */}
-      <HandleSwitcher current={state.handle} onSwitch={(h) => {
-        setActiveCarrierHandle(h);
-        const loaded = loadCarrier(h);
-        if (loaded) setState(tickDecay(loaded));
-      }} />
-
-      {holder.isHolder && holder.balance !== null && (
-        <div className="holder-flex" style={{ gridColumn: "1 / -1" }}>
-          <span className="kicker">⬡ VERIFIED HOLDER</span>
-          <span className="holder-count">{holder.balance} CITIZEN{holder.balance !== 1 ? "S" : ""}</span>
-          <span className="holder-addr">{holder.address?.slice(0, 6)}…{holder.address?.slice(-4)}</span>
-        </div>
-      )}
+      {/* Phase 3: DAILY CLAIM FIRST. The single highest-value action on
+          this page is "claim today's hex." It now lands above the
+          inbox / mission / handle switcher so a returning carrier
+          completes the loop in one scroll. */}
       {state && (
         <div className="daily-claim-card" style={{ gridColumn: "1 / -1" }}>
           <span className="kicker">⬡ DAILY CLAIM</span>
@@ -319,6 +299,26 @@ export function CarrierClient() {
               </>
             )}
           </div>
+        </div>
+      )}
+      {/* Phase 3 reorder: inbox + mission + handle switcher + holder
+          banner all come AFTER the daily claim card now. */}
+      <div style={{ gridColumn: "1 / -1" }}>
+        <NotificationInbox />
+      </div>
+      <div style={{ gridColumn: "1 / -1" }}>
+        <DailyMission />
+      </div>
+      <HandleSwitcher current={state.handle} onSwitch={(h) => {
+        setActiveCarrierHandle(h);
+        const loaded = loadCarrier(h);
+        if (loaded) setState(tickDecay(loaded));
+      }} />
+      {holder.isHolder && holder.balance !== null && (
+        <div className="holder-flex" style={{ gridColumn: "1 / -1" }}>
+          <span className="kicker">⬡ VERIFIED HOLDER</span>
+          <span className="holder-count">{holder.balance} CITIZEN{holder.balance !== 1 ? "S" : ""}</span>
+          <span className="holder-addr">{holder.address?.slice(0, 6)}…{holder.address?.slice(-4)}</span>
         </div>
       )}
       {state && <MyInvites handle={state.handle} />}

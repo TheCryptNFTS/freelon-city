@@ -23,7 +23,7 @@ export function CopyToClipboardButton({ text }: { text: string }) {
         cursor: "pointer",
       }}
     >
-      {copied ? "✓ COPIED" : "📋 COPY"}
+      {copied ? "✓ COPIED" : "⧉ COPY"}
     </button>
   );
 }

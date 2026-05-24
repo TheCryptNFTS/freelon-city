@@ -115,7 +115,7 @@ export async function POST(
         wallet: t.author,
         eventKey: `transmission-boost:${id}:${addr}:${Date.now()}`,
         kind: "transmission-boosted",
-        body: `🔥 Your transmission got boosted +${hex} ⬡ · you earned +${royalty} ⬡ royalty.`,
+        body: `⬢ Your transmission got boosted +${hex} ⬡ · you earned +${royalty} ⬡ royalty.`,
         href: `/transmissions/${id}`,
       }).catch(() => {});
     } catch {/* non-fatal; the boost still counts toward score */}

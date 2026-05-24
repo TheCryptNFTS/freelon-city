@@ -139,7 +139,7 @@ export function ReplySubmit() {
             <>
               <strong>✓ +{result.credited} ⬡ credited.</strong>
               {result.burstWinner && (
-                <> 🔥 BURST 2× — landed in the first 30-min window.</>
+                <> ⬢ BURST ×2 — landed in the first 30-min window.</>
               )}
               <br />
               {result.eligibleForBonus && (

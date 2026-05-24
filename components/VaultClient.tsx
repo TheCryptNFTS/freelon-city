@@ -498,10 +498,14 @@ export function VaultClient() {
         </section>
       )}
 
-      {/* SECTION E — Test send toggle */}
+      {/* SECTION E — Test send: PROMOTED to major safety card (Phase 3).
+          A wrong-address mistake here is permanent and uninsurable. The
+          test-send toggle deserves the same visual weight as the actual
+          TRANSFER button, not a small footnote checkbox. */}
       {addr && (
-        <section className="v-section v-test">
-          <label className="v-check">
+        <section className="v-section v-test v-safety-card">
+          <span className="kicker" style={{ color: "var(--gold)" }}>⬡ SAFETY CHECK · TEST SEND FIRST</span>
+          <label className="v-check v-check--prominent">
             <input
               type="checkbox"
               checked={testSend}
@@ -608,6 +612,18 @@ export function VaultClient() {
         .vault-h1 em { color: var(--gold); font-style: normal; }
         .vault-sub { font-family: var(--mono2); font-size: 14px; color: var(--ink-2); line-height: 1.7; max-width: 620px; margin: 0 auto; }
         .v-section { margin-bottom: var(--s-5); padding: var(--s-4); border: 1px solid var(--line); background: rgba(255,255,255,0.02); border-radius: 12px; }
+        /* Phase 3: test-send safety card — visual weight matched to the TRANSFER button. */
+        .v-safety-card {
+          border: 1px solid var(--gold);
+          background: linear-gradient(135deg, rgba(200,167,93,0.10), rgba(200,167,93,0.02));
+          padding: var(--s-5);
+        }
+        .v-check--prominent {
+          font-size: 15px;
+          line-height: 1.6;
+          padding: 12px 0;
+        }
+        .v-check--prominent input { width: 20px; height: 20px; }
         .v-bullets { font-family: var(--mono2); font-size: 12px; color: var(--ink-2); line-height: 1.8; margin: 14px 0 0; padding: 0; list-style: none; }
         .v-connected { display: flex; align-items: center; gap: 12px; font-family: var(--mono2); font-size: 13px; color: var(--ink); }
         .v-dot { width: 8px; height: 8px; border-radius: 50%; background: #7AE08D; box-shadow: 0 0 8px #7AE08D; }
@@ -618,14 +634,15 @@ export function VaultClient() {
         .v-section-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: var(--s-3); }
         .v-counter { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; }
         .v-select-actions { display: flex; gap: 8px; margin-left: auto; }
-        .v-mini { background: transparent; border: 1px solid var(--line-2); color: var(--ink-2); font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; padding: 4px 10px; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+        .v-mini { background: transparent; border: 1px solid var(--line-2); color: var(--ink-2); font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; padding: 6px 12px; border-radius: 4px; cursor: pointer; text-transform: uppercase; min-height: 32px; }
+        @media (max-width: 540px) { .v-mini { min-height: var(--tap-min); font-size: 12px; padding: 8px 14px; } .v-id { font-size: 11px; padding: 6px 6px; } }
         .v-mini:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); }
         .v-mini:disabled { opacity: 0.4; cursor: not-allowed; }
         .v-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; list-style: none; padding: 0; margin: 0; }
         .v-card { position: relative; display: block; cursor: pointer; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; transition: border-color .15s ease, transform .15s ease; }
         .v-card:hover { border-color: var(--ink-2); }
         .v-card.on { border-color: var(--gold); transform: scale(0.97); }
-        .v-card input { position: absolute; top: 6px; left: 6px; z-index: 2; accent-color: var(--gold); }
+        .v-card input { position: absolute; top: 6px; left: 6px; z-index: 2; accent-color: var(--gold); width: 18px; height: 18px; cursor: pointer; }
         .v-card img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
         .v-id { display: block; padding: 4px 6px; font-family: var(--mono2); font-size: 10px; color: var(--ink-2); text-align: center; letter-spacing: 0.08em; }
         .v-field { display: flex; flex-direction: column; gap: 6px; }
