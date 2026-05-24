@@ -32,7 +32,9 @@ export async function generateMetadata({
   const display = norm ? shortAddr(norm) : address;
   const ogUrl = `/api/og/passport/${norm ?? address}`;
   return {
-    title: `Passport · ${display} · FREELON CITY`,
+    // The root layout already appends "· FREELON CITY" via title.template.
+    // Do not include the suffix here or the title doubles.
+    title: `Passport · ${display}`,
     description: `Citizen passport · classification, civ alignment, hex balance, signal streak, city rank.`,
     openGraph: { images: [{ url: ogUrl, width: 1200, height: 630 }] },
     twitter: { card: "summary_large_image", images: [ogUrl] },

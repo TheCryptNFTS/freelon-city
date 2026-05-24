@@ -157,6 +157,12 @@ export function ShopGrid() {
           const cantAfford = balance < i.cost;
           const isBusy = busyId === i.id;
 
+          // Anonymous (no carrier handle) visitors see "SYNC TO BUY" instead
+          // of "INSUFFICIENT ⬡" on every product — Discord report from a new
+          // visitor described the shop as "31 buttons that say INSUFFICIENT,
+          // looks broken." Insufficient is only the right label for synced
+          // carriers who actually checked balance and came up short.
+          const isAnon = !carrier?.handle;
           let label = `BUY · ${i.cost.toLocaleString()} ⬡`;
           let disabled = false;
           if (isOwned) {
@@ -165,6 +171,9 @@ export function ShopGrid() {
           } else if (soldOut) {
             label = "SOLD OUT";
             disabled = true;
+          } else if (isAnon) {
+            label = "SYNC TO BUY →";
+            disabled = false; // clickable — buy() shows a "sync a handle" notice
           } else if (cantAfford) {
             label = "INSUFFICIENT ⬡";
             disabled = true;
