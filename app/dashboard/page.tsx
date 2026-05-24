@@ -9,6 +9,7 @@ import { RedSignalsFeed } from "@/components/RedSignalsFeed";
 import { LiveHeatGrid } from "@/components/LiveHeatGrid";
 import { HolderDistributionChart } from "@/components/HolderDistributionChart";
 import { CityFeedTicker } from "@/components/CityFeedTicker";
+import { TopCitizensByValue } from "@/components/TopCitizensByValue";
 
 export const metadata: Metadata = {
   title: "Dashboard · The Numbers · FREELON CITY",
@@ -55,6 +56,12 @@ export default function Dashboard() {
         <CityStats />
         <HexIndex />
       </div>
+
+      {/* Per-citizen value ranking. New 2026-05-25 — accumulated hex +
+          rarity + sale + hold time → composite score, top 10. Belongs
+          here so the dashboard answers "which citizens are the city's
+          most valuable" alongside holder + civ-value charts. */}
+      <TopCitizensByValue />
 
       {/* Red Signals — undervalued listings worth sniping for hex bounties */}
       <RedSignalsFeed />

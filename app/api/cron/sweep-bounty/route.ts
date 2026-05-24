@@ -139,15 +139,20 @@ export async function GET(req: Request) {
           }
         }
 
-        // Collect sale for the 4h X autopost pulse (lib/sales-pulse).
-        // We compute priceEth from the payment field if ETH-like; non-ETH
-        // sales contribute count but not the volume tally.
+        // Collect sale for the 4h X autopost pulse (lib/sales-pulse) AND
+        // credit the per-citizen hex ledger (+25 ⬡ per sale, idempotent
+        // by tx:tokenId). The per-citizen ledger powers the citizen
+        // detail page "VALUE + RANK" card and the dashboard top-N.
         if (isEthLikePayment(ev.payment)) {
           const { paymentToEth } = await import("@/lib/eth-math");
           const priceEth = paymentToEth(ev.payment);
           const tidNum = parseInt(tokenId, 10);
           if (priceEth > 0 && Number.isFinite(tidNum)) {
             pulseSales.push({ tx, tokenId: tidNum, buyer, priceEth, ts });
+            try {
+              const { creditCitizenSale } = await import("@/lib/citizen-value-store");
+              await creditCitizenSale({ tokenId: tidNum, tx, priceEth, ts: Math.floor(ts / 1000) });
+            } catch {/* per-token credit failure is non-fatal */}
           }
         }
 
