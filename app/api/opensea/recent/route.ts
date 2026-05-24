@@ -26,9 +26,12 @@ export async function GET() {
     const data = await res.json();
     const raws = (data?.asset_events || []) as RawEvent[];
 
-    // Bundle detection: group by transaction hash (or timestamp+seller as
-    // fallback). OpenSea attributes the FULL bundle price to each token row,
-    // which silently inflates displayed per-token price. Divide by group size.
+    // Bundle detection: group by transaction hash. Per OpenSea v2 today
+    // (Discord 2026-05-25, Nonz: "Too much 0 in there mate, good price is
+    // 0.003 not 0.0003"), payment.quantity is the PER-TOKEN price for
+    // each event row in a bundle, NOT the bundle total. Prior code divided
+    // by group size again, producing 10× too-small prices on sweeps.
+    // Fix: trust payment.quantity as per-token; only use bundleSize for UI.
     const groupSizes = new Map<string, number>();
     for (const e of raws) {
       const key = e.transaction || `${e.event_timestamp}-${e.seller}`;
@@ -39,10 +42,9 @@ export async function GET() {
       .map((e) => {
         const key = e.transaction || `${e.event_timestamp}-${e.seller}`;
         const bundleSize = groupSizes.get(key) || 1;
-        const totalWei = e.payment?.quantity ? BigInt(e.payment.quantity) : 0n;
-        const perTokenWei = bundleSize > 1 ? totalWei / BigInt(bundleSize) : totalWei;
+        const perTokenWei = e.payment?.quantity ? BigInt(e.payment.quantity) : 0n;
         const decimals = e.payment?.decimals ?? 18;
-        const perTokenEth = totalWei > 0n
+        const perTokenEth = perTokenWei > 0n
           ? weiToEth(perTokenWei, decimals).toFixed(4)
           : null;
         return {

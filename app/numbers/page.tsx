@@ -271,7 +271,12 @@ export default async function NumbersPage() {
         <Grid>
           <Stat
             label="Contract"
-            value={<code style={{ fontSize: 12 }}>{CONTRACT}</code>}
+            value={
+              // Wraps inside the card on narrow screens (Discord 2026-05-25:
+              // "contract address is over boxing if viewed in a smaller window").
+              // word-break:break-all is safe for hex strings.
+              <code style={{ fontSize: 12, wordBreak: "break-all", overflowWrap: "anywhere", display: "block", lineHeight: 1.4 }}>{CONTRACT}</code>
+            }
             sub="Ethereum mainnet · ERC-721"
           />
           <Stat

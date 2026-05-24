@@ -83,6 +83,26 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     ),
   ]);
 
+  // Per-citizen accumulated hex + civ rank (built 2026-05-25, founder spec).
+  // The store is updated by the sweep-bounty cron when a sale touches this
+  // token. Civ rank = position by computed value within same civilization.
+  // Fail-quiet wrapper so an Upstash hiccup never breaks the citizen page.
+  const valueCard = await (async () => {
+    try {
+      const { getCitizenStats, computeCitizenValue, getCitizenCivRank } =
+        await import("@/lib/citizen-value-store");
+      const floor = typeof meta.lastSaleEth === "number" && meta.lastSaleEth > 0
+        ? meta.lastSaleEth
+        : 0.003; // fallback floor used only for sale ratio; harmless if wrong
+      const stats = await getCitizenStats(tid);
+      const computed = computeCitizenValue(tid, stats, floor);
+      const civRank = await getCitizenCivRank(tid, floor).catch(() => null);
+      return { stats, computed, civRank };
+    } catch {
+      return null;
+    }
+  })();
+
   // Ghost / rescue status — server-side so the SIGNAL LOST state is baked
   // into the HTML and survives no-JS / OG bots.
   const ghost = await getGhost(tid).catch(() => null);
@@ -216,6 +236,71 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               </div>
             )}
           </dl>
+
+          {valueCard && (
+            <section
+              className="citizen-value-card"
+              style={{
+                marginTop: "var(--s-4)",
+                padding: "var(--s-4)",
+                border: `1px solid ${color}55`,
+                borderRadius: 14,
+                background: `linear-gradient(135deg, ${color}10, rgba(0,0,0,0.4))`,
+              }}
+            >
+              <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
+                <span className="kicker" style={{ color }}>⬡ CITIZEN VALUE · LIVE</span>
+                {valueCard.civRank && (
+                  <span
+                    className="kicker"
+                    style={{ color, fontWeight: 700, letterSpacing: "0.22em" }}
+                    title={`Rank by value among all ${valueCard.civRank.outOf} ${civ?.name ?? ""} citizens`}
+                  >
+                    #{valueCard.civRank.rank} / {valueCard.civRank.outOf} · {civ?.name?.toUpperCase()}
+                  </span>
+                )}
+              </header>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 16, flexWrap: "wrap" }}>
+                <span
+                  style={{
+                    fontFamily: "var(--display)",
+                    fontSize: "clamp(40px, 6vw, 64px)",
+                    lineHeight: 1,
+                    color,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {valueCard.computed.value}
+                </span>
+                <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", letterSpacing: "0.22em" }}>
+                  / 1000
+                </span>
+                <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", letterSpacing: "0.14em" }}>
+                  · {valueCard.stats.hex.toLocaleString()} ⬡ accumulated
+                </span>
+              </div>
+              <ul
+                style={{
+                  marginTop: 14,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                  gap: 8,
+                  fontFamily: "var(--mono2)",
+                  fontSize: 11,
+                  color: "var(--ink-dim)",
+                  letterSpacing: "0.12em",
+                  listStyle: "none",
+                  padding: 0,
+                  textTransform: "uppercase",
+                }}
+              >
+                <li>SALE · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.salePts}/400</strong></li>
+                <li>RARITY · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.rarityPts}/300</strong></li>
+                <li>HEX · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.hexPts}/200</strong></li>
+                <li>HELD · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.holdPts}/100</strong></li>
+              </ul>
+            </section>
+          )}
 
           <div className="scarcity">
             <span className="kicker">SCARCITY</span>
