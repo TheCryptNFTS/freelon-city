@@ -37,14 +37,20 @@ type ArchiveEntry = {
 
 const ENTRIES: ArchiveEntry[] = [
   {
-    sequence: "TRANSMISSION 0042",
+    // Founder note 2026-05-25: The Crypt is the central archive layer.
+    // Brief said: "Wire The Crypt into /archive as The Dead Signal
+    // Archive. Frame as recovered skull records / dead signal identities
+    // / ancient relics beneath FREELON CITY. Concise." The expanded
+    // copy below stays inside the existing card slot — no new routes,
+    // no new mechanics, no separate page. Just sharper framing.
+    sequence: "TRANSMISSION 0042 · DEAD SIGNAL ARCHIVE",
     status: "RECOVERED",
     statusColor: "var(--state-active)",
     title: "The Crypt",
     body:
-      "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
+      "Beneath the city, a vault of skull records — dead signal identities recovered from before the hex disappeared. Ancient relics, corrupted commanders, names the city was never supposed to remember.",
     openseaUrl: "https://opensea.io/collection/the-crypt-official",
-    artifactClass: "archive layer · ancient records",
+    artifactClass: "dead signal archive · skull records beneath the city",
   },
   {
     sequence: "TRANSMISSION 0119",
