@@ -153,6 +153,20 @@ export async function GET(req: Request) {
               const { creditCitizenSale } = await import("@/lib/citizen-value-store");
               await creditCitizenSale({ tokenId: tidNum, tx, priceEth, ts: Math.floor(ts / 1000) });
             } catch {/* per-token credit failure is non-fatal */}
+
+            // Record sweep event for /hold-the-line "Recent Sweepers"
+            // panel — aggregates by buyer wallet over trailing 4h window.
+            // Sister system to defender-store (which tracks bid offers).
+            try {
+              const { recordSweep } = await import("@/lib/sweeper-store");
+              await recordSweep({
+                wallet: buyer,
+                tokenId: tidNum,
+                priceEth,
+                ts: Math.floor(ts / 1000),
+                tx,
+              });
+            } catch {/* sweeper recording is non-fatal */}
           }
         }
 
