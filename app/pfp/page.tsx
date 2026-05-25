@@ -5,7 +5,7 @@ import { PfpStudio } from "./PfpStudio";
 const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
 
 export const metadata: Metadata = {
-  title: "PFP Studio · Hex-frame your avatar · FREELON CITY",
+  title: "PFP Studio · Hex-frame your avatar",
   description: "Upload your face. Get the hex. Wear the signal.",
 };
 

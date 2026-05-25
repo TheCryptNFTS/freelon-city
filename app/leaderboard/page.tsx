@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 120;
 
 export const metadata: Metadata = {
-  title: "Leaderboard ⬡ · FREELON CITY",
+  title: "Leaderboard ⬡",
   description: "Top hex earners — active 7 days, current balance, and lifetime. Live from the city's economic layer.",
 };
 

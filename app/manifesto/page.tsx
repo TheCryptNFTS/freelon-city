@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Manifesto · Ten Verses of the Signal · FREELON CITY",
+  title: "Manifesto · Ten Verses of the Signal",
   description: "The signal didn't die. It moved. Ten verses, locked.",
 };
 

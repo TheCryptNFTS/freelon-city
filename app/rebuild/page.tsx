@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CONTRACT, IMAGE_CID, METADATA_CID, imageUrl } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "The Art System · FREELON CITY",
+  title: "The Art System",
   description: "How 4040 citizens are generated from 16 sacred shapes, 10 civilizations, and 7 castes — locked on-chain.",
 };
 

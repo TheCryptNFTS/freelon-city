@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CASTES } from "@/lib/constants";
 
-export const metadata = { title: "7 Castes · FREELON CITY" };
+export const metadata = { title: "7 Castes" };
 
 export default function Page() {
   return (

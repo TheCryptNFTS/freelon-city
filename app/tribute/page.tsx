@@ -4,7 +4,7 @@ import { getHonoraries } from "@/lib/citizens";
 import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Tributes · 35 honoraries · FREELON CITY",
+  title: "Tributes · 35 honoraries",
   description: "Each of these 35 citizens carries a name. Tag the signal carrier.",
 };
 

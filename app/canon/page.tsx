@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "The Canon · FREELON CITY",
+  title: "The Canon",
   description:
     "The city's reference library. Origin, civilizations, castes, shapes, lexicon, manifesto, art system — all in one place.",
 };

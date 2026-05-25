@@ -23,7 +23,7 @@ import { getCollapseState } from "@/lib/collapse-mode";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Pulse · FREELON CITY",
+  title: "Pulse",
   description:
     "Live city pulse. One hero stat, current state, then every receipt below. Sales, holders, hex flow, transmissions, dumps caught, rescuers paid. All public, all auto-updated.",
 };

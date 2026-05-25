@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Legal · FREELON CITY",
+  title: "Legal",
   description: "Terms, Privacy, DMCA, and contact for FREELON CITY.",
 };
 

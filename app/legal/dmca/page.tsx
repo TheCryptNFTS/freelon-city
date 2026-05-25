@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalShell } from "../LegalShell";
 
-export const metadata: Metadata = { title: "DMCA + Contact · FREELON CITY" };
+export const metadata: Metadata = { title: "DMCA + Contact" };
 
 export default function Dmca() {
   return (

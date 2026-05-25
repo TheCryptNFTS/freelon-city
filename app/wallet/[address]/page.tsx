@@ -203,7 +203,7 @@ export async function generateMetadata({
   const display = norm ? shortAddr(norm) : address;
   const ogUrl = `/api/og/wallet/${norm ?? address}`;
   return {
-    title: `Wallet · ${display} · FREELON CITY`,
+    title: `Wallet · ${display}`,
     description: `Public profile · FREELON holdings, civ alignment, rank.`,
     openGraph: { images: [{ url: ogUrl, width: 1200, height: 630 }] },
     twitter: { card: "summary_large_image", images: [ogUrl] },

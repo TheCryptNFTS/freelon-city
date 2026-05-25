@@ -23,7 +23,7 @@ import { RecentSweepers } from "@/components/RecentSweepers";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Hold the Line · Defend the Floor · FREELON CITY",
+  title: "Hold the Line · Defend the Floor",
   description:
     "The city is under collapse. Carriers bid to hold the line. Place an OpenSea bid above floor × 1.4 — earn hex, defend the floor, get the DEFENDER badge.",
 };

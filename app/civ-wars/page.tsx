@@ -7,7 +7,7 @@ import { MyCivStandings } from "@/components/MyCivStandings";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Civ Wars ⬡ · FREELON CITY",
+  title: "Civ Wars ⬡",
   description: "Weekly civilization leaderboard. Most active hex earned wins +10% next cycle. Tribal mechanics in motion.",
 };
 

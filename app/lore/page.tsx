@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CITY_LORE, CIVILIZATION_LORE } from "@/lib/worldbuilding";
 import { CIVILIZATIONS } from "@/lib/constants";
 
-export const metadata = { title: "The Canon · FREELON CITY" };
+export const metadata = { title: "The Canon" };
 
 export default function LorePage() {
   return (

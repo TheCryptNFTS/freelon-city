@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Roadmap · FREELON CITY",
+  title: "Roadmap",
   description:
     "What the city is building now, next, and later. No dated promises — only shipped lines and committed direction.",
 };

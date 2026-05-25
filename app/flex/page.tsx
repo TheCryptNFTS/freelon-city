@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "THE FLEX MACHINE",
   description: "You got in early. Prove it.",
   openGraph: {
-    title: "THE FLEX MACHINE · FREELON CITY",
+    title: "THE FLEX MACHINE",
     description: "You got in early. Prove it.",
   },
 };

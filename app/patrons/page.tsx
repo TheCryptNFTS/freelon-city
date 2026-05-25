@@ -6,7 +6,7 @@ import { CIVILIZATIONS } from "@/lib/constants";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Patrons · FREELON CITY",
+  title: "Patrons",
   description: "Citizens who have burned hex points to honor their civilization. Names live on the wall for 7 days.",
 };
 

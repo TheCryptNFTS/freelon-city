@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "DOPPELGANGER · Find your signal match",
   description: "Drop your handle. The machine finds the citizen of FREELON CITY who looks back at you.",
   openGraph: {
-    title: "DOPPELGANGER · FREELON CITY",
+    title: "DOPPELGANGER",
     description: "Drop your handle. The machine finds the citizen of FREELON CITY who looks back at you.",
   },
 };
