@@ -67,9 +67,10 @@ export default async function Home() {
               <em>It moved</em>
             </h1>
             <p className="hero-sub">
-              <strong>4040 citizens</strong> on Ethereum. 10 civilizations.
-              Sealed supply. Hold one — the city pays daily in hex.
-              Burn hex — carve your name into the wall.
+              The HEX disappeared. FREELON CITY formed around the signal.
+              <br />
+              <strong>4040 citizens</strong> · 10 civilizations · sealed supply.
+              Hold one — the city pays daily in hex.
             </p>
 
             {/* Two CTAs side-by-side: SYNC (free-to-play) + BUY (revenue).

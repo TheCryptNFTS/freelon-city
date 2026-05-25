@@ -36,6 +36,7 @@ const LINKS = [
   { href: "/graveyard",       label: "Graveyard" },
   { href: "/pfp",             label: "PFP" },
   { href: "/secrets",         label: "⬡ Secrets", gold: true },
+  { href: "/archive",         label: "⬡ Other Signals · Archive", gold: true },
 ];
 
 export function MobileNav() {
