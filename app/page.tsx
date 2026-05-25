@@ -6,6 +6,7 @@ import { HonoreeStrip } from "@/components/HonoreeStrip";
 import { HoldTheLineBanner } from "@/components/HoldTheLineBanner";
 import { CityTerminal } from "@/components/CityTerminal";
 import { GoodValueToSweep } from "@/components/GoodValueToSweep";
+import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
 import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
 import { WalletScanner } from "@/app/sync/WalletScanner";
@@ -185,6 +186,13 @@ export default async function Home() {
           are underpriced relative to rarity, without having to manually
           scan all 4040. */}
       <GoodValueToSweep />
+
+      {/* OTHER SIGNALS · ARCHIVE strip — founder brief 2026-05-25.
+          5 archive cards visible on the homepage so visitors discover
+          the wider universe before scrolling past. Each card uses the
+          locked copy from the brief; the strip links to /archive for
+          the full transmission set + OpenSea provenance. */}
+      <OtherSignalsStrip />
 
       {/* HOLD THE LINE banner — distributed bid wall mission. Live
           defender count builds social proof as it fills. */}

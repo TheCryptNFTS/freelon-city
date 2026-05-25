@@ -22,8 +22,14 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          <Link href="/start" className="nav-link nav-start">Start</Link>
-          <Link href="/citizens" className="nav-link">Citizens</Link>
+          {/* Nav order locked to founder brief 2026-05-25 universe-hub
+              positioning: Civilizations (identity) → Archives (other
+              signals discoverable) → Combat Archives (TCG lore frame) →
+              Pulse → Shop. Start moved out of primary nav (already linked
+              from hero CTAs). Citizens stays in the Archives dropdown. */}
+          <Link href="/civilizations" className="nav-link">Civilizations</Link>
+          <Link href="/archive" className="nav-link">Archives</Link>
+          <Link href="/combat-archives" className="nav-link">Combat Archives</Link>
           <Link href="/numbers" className="nav-link">Pulse</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
           <HeaderArchives />
