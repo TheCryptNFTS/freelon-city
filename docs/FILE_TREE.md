@@ -1,9 +1,23 @@
-# FREELON CITY · Complete File Tree (2026-05-25)
+# FREELON CITY · Complete File Tree (2026-05-25, refreshed)
 
-342 source files across `app/` `components/` `lib/` `data/` `docs/`
+**344 source files** across `app/` `components/` `lib/` `data/` `docs/`
 `public/`. Grouped by purpose with a one-line description per file.
 
-Generated after the universe-hub framing landed (PR #9, #10, #11).
+Last refreshed after the 10 Gods × 10 Civilizations connection
+(PR #12), the Crypt / Emile / OOGIES archive upgrades (PR #13–#15),
+and the homepage compression to 7 sections (PR #16).
+
+## Recent additions (universe-hub work, 2026-05-25)
+
+- `app/archive/page.tsx` — Other Signals deep page · 6 recovered transmission cards (Crypt · Combat Archives · OOGIES · Emile · SMILES Collapse · 404 HEX ROOT) · OpenSea provenance links · `ONE ARCHITECT · ONE WALLET · ONE SIGNAL` footer.
+- `app/combat-archives/page.tsx` — `SIGNAL RECONSTRUCTION IN PROGRESS` lore frame + TEN GODS reveal grid (10 cards, civ-colored, OpenSea outbound).
+- `components/OtherSignalsStrip.tsx` — homepage 5-card archives strip linking to `/archive`.
+- `lib/gods.ts` — 10 Gods data + civ ↔ god 1-to-1 mapping + helpers (only new lib file this round).
+
+## Recent compressions
+
+- Homepage cut from 15 → 7 visible sections (PR #16). Removed sections preserved as comments at their original positions in `app/page.tsx` so any can be restored without re-reading lore.
+- Hero H1 locked to brief copy: "The HEX disappeared." → "FREELON CITY formed around the signal."
 
 ---
 
@@ -382,6 +396,7 @@ Single visual language. Every primitive reads from `--state-*`, `--r-*`, `--pane
 |---|---|
 | `citizens.ts` | getCitizen / getAllCitizens / getByCivilization / getOneOfOnes / getHonoraries / civilizationColor / countSimilar / rarityRank / civilizationOf. |
 | `constants.ts` | CIVILIZATIONS map (all 10 with stamp/color/doctrine/role/rival), CONTRACT, METADATA_CID, IMAGE_CID, IPFS_GATEWAY, imageUrl(), heroImageUrl(), TOTAL. |
+| `gods.ts` | **NEW.** 10 Gods of Crypt Trading Cards (Anubis #1519, Hades #1535, Vishnu #3500, Loki #4326, Aphrodite #4650, Zeus #5181, Poseidon #5391, Odin #6664, Thor #6665, Anunnaki #6666). Each mapped 1-to-1 to a civilization. `godForCiv()`, `godByName()`, `godOpenSeaUrl()` helpers. Powers the PATRON GOD card on `/civilizations/[slug]` and the TEN GODS grid on `/combat-archives`. |
 | `canon.ts` | CANON object — locked phrases (IDENTITY, RESTORED, RECEIVED, LOST, ONLINE, etc.). |
 | `economy-constants.ts` | All hex rates + thresholds + intervals. |
 | `citizen-meta.ts` | Per-citizen meta (daysHeld, lastSaleEth, lastSaleTs) via OpenSea. |
@@ -492,7 +507,7 @@ Single visual language. Every primitive reads from `--state-*`, `--r-*`, `--pane
 
 ## Stats
 
-- **342 source files** in `app/` `components/` `lib/` `data/` `docs/` `public/`
+- **344 source files** in `app/` `components/` `lib/` `data/` `docs/` `public/`
 - **~70 routes** including OG endpoints
 - **27 components/ui primitives + feature components** (most use Phase 1 primitives)
 - **40+ lib stores/helpers**
@@ -500,7 +515,7 @@ Single visual language. Every primitive reads from `--state-*`, `--r-*`, `--pane
 
 ---
 
-## APPENDIX A · Complete raw file listing (all 295 files)
+## APPENDIX A · Complete raw file listing (all 344 source files)
 
 Auto-generated from `find app components lib data docs public/glyphs public/generated -type f`.
 
@@ -793,6 +808,7 @@ lib/fetch-with-timeout.ts
 lib/floor-defender.ts
 lib/get-wallet-address.ts
 lib/ghost-store.ts
+lib/gods.ts
 lib/heat-counters.ts
 lib/holder-tick.ts
 lib/name-store.ts
