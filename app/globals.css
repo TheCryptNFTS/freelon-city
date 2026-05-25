@@ -5382,6 +5382,96 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 /* Hero subtext + display H1 inherit existing tokens correctly; no
    override needed. */
 
+/* ─── SIGNAL RECOGNITION — the ownership-answer bridge ─── */
+/* 2026-05-26. Sits between OtherSignalsStrip and Civilizations.
+   Flat ASH panel, sacred gold top double-rule, ceremonial kicker,
+   bone display heading with gold sacred italic, dust mono body
+   with a single bone strong line for the "Six signals. One record.
+   Yours." stamp. Bone CTA → ANCIENT_GOLD on hover. No glow, no
+   glass, no dashboard chrome. */
+.home-page__recognition {
+  position: relative;
+  max-width: 720px;
+  margin: var(--s-7) auto;
+  padding: var(--s-7) var(--s-5) var(--s-6);
+  text-align: center;
+  background: var(--archival-surface);
+  border: 1px solid var(--archival-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.home-page__recognition::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background:
+    linear-gradient(180deg, var(--archival-rule-gold) 0 1px,
+                            transparent 1px 2px,
+                            var(--archival-line-deep) 2px 3px);
+  pointer-events: none;
+}
+.home-page__recognitionKicker {
+  display: inline-block;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--archival-gold);
+  margin-bottom: 18px;
+}
+.home-page__recognitionHeading {
+  font-family: var(--display);
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: var(--archival-bone);
+  font-weight: 400;
+  text-transform: none;
+  margin: 0 0 22px;
+}
+.home-page__recognitionHeading em {
+  color: var(--archival-gold);
+  font-style: normal;
+}
+.home-page__recognitionBody {
+  font-family: var(--mono2);
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--archival-dust);
+  margin: 0 auto 26px;
+  max-width: 540px;
+}
+.home-page__recognitionBody strong {
+  display: block;
+  margin-top: 14px;
+  color: var(--archival-bone);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.home-page__recognitionLink {
+  display: inline-block;
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--archival-bone);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+.home-page__recognitionLink:hover {
+  color: var(--archival-gold);
+  border-bottom-color: var(--archival-rule-gold);
+}
+@media (max-width: 540px) {
+  .home-page__recognition {
+    padding: var(--s-6) var(--s-4) var(--s-5);
+    margin: var(--s-6) var(--s-4);
+  }
+  .home-page__recognitionBody { font-size: 12px; line-height: 1.8; }
+}
+
 /* ─── Reduced motion guard for homepage-scoped animations ─── */
 @media (prefers-reduced-motion: reduce) {
   .home-page section[aria-label="Other signals · archives"] article {
@@ -5390,5 +5480,6 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   .home-page .civs-section .civ-grid > a {
     transition: none !important;
   }
+  .home-page__recognitionLink { transition: none !important; }
 }
 

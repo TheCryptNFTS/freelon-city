@@ -114,6 +114,27 @@ export default function Home() {
       {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
       <OtherSignalsStrip />
 
+      {/* SIGNAL RECOGNITION — the ownership-answer bridge. 2026-05-26.
+         Sits between OtherSignalsStrip (what exists) and Civilizations
+         (who you belong to). Answers "why own?" without saying buy/
+         hold/utility. One sacred line + one CTA to /archive. All
+         styling lives in .home-page__recognition (globals.css). */}
+      <section className="home-page__recognition" aria-label="Signal recognition">
+        <span className="home-page__recognitionKicker">⬡ SIGNAL RECOGNITION</span>
+        <h2 className="home-page__recognitionHeading">
+          The city remembers<br />
+          <em>what you carry.</em>
+        </h2>
+        <p className="home-page__recognitionBody">
+          Citizens. Dead signals. Combat relics. Ancient species.<br />
+          Memory fragments. Collapse records.<br />
+          <strong>Six signals. One record. Yours.</strong>
+        </p>
+        <Link href="/archive" className="home-page__recognitionLink">
+          ⬡ READ YOUR SIGNAL →
+        </Link>
+      </section>
+
       {/* HOMEPAGE COMPRESSION 2026-05-25 — hard cut 15→7 sections per
           founder brief: "Make FREELON CITY understandable in under 10
           seconds while preserving mystery. Push deeper lore into
