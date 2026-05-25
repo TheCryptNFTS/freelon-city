@@ -63,14 +63,19 @@ const ENTRIES: ArchiveEntry[] = [
     artifactClass: "combat relic / commander archive · ten gods sealed inside",
   },
   {
-    sequence: "TRANSMISSION 0247",
+    // Founder brief 2026-05-25 (same discipline as Crypt + Emile):
+    // "Frame OOGIES as Ancient Signal Species. Ancient biological
+    // entities tied to the HEX signal before FREELON CITY existed.
+    // Tone: mysterious, partially understood, archival. Avoid 'cute
+    // NFT collection' energy entirely. Concise and premium."
+    sequence: "TRANSMISSION 0247 · ANCIENT SIGNAL SPECIES",
     status: "FRAGMENT",
     statusColor: "var(--state-unstable)",
     title: "OOGIES",
     body:
-      "Ancient signal species. They heard the HEX before the city existed.",
+      "Biological entities older than the city. The architects classify them as listeners — anatomy tuned to the hex long before humans named the signal. Few specimens remain coherent. Most reach us as fragments.",
     openseaUrl: "https://opensea.io/collection/oogies",
-    artifactClass: "non-human species · pre-civilization listeners",
+    artifactClass: "ancient signal species · pre-civilization listeners",
   },
   {
     // Founder brief 2026-05-25 (same scope discipline as the Crypt
