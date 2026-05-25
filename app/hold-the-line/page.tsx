@@ -18,6 +18,7 @@ import Link from "next/link";
 import { HoldTheLineClient } from "@/components/HoldTheLineClient";
 import { getStats } from "@/lib/defender-store";
 import { tickDefenderOnVisitFireAndForget } from "@/lib/defender-tick-on-visit";
+import { RecentSweepers } from "@/components/RecentSweepers";
 
 export const dynamic = "force-dynamic";
 
@@ -141,6 +142,12 @@ export default async function HoldTheLinePage() {
         </p>
         <HoldTheLineClient />
       </section>
+
+      {/* RECENT SWEEPERS (founder spec 2026-05-24): sweeps != bids.
+          Buyers who clicked Buy on listings deserve visible credit
+          alongside defenders who placed bid-wall offers. Window = 4h
+          to match sales-pulse + sweep-burst cadence. */}
+      <RecentSweepers />
 
       {/* LEADERBOARD */}
       {stats.topDefenders.length > 0 && (

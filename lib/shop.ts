@@ -21,4 +21,4 @@ export function itemsByCategory(category: string): ShopItem[] {
   return ITEMS.filter((i) => i.category === category);
 }
 
-export const CATEGORIES = ["PROPERTY", "LAND", "WEAPONS", "CLOTHES", "ARTIFACTS"];
+export const CATEGORIES = ["PROPERTY", "LAND", "WEAPONS", "CLOTHES", "ARTIFACTS", "ASCENSION"];

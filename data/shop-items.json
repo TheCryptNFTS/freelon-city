@@ -296,5 +296,41 @@
     "cost": 1300,
     "supply": 22,
     "tier": "Rare"
+  },
+  {
+    "id": "ascension-wovenhood",
+    "category": "ASCENSION",
+    "name": "Wovenhood · CARRIER tier",
+    "description": "A hand-woven hood the city's tailors grant only to carriers the signal has accepted. Worn by name on your wallet. Requires a citizen in CARRIER tier or higher (value ≥350).",
+    "cost": 1000,
+    "supply": 200,
+    "tier": "Carrier"
+  },
+  {
+    "id": "ascension-lit-visor",
+    "category": "ASCENSION",
+    "name": "Lit Visor · VERIFIED tier",
+    "description": "A visor lit from within by the hex itself. The architect's first acknowledgement. Requires a citizen in VERIFIED tier or higher (value ≥500).",
+    "cost": 2500,
+    "supply": 80,
+    "tier": "Verified"
+  },
+  {
+    "id": "ascension-architects-light",
+    "category": "ASCENSION",
+    "name": "Architect's Light · DOCTRINE tier",
+    "description": "The architect carved your name once. This is what they wear when they speak it. Requires a citizen in DOCTRINE tier or higher (value ≥700).",
+    "cost": 5000,
+    "supply": 25,
+    "tier": "Doctrine"
+  },
+  {
+    "id": "ascension-sealed-bracket",
+    "category": "ASCENSION",
+    "name": "Sealed Bracket · MONOLITH tier",
+    "description": "Only worn by those who built the city. Four exist. The bracket is sealed. Requires a citizen in MONOLITH tier (value ≥850).",
+    "cost": 10000,
+    "supply": 4,
+    "tier": "Monolith"
   }
 ]
