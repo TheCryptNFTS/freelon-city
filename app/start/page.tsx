@@ -224,7 +224,7 @@ export default function StartPage() {
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
           <Link className="btn btn-primary" href="/sync"><span className="ttl">SYNC NOW →</span></Link>
           <Link className="btn btn-secondary" href="/relay"><span className="ttl">POST TEMPLATES →</span></Link>
-          <Link className="btn btn-secondary" href="/numbers"><span className="ttl">THE NUMBERS →</span></Link>
+          <Link className="btn btn-secondary" href="/numbers"><span className="ttl">PULSE →</span></Link>
         </div>
       </section>
     </main>

@@ -38,7 +38,9 @@ const GROUPS: Group[] = [
     items: [
       { href: "/vault",   label: "⬢ Vault",  gold: true },
       { href: "/carrier", label: "Carrier" },
-      { href: "/sync",    label: "Sync" },
+      // /sync removed 2026-05-25 — it's already in the top-level nav as
+      // the gold "Sync" pill. Having it both places was nav noise
+      // (Discord-flagged duplication pattern).
     ],
   },
   {
@@ -53,8 +55,9 @@ const GROUPS: Group[] = [
     heading: "CANON",
     items: [
       { href: "/canon",         label: "Canon · all reference" },
-      { href: "/civilizations", label: "10 Civilizations" },
-      { href: "/archive",       label: "⬡ Other Signals", gold: true },
+      // /civilizations + /archive removed 2026-05-25 — both are now
+      // top-level nav items. Discord 2026-05-25 (Nonz) flagged the
+      // duplicated "Archives" entry as confusing. Same logic for civs.
       { href: "/secrets",       label: "Secrets" },
     ],
   },
@@ -117,7 +120,7 @@ export function HeaderArchives() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        Archives ▾
+        More ▾
       </button>
       {mounted && open && pos && createPortal(
         <div

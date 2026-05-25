@@ -118,7 +118,7 @@ export default function ArchitectPage() {
       <section style={{ marginTop: "var(--s-7)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/numbers"><span className="ttl">SEE THE NUMBERS →</span></Link>
+          <Link className="btn btn-primary" href="/numbers"><span className="ttl">SEE PULSE →</span></Link>
           <Link className="btn btn-secondary" href="/roadmap"><span className="ttl">THE ROADMAP →</span></Link>
           <Link className="btn btn-secondary" href="/press"><span className="ttl">PRESS KIT →</span></Link>
         </div>
