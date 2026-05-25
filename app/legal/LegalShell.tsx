@@ -10,7 +10,7 @@ export function LegalShell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="legal-doc">
+    <div className="legal-doc">
       <article>
         <nav className="legal-breadcrumb">
           <Link href="/legal">← All Legal Documents</Link>
@@ -22,6 +22,6 @@ export function LegalShell({
         </header>
         <div className="legal-body">{children}</div>
       </article>
-    </main>
+    </div>
   );
 }

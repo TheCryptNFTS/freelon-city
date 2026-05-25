@@ -66,7 +66,7 @@ const FRAGMENTS: Fragment[] = [
 
 export default function CombatArchivesPage() {
   return (
-    <main
+    <div
       style={{
         maxWidth: 900,
         margin: "0 auto",
@@ -394,6 +394,6 @@ export default function CombatArchivesPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

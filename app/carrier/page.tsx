@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CarrierPage() {
   return (
-    <main className="carrier-page" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.55) 0%, rgba(10,12,18,0.92) 60%, var(--bg) 100%), url(/atmos/carrier.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
+    <div className="carrier-page" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.55) 0%, rgba(10,12,18,0.92) 60%, var(--bg) 100%), url(/atmos/carrier.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
       <section className="carrier-hero">
         <span className="kicker">⬡ CARRIER PROTOCOL · HOLD THE SIGNAL</span>
         <h1>
@@ -32,6 +32,6 @@ export default function CarrierPage() {
           <span className="ttl">BURN HEX FOR YOUR NAME →</span>
         </a>
       </section>
-    </main>
+    </div>
   );
 }

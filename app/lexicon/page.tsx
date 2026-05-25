@@ -74,7 +74,7 @@ const SECTIONS: Array<{ kicker: string; title: string; terms: Term[] }> = [
 
 export default function Lexicon() {
   return (
-    <main className="lexicon-page">
+    <div className="lexicon-page">
       <section className="lexicon-hero">
         <span className="kicker">⬡ LEXICON · THE CITY'S VOCABULARY</span>
         <h1>
@@ -116,6 +116,6 @@ export default function Lexicon() {
         <Link className="btn btn-primary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
         <Link className="btn btn-secondary" href="/lore"><span className="ttl">READ THE CANON →</span></Link>
       </section>
-    </main>
+    </div>
   );
 }

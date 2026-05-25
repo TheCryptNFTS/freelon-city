@@ -342,7 +342,7 @@ export function VaultClient() {
 
   // ── render ─────────────────────────────────────────────────────────
   return (
-    <main className="vault-page">
+    <div className="vault-page">
       <section className="vault-hero">
         <span className="kicker">⬡ VAULT · SAFE TRANSFER</span>
         <h1 className="vault-h1">Move your citizens.<br /><em>One transaction at a time.</em></h1>
@@ -676,6 +676,6 @@ export function VaultClient() {
         .v-perr { color: #FF5A4D; font-size: 11px; opacity: 0.8; }
         .v-foot { display: flex; gap: 12px; justify-content: center; margin-top: var(--s-5); }
       `}</style>
-    </main>
+    </div>
   );
 }

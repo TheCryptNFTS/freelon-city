@@ -113,7 +113,7 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
   const intent = tweetIntent(tweet);
 
   return (
-    <main className="carrier-public" style={{ "--civ": civ?.color } as React.CSSProperties}>
+    <div className="carrier-public" style={{ "--civ": civ?.color } as React.CSSProperties}>
       <section className="cp-hero">
         <div className="cp-left">
           <span className="kicker">⬡ CARRIER · PUBLIC PROFILE</span>
@@ -233,6 +233,6 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
           <span className="ttl">OPEN MY CARRIER DASH →</span>
         </Link>
       </section>
-    </main>
+    </div>
   );
 }

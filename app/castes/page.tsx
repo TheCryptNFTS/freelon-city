@@ -5,7 +5,7 @@ export const metadata = { title: "7 Castes" };
 
 export default function Page() {
   return (
-    <main className="castes-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
+    <div className="castes-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
       <section className="castes-hero">
         <span className="kicker">⬡ SOCIAL HIERARCHY · 7 CASTES</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(48px, 8vw, 96px)", lineHeight: 0.94, letterSpacing: "-0.02em", marginTop: "var(--s-3)" }}>
@@ -52,6 +52,6 @@ export default function Page() {
           <Link className="btn btn-secondary" href="/shapes"><span className="ttl">SEE THE 16 SHAPES →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

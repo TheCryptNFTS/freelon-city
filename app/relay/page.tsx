@@ -17,7 +17,7 @@ const CAT_LABEL: Record<string, { label: string; color: string }> = {
 
 export default function RelayPage() {
   return (
-    <main style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* Hero */}
       <section
         style={{
@@ -179,6 +179,6 @@ export default function RelayPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

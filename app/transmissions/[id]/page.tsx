@@ -44,7 +44,7 @@ export default async function TransmissionDetailPage({
   const civ = (CIVILIZATIONS as Record<string, { name: string; color: string }>)[t.civ];
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 760, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       <nav style={{ marginBottom: "var(--s-4)" }}>
         <Link href="/transmissions" style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.15em", color: "var(--ink-dim)", textDecoration: "none" }}>
           ← ALL TRANSMISSIONS
@@ -94,6 +94,6 @@ export default async function TransmissionDetailPage({
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

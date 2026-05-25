@@ -17,7 +17,7 @@ export default async function CivWarsPage() {
   const top3 = standings.slice(0, 3);
 
   return (
-    <main className="civ-wars-page" style={{ maxWidth: 1180, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div className="civ-wars-page" style={{ maxWidth: 1180, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* Hero */}
       <section
         style={{
@@ -172,6 +172,6 @@ export default async function CivWarsPage() {
           <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">LEADERBOARD →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

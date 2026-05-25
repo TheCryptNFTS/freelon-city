@@ -30,7 +30,7 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
   const loading = holder.loading || owns.loading || !viewer.ready;
 
   return (
-    <main style={{ minHeight: "80vh", padding: "64px 24px", maxWidth: 760, margin: "0 auto" }}>
+    <div style={{ minHeight: "80vh", padding: "64px 24px", maxWidth: 760, margin: "0 auto" }}>
       <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.3em", color: civ?.color }}>
         ⬡ CHANNEL · @{handle.toUpperCase()} · TOKEN-GATED
       </div>
@@ -169,7 +169,7 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
         .channel-claim-tile { transition: background 120ms ease, border-color 120ms ease, transform 120ms ease; }
         .channel-claim-tile:hover { transform: translateY(-1px); filter: brightness(1.25); }
       `}</style>
-    </main>
+    </div>
   );
 }
 

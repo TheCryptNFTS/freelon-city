@@ -6,7 +6,7 @@ export const metadata = { title: "16 Sacred Shapes" };
 
 export default function Page() {
   return (
-    <main className="shapes-page">
+    <div className="shapes-page">
       <section className="shapes-hero">
         <span className="kicker">⬡ THE SACRED SHAPES</span>
         <h1>Shape is the <em>first read</em></h1>
@@ -50,6 +50,6 @@ export default function Page() {
           <Link className="btn btn-secondary" href="/castes"><span className="ttl">SEE THE 7 CASTES →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

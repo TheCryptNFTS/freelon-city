@@ -37,7 +37,7 @@ export function FifthBracketClient() {
 
   if (!unlocked) {
     return (
-      <main style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 32 }}>
+      <div style={{ minHeight: "70vh", display: "grid", placeItems: "center", padding: 32 }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.3em", color: "var(--ink-2)" }}>404</div>
           <h1 style={{ marginTop: 12, fontSize: 48, fontWeight: 300 }}>Hex not found</h1>
@@ -46,12 +46,12 @@ export function FifthBracketClient() {
             ← RETURN TO THE CITY
           </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main style={{ minHeight: "80vh", padding: "64px 24px", maxWidth: 720, margin: "0 auto" }}>
+    <div style={{ minHeight: "80vh", padding: "64px 24px", maxWidth: 720, margin: "0 auto" }}>
       <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.3em", color: "var(--gold)" }}>
         ⬡ THE FIFTH BRACKET · UNLISTED
       </div>
@@ -102,6 +102,6 @@ export function FifthBracketClient() {
       <p style={{ marginTop: 40, fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-2)" }}>
         THIS PAGE 404s WHEN THE SIGNAL IS DARK. RETURN AT 04:04 UTC OR HOLD A STREAK.
       </p>
-    </main>
+    </div>
   );
 }

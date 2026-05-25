@@ -76,7 +76,7 @@ export function SecretsClient() {
   const score = s ? totalDiscovered(s) : 0;
 
   return (
-    <main style={{ minHeight: "70vh", padding: "64px 24px", maxWidth: 640, margin: "0 auto" }}>
+    <div style={{ minHeight: "70vh", padding: "64px 24px", maxWidth: 640, margin: "0 auto" }}>
       <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.3em", color: "var(--gold)" }}>
         ⬡ /SECRETS · {score} / 5
       </div>
@@ -127,6 +127,6 @@ export function SecretsClient() {
         <Link href="/earn" className="btn btn-primary"><span className="ttl">THE LEDGER →</span></Link>
         <Link href="/lore" className="btn btn-secondary"><span className="ttl">READ THE CANON →</span></Link>
       </div>
-    </main>
+    </div>
   );
 }

@@ -74,7 +74,7 @@ export default async function LeaderboardPage() {
   }
 
   return (
-    <main className="leaderboard-page">
+    <div className="leaderboard-page">
       <section className="page-hero">
         <span className="kicker">⬡ THE LEADERBOARD</span>
         <h1>Who the city <em>recognizes</em></h1>
@@ -120,6 +120,6 @@ export default async function LeaderboardPage() {
           <Link className="btn btn-secondary" href="/patrons"><span className="ttl">THE PATRONS WALL →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -125,7 +125,7 @@ export default async function GraveyardPage() {
   }
 
   return (
-    <main className="graveyard-page">
+    <div className="graveyard-page">
       <span className="kicker">⬡ THE GRAVEYARD</span>
       <h1
         style={{
@@ -328,6 +328,6 @@ export default async function GraveyardPage() {
           <span className="ttl">THE LEADERBOARD →</span>
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

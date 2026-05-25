@@ -18,7 +18,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="site-footer__cols">
         <div className="site-footer__col">
-          <div className="site-footer__heading">On-chain</div>
+          <h2 className="site-footer__heading">On-chain</h2>
           <ul>
             <li>
               <a href={ETHERSCAN_BASE} target="_blank" rel="noreferrer">
@@ -44,7 +44,7 @@ export function Footer() {
         </div>
 
         <div className="site-footer__col">
-          <div className="site-footer__heading">Navigate</div>
+          <h2 className="site-footer__heading">Navigate</h2>
           <ul>
             <li><Link href="/archive">Archive</Link></li>
             <li><Link href="/civilizations">Civilizations</Link></li>
@@ -56,7 +56,7 @@ export function Footer() {
         </div>
 
         <div className="site-footer__col">
-          <div className="site-footer__heading">Legal</div>
+          <h2 className="site-footer__heading">Legal</h2>
           <ul>
             <li><Link href="/legal/terms">Terms</Link></li>
             <li><Link href="/legal/privacy">Privacy</Link></li>
@@ -93,12 +93,16 @@ export function Footer() {
           gap: 6px;
         }
         .site-footer__heading {
+          /* 2026-05-26: was <div>, now <h2> for landmark/a11y. Reset
+             browser h2 defaults so the visual stays identical. */
+          margin: 0 0 14px;
           font-family: var(--mono2);
           font-size: var(--t-mono-xs);
+          font-weight: 400;
           letter-spacing: var(--tr-mono);
           text-transform: uppercase;
           color: var(--ink-dim);
-          margin-bottom: 14px;
+          line-height: 1;
         }
         .site-footer__col a {
           font-family: var(--mono2);

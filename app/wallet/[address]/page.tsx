@@ -312,7 +312,7 @@ export default async function WalletPage({
   const overflow = Math.max(0, tokenIds.length - MAX_GALLERY);
 
   return (
-    <main className="wallet-page">
+    <div className="wallet-page">
       <StampViewerAddr addr={norm} />
       <section className="wallet-hero">
         <span className="kicker">⬡ PUBLIC WALLET PROFILE</span>
@@ -597,6 +597,6 @@ export default async function WalletPage({
           <span className="ttl">VIEW PASSPORT →</span>
         </Link>
       </section>
-    </main>
+    </div>
   );
 }

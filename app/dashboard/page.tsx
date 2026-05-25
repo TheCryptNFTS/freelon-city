@@ -27,7 +27,7 @@ const tweetUrl = (text: string) =>
 
 export default function Dashboard() {
   return (
-    <main className="dashboard-page">
+    <div className="dashboard-page">
       <CityFeedTicker />
       <section className="dashboard-hero">
         <span className="kicker">⬡ PULSE · LIVE FROM THE CITY</span>
@@ -108,6 +108,6 @@ export default function Dashboard() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

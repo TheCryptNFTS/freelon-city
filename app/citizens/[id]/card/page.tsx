@@ -94,7 +94,7 @@ export default async function CardPage({
   const civilizationName = civ?.name ?? c.civilization;
 
   return (
-    <main
+    <div
       className="citizen-card-page"
       style={{ "--civ": color } as React.CSSProperties}
     >
@@ -143,6 +143,6 @@ export default async function CardPage({
           <span className="ttl">← BACK TO CITIZEN</span>
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

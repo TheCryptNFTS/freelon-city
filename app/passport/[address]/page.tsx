@@ -119,7 +119,7 @@ export default async function PassportPage({
   const tweetUrl = tweetIntent(tweetText);
 
   return (
-    <main
+    <div
       className="passport"
       style={{ "--civ": civColor } as React.CSSProperties}
     >
@@ -272,6 +272,6 @@ export default async function PassportPage({
           <span className="ttl">POST PASSPORT TO X ↗</span>
         </a>
       </section>
-    </main>
+    </div>
   );
 }

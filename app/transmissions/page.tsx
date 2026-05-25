@@ -32,7 +32,7 @@ export default async function TransmissionsPage({
   const items = await listTransmissions({ by, civ: civFilter, limit: 60 });
 
   return (
-    <main style={{ maxWidth: 1240, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 1240, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       <section
         style={{
           padding: "var(--s-6) var(--s-5)",
@@ -142,7 +142,7 @@ export default async function TransmissionsPage({
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

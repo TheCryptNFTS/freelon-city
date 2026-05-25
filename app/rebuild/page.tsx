@@ -48,7 +48,7 @@ const SECTIONS = [
 
 export default function RebuildPage() {
   return (
-    <main className="rebuild" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.6) 0%, rgba(10,12,18,0.94) 65%, var(--bg) 100%), url(/atmos/rebuild.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
+    <div className="rebuild" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.6) 0%, rgba(10,12,18,0.94) 65%, var(--bg) 100%), url(/atmos/rebuild.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
       <section className="rebuild-hero">
         <span className="kicker">⬡ THE CITY&apos;S ARCHITECTURE</span>
         <h1>
@@ -90,6 +90,6 @@ export default function RebuildPage() {
         <Link className="btn btn-secondary" href="/lore"><span className="ttl">READ THE LORE →</span></Link>
         <a className="btn btn-secondary" href={`https://opensea.io/assets/ethereum/${CONTRACT}`} target="_blank" rel="noopener noreferrer"><span className="ttl">GET A FREELON ↗</span></a>
       </section>
-    </main>
+    </div>
   );
 }

@@ -6,7 +6,7 @@ export const metadata = { title: "The Canon" };
 
 export default function LorePage() {
   return (
-    <main
+    <div
       className="lore-page"
       style={{
         backgroundImage:
@@ -129,6 +129,6 @@ export default function LorePage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

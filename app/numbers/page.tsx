@@ -113,7 +113,7 @@ export default async function NumbersPage() {
   const stateLabel = stateActive ? "ACTIVE" : "COLLAPSE";
 
   return (
-    <main className="numbers-page" style={{ maxWidth: 1200, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div className="numbers-page" style={{ maxWidth: 1200, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* Phase 3: PULSE hero — one hero stat + live city state. */}
       <section style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ PULSE · LIVE FROM THE CITY</span>
@@ -311,7 +311,7 @@ export default async function NumbersPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

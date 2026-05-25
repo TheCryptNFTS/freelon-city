@@ -21,7 +21,7 @@ const VERSES = [
 
 export default function Manifesto() {
   return (
-    <main className="manifesto" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.65) 0%, rgba(10,12,18,0.92) 70%, var(--bg) 100%), url(/atmos/manifesto.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
+    <div className="manifesto" style={{ backgroundImage: "linear-gradient(180deg, rgba(10,12,18,0.65) 0%, rgba(10,12,18,0.92) 70%, var(--bg) 100%), url(/atmos/manifesto.webp)", backgroundSize: "cover", backgroundPosition: "center top", backgroundRepeat: "no-repeat" }}>
       <section className="manifesto-hero">
         <span className="kicker">⬡ TEN VERSES · SEALED ON-CHAIN</span>
         <h1>
@@ -45,6 +45,6 @@ export default function Manifesto() {
         <Link className="btn btn-primary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
         <Link className="btn btn-secondary" href="/lore"><span className="ttl">FULL CANON →</span></Link>
       </section>
-    </main>
+    </div>
   );
 }

@@ -3,7 +3,7 @@ import RandomCitizenButton from "@/components/RandomCitizenButton";
 
 export default function NotFound() {
   return (
-    <main
+    <div
       style={{
         minHeight: "100vh",
         background: "var(--bg)",
@@ -95,6 +95,6 @@ export default function NotFound() {
           ⬡ The Fifth Bracket opens at 04:04 UTC
         </Link>
       </section>
-    </main>
+    </div>
   );
 }

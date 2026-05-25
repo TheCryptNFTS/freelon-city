@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function DoppelPage() {
   return (
-    <main className="machine-page">
+    <div className="machine-page">
       <span className="kicker">⬡ SIGNAL MATCH PROTOCOL</span>
       <h1>DOPPEL-<br />GANGER</h1>
       <p style={{ marginTop: 16, color: "var(--ink-2)", maxWidth: 540 }}>
@@ -20,6 +20,6 @@ export default function DoppelPage() {
         shares your signal. Same handle, same citizen, every time. No re-rolls.
       </p>
       <DoppelClient />
-    </main>
+    </div>
   );
 }

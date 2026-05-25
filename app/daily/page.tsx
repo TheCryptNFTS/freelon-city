@@ -29,7 +29,7 @@ export default function DailyPage() {
   const d = dayKey();
 
   return (
-    <main className="manifesto">
+    <div className="manifesto">
       <section className="manifesto-hero">
         <span className="kicker">⬡ FREELON CITY · DAILY TRANSMISSION · DAY {d}</span>
         <h1>
@@ -133,6 +133,6 @@ export default function DailyPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

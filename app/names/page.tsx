@@ -43,7 +43,7 @@ export default async function NamesPage() {
   const shareIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
 
   return (
-    <main className="names-page">
+    <div className="names-page">
       <span className="kicker">⬡ CARVED INTO THE CITY</span>
       <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(40px, 6vw, 72px)", lineHeight: 0.96, letterSpacing: "-0.02em", margin: "12px 0 8px" }}>
         Name <em style={{ color: "var(--gold-bright)", fontStyle: "normal" }}>Hall of Fame</em>
@@ -104,6 +104,6 @@ export default async function NamesPage() {
           <span className="ttl">NAME YOUR CITIZEN →</span>
         </a>
       </div>
-    </main>
+    </div>
   );
 }

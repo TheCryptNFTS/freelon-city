@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function PressPage() {
   return (
-    <main style={{ maxWidth: 1000, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       <section style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ PRESS KIT</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(44px, 7vw, 80px)", lineHeight: 0.94, letterSpacing: "-0.02em", margin: "10px 0 14px" }}>
@@ -160,7 +160,7 @@ export default function PressPage() {
           <Link className="btn btn-secondary" href="/roadmap"><span className="ttl">THE ROADMAP →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

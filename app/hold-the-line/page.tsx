@@ -37,7 +37,7 @@ export default async function HoldTheLinePage() {
   const stats = await getStats();
 
   return (
-    <main style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* HERO */}
       <section style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker" style={{ color: "#FF5A4D" }}>⚠ THE FLOOR IS UNDER ATTACK</span>
@@ -215,7 +215,7 @@ export default async function HoldTheLinePage() {
           <Link className="btn btn-secondary" href="/numbers"><span className="ttl">PULSE →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

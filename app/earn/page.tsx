@@ -72,7 +72,7 @@ export default async function EarnPage() {
   const hasLive = live.redSignalCount > 0;
 
   return (
-    <main style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       <style>{`
         @keyframes pulseGlow {
           0%, 100% { box-shadow: 0 0 0 0 rgba(255,90,77,0.0); }
@@ -327,7 +327,7 @@ export default async function EarnPage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

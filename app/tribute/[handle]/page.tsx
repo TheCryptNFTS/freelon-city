@@ -87,7 +87,7 @@ export default async function TributePage({ params }: { params: Promise<{ handle
   const twitterIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
 
   return (
-    <main className="tribute-page">
+    <div className="tribute-page">
       <section className="tribute-hero-single" style={{ "--civ": color } as React.CSSProperties}>
         <div className="img-frame">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -164,6 +164,6 @@ export default async function TributePage({ params }: { params: Promise<{ handle
           <Link className="btn btn-secondary" href="/tribute"><span className="ttl">ALL 35 TRIBUTES →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

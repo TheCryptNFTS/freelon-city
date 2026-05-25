@@ -74,7 +74,7 @@ export default function Citizens() {
   }
 
   return (
-    <main className="citizens-page">
+    <div className="citizens-page">
       <section className="citizens-hero">
         <span className="kicker">⬡ CITIZENS · 4040 TOTAL</span>
         <h1>Find your <em>citizen</em></h1>
@@ -186,6 +186,6 @@ export default function Citizens() {
           <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

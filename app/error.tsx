@@ -15,7 +15,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <main
+    <div
       style={{
         minHeight: "100vh",
         background: "var(--bg)",
@@ -90,6 +90,6 @@ export default function GlobalError({
           </button>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -36,7 +36,7 @@ export default async function SyncPage({
   }
 
   return (
-    <main
+    <div
       className="sync-empty"
       style={{
         backgroundImage:
@@ -85,6 +85,6 @@ export default async function SyncPage({
           <InlineSync />
         </div>
       </section>
-    </main>
+    </div>
   );
 }

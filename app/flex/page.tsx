@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function FlexPage() {
   return (
-    <main className="machine-page">
+    <div className="machine-page">
       <span className="kicker">⬡ EARLY-CARRIER PROTOCOL</span>
       <h1>THE FLEX<br />MACHINE</h1>
       <p style={{ marginTop: 16, color: "var(--ink-2)", maxWidth: 540 }}>
@@ -29,6 +29,6 @@ export default function FlexPage() {
           <span className="ttl">VIEW THE LEADERBOARD →</span>
         </a>
       </div>
-    </main>
+    </div>
   );
 }

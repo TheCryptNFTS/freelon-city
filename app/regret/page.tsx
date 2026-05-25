@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RegretPage() {
   return (
-    <main className="machine-page">
+    <div className="machine-page">
       <span className="kicker" style={{ color: "#c54a3a" }}>⬡ EXIT WOUND PROTOCOL</span>
       <h1>THE REGRET<br />MACHINE</h1>
       <p style={{ marginTop: 16, color: "var(--ink-2)", maxWidth: 540 }}>
@@ -29,6 +29,6 @@ export default function RegretPage() {
           <span className="ttl">VIEW THE GRAVEYARD →</span>
         </a>
       </div>
-    </main>
+    </div>
   );
 }

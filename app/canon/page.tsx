@@ -119,7 +119,7 @@ const TABS: Tab[] = [
 
 export default function CanonPage() {
   return (
-    <main style={{ maxWidth: 880, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 880, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* ── HERO ── */}
       <section style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ THE CANON · THE CITY&apos;S REFERENCE LIBRARY</span>
@@ -173,7 +173,7 @@ export default function CanonPage() {
           <Link className="btn btn-secondary" href="/start"><span className="ttl">START HERE →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

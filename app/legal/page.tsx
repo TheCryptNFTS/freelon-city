@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function LegalIndex() {
   return (
-    <main className="legal-page">
+    <div className="legal-page">
       <section className="legal-hero">
         <span className="kicker">⬡ LEGAL · DOCUMENTS</span>
         <h1>The <em>paperwork</em></h1>
@@ -40,6 +40,6 @@ export default function LegalIndex() {
           <span className="arrow">→</span>
         </Link>
       </section>
-    </main>
+    </div>
   );
 }

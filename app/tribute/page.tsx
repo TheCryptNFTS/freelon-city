@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function TributeIndex() {
   const hs = getHonoraries();
   return (
-    <main className="tribute-index">
+    <div className="tribute-index">
       <section className="tribute-hero">
         <span className="kicker">⬡ 35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span>
         <h1>The <em>honoraries</em></h1>
@@ -54,6 +54,6 @@ export default function TributeIndex() {
           <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

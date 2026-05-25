@@ -14,7 +14,7 @@ export default function ShopPage() {
   for (const c of CATEGORIES) totals[c] = itemsByCategory(c).length;
 
   return (
-    <main className="shop-page">
+    <div className="shop-page">
       <section className="shop-hero">
         <span className="kicker">⬡ HEX SHOP · OFF-CHAIN INVENTORY</span>
         <h1>
@@ -46,6 +46,6 @@ export default function ShopPage() {
           <Link className="btn btn-secondary" href="/patrons"><span className="ttl">THE PATRONS WALL →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

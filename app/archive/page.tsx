@@ -117,7 +117,7 @@ const ENTRIES: ArchiveEntry[] = [
 
 export default function ArchivePage() {
   return (
-    <main
+    <div
       className="archive-page"
       style={{
         maxWidth: 960,
@@ -231,6 +231,6 @@ export default function ArchivePage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

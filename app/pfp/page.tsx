@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function PfpPage() {
   return (
-    <main className="pfp-page">
+    <div className="pfp-page">
       <section className="pfp-hero">
         <span className="kicker">⬡ HEX-FRAME GENERATOR · CITIZEN UTILITY</span>
         <h1>
@@ -44,6 +44,6 @@ export default function PfpPage() {
         </a>
         <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
       </section>
-    </main>
+    </div>
   );
 }

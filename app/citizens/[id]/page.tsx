@@ -118,7 +118,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const ghostPct = ghost ? Math.round(ghost.discount * 100) : null;
 
   return (
-    <main className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
+    <div className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
       <article className="citizen-grid">
         <aside className="citizen-image">
           <div className="img-shell relic-card" style={isGhosted ? { background: "#050505", aspectRatio: "1 / 1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#888", fontFamily: "var(--mono2)", letterSpacing: "0.28em", textTransform: "uppercase" } : undefined}>
@@ -426,6 +426,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

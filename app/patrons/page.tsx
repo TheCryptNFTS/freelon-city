@@ -29,7 +29,7 @@ export default async function PatronsPage() {
   const totalActive = Object.values(all).reduce((n, list) => n + list.length, 0);
 
   return (
-    <main className="patrons-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
+    <div className="patrons-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "var(--pad)" }}>
       <span className="kicker">⬡ THE PATRONS WALL · 7-DAY TITHES</span>
       <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(48px, 8vw, 96px)", lineHeight: 0.94, letterSpacing: "-0.02em", marginTop: "var(--s-3)" }}>
         Names burned <em>into the city</em>
@@ -117,6 +117,6 @@ export default async function PatronsPage() {
           <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">THE LEADERBOARD →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

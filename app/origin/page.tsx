@@ -4,7 +4,7 @@ export const metadata = { title: "Origin" };
 
 export default function Page() {
   return (
-    <main
+    <div
       className="origin-page"
       style={{
         backgroundImage:
@@ -48,6 +48,6 @@ export default function Page() {
           </Link>
         </div>
       </article>
-    </main>
+    </div>
   );
 }

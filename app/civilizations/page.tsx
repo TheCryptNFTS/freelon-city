@@ -6,7 +6,7 @@ export const metadata = { title: "10 Civilizations" };
 
 export default function Page() {
   return (
-    <main className="civs-page">
+    <div className="civs-page">
       <section className="civs-hero">
         <span className="kicker">⬡ CIVILIZATIONS</span>
         <h1>10 <em>Signal</em> civilizations</h1>
@@ -53,6 +53,6 @@ export default function Page() {
           <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -23,7 +23,7 @@ export default function Home() {
   return (
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */
-    <main className="home-page">
+    <div className="home-page">
       {/* HERO */}
       <section className="hero">
         <div className="hero-left">
@@ -388,7 +388,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 
