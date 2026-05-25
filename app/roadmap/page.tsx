@@ -229,7 +229,7 @@ export default function RoadmapPage() {
       <section style={{ marginTop: "var(--s-6)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/numbers"><span className="ttl">SEE THE NUMBERS →</span></Link>
+          <Link className="btn btn-primary" href="/numbers"><span className="ttl">SEE PULSE →</span></Link>
           <Link className="btn btn-secondary" href="/architect"><span className="ttl">THE ARCHITECT →</span></Link>
           <Link className="btn btn-secondary" href="/press"><span className="ttl">PRESS KIT →</span></Link>
         </div>

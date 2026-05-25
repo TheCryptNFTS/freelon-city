@@ -212,7 +212,7 @@ export default async function HoldTheLinePage() {
           >
             <span className="ttl">POST ON X →</span>
           </a>
-          <Link className="btn btn-secondary" href="/numbers"><span className="ttl">THE NUMBERS →</span></Link>
+          <Link className="btn btn-secondary" href="/numbers"><span className="ttl">PULSE →</span></Link>
         </div>
       </section>
     </main>

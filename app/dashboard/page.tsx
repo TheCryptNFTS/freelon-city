@@ -12,7 +12,7 @@ import { CityFeedTicker } from "@/components/CityFeedTicker";
 import { TopCitizensByValue } from "@/components/TopCitizensByValue";
 
 export const metadata: Metadata = {
-  title: "Dashboard · The Numbers · FREELON CITY",
+  title: "Dashboard · Pulse · FREELON CITY",
   description:
     "Live city economy. Hex Index, floor by civilization, holder distribution, sales feed, your net worth.",
   openGraph: { images: [{ url: "/api/og/hex-index", width: 1200, height: 630 }] },
@@ -30,7 +30,7 @@ export default function Dashboard() {
     <main className="dashboard-page">
       <CityFeedTicker />
       <section className="dashboard-hero">
-        <span className="kicker">⬡ THE NUMBERS · LIVE FROM THE CITY</span>
+        <span className="kicker">⬡ PULSE · LIVE FROM THE CITY</span>
         <h1>The <em>numbers</em></h1>
         <p className="lead">
           The city, in numbers. Floor by civilization, hex accrued, the holder map. Live.

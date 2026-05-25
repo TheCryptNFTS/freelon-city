@@ -159,7 +159,9 @@ function PrimarySnipe({ hex }: { hex: number | null }) {
         Listings priced ≤ 90% of floor get flagged. Buy one, hold 14 days,
         the city pays the spread in hex — up to +500 ⬡ per snipe.
       </p>
-      <Link href="/market" className="btn btn-primary dtn-cta">
+      {/* Was /market — route never existed → 404. Pointed to
+          /undervalued (the actual red-signals page) 2026-05-25. */}
+      <Link href="/undervalued" className="btn btn-primary dtn-cta">
         <span className="ttl">SEE RED SIGNALS →</span>
       </Link>
       <DtnLocalStyles />
