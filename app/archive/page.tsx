@@ -1,20 +1,17 @@
 /**
  * /archive — "Other Signals" page.
  *
- * The frame the founder asked for (2026-05-25): every other thing
- * Billy ever shipped (Crypt, Oogies, Emile, Smiles, etc.) reframed
- * as "recovered transmissions" from BEFORE the city formed around
- * the HEX. Mysterious by design — ChatGPT advice was: leave gaps,
- * let viewers connect the dots, do not over-explain.
+ * Founder brief 2026-05-25 (validated against ChatGPT consult):
+ * FREELON CITY is the hub. Every other thing the founder shipped
+ * (404 Hex Not Found, The Crypt, Crypt Trading Cards, OOGIES, Emile,
+ * SMILES) is reframed as a layer of the same universe. Not a portfolio
+ * of NFT projects — discovered history.
  *
- * Each card reads as an ARG-style entry:
- *   - sequence number (cryptic)
- *   - corruption / status badge
- *   - one-line transmission
- *   - no outbound links (mystery first)
- *
- * Phase 1: stubs only. When a frame becomes a real expansion (e.g.
- * Crypt TCG actually plays), the card gets a "deeper" link.
+ * Each card uses the EXACT copy the founder locked in the brief, plus
+ * an OpenSea outbound link gated as 'View artefact' (mystery first,
+ * verification second). Same wallet across all collections — that fact
+ * becomes a quiet provenance footer to kill 'rug' fears that prompted
+ * this whole repositioning.
  */
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -22,50 +19,82 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Other Signals · Archive",
   description:
-    "Before FREELON CITY, there were other signals. Recovered transmissions, dead archives, ancient species, memory fragments. Not lost. Not abandoned. Reconnecting.",
+    "Before FREELON CITY, there were other signals. Recovered transmissions, dead archives, ancient species, memory fragments, collapse events. Not lost. Not abandoned. Reconnecting.",
 };
 
-type Transmission = {
+type ArchiveEntry = {
   sequence: string;
-  status: "RECOVERED" | "CORRUPTED" | "DECAYING" | "FRAGMENT" | "SEALED";
+  status: "RECOVERED" | "FRAGMENT" | "DECAYING" | "SEALED" | "RECONSTRUCTING";
   statusColor: string;
   title: string;
+  /** The locked copy from the founder brief. */
   body: string;
-  // No href on purpose. ARG vibe — visitors who know, know.
+  /** Verified artifact on-chain. Same architect across all entries. */
+  openseaUrl: string;
+  /** Internal note shown only on hover/title — keeps mystery on the surface. */
+  artifactClass: string;
 };
 
-const TRANSMISSIONS: Transmission[] = [
+const ENTRIES: ArchiveEntry[] = [
   {
     sequence: "TRANSMISSION 0042",
     status: "RECOVERED",
     statusColor: "var(--state-active)",
-    title: "The dead district",
+    title: "The Crypt",
     body:
-      "Ancient skull-citizens. Corrupted relics. Combat records from before the signal was named. The city archives mark this layer as the first thing that remembered.",
+      "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
+    openseaUrl: "https://opensea.io/collection/the-crypt-official",
+    artifactClass: "archive layer · ancient records",
   },
   {
     sequence: "TRANSMISSION 0119",
-    status: "FRAGMENT",
+    status: "RECONSTRUCTING",
     statusColor: "var(--state-surge)",
-    title: "Non-human entities",
+    title: "Combat Archives",
     body:
-      "Witnesses heard the signal first. Not citizens. Not architects. Something else — already listening when the hex disappeared. Their classification is still pending.",
+      "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
+    openseaUrl: "https://opensea.io/collection/crypttradingcards",
+    artifactClass: "combat relic / commander archive · ten gods sealed inside",
+  },
+  {
+    sequence: "TRANSMISSION 0247",
+    status: "FRAGMENT",
+    statusColor: "var(--state-unstable)",
+    title: "OOGIES",
+    body:
+      "Ancient signal species. They heard the HEX before the city existed.",
+    openseaUrl: "https://opensea.io/collection/oogies",
+    artifactClass: "non-human species · pre-civilization listeners",
   },
   {
     sequence: "TRANSMISSION 0404",
     status: "DECAYING",
-    statusColor: "var(--state-unstable)",
-    title: "Memory artefacts",
+    statusColor: "var(--state-surge)",
+    title: "Emile",
     body:
-      "Emotional records, preserved in glass. The city architects believe these are echoes of citizens who carried the signal before identity was reissued. Most are incomplete.",
+      "Memory fragments preserved before the signal collapse.",
+    openseaUrl: "https://opensea.io/collection/emile0x1908",
+    artifactClass: "memory archive · emotional preservation",
   },
   {
     sequence: "TRANSMISSION 0991",
     status: "SEALED",
     statusColor: "var(--state-warning)",
-    title: "Collapse event",
+    title: "SMILES Collapse",
     body:
-      "Ninety-nine percent of the supply burned. The remaining records describe a propaganda system deployed to suppress signal anxiety. It did not hold. The collapse is on the wall.",
+      "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
+    openseaUrl: "https://opensea.io/collection/smiles-genesis/overview",
+    artifactClass: "collapse event · failed suppression system",
+  },
+  {
+    sequence: "TRANSMISSION 0404 · ROOT",
+    status: "RECOVERED",
+    statusColor: "var(--state-active)",
+    title: "404 HEX NOT FOUND",
+    body:
+      "The original anomaly. The hex that disappeared from X. The reason the city formed.",
+    openseaUrl: "https://opensea.io/collection/404hexnotfound",
+    artifactClass: "core symbol · the missing identity signal",
   },
 ];
 
@@ -73,7 +102,7 @@ export default function ArchivePage() {
   return (
     <main
       style={{
-        maxWidth: 900,
+        maxWidth: 960,
         margin: "0 auto",
         padding: "var(--s-5) var(--s-4) var(--s-7)",
       }}
@@ -103,16 +132,16 @@ export default function ArchivePage() {
             fontSize: 14,
             color: "var(--ink-2)",
             lineHeight: 1.7,
-            maxWidth: 640,
+            maxWidth: 680,
           }}
         >
           Recovered transmissions, dead archives, ancient species, memory
-          fragments. Not lost. Not abandoned. Reconnecting through the
-          signal as the city remembers.
+          fragments, collapse events. Not lost. Not abandoned. Reconnecting
+          through the signal as the city remembers.
         </p>
       </section>
 
-      {/* TRANSMISSIONS */}
+      {/* ENTRIES */}
       <section
         style={{
           display: "grid",
@@ -120,7 +149,7 @@ export default function ArchivePage() {
           marginBottom: "var(--s-6)",
         }}
       >
-        {TRANSMISSIONS.map((t) => (
+        {ENTRIES.map((t) => (
           <article
             key={t.sequence}
             style={{
@@ -177,22 +206,81 @@ export default function ArchivePage() {
                 fontSize: 13,
                 color: "var(--ink-2)",
                 lineHeight: 1.7,
-                margin: 0,
+                margin: "0 0 14px",
               }}
             >
               {t.body}
             </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                flexWrap: "wrap",
+                gap: 10,
+                paddingTop: 10,
+                borderTop: `1px dashed ${t.statusColor}33`,
+                fontFamily: "var(--mono2)",
+                fontSize: 11,
+                letterSpacing: "0.14em",
+                color: "var(--ink-dim)",
+                textTransform: "uppercase",
+              }}
+            >
+              <span>⬡ {t.artifactClass}</span>
+              <a
+                href={t.openseaUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  color: t.statusColor,
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  letterSpacing: "0.22em",
+                }}
+              >
+                VIEW ARTEFACT ↗
+              </a>
+            </div>
           </article>
         ))}
+      </section>
+
+      {/* PROVENANCE NOTE — kills 'rug' fears without sounding defensive */}
+      <section
+        style={{
+          padding: "var(--s-4) var(--s-5)",
+          border: "1px dashed var(--line-2)",
+          borderRadius: 12,
+          background: "rgba(255,255,255,0.02)",
+          marginBottom: "var(--s-5)",
+        }}
+      >
+        <span className="kicker" style={{ color: "var(--gold)" }}>
+          ⬡ ONE ARCHITECT · ONE WALLET · ONE SIGNAL
+        </span>
+        <p
+          style={{
+            fontFamily: "var(--mono2)",
+            fontSize: 13,
+            color: "var(--ink-2)",
+            lineHeight: 1.7,
+            margin: "10px 0 0",
+          }}
+        >
+          Every artefact in this archive was minted from the same architect&apos;s
+          wallet. The signals were never rugged — they were unfinished
+          coordinates. FREELON CITY is the place they finally connect.
+        </p>
       </section>
 
       {/* CLOSER */}
       <section
         style={{
           padding: "var(--s-5)",
-          border: "1px dashed var(--line-2)",
+          border: "1px solid var(--gold)33",
+          background: "linear-gradient(135deg, rgba(200,167,93,0.06), rgba(0,0,0,0.4))",
           borderRadius: 14,
-          background: "rgba(0,0,0,0.3)",
           marginBottom: "var(--s-5)",
         }}
       >

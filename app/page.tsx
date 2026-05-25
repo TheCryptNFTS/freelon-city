@@ -100,6 +100,16 @@ export default async function Home() {
                 <span>NEW HERE? · 2-MIN GUIDE</span>
                 <span aria-hidden>→</span>
               </Link>
+              <Link
+                href="/archive"
+                className="new-here-pill new-here-pill--hero"
+                aria-label="Access the Archives — other signals before the city"
+                style={{ borderColor: "var(--state-active)", color: "var(--state-active)" }}
+              >
+                <span aria-hidden>⬡</span>
+                <span>ACCESS THE ARCHIVES</span>
+                <span aria-hidden>→</span>
+              </Link>
             </div>
             <p
               style={{
