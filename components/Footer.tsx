@@ -1,55 +1,132 @@
 import Link from "next/link";
-import { CONTRACT, IMAGE_CID, METADATA_CID, OPENSEA_BASE, ETHERSCAN_BASE } from "@/lib/constants";
+import { METADATA_CID, OPENSEA_BASE, ETHERSCAN_BASE } from "@/lib/constants";
 
+/**
+ * Route compression 2026-05-25 — footer simplified from 3-column,
+ * 22-link sprawl to 3 minimal columns: ON-CHAIN proof / canonical
+ * NAVIGATE / LEGAL. The branding paragraph, the on-chain CID echo
+ * row, and the dense link-cloud at the bottom are all gone.
+ *
+ * Dropped links (still reachable by direct URL — chrome cleanup
+ * only, no route deletions):
+ *   /vault, /origin, /shapes, /castes, /citizens, /names,
+ *   /numbers (moved to More dropdown), /architect, /roadmap,
+ *   /press, /lexicon, brand paragraph, image/meta CID rows.
+ */
 export function Footer() {
   return (
-    <footer className="border-t border-white/5 mt-32">
-      <div className="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-12 text-sm">
-        <div>
-          <div className="text-[var(--color-gold)] text-lg font-light tracking-widest">404 — FREELON CITY</div>
-          <div className="text-[var(--color-ink-dim)] mt-2 leading-relaxed">
-            4040 citizens of a Martian civilization built around the missing hex.
-            ON MARS. WE HEAR. WE SYNC. WE ARE.
-          </div>
+    <footer className="site-footer">
+      <div className="site-footer__cols">
+        <div className="site-footer__col">
+          <div className="site-footer__heading">On-chain</div>
+          <ul>
+            <li>
+              <a href={ETHERSCAN_BASE} target="_blank" rel="noreferrer">
+                Contract ↗
+              </a>
+            </li>
+            <li>
+              <a href={`https://ipfs.io/ipfs/${METADATA_CID}`} target="_blank" rel="noreferrer">
+                IPFS ↗
+              </a>
+            </li>
+            <li>
+              <a href={OPENSEA_BASE} target="_blank" rel="noreferrer">
+                OpenSea ↗
+              </a>
+            </li>
+            <li>
+              <a href="https://x.com/freeloncity" target="_blank" rel="noreferrer">
+                X ↗
+              </a>
+            </li>
+          </ul>
         </div>
-        <div>
-          <div className="text-[var(--color-ink)] text-xs uppercase tracking-widest mb-3">Navigate</div>
-          <ul className="space-y-1 text-[var(--color-ink-dim)]">
-            <li><Link href="/">Home</Link></li>
-            <li><Link href="/vault" style={{ color: "var(--color-gold)" }}>Vault · Safe Transfer</Link></li>
-            <li><Link href="/origin">Origin</Link></li>
+
+        <div className="site-footer__col">
+          <div className="site-footer__heading">Navigate</div>
+          <ul>
+            <li><Link href="/archive">Archive</Link></li>
             <li><Link href="/civilizations">Civilizations</Link></li>
-            <li><Link href="/shapes">Shapes</Link></li>
-            <li><Link href="/castes">Castes</Link></li>
-            <li><Link href="/citizens">Citizens</Link></li>
-            <li><Link href="/names">Name Hall of Fame</Link></li>
+            <li><Link href="/combat-archives">Combat Archives</Link></li>
+            <li><Link href="/canon">Canon</Link></li>
+            <li><Link href="/shop">Shop</Link></li>
+            <li><Link href="/start">Start</Link></li>
           </ul>
         </div>
-        <div>
-          <div className="text-[var(--color-ink)] text-xs uppercase tracking-widest mb-3">On-chain</div>
-          <ul className="space-y-1 text-[var(--color-ink-dim)] terminal text-xs">
-            <li><a href={OPENSEA_BASE} target="_blank" rel="noreferrer">opensea ↗</a></li>
-            <li><a href={ETHERSCAN_BASE} target="_blank" rel="noreferrer">etherscan ↗</a></li>
-            <li>contract · {CONTRACT.slice(0, 6)}…{CONTRACT.slice(-4)}</li>
-            <li>image CID · {IMAGE_CID.slice(0, 6)}…{IMAGE_CID.slice(-4)}</li>
-            <li>meta CID · {METADATA_CID.slice(0, 6)}…{METADATA_CID.slice(-4)}</li>
+
+        <div className="site-footer__col">
+          <div className="site-footer__heading">Legal</div>
+          <ul>
+            <li><Link href="/legal/terms">Terms</Link></li>
+            <li><Link href="/legal/privacy">Privacy</Link></li>
+            <li><Link href="/legal/honorary-notice">Honorary Notice</Link></li>
+            <li><Link href="/legal/dmca">DMCA</Link></li>
           </ul>
         </div>
       </div>
-      <div className="max-w-6xl mx-auto px-6 pb-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--color-ink-dim)] terminal border-t border-white/5 pt-6">
-        <Link href="/start" style={{ color: "var(--color-gold)", fontWeight: 600 }}>Start Here</Link>
-        <Link href="/canon" style={{ color: "var(--color-gold)", fontWeight: 600 }}>Canon</Link>
-        <Link href="/numbers">Pulse</Link>
-        <Link href="/architect">Architect</Link>
-        <Link href="/roadmap">Roadmap</Link>
-        <Link href="/press">Press</Link>
-        <Link href="/legal/terms">Terms</Link>
-        <Link href="/legal/privacy">Privacy</Link>
-        <Link href="/legal/honorary-notice">Honorary Notice</Link>
-        <Link href="/legal/dmca">DMCA + Contact</Link>
-        <Link href="/lexicon">Lexicon</Link>
-        <span style={{ marginLeft: "auto" }}>Cycle 0404 · Sealed on Ethereum mainnet</span>
+
+      <div className="site-footer__seal">
+        Cycle 0404 · Sealed on Ethereum mainnet
       </div>
+
+      <style>{`
+        .site-footer {
+          border-top: 1px solid var(--line);
+          margin-top: var(--s-9);
+          padding: var(--s-7) var(--pad) var(--s-5);
+          max-width: var(--maxw);
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .site-footer__cols {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: var(--s-6);
+        }
+        .site-footer__col ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .site-footer__heading {
+          font-family: var(--mono2);
+          font-size: var(--t-mono-xs);
+          letter-spacing: var(--tr-mono);
+          text-transform: uppercase;
+          color: var(--ink-dim);
+          margin-bottom: 14px;
+        }
+        .site-footer__col a {
+          font-family: var(--mono2);
+          font-size: var(--t-mono-sm);
+          letter-spacing: var(--tr-loose);
+          color: var(--ink-2);
+          text-decoration: none;
+          transition: color 140ms ease;
+        }
+        .site-footer__col a:hover { color: var(--gold); }
+        .site-footer__seal {
+          margin-top: var(--s-6);
+          padding-top: var(--s-4);
+          border-top: 1px dashed var(--line);
+          font-family: var(--mono2);
+          font-size: var(--t-mono-xs);
+          letter-spacing: var(--tr-mono);
+          text-transform: uppercase;
+          color: var(--ink-dim);
+          text-align: center;
+        }
+        @media (max-width: 720px) {
+          .site-footer__cols {
+            grid-template-columns: 1fr;
+            gap: var(--s-5);
+          }
+        }
+      `}</style>
     </footer>
   );
 }

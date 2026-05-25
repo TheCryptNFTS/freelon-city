@@ -22,25 +22,22 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          {/* Nav order locked to founder brief 2026-05-25 universe-hub
-              positioning: Civilizations (identity) → Archives (other
-              signals discoverable) → Combat Archives (TCG lore frame) →
-              Pulse → Shop. Start moved out of primary nav (already linked
-              from hero CTAs). Citizens stays in the Archives dropdown. */}
+          {/* Route compression 2026-05-25 — desktop nav reduced from 7
+              → 4 + More dropdown + Enter City. Order: Archive first
+              (the signature surface), then Civilizations / Combat
+              Archives / Shop / More. Pulse moved INTO the More
+              dropdown (it's holder/analyst context, not a first-time
+              visitor surface). EARN HEX pill removed entirely — it
+              was the loudest utility-token tell on every page; the
+              earn rules live at /earn behind /sync. Sync button
+              renamed "Enter City" for one canonical verb across the
+              site. */}
+          <Link href="/archive" className="nav-link">Archive</Link>
           <Link href="/civilizations" className="nav-link">Civilizations</Link>
-          <Link href="/archive" className="nav-link">Archives</Link>
           <Link href="/combat-archives" className="nav-link">Combat Archives</Link>
-          <Link href="/numbers" className="nav-link">Pulse</Link>
           <Link href="/shop" className="nav-link">Shop</Link>
           <HeaderArchives />
-          {/* EARN HEX pill — Discord asked "how do people get points?" — keep visible
-              from every page so the funnel is one click away. */}
-          <Link href="/earn" className="nav-earn-pill" title="Every way to earn hex">
-            <span aria-hidden>⬡</span>
-            <span>EARN HEX</span>
-            <span aria-hidden>→</span>
-          </Link>
-          <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Sync</Link>
+          <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Enter City</Link>
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>

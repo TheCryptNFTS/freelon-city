@@ -3,40 +3,23 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+// Route compression 2026-05-25 — mobile nav reduced from 33 links to
+// 11. Order: primary CTA first, then CITY / DEEPER / HOLDER /
+// ONBOARD. Every removed link still resolves at its direct URL —
+// hiding from chrome only, no route deletions. Legal lives in the
+// footer; not duplicated here.
 const LINKS = [
-  { href: "/start",           label: "⬡ Start Here · 2-min guide", gold: true },
-  { href: "/hold-the-line",   label: "⚠ Hold the Line · defend floor", gold: true },
-  { href: "/vault",           label: "⬡ Vault · safe transfer", gold: true },
-  { href: "/canon",           label: "⬡ Canon · reference library", gold: true },
-  { href: "/civilizations",   label: "City" },
-  { href: "/citizens",        label: "Citizens" },
-  { href: "/daily",           label: "Signal" },
-  { href: "/numbers",         label: "Pulse" },
+  { href: "/sync",            label: "⬡ ENTER THE CITY",   gold: true },
+  { href: "/archive",         label: "Archive" },
+  { href: "/civilizations",   label: "Civilizations" },
+  { href: "/combat-archives", label: "Combat Archives" },
   { href: "/shop",            label: "Shop" },
-  { href: "/earn",            label: "The Ledger ⬡", gold: true },
-  { href: "/carrier",         label: "Carrier", gold: true },
-  { href: "/sync",            label: "Sync", gold: true },
-  { href: "/leaderboard",     label: "Leaderboard" },
-  { href: "/patrons",         label: "Patrons" },
-  { href: "/passport",        label: "Passport Preview" },
-  { href: "/origin",          label: "Origin" },
-  { href: "/lore",            label: "Lore" },
-  { href: "/shapes",          label: "Shapes" },
-  { href: "/castes",          label: "Castes" },
+  { href: "/canon",           label: "Canon" },
   { href: "/tribute",         label: "Tribute" },
-  { href: "/manifesto",       label: "Manifesto" },
-  { href: "/rebuild",         label: "Rebuild" },
-  { href: "/lexicon",         label: "Lexicon" },
-  { href: "/names",           label: "Names" },
-  { href: "/heat",            label: "Heat" },
-  { href: "/undervalued",     label: "Undervalued" },
-  { href: "/civ-wars",        label: "⬡ Civ Wars", gold: true },
-  { href: "/transmissions",   label: "⬡ Transmissions", gold: true },
-  { href: "/relay",           label: "⬡ Relay (Post)", gold: true },
-  { href: "/graveyard",       label: "Graveyard" },
-  { href: "/pfp",             label: "PFP" },
-  { href: "/secrets",         label: "⬡ Secrets", gold: true },
-  { href: "/archive",         label: "⬡ Other Signals · Archive", gold: true },
+  { href: "/numbers",         label: "Pulse" },
+  { href: "/vault",           label: "⬡ Vault", gold: true },
+  { href: "/transmissions",   label: "Transmissions" },
+  { href: "/start",           label: "Start Here · 2-min guide" },
 ];
 
 export function MobileNav() {

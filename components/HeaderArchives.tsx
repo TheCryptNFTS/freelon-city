@@ -14,51 +14,24 @@ import { createPortal } from "react-dom";
 type Item = { href: string; label: string; gold?: boolean };
 type Group = { heading: string; items: Item[] };
 
+// Route compression 2026-05-25 — More dropdown reduced from 5 groups
+// × 15 items → flat list of 6. The grouped LIVE/MARKET/HOLDER/
+// COMMUNITY/CANON taxonomy was scaffolding for a sprawl that no
+// longer exists in nav. Each remaining link is one of: canonical
+// reference (Canon), discovery/social proof (Tribute, Transmissions),
+// holder safeguard (Vault), public stats (Pulse), or onboarding
+// (Start). Everything else moved out of nav — pages still reachable
+// by direct URL.
 const GROUPS: Group[] = [
   {
-    heading: "LIVE",
+    heading: "",
     items: [
-      { href: "/hold-the-line", label: "⚠ Hold the Line", gold: true },
-      { href: "/civ-wars",      label: "⬢ Civ Wars",      gold: true },
-      { href: "/daily",         label: "⬢ Daily Signal",  gold: true },
-      { href: "/transmissions", label: "⬢ Transmissions", gold: true },
-      { href: "/relay",         label: "⬢ Relay",         gold: true },
-    ],
-  },
-  {
-    heading: "MARKET",
-    items: [
-      { href: "/heat",        label: "Heat" },
-      { href: "/undervalued", label: "Undervalued" },
-      { href: "/graveyard",   label: "Graveyard" },
-    ],
-  },
-  {
-    heading: "HOLDER",
-    items: [
-      { href: "/vault",   label: "⬢ Vault",  gold: true },
-      { href: "/carrier", label: "Carrier" },
-      // /sync removed 2026-05-25 — it's already in the top-level nav as
-      // the gold "Sync" pill. Having it both places was nav noise
-      // (Discord-flagged duplication pattern).
-    ],
-  },
-  {
-    heading: "COMMUNITY",
-    items: [
-      { href: "/tribute", label: "Tribute" },
-      { href: "/names",   label: "Hall of Names" },
-      { href: "/pfp",     label: "PFP Studio" },
-    ],
-  },
-  {
-    heading: "CANON",
-    items: [
-      { href: "/canon",         label: "Canon · all reference" },
-      // /civilizations + /archive removed 2026-05-25 — both are now
-      // top-level nav items. Discord 2026-05-25 (Nonz) flagged the
-      // duplicated "Archives" entry as confusing. Same logic for civs.
-      { href: "/secrets",       label: "Secrets" },
+      { href: "/canon",         label: "Canon" },
+      { href: "/tribute",       label: "Tribute" },
+      { href: "/numbers",       label: "Pulse" },
+      { href: "/vault",         label: "⬡ Vault", gold: true },
+      { href: "/transmissions", label: "Transmissions" },
+      { href: "/start",         label: "Start Here · 2-min guide" },
     ],
   },
 ];
@@ -130,9 +103,9 @@ export function HeaderArchives() {
           style={{ top: pos.top, right: pos.right }}
         >
           {GROUPS.map((g, gi) => (
-            <div key={g.heading} className="nav-archives-group">
+            <div key={g.heading || gi} className="nav-archives-group">
               {gi > 0 && <div aria-hidden className="nav-archives-divider" />}
-              <div className="nav-archives-heading">{g.heading}</div>
+              {g.heading && <div className="nav-archives-heading">{g.heading}</div>}
               {g.items.map((l) => (
                 <Link
                   key={l.href}
