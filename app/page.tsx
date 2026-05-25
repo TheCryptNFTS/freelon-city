@@ -59,19 +59,19 @@ export default async function Home() {
                 lore line (which the hero typography was sized for). */}
             <FloorPill />
 
-            {/* Iconic lore headline — fits the existing type system
-                because each line is short. Category info is carried by
-                the FloorPill directly above. */}
+            {/* Hero headline locked to founder brief 2026-05-25:
+                Title = "404 HEX NOT FOUND" (carried by the term-badge above).
+                H1 = "The HEX disappeared." subtext + "FREELON CITY formed
+                around the signal." The original lore line "It moved"
+                becomes a quieter coda below — too good to lose. */}
             <h1 className="hero-headline">
-              The hex didn&apos;t<br />
-              disappear<br />
-              <em>It moved</em>
+              The HEX<br />
+              <em>disappeared.</em>
             </h1>
             <p className="hero-sub">
-              The HEX disappeared. FREELON CITY formed around the signal.
+              FREELON CITY formed around the signal.
               <br />
               <strong>4040 citizens</strong> · 10 civilizations · sealed supply.
-              Hold one — the city pays daily in hex.
             </p>
 
             {/* Two CTAs side-by-side: SYNC (free-to-play) + BUY (revenue).
@@ -204,7 +204,23 @@ export default async function Home() {
           "what's happening right now" once you've seen what to do. */}
       <CityTerminal />
 
-      {/* WHY FREELON · simple cards, plain English */}
+      {/* HOMEPAGE COMPRESSION 2026-05-25 — hard cut 15→7 sections per
+          founder brief: "Make FREELON CITY understandable in under 10
+          seconds while preserving mystery. Push deeper lore into
+          discovery layers instead of homepage clutter."
+          Sections removed (still live at their deep links, just no
+          longer competing for hero attention):
+          - WHY FREELON (4 mechanic cards) → lives at /earn
+          - CivWarBoard → lives at /civ-wars
+          - The Four One-of-Ones → lives at /citizens + each vanity URL
+          - Honoree band → lives at /tribute
+          - Featured citizens → lives at /citizens
+          - TopPatronsStrip → lives at /patrons
+          - RecentTransmissions → lives at /transmissions + Pulse
+          Commented-out rather than deleted so we can restore any if
+          the bare-bones homepage tests as too thin.
+       */}
+      {/*
       <section className="why-freelon">
         <span className="kicker">⬡ THE LEDGER</span>
         <h2 className="why-headline">
@@ -270,9 +286,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CIVILIZATION WAR SCOREBOARD — live tribal gameplay.
-          Highest-engagement element after the mechanic announces. */}
       <CivWarBoard />
+      */}
 
       {/* Phase 3: removed AlertsFeed (dup of CityFeedTicker marquee),
          HexIndexHero (dup of CityTerminal Hex Index panel),
@@ -294,7 +309,11 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* THE FOUR ONE-OF-ONES */}
+      {/* Phase 4 compression 2026-05-25: Four One-of-Ones section
+         hidden — visitors discover them through /citizens (now the
+         first section there) + the 4 vanity URLs. Hero already
+         carries the brand. */}
+      {/*
       <section className="sec-four reveal">
         <div className="section-bar">
           <div className="left-col">
@@ -309,20 +328,9 @@ export default async function Home() {
             const vanity: Record<number, string> = { 1: "origin-signal", 404: "patient-zero", 1337: "genesis-hex", 4040: "the-final-signal" };
             const href = vanity[o.id] ? `/${vanity[o.id]}` : `/citizens/${o.id}`;
             return (
-              <Link
-                key={o.id}
-                href={href}
-                className="oneof-card relic-card scan-card"
-                style={{ "--civ": civ?.color } as React.CSSProperties}
-              >
-                <div className="img-frame">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={heroImageUrl(o.id)} alt={o.name} loading="lazy" />
-                </div>
-                <div className="row">
-                  <span className="id">#{o.id.toString().padStart(4, "0")}</span>
-                  <span className="tag" style={{ color: civ?.color }}>1 / 1 · {civ?.name.split(" ")[0].toUpperCase()}</span>
-                </div>
+              <Link key={o.id} href={href} className="oneof-card relic-card scan-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
+                <div className="img-frame"><img src={heroImageUrl(o.id)} alt={o.name} loading="lazy" /></div>
+                <div className="row"><span className="id">#{o.id.toString().padStart(4, "0")}</span><span className="tag" style={{ color: civ?.color }}>1 / 1 · {civ?.name.split(" ")[0].toUpperCase()}</span></div>
                 <h3>{o.transmission_name || o.name}</h3>
                 <p className="role">{ONE_OF_ONE_TAGLINES[o.id] || ""}</p>
               </Link>
@@ -330,9 +338,7 @@ export default async function Home() {
           })}
         </div>
       </section>
-
-      {/* Phase 3: removed STATEMENT block — its 6 stats are already
-         carried by the .why-trust strip inside WHY FREELON above. */}
+      */}
 
       {/* CIVILIZATIONS */}
       <section className="civs-section reveal">
@@ -363,75 +369,49 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* HONOREE BAND */}
-      {/* HONOREES — compact teaser (7 instead of 14). Full grid lives at /tribute. */}
+      {/* Phase 4 compression 2026-05-25: honoree band + featured
+         citizens + TopPatrons + RecentTransmissions all hidden from
+         homepage. They live at /tribute, /citizens, /patrons,
+         /transmissions. Hero + DoThisNow + GoodValueToSweep +
+         OtherSignals + CityTerminal + Civilizations + SignalCheck
+         already cover HEX/CITY/SIGNAL — these were noise. */}
+      {/*
       <section className="honoree-band reveal">
         <div className="section-bar">
-          <div className="left-col">
-            <span className="kicker">35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span>
-            <h2>The <em>honoraries</em></h2>
-          </div>
+          <div className="left-col"><span className="kicker">35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span><h2>The <em>honoraries</em></h2></div>
           <Link className="more" href="/tribute">SEE ALL 35 →</Link>
         </div>
         <div className="honoree-grid">
           {honoraries.slice(0, 7).map((h) => (
-            <Link
-              key={h.id}
-              href={`/tribute/${(h.honoree_handle || "").replace(/^@/, "") || h.id}`}
-              className="honoree-cell"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+            <Link key={h.id} href={`/tribute/${(h.honoree_handle || "").replace(/^@/, "") || h.id}`} className="honoree-cell">
               <img src={imageUrl(h.id)} alt={h.honoree} loading="lazy" />
-              <div className="meta">
-                <div className="name">{h.honoree}</div>
-                <div className="handle">{h.honoree_handle}</div>
-              </div>
+              <div className="meta"><div className="name">{h.honoree}</div><div className="handle">{h.honoree_handle}</div></div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* FEATURED CITIZENS — 8 instead of 16, browse CTA does the work */}
       <section className="featured-band reveal">
         <div className="section-bar">
-          <div className="left-col">
-            <span className="kicker">EIGHT OF FOUR THOUSAND FORTY</span>
-            <h2>8 <em>citizens</em><br />4,032 more behind them</h2>
-          </div>
+          <div className="left-col"><span className="kicker">EIGHT OF FOUR THOUSAND FORTY</span><h2>8 <em>citizens</em><br />4,032 more behind them</h2></div>
           <Link className="more" href="/citizens">BROWSE ALL 4040 →</Link>
         </div>
         <div className="featured-grid">
           {featured.slice(0, 8).map((c) => {
             const civ = (CIVILIZATIONS as Record<string, { color: string; doctrine: string }>)[c.civilization];
             return (
-              <Link
-                key={c.id}
-                href={`/citizens/${c.id}`}
-                className="cell"
-                style={{ "--civ": civ?.color } as React.CSSProperties}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+              <Link key={c.id} href={`/citizens/${c.id}`} className="cell" style={{ "--civ": civ?.color } as React.CSSProperties}>
                 <img src={imageUrl(c.id)} alt={c.name} loading="lazy" />
-                <div className="id">
-                  <div className="top-row">
-                    <span>#{c.id.toString().padStart(4, "0")}</span>
-                    <span className="dot" />
-                  </div>
-                  <div className="civ-name">{civ?.doctrine.toUpperCase()} · {c.tier.toUpperCase()}</div>
-                </div>
+                <div className="id"><div className="top-row"><span>#{c.id.toString().padStart(4, "0")}</span><span className="dot" /></div><div className="civ-name">{civ?.doctrine.toUpperCase()} · {c.tier.toUpperCase()}</div></div>
               </Link>
             );
           })}
         </div>
       </section>
 
-      {/* TOP PATRONS · 7-DAY BURN */}
       <TopPatronsStrip />
-
-      {/* RIVALRIES — moved to /lore where they get full context. Single CTA only. */}
-
-      {/* RECENT TRANSMISSIONS */}
       <RecentTransmissions />
+      */}
 
       {/* PULL QUOTE */}
       <section className="pull reveal">
