@@ -780,8 +780,44 @@ export function SignalInventoryPanel() {
 
         /* ───────────────────────── MOBILE ───────────────────────── */
         @media (max-width: 540px) {
-          .sig-inv__form { flex-direction: column; }
-          .sig-inv__scanBtn { width: 100%; }
+          .sig-inv__form {
+            flex-direction: column;
+            /* Critical: align-items stretch + column was causing the
+               input wrapper to consume all available vertical space
+               (giant ~600px input box on iPhone). Anchor cross-axis
+               to start so children honour their own min-height. */
+            align-items: stretch;
+          }
+          /* Lock the input wrapper to its content height — flex column
+             was making it grow vertically. */
+          .sig-inv__inputWrap {
+            flex: 0 0 auto;
+            height: 48px;
+            max-height: 48px;
+          }
+          .sig-inv__input {
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            /* Allow long addresses to scroll horizontally inside the
+               input instead of clipping silently under the right edge. */
+            text-overflow: ellipsis;
+          }
+          .sig-inv__scanBtn {
+            flex: 0 0 auto;
+            width: 100%;
+            min-width: 0;
+          }
+
+          /* Kicker pill was wrapping to 2 lines at 390px width. Tighter
+             letter-spacing + smaller font keeps it on one line on every
+             modern phone (iPhone SE 375 included). */
+          .sig-inv__kicker {
+            font-size: 9px;
+            letter-spacing: 0.22em;
+            padding: 5px 10px;
+            gap: 6px;
+          }
+
           .sig-inv__archiveHead { gap: 10px; }
           .sig-inv__archiveCount {
             padding-left: 0;
