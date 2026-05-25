@@ -54,6 +54,7 @@ const GROUPS: Group[] = [
     items: [
       { href: "/canon",         label: "Canon · all reference" },
       { href: "/civilizations", label: "10 Civilizations" },
+      { href: "/archive",       label: "⬡ Other Signals", gold: true },
       { href: "/secrets",       label: "Secrets" },
     ],
   },
