@@ -7,7 +7,7 @@ import { WalletScanner } from "./WalletScanner";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "SYNC · The city detects you · FREELON CITY",
+  title: "SYNC · The city detects you",
   description:
     "Paste a wallet, ENS, or X handle. The signal reads your alignment.",
 };

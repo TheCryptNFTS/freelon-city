@@ -9,7 +9,7 @@ const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "The Graveyard ⬡ · FREELON CITY",
+  title: "The Graveyard ⬡",
   description:
     "Citizens abandoned by their previous carriers. Some signals do not survive transfer.",
 };

@@ -5,7 +5,7 @@ import { CopyToClipboardButton } from "@/components/CopyToClipboardButton";
 import { ReplySubmit } from "@/components/ReplySubmit";
 
 export const metadata: Metadata = {
-  title: "Relay · post the signal · FREELON CITY",
+  title: "Relay · post the signal",
   description: "Carriers don't drop links. They tag the signal. Ten ready-to-post X templates that lead with @4040hex.",
 };
 

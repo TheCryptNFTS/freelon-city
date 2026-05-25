@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CarrierClient } from "./CarrierClient";
 
 export const metadata: Metadata = {
-  title: "Carrier Rank · Hold the signal · FREELON CITY",
+  title: "Carrier Rank · Hold the signal",
   description: "Holders own citizens. Carriers hold the signal. Daily decay. No reset. The city remembers.",
 };
 

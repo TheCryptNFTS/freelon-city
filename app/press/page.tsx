@@ -16,7 +16,7 @@ import { CONTRACT, TOTAL } from "@/lib/constants";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Press Kit · FREELON CITY",
+  title: "Press Kit",
   description:
     "Logos, banner, OG cards, brand voice, contact. Everything needed to write about the city.",
 };

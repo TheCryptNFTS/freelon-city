@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "The Architect · FREELON CITY",
+  title: "The Architect",
   description:
     "One architect. Independent. No VC. Building FREELON CITY daily. The city is the work.",
 };

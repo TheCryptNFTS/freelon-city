@@ -15,7 +15,7 @@ import { ECONOMY } from "@/lib/economy-constants";
 import { TOTAL } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Start Here · FREELON CITY",
+  title: "Start Here",
   description:
     "Two-minute guide to FREELON CITY. What it is, what you can do today, where everything lives.",
 };

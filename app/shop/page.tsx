@@ -4,7 +4,7 @@ import { ShopGrid } from "./ShopGrid";
 import { CATEGORIES, ITEMS, itemsByCategory } from "@/lib/shop";
 
 export const metadata: Metadata = {
-  title: "Hex Shop · Spend the signal · FREELON CITY",
+  title: "Hex Shop · Spend the signal",
   description:
     "Spend hex points on property, land, ceremonial weapons, robes, and signal-era artifacts. Off-chain inventory, on-chain mythology.",
 };

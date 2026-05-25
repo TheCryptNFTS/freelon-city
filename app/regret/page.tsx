@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "THE REGRET MACHINE",
   description: "You sold a FREELON. Find out how much you regret it.",
   openGraph: {
-    title: "THE REGRET MACHINE · FREELON CITY",
+    title: "THE REGRET MACHINE",
     description: "You sold a FREELON. Find out how much you regret it.",
   },
 };

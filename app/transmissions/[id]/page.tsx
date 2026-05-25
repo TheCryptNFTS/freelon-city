@@ -15,10 +15,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const t = await getTransmission(id);
-  if (!t || t.status !== "live") return { title: "Transmission not found · FREELON CITY" };
+  if (!t || t.status !== "live") return { title: "Transmission not found" };
   const civ = (CIVILIZATIONS as Record<string, { name: string }>)[t.civ];
   return {
-    title: `⬡ ${civ?.name ?? t.civ} TRANSMISSION · @${t.authorHandle} · FREELON CITY`,
+    title: `⬡ ${civ?.name ?? t.civ} TRANSMISSION · @${t.authorHandle}`,
     description: t.caption.slice(0, 160),
     openGraph: {
       title: `⬡ TRANSMISSION · ${civ?.name ?? t.civ}`,

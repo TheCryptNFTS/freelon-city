@@ -12,7 +12,7 @@ import { CityFeedTicker } from "@/components/CityFeedTicker";
 import { TopCitizensByValue } from "@/components/TopCitizensByValue";
 
 export const metadata: Metadata = {
-  title: "Dashboard · Pulse · FREELON CITY",
+  title: "Dashboard · Pulse",
   description:
     "Live city economy. Hex Index, floor by civilization, holder distribution, sales feed, your net worth.",
   openGraph: { images: [{ url: "/api/og/hex-index", width: 1200, height: 630 }] },

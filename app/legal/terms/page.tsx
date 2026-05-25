@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalShell } from "../LegalShell";
 
-export const metadata: Metadata = { title: "Terms of Use · FREELON CITY" };
+export const metadata: Metadata = { title: "Terms of Use" };
 
 export default function Terms() {
   return (

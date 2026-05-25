@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Lexicon · The city's vocabulary · FREELON CITY",
+  title: "Lexicon · The city's vocabulary",
   description: "Citizen, carrier, signal, hex, doctrine, caste, relay. The words the city uses.",
 };
 
