@@ -1,47 +1,25 @@
 import Link from "next/link";
-import { DoThisNow } from "@/components/DoThisNow";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
-// Audit 2026-05-25: FloorPill removed from hero (leaked $/holders/sales
-// above the fold — undercut premium frame). HoldTheLineBanner +
-// GoodValueToSweep removed from homepage (degen-coded language —
-// "DEFEND THE FLOOR", "WHAT TO SWEEP NOW"). Components still live at
-// their own routes; only the homepage surface is stripped.
-import { HonoreeStrip } from "@/components/HonoreeStrip";
-import { CityTerminal } from "@/components/CityTerminal";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
-import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
-import { WalletScanner } from "@/app/sync/WalletScanner";
-import { LiveStats } from "@/components/LiveStats";
-import { RecentTransmissions } from "@/components/RecentTransmissions";
-import { CivWarBoard } from "@/components/CivWarBoard";
-import { TopPatronsStrip } from "@/components/TopPatronsStrip";
-import { getOneOfOnes, getAllCitizens, getHonoraries } from "@/lib/citizens";
-import { CIVILIZATIONS, CONTRACT, METADATA_CID, imageUrl, heroImageUrl } from "@/lib/constants";
-// REMOVED in Phase 3 (redundant with CityTerminal + DoThisNow):
-//   BecomeACarrier (dup of /start funnel) · DailySignal (dup of CityTerminal panel)
-//   DailyMission (dup of DoThisNow) · AlertsFeed (dup of CityFeedTicker marquee)
-//   HexIndexHero (dup of CityTerminal panel) · CitizenOfDay (low-frequency moment)
+import { CIVILIZATIONS, CONTRACT, METADATA_CID, heroImageUrl } from "@/lib/constants";
+// Audit 2026-05-25 — homepage mythic compression. Removed from homepage
+// render + imports: DoThisNow (quest-board energy), CityTerminal
+// (dashboard above the fold), HonoreeStrip (celeb pfp grid in hero),
+// LiveStats (FLOOR/HOLDERS/MINTED stats inside hero), WalletScanner +
+// signal-check section (duplicate of /archive scanner). All components
+// still live at their own routes — only the homepage surface is
+// stripped. Final homepage spine: Hero → OtherSignalsStrip →
+// Civilizations → Pull quote + ENTER CTA → On-chain footer.
+// Phase 3/4 historical: also removed from this file's commented blocks
+// — WHY FREELON, CivWarBoard, Four One-of-Ones, honoree band, featured
+// citizens, TopPatronsStrip, RecentTransmissions. Imports/locals
+// previously kept for those (getOneOfOnes/getAllCitizens/getHonoraries
+// /imageUrl/getUsdPerEth/hexToUsdLabel/ONE_OF_ONE_TAGLINES) are gone
+// now that compression is final. To restore any section, revert the
+// commented blocks AND re-add the matching import.
 
-const ONE_OF_ONE_TAGLINES: Record<number, string> = {
-  1:    "Origin Signal does not lead. Origin Signal is.",
-  404:  "The moment before the collapse, captured and held.",
-  1337: "If the hex made it into stone — Genesis Hex made sure of it.",
-  4040: "When the city ends, this is who turns out the lights.",
-};
-
-export default async function Home() {
-  const ones = getOneOfOnes();
-  const honoraries = getHonoraries();
-  const all = getAllCitizens();
-  const featured = Object.keys(CIVILIZATIONS).flatMap((slug) => {
-    const inCiv = all.filter((c) => c.civilization === slug && c.tier !== "One of One" && c.tier !== "Honorary");
-    return inCiv.slice(0, 2);
-  }).slice(0, 16);
-  // USD anchor for the mechanic cards — solves the "hex is fictional
-  // currency until proven otherwise" CRO finding. 1h cached server-side.
-  const usdPerEth = await getUsdPerEth();
-
+export default function Home() {
   return (
     <main>
       {/* HERO */}
@@ -89,12 +67,7 @@ export default async function Home() {
                 <span aria-hidden>→</span>
               </Link>
             </div>
-
-            {/* Honoree thumbnails — Vitalik / Beeple / punk6529 / xcopy
-                as social proof bar. */}
-            <HonoreeStrip max={7} />
           </div>
-          <LiveStats />
         </div>
         <style>{`
           .new-here-pill {
@@ -136,21 +109,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* DO THIS NOW · personalized funnel. */}
-      <DoThisNow />
-
-      {/* Audit 2026-05-25: GoodValueToSweep removed from homepage —
-         "WHAT TO SWEEP NOW" was wash-volume-coded language and currently
-         renders empty most of the time. Component still lives elsewhere.
-         HoldTheLineBanner also removed — "DEFEND THE FLOOR · 0 DEFENDERS
-         · 0 BIDS" was the worst single line on the page (visible zeros
-         on a price-defense mechanic broadcast desperation). */}
-
-      {/* OTHER SIGNALS · ARCHIVE strip. */}
+      {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
       <OtherSignalsStrip />
-
-      {/* STATE OF THE CITY · live terminal panel. */}
-      <CityTerminal />
 
       {/* HOMEPAGE COMPRESSION 2026-05-25 — hard cut 15→7 sections per
           founder brief: "Make FREELON CITY understandable in under 10
@@ -244,18 +204,10 @@ export default async function Home() {
          BecomeACarrier (dup of /start funnel + DoThisNow sync card),
          DailyMission (dup of DoThisNow claim card). */}
 
-      {/* SIGNAL CHECK · the signature interaction */}
-      <section className="signal-check reveal">
-        <span className="kicker">⬡ SIGNAL CHECK · THE CITY DETECTS YOU</span>
-        <h2>Paste a wallet.<br /><em>The signal locates you.</em></h2>
-        <p className="signal-check-sub">
-          Address, ENS, or X handle. The city scans your holdings, reads your
-          civ alignment, calculates hex pressure, returns your passport.
-        </p>
-        <div style={{ maxWidth: 640, margin: "var(--s-4) auto 0" }}>
-          <WalletScanner />
-        </div>
-      </section>
+      {/* SIGNAL CHECK section removed 2026-05-25 — the wallet scanner is
+         the signature interaction but its proper home is /archive (the
+         ownership terminal). Two scanners on adjacent surfaces was
+         fragmenting the brand's signature moment. */}
 
       {/* Phase 4 compression 2026-05-25: Four One-of-Ones section
          hidden — visitors discover them through /citizens (now the
@@ -367,7 +319,9 @@ export default async function Home() {
           The platform removed the frame.<br />
           The people <em>became</em> the frame.
         </q>
-        <div className="cred">⬡ FREELON CITY · FINAL TRANSMISSION</div>
+        {/* Attribution "⬡ FREELON CITY · FINAL TRANSMISSION" removed
+           2026-05-25 — self-quoting your own brand as scripture was a
+           tell. The quote stands on its own. */}
         {/* CTA below the closer — best line on the site shouldn't dead-end.
             Single button, single instruction, brand voice. */}
         <div style={{ marginTop: "var(--s-5)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap", justifyContent: "center" }}>
