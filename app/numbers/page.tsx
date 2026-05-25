@@ -6,7 +6,6 @@
  *   - OpenSea v2 collection stats   → sales / volume / holders / floor
  *   - listWalletHexRecords           → hex aggregates across all wallets
  *   - listTransmissions              → community signal volume
- *   - listGhostedIds + listDumpLedger → dump-deterrent receipts
  *
  * Revalidates every 5 min so a refresh always returns a fresh snapshot
  * without hammering OpenSea on every request.
@@ -17,7 +16,6 @@ import { CONTRACT, TOTAL } from "@/lib/constants";
 import { SITE } from "@/lib/share";
 import { listWalletHexRecords } from "@/lib/wallet-hex-store";
 import { listTransmissions } from "@/lib/transmissions-store";
-import { listGhostedIds, listDumpLedger } from "@/lib/ghost-store";
 import { getCollapseState } from "@/lib/collapse-mode";
 
 export const revalidate = 300;
@@ -25,7 +23,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Pulse",
   description:
-    "Live city pulse. One hero stat, current state, then every receipt below. Sales, holders, hex flow, transmissions, dumps caught, rescuers paid. All public, all auto-updated.",
+    "Live city pulse. One hero stat, current state, then every receipt below. Sales, holders, hex flow, transmissions. All public, all auto-updated.",
 };
 
 const COLLECTION_SLUG = "freelons";
@@ -75,12 +73,10 @@ function shortAddr(a: string): string {
 }
 
 export default async function NumbersPage() {
-  const [stats, hexRecords, txs, ghostIds, dumps, collapse] = await Promise.all([
+  const [stats, hexRecords, txs, collapse] = await Promise.all([
     fetchOpenSeaStats(),
     listWalletHexRecords(500).catch(() => []),
     listTransmissions({ by: "score", limit: 100 }).catch(() => []),
-    listGhostedIds(200).catch(() => []),
-    listDumpLedger(200).catch(() => []),
     getCollapseState().catch(() => ({ active: false })),
   ]);
 
@@ -106,13 +102,6 @@ export default async function NumbersPage() {
   const txSignals = txs.reduce((a, t) => a + (t.signals || 0), 0);
   const txBoostHex = txs.reduce((a, t) => a + (t.boostHex || 0), 0);
   const topTx = txs[0] || null;
-
-  // Dump-deterrent trinity
-  const ghostsActive = ghostIds.length;
-  const rescuesCount = dumps.filter((d) => d.rescuer).length;
-  const totalDiscountRescued = dumps
-    .filter((d) => d.rescuer)
-    .reduce((a, d) => a + Math.max(0, d.floorEth - d.priceEth), 0);
 
   // Phase 3: Pulse hero — one number that defines the city's
   // current state. Floor × supply is the cleanest single answer to
@@ -256,15 +245,10 @@ export default async function NumbersPage() {
         </Grid>
       </Section>
 
-      {/* ── DUMP DETERRENT ── */}
-      <Section title="Dump deterrent · the city polices itself">
-        <Grid>
-          <Stat label="Citizens ghosted now" value={fmtInt(ghostsActive)} sub="listed ≤ 85% floor past grace" />
-          <Stat label="Rescues completed" value={fmtInt(rescuesCount)} sub="rescuer paid · dumper burned" />
-          <Stat label="Discount captured by rescuers" value={fmtEth(totalDiscountRescued, 3)} sub="floor − sale price, total" />
-          <Stat label="Dump events on ledger" value={fmtInt(dumps.length)} sub="public history" href="/graveyard" />
-        </Grid>
-      </Section>
+      {/* Audit 2026-05-25: DUMP DETERRENT section removed.
+         "rescuer paid · dumper burned" + all-zero counters read as
+         punitive AND broken — both bad. The underlying ghost/dump
+         ledger remains intact at /graveyard for receipts. */}
 
       {/* ── CONTRACT ── */}
       <Section title="Contract">

@@ -106,16 +106,19 @@ export function WalletScanner() {
   return (
     <div className="wallet-scanner">
       <div className="ws-input-row">
+        {/* Audit 2026-05-25: aria-label added (placeholder is not a label
+           per WCAG 1.3.1/4.1.2) and autoFocus removed (caused unexpected
+           keyboard pop + page jump on mobile load — WCAG 3.2.1). */}
         <input
           className="ws-input"
           type="text"
+          aria-label="Wallet address, ENS name, or X handle"
           placeholder="0x… or @handle or ENS"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") scan();
           }}
-          autoFocus
           spellCheck={false}
           autoComplete="off"
         />

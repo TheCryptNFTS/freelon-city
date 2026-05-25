@@ -92,8 +92,15 @@ export function SignalInventoryPanel() {
     [data],
   );
 
+  // Signal-detected attribute triggers the SIGNAL_GREEN cursor reticle
+  // when scoped inside .archive-page (see globals.css). Only activates
+  // when we actually pulled artefacts back — not on idle/loading/empty.
+  const signalDetected = status === "ok" && totalArtefacts > 0;
   return (
-    <section className="sig-inv">
+    <section
+      className="sig-inv"
+      data-signal={signalDetected ? "detected" : undefined}
+    >
       {/* HEADER — classified-terminal kicker + hex glyph spine */}
       <div className="sig-inv__header">
         <span className="sig-inv__kicker">
@@ -291,55 +298,50 @@ export function SignalInventoryPanel() {
 
       <style jsx>{`
         /* ───────────────────────── PANEL SHELL ───────────────────────── */
+        /* Archival visual pass 2026-05-25: flat ASH_PANEL, no radial
+           glow, no hex blueprint inside the panel (the page already
+           has the hex-grid overlay). Sacred ANCIENT_GOLD double-rule
+           at the top edge — that's the only ornament. */
         .sig-inv {
           position: relative;
           margin: var(--s-6) 0;
           padding: clamp(20px, 4vw, 36px);
-          border: 1px solid rgba(200, 167, 93, 0.32);
-          background:
-            radial-gradient(ellipse 100% 50% at 50% 0%, rgba(200,167,93,0.10), transparent 70%),
-            linear-gradient(180deg, rgba(8, 10, 14, 0.96), rgba(8, 10, 14, 0.86));
-          border-radius: 14px;
+          border: 1px solid var(--archival-line);
+          background: var(--archival-surface);
+          border-radius: 8px;
           overflow: hidden;
         }
-        /* Subtle hex blueprint texture — restrained, low alpha */
         .sig-inv::before {
           content: "";
-          position: absolute; inset: 0;
-          background-image:
-            linear-gradient(rgba(200,167,93,0.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(200,167,93,0.035) 1px, transparent 1px);
-          background-size: 32px 32px;
+          position: absolute; top: 0; left: 0; right: 0;
+          height: 3px;
+          background:
+            linear-gradient(180deg, var(--archival-rule-gold) 0 1px,
+                                    transparent 1px 2px,
+                                    var(--archival-line-deep) 2px 3px);
           pointer-events: none;
-          mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
         }
         .sig-inv > * { position: relative; }
 
         /* ───────────────────────── HEADER ───────────────────────── */
         .sig-inv__header { margin-bottom: var(--s-4); }
+        /* Kicker: classified-document classification line, no pill
+           fill. ANCIENT_GOLD allowed here (sacred: this names the
+           archive terminal itself). */
         .sig-inv__kicker {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 5px 12px;
-          border: 1px solid rgba(200, 167, 93, 0.4);
-          border-radius: 999px;
           font-family: var(--mono2);
           font-size: 10px;
-          letter-spacing: 0.28em;
+          letter-spacing: 0.32em;
           text-transform: uppercase;
-          color: var(--gold);
+          color: var(--archival-gold);
           font-weight: 700;
-          background: rgba(200, 167, 93, 0.06);
         }
         .sig-inv__glyph {
           font-size: 11px;
           opacity: 0.9;
-          animation: sigPulse 2.4s ease-in-out infinite;
-        }
-        @keyframes sigPulse {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 1; }
         }
         .sig-inv__title {
           font-family: var(--display);
@@ -347,17 +349,19 @@ export function SignalInventoryPanel() {
           line-height: 1;
           letter-spacing: -0.015em;
           margin: 12px 0 8px;
-          color: var(--ink);
+          color: var(--archival-bone);
+          font-weight: 400;
+          text-transform: none;
         }
         .sig-inv__title em {
-          color: var(--gold);
+          color: var(--archival-gold);
           font-style: normal;
         }
         .sig-inv__lede {
           font-family: var(--mono2);
           font-size: 13px;
-          color: var(--ink-2);
-          line-height: 1.65;
+          color: var(--archival-bone-2);
+          line-height: 1.7;
           margin: 0;
           max-width: 540px;
         }
@@ -369,20 +373,22 @@ export function SignalInventoryPanel() {
           gap: 10px;
           margin: var(--s-4) 0 var(--s-2);
         }
+        /* Input: flat carbon, bone border, SIGNAL_GREEN on focus only
+           (the moment of active scanning is the only place the
+           signal-detected color is allowed). No glow, no glass blur. */
         .sig-inv__inputWrap {
           flex: 1 1 320px;
           display: flex;
           align-items: stretch;
-          border: 1px solid var(--line-2);
-          background: rgba(0, 0, 0, 0.55);
-          border-radius: 10px;
+          border: 1px solid var(--archival-line);
+          background: var(--archival-carbon);
+          border-radius: 8px;
           overflow: hidden;
           min-height: 48px;
-          transition: border-color 140ms ease, box-shadow 140ms ease;
+          transition: border-color 140ms ease;
         }
         .sig-inv__inputWrap:focus-within {
-          border-color: var(--gold);
-          box-shadow: 0 0 0 1px rgba(200,167,93,0.35), 0 0 24px -8px rgba(200,167,93,0.5);
+          border-color: var(--archival-signal);
         }
         .sig-inv__inputPrefix {
           display: inline-flex;
@@ -390,16 +396,16 @@ export function SignalInventoryPanel() {
           padding: 0 12px;
           font-family: var(--mono2);
           font-size: 13px;
-          color: var(--ink-dim);
+          color: var(--archival-dust);
           letter-spacing: 0.12em;
-          background: rgba(255, 255, 255, 0.03);
-          border-right: 1px solid var(--line);
+          background: transparent;
+          border-right: 1px solid var(--archival-line);
         }
         .sig-inv__input {
           flex: 1;
           background: transparent;
           border: none;
-          color: var(--ink);
+          color: var(--archival-bone);
           font-family: var(--mono2);
           font-size: 14px;
           letter-spacing: 0.05em;
@@ -408,54 +414,49 @@ export function SignalInventoryPanel() {
           min-width: 0;
         }
         .sig-inv__input::placeholder {
-          color: var(--ink-fade);
+          color: var(--archival-dust-2);
         }
+        /* Scan button: bone fill on void text. Same primary-button
+           pattern used site-wide — restraint is the rule, glow is not. */
         .sig-inv__scanBtn {
           flex: 0 0 auto;
           padding: 0 22px;
           min-height: 48px;
           min-width: 180px;
-          background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-          color: #0a0a0c;
+          background: var(--archival-bone);
+          color: var(--archival-bg);
           border: none;
-          border-radius: 10px;
-          font-family: var(--mono2);
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: transform 140ms ease, box-shadow 240ms ease, opacity 140ms ease;
-          position: relative;
-          overflow: hidden;
-        }
-        .sig-inv__scanBtn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 14px 40px -12px rgba(200,167,93,0.5);
-        }
-        .sig-inv__scanBtn:disabled { opacity: 0.55; cursor: default; }
-        .sig-inv__scanBtn[data-loading="1"]::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(90deg, transparent, rgba(0,0,0,0.18), transparent);
-          animation: sigSweep 1.3s linear infinite;
-        }
-        @keyframes sigSweep {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .sig-inv__scanLabel { position: relative; z-index: 1; }
-
-        .sig-inv__err {
-          margin: 12px 0 0;
-          padding: 10px 14px;
-          border: 1px solid rgba(255,138,110,0.45);
-          background: rgba(255,138,110,0.10);
           border-radius: 8px;
           font-family: var(--mono2);
           font-size: 12px;
-          color: var(--state-warning);
+          font-weight: 700;
+          letter-spacing: 0.32em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: background 140ms ease, opacity 140ms ease;
+          position: relative;
+          overflow: hidden;
+        }
+        /* Audit 2026-05-25: SIGNAL_GREEN is reserved for the connected
+           state only (active scan, "SIGNAL DETECTED", data-signal
+           cursor). Hover stays inside the archival palette — bone
+           softens, the rest holds. */
+        .sig-inv__scanBtn:hover:not(:disabled) {
+          background: var(--archival-bone-2);
+        }
+        .sig-inv__scanBtn:disabled { opacity: 0.4; cursor: default; }
+        .sig-inv__scanLabel { position: relative; z-index: 1; }
+
+        /* Error: CORRUPTION_MAGENTA, used only for true failure states. */
+        .sig-inv__err {
+          margin: 12px 0 0;
+          padding: 10px 14px;
+          border: 1px solid var(--archival-corruption);
+          background: transparent;
+          border-radius: 6px;
+          font-family: var(--mono2);
+          font-size: 12px;
+          color: var(--archival-corruption);
           letter-spacing: 0.12em;
         }
 
@@ -468,23 +469,24 @@ export function SignalInventoryPanel() {
           grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
           gap: 12px;
         }
+        /* Loading: subtle bone shimmer, not gold. Quieter than before. */
         .sig-inv__loadingCell {
           height: 110px;
-          border: 1px solid var(--line);
+          border: 1px solid var(--archival-line);
           background: linear-gradient(
             90deg,
-            rgba(200,167,93,0.04) 0%,
-            rgba(200,167,93,0.10) 50%,
-            rgba(200,167,93,0.04) 100%
+            rgba(232,224,207,0.02) 0%,
+            rgba(232,224,207,0.06) 50%,
+            rgba(232,224,207,0.02) 100%
           );
           background-size: 200% 100%;
-          border-radius: 10px;
+          border-radius: 6px;
           animation: sigShimmer 1.6s ease-in-out infinite;
         }
         @keyframes sigShimmer {
-          0% { background-position: 200% 0; opacity: 0.5; }
-          50% { opacity: 0.85; }
-          100% { background-position: -200% 0; opacity: 0.5; }
+          0% { background-position: 200% 0; opacity: 0.4; }
+          50% { opacity: 0.7; }
+          100% { background-position: -200% 0; opacity: 0.4; }
         }
         .sig-inv__loadingLabel {
           margin: 14px 0 0;
@@ -492,78 +494,84 @@ export function SignalInventoryPanel() {
           font-family: var(--mono2);
           font-size: 10px;
           letter-spacing: 0.32em;
-          color: var(--ink-dim);
+          color: var(--archival-dust);
           text-transform: uppercase;
         }
 
         /* ───────────────────────── RESULT ───────────────────────── */
         .sig-inv__result { margin-top: var(--s-4); }
 
+        /* Summary strip: flat carbon, bone border. SIGNAL_GREEN dot is
+           the ONLY marker that the scan succeeded — the "SIGNAL
+           DETECTED" semantic earns the green token. Wallet address
+           stays in dust/bone, not gold (we removed the gold-everywhere
+           tendency). */
         .sig-inv__summary {
           display: flex;
           justify-content: space-between;
           align-items: baseline;
           flex-wrap: wrap;
           gap: 10px;
-          padding: 12px 14px;
+          padding: 12px 16px;
           margin-bottom: var(--s-3);
-          border: 1px solid rgba(200,167,93,0.22);
-          background: rgba(200,167,93,0.05);
-          border-radius: 8px;
+          border: 1px solid var(--archival-line);
+          background: var(--archival-carbon);
+          border-radius: 6px;
           font-family: var(--mono2);
           font-size: 11px;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: var(--ink-2);
+          color: var(--archival-bone-2);
         }
         .sig-inv__summaryWallet {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          color: var(--gold);
+          gap: 10px;
+          color: var(--archival-bone);
           font-weight: 700;
         }
         .sig-inv__summaryDot {
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          background: var(--gold);
-          box-shadow: 0 0 8px var(--gold);
+          background: var(--archival-signal);
         }
         .sig-inv__summaryStats strong {
-          color: var(--ink);
+          color: var(--archival-bone);
           font-family: var(--display);
           font-size: 16px;
           letter-spacing: 0;
         }
-        .sig-inv__sep { color: var(--ink-dim); margin: 0 6px; }
+        .sig-inv__sep { color: var(--archival-dust); margin: 0 8px; }
 
         /* ───────────────────────── EMPTY STATE ───────────────────────── */
         .sig-inv__empty {
           padding: clamp(24px, 5vw, 40px);
-          border: 1px dashed var(--line-2);
-          background: rgba(0, 0, 0, 0.35);
-          border-radius: 12px;
+          border: 1px dashed var(--archival-line);
+          background: transparent;
+          border-radius: 8px;
           text-align: center;
         }
         .sig-inv__emptyGlyph {
           font-size: 42px;
-          color: var(--ink-dim);
-          opacity: 0.55;
+          color: var(--archival-dust);
+          opacity: 0.5;
           margin-bottom: 12px;
         }
         .sig-inv__emptyTitle {
           margin: 0 0 8px;
           font-family: var(--display);
           font-size: 22px;
-          color: var(--ink);
+          color: var(--archival-bone);
+          font-weight: 400;
+          text-transform: none;
         }
         .sig-inv__emptyBody {
           margin: 0 auto;
           max-width: 420px;
           font-family: var(--mono2);
           font-size: 12px;
-          color: var(--ink-dim);
+          color: var(--archival-dust);
           line-height: 1.7;
         }
 
@@ -572,24 +580,25 @@ export function SignalInventoryPanel() {
           display: grid;
           gap: var(--s-3);
         }
+        /* Archive card: flat carbon, bone border, thin left edge in the
+           collection's accent color (this is the only place per-archive
+           color is allowed — everywhere else uses archival tokens). */
         .sig-inv__archive {
-          --archive-color: var(--gold);
+          --archive-color: var(--archival-dust);
           position: relative;
           padding: clamp(16px, 3vw, 22px);
-          border: 1px solid color-mix(in oklab, var(--archive-color) 35%, transparent);
-          border-radius: 12px;
-          background:
-            linear-gradient(135deg, color-mix(in oklab, var(--archive-color) 8%, transparent), rgba(0, 0, 0, 0.55));
+          border: 1px solid var(--archival-line);
+          border-radius: 8px;
+          background: var(--archival-carbon);
           overflow: hidden;
         }
-        /* Left edge color strip — classified-file vibe */
         .sig-inv__archive::before {
           content: "";
           position: absolute;
           left: 0; top: 0; bottom: 0;
-          width: 3px;
+          width: 2px;
           background: var(--archive-color);
-          opacity: 0.85;
+          opacity: 0.55;
         }
 
         .sig-inv__archiveHead {
@@ -607,9 +616,9 @@ export function SignalInventoryPanel() {
           gap: 6px;
           font-family: var(--mono2);
           font-size: 10px;
-          letter-spacing: 0.28em;
+          letter-spacing: 0.32em;
           text-transform: uppercase;
-          color: var(--archive-color);
+          color: var(--archival-dust);
           font-weight: 700;
         }
         .sig-inv__archiveGlyph { font-size: 11px; }
@@ -619,14 +628,16 @@ export function SignalInventoryPanel() {
           line-height: 1.1;
           letter-spacing: -0.005em;
           margin-top: 6px;
-          color: var(--ink);
+          color: var(--archival-bone);
+          font-weight: 400;
+          text-transform: none;
         }
         .sig-inv__archiveStatus {
           margin-top: 6px;
           font-family: var(--mono2);
           font-size: 9px;
-          letter-spacing: 0.28em;
-          color: var(--ink-dim);
+          letter-spacing: 0.32em;
+          color: var(--archival-dust);
           text-transform: uppercase;
         }
 
@@ -635,26 +646,26 @@ export function SignalInventoryPanel() {
           flex-direction: column;
           align-items: flex-end;
           padding-left: 12px;
-          border-left: 1px dashed color-mix(in oklab, var(--archive-color) 25%, transparent);
+          border-left: 1px dashed var(--archival-line);
         }
         .sig-inv__archiveCountNum {
           font-family: var(--display);
           font-size: 36px;
           line-height: 1;
-          color: var(--archive-color);
+          color: var(--archival-bone);
           font-variant-numeric: tabular-nums;
         }
         .sig-inv__archiveCountPlus {
           font-size: 18px;
-          color: var(--ink-dim);
+          color: var(--archival-dust);
           margin-left: 1px;
         }
         .sig-inv__archiveCountLabel {
           margin-top: 4px;
           font-family: var(--mono2);
           font-size: 9px;
-          letter-spacing: 0.22em;
-          color: var(--ink-dim);
+          letter-spacing: 0.32em;
+          color: var(--archival-dust);
           text-transform: uppercase;
         }
 
@@ -668,15 +679,15 @@ export function SignalInventoryPanel() {
           position: relative;
           display: block;
           aspect-ratio: 1;
-          border-radius: 6px;
+          border-radius: 4px;
           overflow: hidden;
-          border: 1px solid color-mix(in oklab, var(--archive-color) 22%, transparent);
-          background: rgba(0, 0, 0, 0.45);
+          border: 1px solid var(--archival-line);
+          background: var(--archival-bg);
           text-decoration: none;
           transition: border-color 140ms ease, transform 140ms ease;
         }
         .sig-inv__artefact:hover {
-          border-color: var(--archive-color);
+          border-color: var(--archival-gold);
           transform: translateY(-1px);
         }
         .sig-inv__artefactImg {
@@ -691,22 +702,22 @@ export function SignalInventoryPanel() {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--ink-dim);
+          color: var(--archival-dust);
           font-size: 18px;
-          opacity: 0.55;
+          opacity: 0.5;
         }
+        /* Artefact id chip: flat dark, no backdrop-blur (glass tell). */
         .sig-inv__artefactId {
           position: absolute;
           bottom: 3px;
           left: 4px;
           padding: 1px 5px;
-          background: rgba(0, 0, 0, 0.7);
+          background: rgba(5, 5, 5, 0.85);
           font-family: var(--mono2);
           font-size: 9px;
           letter-spacing: 0.06em;
-          color: var(--archive-color);
+          color: var(--archival-bone-3);
           border-radius: 2px;
-          backdrop-filter: blur(2px);
         }
 
         .sig-inv__archiveMore {
@@ -717,24 +728,25 @@ export function SignalInventoryPanel() {
           gap: 8px;
           margin: 12px 0 0;
           padding-top: 10px;
-          border-top: 1px dashed color-mix(in oklab, var(--archive-color) 22%, transparent);
+          border-top: 1px dashed var(--archival-line);
           font-family: var(--mono2);
           font-size: 10px;
-          letter-spacing: 0.22em;
-          color: var(--ink-dim);
+          letter-spacing: 0.32em;
+          color: var(--archival-dust);
           text-transform: uppercase;
         }
         .sig-inv__archiveMoreLink {
-          color: var(--archive-color);
+          color: var(--archival-bone-2);
           text-decoration: none;
           font-weight: 700;
         }
+        .sig-inv__archiveMoreLink:hover { color: var(--archival-gold); }
 
         /* ───────────────────────── NOT CONNECTED ───────────────────────── */
         .sig-inv__notConnected {
           margin-top: var(--s-4);
           padding-top: var(--s-3);
-          border-top: 1px dashed var(--line);
+          border-top: 1px dashed var(--archival-line);
         }
         .sig-inv__notConnectedKicker {
           display: block;
@@ -742,7 +754,7 @@ export function SignalInventoryPanel() {
           font-family: var(--mono2);
           font-size: 10px;
           letter-spacing: 0.32em;
-          color: var(--ink-dim);
+          color: var(--archival-dust);
           text-transform: uppercase;
         }
         .sig-inv__notConnectedList {
@@ -750,32 +762,33 @@ export function SignalInventoryPanel() {
           flex-wrap: wrap;
           gap: 6px;
         }
+        /* Chips: monochrome bone/dust with a colored dot prefix only. */
         .sig-inv__notConnectedChip {
           display: inline-flex;
           align-items: center;
           gap: 8px;
           padding: 6px 12px;
-          border: 1px solid var(--line);
+          border: 1px solid var(--archival-line);
           border-radius: 999px;
           font-family: var(--mono2);
           font-size: 10px;
-          letter-spacing: 0.16em;
+          letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: var(--ink-dim);
-          background: rgba(0, 0, 0, 0.35);
+          color: var(--archival-dust);
+          background: transparent;
         }
         .sig-inv__notConnectedDot {
           width: 5px;
           height: 5px;
           border-radius: 50%;
-          background: var(--ink-fade);
+          background: var(--archival-dust-2);
         }
         .sig-inv__notConnectedChip[data-status="rate_limited"] .sig-inv__notConnectedDot,
         .sig-inv__notConnectedChip[data-status="error"] .sig-inv__notConnectedDot {
-          background: var(--state-warning);
+          background: var(--archival-corruption);
         }
         .sig-inv__notConnectedWarn {
-          color: var(--state-warning);
+          color: var(--archival-corruption);
         }
 
         /* ───────────────────────── MOBILE ───────────────────────── */

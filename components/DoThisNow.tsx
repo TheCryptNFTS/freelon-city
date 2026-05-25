@@ -61,18 +61,13 @@ export function DoThisNow() {
           {!notSynced && claim === null && <PrimaryLoading />}
         </ActionCard>
 
-        {/* SECONDARY · two backup actions */}
+        {/* Audit 2026-05-25: "Sweep a citizen on OpenSea · +25 ⬡ per buy
+           · +100 ⬡ for 3 sweeps in 24h" backup removed — wash-volume
+           language on the homepage broadcasts price-manipulation
+           intent. Remaining backup is the daily post action. */}
         <MobileStack>
           <ActionCard
             kicker="⬡ 02 · BACKUP"
-            title="Sweep a citizen on OpenSea"
-            sub="+25 ⬡ per buy · +100 ⬡ for 3 sweeps in 24h"
-            more="GO →"
-            href="https://opensea.io/collection/freelons"
-            external
-          />
-          <ActionCard
-            kicker="⬡ 03 · BACKUP"
             title="Post the daily signal on X"
             sub="+10 ⬡ daily · 30-day streak = +500 ⬡"
             more="GO →"

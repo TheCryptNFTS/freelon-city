@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { DoThisNow } from "@/components/DoThisNow";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
-import { FloorPill } from "@/components/FloorPill";
+// Audit 2026-05-25: FloorPill removed from hero (leaked $/holders/sales
+// above the fold — undercut premium frame). HoldTheLineBanner +
+// GoodValueToSweep removed from homepage (degen-coded language —
+// "DEFEND THE FLOOR", "WHAT TO SWEEP NOW"). Components still live at
+// their own routes; only the homepage surface is stripped.
 import { HonoreeStrip } from "@/components/HonoreeStrip";
-import { HoldTheLineBanner } from "@/components/HoldTheLineBanner";
 import { CityTerminal } from "@/components/CityTerminal";
-import { GoodValueToSweep } from "@/components/GoodValueToSweep";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
 import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
@@ -54,16 +56,10 @@ export default async function Home() {
             {/* Brand badge */}
             <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
 
-            {/* Live floor + 24h delta + holders. The category + price
-                anchor lives HERE — so the headline below stays the iconic
-                lore line (which the hero typography was sized for). */}
-            <FloorPill />
-
             {/* Hero headline locked to founder brief 2026-05-25:
                 Title = "404 HEX NOT FOUND" (carried by the term-badge above).
                 H1 = "The HEX disappeared." subtext + "FREELON CITY formed
-                around the signal." The original lore line "It moved"
-                becomes a quieter coda below — too good to lose. */}
+                around the signal." */}
             <h1 className="hero-headline">
               The HEX<br />
               <em>disappeared.</em>
@@ -74,24 +70,15 @@ export default async function Home() {
               <strong>4040 citizens</strong> · 10 civilizations · sealed supply.
             </p>
 
-            {/* Two CTAs side-by-side: SYNC (free-to-play) + BUY (revenue).
-                Discord 2026-05-25 (Lady Magic): newcomers think they need
-                to spend money. Hero now leads with the no-cost path so
-                "what do I have to lose?" is answered before the buy CTA. */}
+            {/* Audit 2026-05-25: hero CTAs collapsed from 4 → 1 primary + 1
+                secondary. Removed: FREE TO PLAY (freemium framing), OpenSea
+                exit (kills retention), ACCESS THE ARCHIVES (dup of nav),
+                "NO WALLET NEEDED" pill (anti-signal for the audience we
+                actually want). Mythology first, money later. */}
             <div className="hero-ctas">
               <Link href="/sync" className="btn btn-primary">
-                <span className="lbl">FREE TO PLAY</span>
-                <span className="ttl">SYNC + CLAIM 10⬡ <span className="ar">→</span></span>
+                <span className="ttl">ENTER THE CITY <span className="ar">→</span></span>
               </Link>
-              <a
-                className="btn btn-secondary"
-                href="https://opensea.io/collection/freelons"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <span className="lbl">OR HOLD A CITIZEN</span>
-                <span className="ttl">VIEW ON OPENSEA <span className="ar">↗</span></span>
-              </a>
               <Link
                 href="/start"
                 className="new-here-pill new-here-pill--hero"
@@ -101,34 +88,10 @@ export default async function Home() {
                 <span>NEW HERE? · 2-MIN GUIDE</span>
                 <span aria-hidden>→</span>
               </Link>
-              <Link
-                href="/archive"
-                className="new-here-pill new-here-pill--hero"
-                aria-label="Access the Archives — other signals before the city"
-                style={{ borderColor: "var(--state-active)", color: "var(--state-active)" }}
-              >
-                <span aria-hidden>⬡</span>
-                <span>ACCESS THE ARCHIVES</span>
-                <span aria-hidden>→</span>
-              </Link>
             </div>
-            <p
-              style={{
-                marginTop: 12,
-                fontFamily: "var(--mono2)",
-                fontSize: 11,
-                color: "var(--ink-dim)",
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                maxWidth: 480,
-              }}
-            >
-              ⬡ NO WALLET NEEDED TO START · NO PURCHASE TO EARN ⬡
-            </p>
 
             {/* Honoree thumbnails — Vitalik / Beeple / punk6529 / xcopy
-                as social proof bar. Pros: fastest trust signal a stranger
-                could get and we already have the assets. */}
+                as social proof bar. */}
             <HonoreeStrip max={7} />
           </div>
           <LiveStats />
@@ -173,35 +136,20 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* DO THIS NOW · personalized funnel — promoted to top of the
-          post-hero stack in Phase 3. The personalized "what should I do
-          next" answer lands BEFORE the Bloomberg state panel because
-          the user wants action, not analytics, first. */}
+      {/* DO THIS NOW · personalized funnel. */}
       <DoThisNow />
 
-      {/* GOOD VALUE TO SWEEP — addresses Discord 2026-05-25 WitschiDaD:
-          "is there better ones to sweep up or are they all equal?"
-          Live red-signal listings + the citizen's computed VALUE score
-          per card. Newcomer-friendly: tells you exactly which listings
-          are underpriced relative to rarity, without having to manually
-          scan all 4040. */}
-      <GoodValueToSweep />
+      {/* Audit 2026-05-25: GoodValueToSweep removed from homepage —
+         "WHAT TO SWEEP NOW" was wash-volume-coded language and currently
+         renders empty most of the time. Component still lives elsewhere.
+         HoldTheLineBanner also removed — "DEFEND THE FLOOR · 0 DEFENDERS
+         · 0 BIDS" was the worst single line on the page (visible zeros
+         on a price-defense mechanic broadcast desperation). */}
 
-      {/* OTHER SIGNALS · ARCHIVE strip — founder brief 2026-05-25.
-          5 archive cards visible on the homepage so visitors discover
-          the wider universe before scrolling past. Each card uses the
-          locked copy from the brief; the strip links to /archive for
-          the full transmission set + OpenSea provenance. */}
+      {/* OTHER SIGNALS · ARCHIVE strip. */}
       <OtherSignalsStrip />
 
-      {/* HOLD THE LINE banner — distributed bid wall mission. Live
-          defender count builds social proof as it fills. */}
-      <HoldTheLineBanner />
-
-      {/* STATE OF THE CITY · Bloomberg-style live terminal panel.
-          Moved below DoThisNow + HoldTheLine in Phase 3 so personal
-          action + collective mission land first. The terminal answers
-          "what's happening right now" once you've seen what to do. */}
+      {/* STATE OF THE CITY · live terminal panel. */}
       <CityTerminal />
 
       {/* HOMEPAGE COMPRESSION 2026-05-25 — hard cut 15→7 sections per

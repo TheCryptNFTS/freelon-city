@@ -143,6 +143,29 @@
   --tr-pill:    0.22em;
   --tr-kicker:  0.28em;
   --tr-mono:    0.32em;
+
+  /* ---------------------------------------------------------------- */
+  /* /ARCHIVE VISUAL PASS 2026-05-25 — scoped tokens.                  */
+  /* These are ADDITIVE: they don't change anything until referenced   */
+  /* from inside a .archive-page wrapper. The rest of the site keeps  */
+  /* the existing palette untouched. If this pass succeeds, the       */
+  /* aliases below collapse into the global tokens in a later pass.   */
+  /* ---------------------------------------------------------------- */
+  --archival-bg:         #050505;                        /* VOID_BLACK */
+  --archival-carbon:     #0B0B0B;                        /* CARBON     */
+  --archival-surface:    #11100E;                        /* ASH_PANEL  */
+  --archival-bone:       #E8E0CF;                        /* BONE_TEXT  */
+  --archival-bone-2:     rgba(232, 224, 207, 0.82);
+  --archival-bone-3:     rgba(232, 224, 207, 0.55);
+  --archival-dust:       #9B927F;                        /* DUST_TEXT  */
+  --archival-dust-2:     rgba(155, 146, 127, 0.62);
+  --archival-gold:       #C8A35A;                        /* ANCIENT_GOLD — ceremonial only */
+  --archival-rust:       #9A3F24;                        /* MARS_RUST — edges only */
+  --archival-signal:     #6CFFB3;                        /* SIGNAL_GREEN — scanner connected only */
+  --archival-corruption: #C04C91;                        /* CORRUPTION_MAGENTA — error/hostile only */
+  --archival-line:       rgba(232, 224, 207, 0.12);     /* bone-tinted, not white */
+  --archival-line-deep:  rgba(232, 224, 207, 0.06);
+  --archival-rule-gold:  rgba(200, 163, 90, 0.22);      /* sacred document ruling */
 }
 
 * { box-sizing: border-box; }
@@ -352,6 +375,26 @@ a { color: inherit; text-decoration: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal { transition: none !important; }
+  /* Audit 2026-05-25 (WCAG 2.2.2): kill auto-playing motion for users
+     who request reduced motion. Covers the city-feed marquee, hero
+     flicker/pulse/shimmer chrome, and the wallet-scanner step
+     animations. */
+  .city-feed-track,
+  .flicker,
+  .pulse,
+  .shimmer,
+  .cf-live-pulse,
+  .ws-dots-blink,
+  .ws-fade-up,
+  .four-pulse,
+  .ambient,
+  .dot-pulse,
+  .scanline,
+  .sweep,
+  .alert-in,
+  .cn-in {
+    animation: none !important;
+  }
 }
 
 /* ---------- custom cursor on interactive ---------- */
@@ -4760,5 +4803,347 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   }
   .citizens-chip-row__label { margin-bottom: 2px; }
   .citizens-chip-row__chips { width: 100%; }
+}
+
+/* =============================================================== */
+/* /ARCHIVE VISUAL IDENTITY PASS — 2026-05-25                       */
+/* All rules scoped to .archive-page wrapper.                       */
+/* Goal: classified sacred signal archive, not a crypto dashboard.  */
+/* No global cascade — homepage and every other page unchanged.     */
+/* =============================================================== */
+
+.archive-page {
+  position: relative;
+  /* Flat ash on void — replaces the dual radial-gradient wash on
+     plain main containers. */
+  background: var(--archival-bg);
+  color: var(--archival-bone);
+  /* Edge vignette: faint warm rust at the very bottom — invisible
+     until you look for it. Replaces the gold-top + blue-bottom
+     dashboard glow used on body. */
+  background-image:
+    radial-gradient(ellipse 90% 30% at 50% 110%, rgba(154, 63, 36, 0.06), transparent 70%);
+}
+
+/* GRAIN — paper × Mars dust × CRT scan (gpt-image-1.5 generated). */
+.archive-page::before {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.08;
+  mix-blend-mode: soft-light;
+  background-image: url("/textures/archive-grain.png");
+  background-size: 400px 400px;
+  background-repeat: repeat;
+}
+
+/* HEX GRID — sacred geometry overlay (gpt-image-1.5 generated). */
+.archive-page::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.04;
+  background-image: url("/textures/hex-grid.png");
+  background-size: 360px 360px;
+  background-repeat: repeat;
+}
+
+.archive-page > * { position: relative; z-index: 1; }
+
+/* ─────────────────── ARCHIVAL CURSOR (scoped) ─────────────────── */
+/* Sacred-archive targeting reticle. Desktop pointer only. Inputs +
+   text + disabled controls KEEP the native cursor so typing/selection
+   stay normal. */
+@media (hover: hover) and (pointer: fine) {
+  .archive-page,
+  .archive-page a,
+  .archive-page button:not(:disabled),
+  .archive-page [role="button"]:not([aria-disabled="true"]) {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'><polygon points='9,1.4 16,5.3 16,12.7 9,16.6 2,12.7 2,5.3' fill='none' stroke='rgba(155,146,127,0.28)' stroke-width='1'/></svg>") 9 9, default;
+  }
+  /* Hover state on archive cards + transmission links — ANCIENT_GOLD reticle */
+  .archive-page .archive-card:hover,
+  .archive-page .archive-card:hover *,
+  .archive-page .archive-card__link:hover,
+  .archive-page a.archive-link:hover,
+  .archive-page .archive-provenance:hover {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'><polygon points='9,1.4 16,5.3 16,12.7 9,16.6 2,12.7 2,5.3' fill='none' stroke='rgba(200,163,90,0.35)' stroke-width='1'/></svg>") 9 9, pointer;
+  }
+  /* Scanner connected state — SIGNAL_GREEN reticle */
+  .archive-page [data-signal="detected"],
+  .archive-page [data-signal="detected"] *,
+  .archive-page .sig-inv[data-signal="detected"],
+  .archive-page .sig-inv[data-signal="detected"] * {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'><polygon points='9,1.4 16,5.3 16,12.7 9,16.6 2,12.7 2,5.3' fill='none' stroke='rgba(108,255,179,0.35)' stroke-width='1'/></svg>") 9 9, default;
+  }
+  /* Native cursor restoration — never override text editing or
+     disabled controls. */
+  .archive-page input,
+  .archive-page textarea,
+  .archive-page select,
+  .archive-page [contenteditable="true"],
+  .archive-page button:disabled,
+  .archive-page [aria-disabled="true"],
+  .archive-page .ws-input,
+  .archive-page .sig-inv__input {
+    cursor: text;
+  }
+  .archive-page button:disabled,
+  .archive-page [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
+/* ─────────────────── HERO ─────────────────── */
+.archive-page__hero {
+  margin-bottom: var(--s-6);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--archival-rule-gold);
+  /* Document-stamp double rule: one gold line at top + a single
+     pixel of bone-line directly beneath. Sacred ceremonial only. */
+  box-shadow: inset 0 2px 0 0 transparent, inset 0 3px 0 0 var(--archival-line-deep);
+}
+.archive-page__kicker {
+  display: inline-block;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--archival-gold);
+  margin-bottom: 14px;
+}
+.archive-page__title {
+  font-family: var(--display);
+  font-size: clamp(40px, 7vw, 80px);
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+  margin: 6px 0 18px;
+  color: var(--archival-bone);
+  font-weight: 400;
+}
+.archive-page__title em {
+  color: var(--archival-gold);
+  font-style: normal;
+}
+.archive-page__lede {
+  font-family: var(--mono2);
+  font-size: 14px;
+  color: var(--archival-bone-2);
+  line-height: 1.75;
+  max-width: 680px;
+  margin: 0;
+}
+
+/* ─────────────────── TRANSMISSION CARD (terminal panel) ─────────────────── */
+.archive-page__entries {
+  display: grid;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+}
+.archive-card {
+  position: relative;
+  padding: 0;                                         /* header carries its own padding */
+  background: var(--archival-surface);                /* flat ASH, no gradient */
+  border: 1px solid var(--archival-line);
+  border-radius: 8px;                                 /* less round than dashboard */
+  overflow: hidden;
+  transition: border-color 240ms ease, transform 240ms ease;
+}
+/* Document-stamp top double-rule: single 1px ANCIENT_GOLD inset at
+   22% — sacred ruling, not decorative. Bone single rule beneath. */
+.archive-card::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background:
+    linear-gradient(180deg, var(--archival-rule-gold) 0 1px,
+                            transparent 1px 2px,
+                            var(--archival-line-deep) 2px 3px);
+  pointer-events: none;
+}
+.archive-card:hover {
+  border-color: var(--archival-rule-gold);
+  transform: translateY(-1px);
+}
+.archive-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 24px 14px;
+  background: var(--archival-carbon);
+  border-bottom: 1px solid var(--archival-line);
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--archival-dust);
+}
+.archive-card__seq { color: var(--archival-dust); }
+/* Status chip = monochrome + colored dot prefix only. NO colored fill. */
+.archive-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--archival-line);
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  color: var(--archival-dust);
+  background: transparent;
+}
+.archive-card__statusDot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--state-color, var(--archival-dust));
+  flex-shrink: 0;
+}
+.archive-card__body {
+  padding: 22px 24px 18px;
+}
+.archive-card__title {
+  font-family: var(--display);
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+  color: var(--archival-bone);
+  font-weight: 400;
+  text-transform: none;
+}
+.archive-card__text {
+  font-family: var(--mono2);
+  font-size: 13px;
+  color: var(--archival-bone-2);
+  line-height: 1.75;
+  margin: 0;
+}
+.archive-card__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 24px 18px;
+  border-top: 1px dashed var(--archival-line);
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: var(--archival-dust);
+  text-transform: uppercase;
+}
+.archive-card__class { color: var(--archival-dust); }
+.archive-card__link {
+  color: var(--archival-bone-2);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  border-bottom: 1px solid transparent;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+.archive-card__link:hover {
+  color: var(--archival-gold);
+  border-bottom-color: var(--archival-rule-gold);
+}
+
+/* ─────────────────── PROVENANCE BLOCK (sacred) ─────────────────── */
+.archive-page__provenance {
+  position: relative;
+  padding: 28px 32px;
+  margin-bottom: var(--s-5);
+  background: var(--archival-surface);
+  border: 1px solid var(--archival-line);
+  border-radius: 8px;
+}
+.archive-page__provenance::before,
+.archive-page__provenance::after {
+  content: "";
+  position: absolute; left: 24px; right: 24px;
+  height: 1px;
+  background: var(--archival-rule-gold);
+}
+.archive-page__provenance::before { top: 6px; }
+.archive-page__provenance::after  { bottom: 6px; }
+.archive-page__provenanceKicker {
+  display: inline-block;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--archival-gold);
+  margin-bottom: 12px;
+}
+.archive-page__provenanceText {
+  font-family: var(--mono2);
+  font-size: 13px;
+  color: var(--archival-bone-2);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ─────────────────── CLOSER ─────────────────── */
+.archive-page__closer {
+  padding: 32px;
+  margin-bottom: var(--s-5);
+  background: var(--archival-surface);
+  border: 1px solid var(--archival-line);
+  border-radius: 8px;
+}
+.archive-page__closerKicker {
+  display: inline-block;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--archival-gold);
+}
+.archive-page__closerText {
+  font-family: var(--mono2);
+  font-size: 13px;
+  color: var(--archival-bone-2);
+  line-height: 1.75;
+  margin-top: 14px;
+}
+.archive-page__closerStamp {
+  font-family: var(--mono2);
+  font-size: 11px;
+  color: var(--archival-gold);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  margin-top: 14px;
+}
+
+/* ─────────────────── NEXT (CTA row) ─────────────────── */
+.archive-page__next { text-align: center; padding-top: var(--s-3); }
+.archive-page__nextKicker {
+  display: inline-block;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--archival-dust);
+}
+
+/* ─────────────────── MOTION (scoped, reduced-motion safe) ─────────────────── */
+@keyframes archivalSlowFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.archive-page .archive-card,
+.archive-page .archive-page__provenance,
+.archive-page .archive-page__closer {
+  animation: archivalSlowFade 700ms ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .archive-page .archive-card,
+  .archive-page .archive-page__provenance,
+  .archive-page .archive-page__closer {
+    animation: none !important;
+  }
+  .archive-page .sig-inv__glyph { animation: none !important; }
 }
 

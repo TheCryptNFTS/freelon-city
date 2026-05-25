@@ -118,6 +118,7 @@ const ENTRIES: ArchiveEntry[] = [
 export default function ArchivePage() {
   return (
     <main
+      className="archive-page"
       style={{
         maxWidth: 960,
         margin: "0 auto",
@@ -125,33 +126,15 @@ export default function ArchivePage() {
       }}
     >
       {/* HERO */}
-      <section style={{ marginBottom: "var(--s-6)" }}>
-        <span className="kicker" style={{ color: "var(--gold)" }}>
+      <section className="archive-page__hero">
+        <span className="archive-page__kicker">
           ⬡ OTHER SIGNALS · ARCHIVE
         </span>
-        <h1
-          style={{
-            fontFamily: "var(--display)",
-            fontSize: "clamp(40px, 7vw, 80px)",
-            lineHeight: 0.94,
-            letterSpacing: "-0.02em",
-            margin: "10px 0 14px",
-          }}
-        >
+        <h1 className="archive-page__title">
           Before FREELON CITY<br />
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>
-            there were other signals.
-          </em>
+          <em>there were other signals.</em>
         </h1>
-        <p
-          style={{
-            fontFamily: "var(--mono2)",
-            fontSize: 14,
-            color: "var(--ink-2)",
-            lineHeight: 1.7,
-            maxWidth: 680,
-          }}
-        >
+        <p className="archive-page__lede">
           Recovered transmissions, dead archives, ancient species, memory
           fragments, collapse events. Not lost. Not abandoned. Reconnecting
           through the signal as the city remembers.
@@ -159,109 +142,39 @@ export default function ArchivePage() {
       </section>
 
       {/* CHECK YOUR SIGNAL — wallet-powered ownership terminal across
-          the 6 connected collections. Founder brief 2026-05-25: turn
-          the archive from a lore page into a personal ownership
-          terminal. Auto-fills from freelon_addr cookie when a synced
-          holder lands here. */}
+          the 6 connected collections. */}
       <SignalInventoryPanel />
 
       {/* ENTRIES */}
-      <section
-        style={{
-          display: "grid",
-          gap: "var(--s-3)",
-          marginBottom: "var(--s-6)",
-        }}
-      >
+      <section className="archive-page__entries">
         {ENTRIES.map((t) => (
           <article
             key={t.sequence}
-            style={{
-              padding: "var(--s-4) var(--s-5)",
-              border: `1px solid ${t.statusColor}33`,
-              background: `linear-gradient(135deg, ${t.statusColor}08, rgba(0,0,0,0.4))`,
-              borderRadius: 12,
-              position: "relative",
-            }}
+            className="archive-card"
+            // Per-card status color drives ONLY the small dot in the
+            // status chip — the rest of the card stays monochrome
+            // archival per the visual pass spec. No more gradient
+            // backgrounds tinted by status.
+            style={{ ["--state-color" as string]: t.statusColor }}
           >
-            <header
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                flexWrap: "wrap",
-                gap: 12,
-                marginBottom: 12,
-                fontFamily: "var(--mono2)",
-                fontSize: 11,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "var(--ink-dim)",
-              }}
-            >
-              <span>⬡ {t.sequence}</span>
-              <span
-                style={{
-                  color: t.statusColor,
-                  fontWeight: 700,
-                  padding: "3px 10px",
-                  border: `1px solid ${t.statusColor}55`,
-                  borderRadius: 999,
-                }}
-              >
-                ● {t.status}
+            <header className="archive-card__head">
+              <span className="archive-card__seq">⬡ {t.sequence}</span>
+              <span className="archive-card__status">
+                <span className="archive-card__statusDot" aria-hidden />
+                {t.status}
               </span>
             </header>
-            <h2
-              style={{
-                fontFamily: "var(--display)",
-                fontSize: "clamp(22px, 3vw, 32px)",
-                lineHeight: 1.1,
-                letterSpacing: "-0.01em",
-                margin: "0 0 10px",
-                color: "var(--ink)",
-              }}
-            >
-              {t.title}
-            </h2>
-            <p
-              style={{
-                fontFamily: "var(--mono2)",
-                fontSize: 13,
-                color: "var(--ink-2)",
-                lineHeight: 1.7,
-                margin: "0 0 14px",
-              }}
-            >
-              {t.body}
-            </p>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                flexWrap: "wrap",
-                gap: 10,
-                paddingTop: 10,
-                borderTop: `1px dashed ${t.statusColor}33`,
-                fontFamily: "var(--mono2)",
-                fontSize: 11,
-                letterSpacing: "0.14em",
-                color: "var(--ink-dim)",
-                textTransform: "uppercase",
-              }}
-            >
-              <span>⬡ {t.artifactClass}</span>
+            <div className="archive-card__body">
+              <h2 className="archive-card__title">{t.title}</h2>
+              <p className="archive-card__text">{t.body}</p>
+            </div>
+            <div className="archive-card__foot">
+              <span className="archive-card__class">⬡ {t.artifactClass}</span>
               <a
                 href={t.openseaUrl}
                 target="_blank"
                 rel="noreferrer"
-                style={{
-                  color: t.statusColor,
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  letterSpacing: "0.22em",
-                }}
+                className="archive-card__link archive-link"
               >
                 VIEW ARTEFACT ↗
               </a>
@@ -270,28 +183,15 @@ export default function ArchivePage() {
         ))}
       </section>
 
-      {/* PROVENANCE NOTE — kills 'rug' fears without sounding defensive */}
-      <section
-        style={{
-          padding: "var(--s-4) var(--s-5)",
-          border: "1px dashed var(--line-2)",
-          borderRadius: 12,
-          background: "rgba(255,255,255,0.02)",
-          marginBottom: "var(--s-5)",
-        }}
-      >
-        <span className="kicker" style={{ color: "var(--gold)" }}>
+      {/* PROVENANCE NOTE — sacred block. Kills 'rug' fears without
+         sounding defensive. ANCIENT_GOLD is reserved for exactly this
+         kind of provenance kicker and the document double-rule that
+         frames it. */}
+      <section className="archive-page__provenance">
+        <span className="archive-page__provenanceKicker">
           ⬡ ONE ARCHITECT · ONE WALLET · ONE SIGNAL
         </span>
-        <p
-          style={{
-            fontFamily: "var(--mono2)",
-            fontSize: 13,
-            color: "var(--ink-2)",
-            lineHeight: 1.7,
-            margin: "10px 0 0",
-          }}
-        >
+        <p className="archive-page__provenanceText">
           Every artefact in this archive was minted from the same architect&apos;s
           wallet. The signals were never rugged — they were unfinished
           coordinates. FREELON CITY is the place they finally connect.
@@ -299,48 +199,23 @@ export default function ArchivePage() {
       </section>
 
       {/* CLOSER */}
-      <section
-        style={{
-          padding: "var(--s-5)",
-          border: "1px solid var(--gold)33",
-          background: "linear-gradient(135deg, rgba(200,167,93,0.06), rgba(0,0,0,0.4))",
-          borderRadius: 14,
-          marginBottom: "var(--s-5)",
-        }}
-      >
-        <span className="kicker" style={{ color: "var(--gold)" }}>
+      <section className="archive-page__closer">
+        <span className="archive-page__closerKicker">
           ⬡ THE ARCHIVE IS SYNCING
         </span>
-        <p
-          style={{
-            fontFamily: "var(--mono2)",
-            fontSize: 13,
-            color: "var(--ink-2)",
-            lineHeight: 1.7,
-            marginTop: 12,
-          }}
-        >
+        <p className="archive-page__closerText">
           The old worlds become districts. The old art becomes relics. The old
           carriers become early citizens. Nothing is being abandoned. The
           mission stays simple:
         </p>
-        <p
-          style={{
-            fontFamily: "var(--mono2)",
-            fontSize: 12,
-            color: "var(--gold)",
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            marginTop: 12,
-          }}
-        >
+        <p className="archive-page__closerStamp">
           ⬡ 404 HEX NOT FOUND · BRING IDENTITY BACK
         </p>
       </section>
 
       {/* NEXT */}
-      <section style={{ textAlign: "center" }}>
-        <span className="kicker">⬡ NEXT SIGNAL</span>
+      <section className="archive-page__next">
+        <span className="archive-page__nextKicker">⬡ NEXT SIGNAL</span>
         <div
           className="ui-cta-row"
           style={{ marginTop: "var(--s-2)", justifyContent: "center" }}
