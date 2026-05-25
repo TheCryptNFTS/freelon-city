@@ -12,6 +12,7 @@ import { MayorBroadcast } from "@/components/MayorBroadcast";
 import { getBroadcast } from "@/lib/civ-broadcast-store";
 import { CivGlyph } from "@/components/CivGlyph";
 import doctrineFragments from "@/data/doctrine-fragments.json";
+import { godForCiv, godOpenSeaUrl } from "@/lib/gods";
 
 export function generateStaticParams() {
   return Object.keys(CIVILIZATIONS).map((slug) => ({ slug }));
@@ -109,6 +110,108 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <div className="text-xs uppercase tracking-widest text-[var(--color-ink-dim)]">citizens</div>
         </div>
       </div>
+
+      {/* PATRON GOD — the 10×10 connection between civilizations and
+          the Crypt Trading Cards gods. Mapping decided 2026-05-25 by
+          matching each god's mythic domain to the civ doctrine. The
+          god's NFT is a 1/1 in collection 0x48fd…7394 on Ethereum. */}
+      {(() => {
+        const god = godForCiv(slug);
+        if (!god) return null;
+        return (
+          <section
+            style={{
+              marginTop: "var(--s-5)",
+              padding: "var(--s-4)",
+              border: `1px solid ${c.color}55`,
+              background: `linear-gradient(135deg, ${c.color}12, rgba(0,0,0,0.4))`,
+              borderRadius: 14,
+            }}
+          >
+            <header
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                flexWrap: "wrap",
+                gap: 12,
+                marginBottom: 10,
+              }}
+            >
+              <span className="kicker" style={{ color: c.color }}>
+                ⬡ PATRON GOD · COMBAT ARCHIVES
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--mono2)",
+                  fontSize: 10,
+                  letterSpacing: "0.22em",
+                  color: "var(--ink-dim)",
+                  textTransform: "uppercase",
+                }}
+              >
+                ● {god.status} · TOKEN #{god.tokenId}
+              </span>
+            </header>
+            <div
+              style={{
+                fontFamily: "var(--display)",
+                fontSize: "clamp(34px, 5vw, 56px)",
+                lineHeight: 1,
+                color: c.color,
+                letterSpacing: "-0.01em",
+                margin: "6px 0 12px",
+              }}
+            >
+              {god.name.toUpperCase()}
+            </div>
+            <p
+              style={{
+                fontFamily: "var(--mono2)",
+                fontSize: 13,
+                color: "var(--ink-2)",
+                lineHeight: 1.7,
+                margin: "0 0 6px",
+                maxWidth: 640,
+              }}
+            >
+              {god.line}
+            </p>
+            <p
+              style={{
+                fontFamily: "var(--mono2)",
+                fontSize: 11,
+                color: "var(--ink-dim)",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                margin: "0 0 14px",
+              }}
+            >
+              DOMAIN · {god.domain}
+            </p>
+            <a
+              href={godOpenSeaUrl(god)}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: "inline-block",
+                padding: "8px 14px",
+                border: `1px solid ${c.color}`,
+                color: c.color,
+                fontFamily: "var(--mono2)",
+                fontSize: 11,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                borderRadius: 999,
+                textDecoration: "none",
+              }}
+            >
+              VIEW RELIC ↗
+            </a>
+          </section>
+        );
+      })()}
 
       {rival && rivalSlug && c.rivalLine && (
         <section className="civ-rivalry-block">

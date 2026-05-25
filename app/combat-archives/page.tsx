@@ -16,6 +16,8 @@
  */
 import Link from "next/link";
 import type { Metadata } from "next";
+import { GODS, godOpenSeaUrl } from "@/lib/gods";
+import { CIVILIZATIONS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Combat Archives · Signal Reconstruction",
@@ -200,6 +202,141 @@ export default function CombatArchivesPage() {
             </p>
           </article>
         ))}
+      </section>
+
+      {/* TEN GODS REVEAL — the structural connection from the founder
+          brief: 10 civilizations × 10 gods, each tied. Sourced from
+          lib/gods.ts (on-chain confirmed 1/1s in Crypt Trading Cards
+          0x48fd...7394). */}
+      <section style={{ marginBottom: "var(--s-6)" }}>
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            flexWrap: "wrap",
+            gap: 12,
+            marginBottom: "var(--s-3)",
+          }}
+        >
+          <span className="kicker" style={{ color: "var(--gold)" }}>
+            ⬡ THE TEN GODS · SEALED IN THE RELIC RECORD
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--mono2)",
+              fontSize: 10,
+              letterSpacing: "0.22em",
+              color: "var(--ink-dim)",
+              textTransform: "uppercase",
+            }}
+          >
+            ONE GOD · ONE CIVILIZATION
+          </span>
+        </header>
+        <p
+          style={{
+            fontFamily: "var(--mono2)",
+            fontSize: 13,
+            color: "var(--ink-2)",
+            lineHeight: 1.7,
+            margin: "0 0 var(--s-3)",
+            maxWidth: 680,
+          }}
+        >
+          Ten ancient entities recovered through the relic record. Each
+          is bound — by symbol, doctrine, or domain — to one of the city&apos;s
+          ten civilizations. The connection was never declared. It was
+          discovered.
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gap: "var(--s-3)",
+          }}
+        >
+          {GODS.map((g) => {
+            const civ = (CIVILIZATIONS as Record<string, { name: string; color: string }>)[g.civ];
+            const color = civ?.color || "var(--gold)";
+            return (
+              <a
+                key={g.tokenId}
+                href={godOpenSeaUrl(g)}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "block",
+                  padding: "var(--s-4)",
+                  border: `1px solid ${color}55`,
+                  background: `linear-gradient(135deg, ${color}10, rgba(0,0,0,0.4))`,
+                  borderRadius: 12,
+                  textDecoration: "none",
+                  color: "inherit",
+                  transition: "border-color 120ms ease, transform 120ms ease",
+                }}
+              >
+                <header
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    marginBottom: 8,
+                    fontFamily: "var(--mono2)",
+                    fontSize: 10,
+                    letterSpacing: "0.22em",
+                    color: color,
+                    fontWeight: 700,
+                  }}
+                >
+                  <span>● {g.status}</span>
+                  <span style={{ color: "var(--ink-dim)" }}>#{g.tokenId}</span>
+                </header>
+                <div
+                  style={{
+                    fontFamily: "var(--display)",
+                    fontSize: 26,
+                    lineHeight: 1,
+                    color,
+                    letterSpacing: "-0.005em",
+                    margin: "4px 0 10px",
+                  }}
+                >
+                  {g.name.toUpperCase()}
+                </div>
+                <p
+                  style={{
+                    fontFamily: "var(--mono2)",
+                    fontSize: 11,
+                    color: "var(--ink-2)",
+                    lineHeight: 1.5,
+                    margin: "0 0 6px",
+                  }}
+                >
+                  {g.line}
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    paddingTop: 8,
+                    marginTop: 8,
+                    borderTop: `1px dashed ${color}33`,
+                    fontFamily: "var(--mono2)",
+                    fontSize: 10,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "var(--ink-dim)",
+                  }}
+                >
+                  <span style={{ color }}>{civ?.name?.toUpperCase()}</span>
+                  <span>VIEW RELIC ↗</span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </section>
 
       {/* CLOSER */}
