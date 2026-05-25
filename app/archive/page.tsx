@@ -73,12 +73,17 @@ const ENTRIES: ArchiveEntry[] = [
     artifactClass: "non-human species · pre-civilization listeners",
   },
   {
-    sequence: "TRANSMISSION 0404",
+    // Founder brief 2026-05-25 (same scope discipline as the Crypt
+    // upgrade): "Frame Emile as Memory Archive. Preserved emotional
+    // fragments / memory loops / signal echoes from before the
+    // collapse. Concise and premium. No new routes, no new mechanics."
+    // Layout untouched, copy tightened.
+    sequence: "TRANSMISSION 0404 · MEMORY ARCHIVE",
     status: "DECAYING",
     statusColor: "var(--state-surge)",
     title: "Emile",
     body:
-      "Memory fragments preserved before the signal collapse.",
+      "Preserved emotional fragments. Memory loops the architects could not let dissolve. Signal echoes recorded in the seconds before the collapse — fragile, looping, half-erased.",
     openseaUrl: "https://opensea.io/collection/emile0x1908",
     artifactClass: "memory archive · emotional preservation",
   },
