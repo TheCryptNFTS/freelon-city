@@ -5147,3 +5147,248 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   .archive-page .sig-inv__glyph { animation: none !important; }
 }
 
+/* =============================================================== */
+/* HOMEPAGE VISUAL ALIGNMENT PASS — 2026-05-26                      */
+/* All rules scoped to .home-page wrapper.                          */
+/* Reuses the same --archival-* tokens proven on /archive.          */
+/* Goal: homepage stops feeling Claude/Tailwind without becoming    */
+/* an archive document page. Five-section spine unchanged. No       */
+/* nav/footer changes (already shipped). No /archive changes.       */
+/* =============================================================== */
+
+.home-page {
+  position: relative;
+  /* Flat void over the body's dual-gradient wash. The body keeps
+     its existing background for every other page; this layer
+     covers it on / only. */
+  background: var(--archival-bg);
+  color: var(--archival-bone);
+  /* Single edge vignette in MARS_RUST at the very bottom of the
+     page — felt, not seen. Mirrors /archive treatment. */
+  background-image:
+    radial-gradient(ellipse 90% 30% at 50% 110%, rgba(154, 63, 36, 0.06), transparent 70%);
+}
+
+/* GRAIN — same paper × Mars dust × CRT scan tile used on /archive.
+   Lower opacity here so the homepage feels open, not document-y. */
+.home-page::before {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.06;                              /* 6% — barely visible */
+  mix-blend-mode: soft-light;
+  background-image: url("/textures/archive-grain.png");
+  background-size: 400px 400px;
+  background-repeat: repeat;
+}
+
+/* HEX GRID — same tile, even quieter than /archive (3% vs 4%) so
+   the homepage doesn't compete with /archive for archival density. */
+.home-page::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  background-image: url("/textures/hex-grid.png");
+  background-size: 360px 360px;
+  background-repeat: repeat;
+}
+
+.home-page > * { position: relative; z-index: 1; }
+
+/* ─── OtherSignalsStrip — recovered archive files, not marketing cards ─── */
+/* Overrides the inline gradient + colored-border treatment via
+   attribute selectors targeting the section + its children. */
+.home-page section[aria-label="Other signals · archives"] {
+  position: relative;
+  padding-top: var(--s-3);
+  /* Sacred document top double-rule mirrors /archive hero treatment */
+  border-top: 1px solid var(--archival-rule-gold);
+  box-shadow: inset 0 2px 0 0 transparent, inset 0 3px 0 0 var(--archival-line-deep);
+}
+/* Force the inline statusColor card styling back to flat archival.
+   Inline styles win specificity normally — we counter with !important
+   only on the visual properties, leaving layout alone. */
+.home-page section[aria-label="Other signals · archives"] article {
+  background: var(--archival-surface) !important;
+  border: 1px solid var(--archival-line) !important;
+  border-radius: 8px !important;
+  position: relative;
+  overflow: hidden;
+}
+.home-page section[aria-label="Other signals · archives"] article::before {
+  /* Document top rule per card, same pattern as .archive-card */
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background:
+    linear-gradient(180deg, var(--archival-rule-gold) 0 1px,
+                            transparent 1px 2px,
+                            var(--archival-line-deep) 2px 3px);
+  pointer-events: none;
+}
+/* Status header text → monochrome dust. Status color survives only
+   as the small ● dot prefix (rendered inline as text — keeps the
+   colored bullet but the rest goes dust). */
+.home-page section[aria-label="Other signals · archives"] article header {
+  color: var(--archival-dust) !important;
+  letter-spacing: 0.32em !important;
+}
+.home-page section[aria-label="Other signals · archives"] article h3 {
+  color: var(--archival-bone) !important;
+  font-weight: 400;
+  text-transform: none;
+}
+.home-page section[aria-label="Other signals · archives"] article p {
+  color: var(--archival-bone-2) !important;
+  line-height: 1.75 !important;
+}
+.home-page section[aria-label="Other signals · archives"] article:hover {
+  border-color: var(--archival-rule-gold) !important;
+  transform: translateY(-1px);
+  transition: border-color 240ms ease, transform 240ms ease;
+}
+/* Kicker on the section header — ANCIENT_GOLD allowed (sacred
+   archive provenance, matches /archive kicker treatment). */
+.home-page section[aria-label="Other signals · archives"] .kicker {
+  color: var(--archival-gold) !important;
+  font-size: 10px;
+  letter-spacing: 0.32em;
+}
+/* The italic "there were other signals." stays gold (sacred italic). */
+.home-page section[aria-label="Other signals · archives"] h2 em {
+  color: var(--archival-gold) !important;
+}
+.home-page section[aria-label="Other signals · archives"] h2 {
+  color: var(--archival-bone) !important;
+  font-weight: 400;
+  text-transform: none !important;
+}
+.home-page section[aria-label="Other signals · archives"] > p {
+  color: var(--archival-bone-2) !important;
+}
+
+/* ─── Civilizations grid — controlled identity system, not colour wall ─── */
+/* The .civ-grid uses --civ tokens to colour borders/backgrounds per
+   civilization. On the homepage, we mute that. Civ color survives
+   only as the thin left edge marker — the rest goes archival flat.
+   The /civilizations page itself keeps its full color treatment. */
+.home-page .civs-section .civ-grid > a {
+  background: var(--archival-surface) !important;
+  border: 1px solid var(--archival-line) !important;
+  border-left: 2px solid var(--civ, var(--archival-dust)) !important;
+  border-radius: 8px !important;
+  transition: border-color 240ms ease, transform 240ms ease;
+}
+.home-page .civs-section .civ-grid > a:hover {
+  border-color: var(--archival-line) !important;
+  border-left-color: var(--civ, var(--archival-gold)) !important;
+  transform: translateY(-1px);
+}
+.home-page .civs-section .civ-grid .idx {
+  color: var(--archival-dust) !important;
+}
+.home-page .civs-section .civ-grid .name {
+  color: var(--archival-bone) !important;
+}
+.home-page .civs-section .civ-grid .pop {
+  color: var(--archival-bone) !important;
+}
+.home-page .civs-section .civ-grid .role {
+  color: var(--archival-bone-2) !important;
+}
+.home-page .civs-section .civ-grid .chant {
+  color: var(--archival-dust) !important;
+}
+.home-page .civs-section .kicker {
+  color: var(--archival-dust) !important;
+}
+.home-page .civs-section h2 {
+  color: var(--archival-bone) !important;
+}
+.home-page .civs-section h2 em {
+  color: var(--archival-gold) !important;
+}
+.home-page .civs-section .more {
+  color: var(--archival-bone-2) !important;
+  transition: color 200ms ease;
+}
+.home-page .civs-section .more:hover {
+  color: var(--archival-gold) !important;
+}
+
+/* ─── Pull quote — quiet and expensive ─── */
+.home-page section.pull {
+  position: relative;
+  padding-top: var(--s-7);
+  padding-bottom: var(--s-7);
+}
+/* Two faint gold lines bracketing the quote — sacred document frame. */
+.home-page section.pull::before,
+.home-page section.pull::after {
+  content: "";
+  position: absolute; left: 50%;
+  transform: translateX(-50%);
+  width: clamp(120px, 18vw, 240px);
+  height: 1px;
+  background: var(--archival-rule-gold);
+}
+.home-page section.pull::before { top: var(--s-4); }
+.home-page section.pull::after  { bottom: var(--s-4); }
+.home-page section.pull q {
+  color: var(--archival-bone) !important;
+}
+.home-page section.pull q em {
+  color: var(--archival-gold) !important;
+}
+
+/* ─── On-chain footer block — already strong, tighten tokens only ─── */
+.home-page section.onchain .kicker {
+  color: var(--archival-dust) !important;
+}
+.home-page section.onchain h2 {
+  color: var(--archival-bone) !important;
+}
+.home-page section.onchain h2 em {
+  color: var(--archival-gold) !important;
+}
+/* Trinity cells flatten to archival panels */
+.home-page section.onchain .trinity .cell {
+  background: var(--archival-surface) !important;
+  border: 1px solid var(--archival-line) !important;
+  border-radius: 8px !important;
+}
+.home-page section.onchain .trinity .cell .lbl {
+  color: var(--archival-dust) !important;
+}
+.home-page section.onchain .trinity .cell .val {
+  color: var(--archival-bone) !important;
+}
+.home-page section.onchain .trinity .cell .sub {
+  color: var(--archival-dust) !important;
+}
+
+/* ─── Hero badge → archival treatment (no gold pill) ─── */
+/* The term-badge has the flickering 404 dot. Keep flicker (already
+   reduced-motion safe). Tighten the colors to archival tokens. */
+.home-page .hero .term-badge {
+  color: var(--archival-gold);  /* sacred — the 404 stamp earns gold */
+  border-color: var(--archival-rule-gold);
+  background: transparent;
+}
+
+/* Hero subtext + display H1 inherit existing tokens correctly; no
+   override needed. */
+
+/* ─── Reduced motion guard for homepage-scoped animations ─── */
+@media (prefers-reduced-motion: reduce) {
+  .home-page section[aria-label="Other signals · archives"] article {
+    transition: none !important;
+  }
+  .home-page .civs-section .civ-grid > a {
+    transition: none !important;
+  }
+}
+

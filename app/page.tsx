@@ -21,7 +21,9 @@ import { CIVILIZATIONS, CONTRACT, METADATA_CID, heroImageUrl } from "@/lib/const
 
 export default function Home() {
   return (
-    <main>
+    /* Audit 2026-05-26: .home-page wrapper triggers the scoped
+       archival visual system in globals.css. No structure change. */
+    <main className="home-page">
       {/* HERO */}
       <section className="hero">
         <div className="hero-left">
