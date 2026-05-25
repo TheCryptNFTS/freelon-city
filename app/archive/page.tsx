@@ -15,6 +15,7 @@
  */
 import Link from "next/link";
 import type { Metadata } from "next";
+import { SignalInventoryPanel } from "@/components/SignalInventory";
 
 export const metadata: Metadata = {
   title: "Other Signals · Archive",
@@ -156,6 +157,13 @@ export default function ArchivePage() {
           through the signal as the city remembers.
         </p>
       </section>
+
+      {/* CHECK YOUR SIGNAL — wallet-powered ownership terminal across
+          the 6 connected collections. Founder brief 2026-05-25: turn
+          the archive from a lore page into a personal ownership
+          terminal. Auto-fills from freelon_addr cookie when a synced
+          holder lands here. */}
+      <SignalInventoryPanel />
 
       {/* ENTRIES */}
       <section
