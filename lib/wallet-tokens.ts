@@ -240,32 +240,51 @@ export async function getWalletTokens(
   // Fallback: if RPC enumeration came up short (balance > 0 but RPC returned
   // empty/partial), backfill from OpenSea so the wallet page actually shows
   // the holder's citizens. The previous behaviour silently lost their tokens.
+  //
+  // Discord 2026-05-25 (@Peterhawk71): "site only recognizes 4 of my
+  // Citizens". Root cause: OpenSea fallback only fetched page 1 (limit
+  // 200 across all collections in the wallet), so wallets that own
+  // OTHER NFTs alongside their freelons got truncated when freelons
+  // tokens sat past the page-1 boundary. Fix: paginate the OpenSea
+  // account/nfts endpoint until we either match balance or hit page
+  // budget.
   if (ids.length < balance) {
     const apiKey = process.env.OPENSEA_API_KEY;
     if (apiKey) {
       try {
-        const ctrl = new AbortController();
-        const to = setTimeout(() => ctrl.abort(), 5_000);
-        const url = `https://api.opensea.io/api/v2/chain/ethereum/account/${norm}/nfts?collection=freelons&limit=${Math.min(max, 200)}`;
-        const r = await fetch(url, {
-          headers: { "X-API-KEY": apiKey, accept: "application/json" },
-          signal: ctrl.signal,
-          next: { revalidate: 60 },
-        });
-        clearTimeout(to);
-        if (r.ok) {
-          const d = (await r.json()) as { nfts?: Array<{ contract?: string; identifier?: string }> };
+        const set = new Set(ids);
+        let next: string | null = null;
+        const MAX_PAGES = 5; // 5 × 200 = up to 1000 NFTs scanned per wallet
+        for (let page = 0; page < MAX_PAGES; page++) {
+          if (set.size >= balance) break;
+          if (set.size >= max) break;
+          const ctrl = new AbortController();
+          const to = setTimeout(() => ctrl.abort(), 5_000);
+          const u = new URL(`https://api.opensea.io/api/v2/chain/ethereum/account/${norm}/nfts`);
+          u.searchParams.set("collection", "freelons");
+          u.searchParams.set("limit", "200");
+          if (next) u.searchParams.set("next", next);
+          const r = await fetch(u.toString(), {
+            headers: { "X-API-KEY": apiKey, accept: "application/json" },
+            signal: ctrl.signal,
+            next: { revalidate: 60 },
+          });
+          clearTimeout(to);
+          if (!r.ok) break;
+          const d = (await r.json()) as {
+            nfts?: Array<{ contract?: string; identifier?: string }>;
+            next?: string | null;
+          };
           const osIds = (d.nfts || [])
             .filter((n) => (n.contract || "").toLowerCase() === CONTRACT.toLowerCase())
             .map((n) => Number(n.identifier))
             .filter((n) => Number.isFinite(n) && n >= 1 && n <= 4040);
-          // Merge — RPC ids first (already verified on-chain), append any
-          // OpenSea ids not already present.
-          const set = new Set(ids);
           for (const id of osIds) {
             if (!set.has(id)) ids.push(id);
             set.add(id);
           }
+          next = d.next ?? null;
+          if (!next) break;
         }
       } catch {
         /* keep whatever ids we have */

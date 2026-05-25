@@ -20,6 +20,7 @@ import { ECONOMY } from "@/lib/economy-constants";
 import { StampViewerAddr } from "@/components/StampViewerAddr";
 import { CarrierHealthCta } from "@/components/CarrierHealthCta";
 import { NotificationInbox } from "@/components/NotificationInbox";
+import { FeaturedCitizenPicker } from "@/components/FeaturedCitizenPicker";
 import { CANON } from "@/lib/canon";
 import { getDefenderSince, defenderBonusPct } from "@/lib/ghost-store";
 
@@ -475,6 +476,11 @@ export default async function WalletPage({
       </section>
 
       <NotificationInbox />
+
+      {/* Featured citizen picker (Peterhawk71 spec 2026-05-25). Self-
+          gates: only renders when the cookie-stored viewer address
+          matches THIS wallet. Empty when wallet holds 0 citizens. */}
+      <FeaturedCitizenPicker walletAddress={norm} ownedTokenIds={tokenIds} />
 
       <section className="wallet-hex-section" style={{ marginTop: "var(--s-6)" }}>
         <HexEarningsLog address={norm} />

@@ -5,6 +5,7 @@ import { FloorPill } from "@/components/FloorPill";
 import { HonoreeStrip } from "@/components/HonoreeStrip";
 import { HoldTheLineBanner } from "@/components/HoldTheLineBanner";
 import { CityTerminal } from "@/components/CityTerminal";
+import { GoodValueToSweep } from "@/components/GoodValueToSweep";
 import { CivGlyph } from "@/components/CivGlyph";
 import { getUsdPerEth, hexToUsdLabel } from "@/lib/eth-price";
 import { WalletScanner } from "@/app/sync/WalletScanner";
@@ -71,17 +72,22 @@ export default async function Home() {
               Burn hex — carve your name into the wall.
             </p>
 
-            {/* Single primary CTA — pros: kill the second CTA, one decision.
-                Buy on OpenSea wins over Sync because that's where revenue is.
-                Newcomer route to /start kept as the small secondary pill. */}
+            {/* Two CTAs side-by-side: SYNC (free-to-play) + BUY (revenue).
+                Discord 2026-05-25 (Lady Magic): newcomers think they need
+                to spend money. Hero now leads with the no-cost path so
+                "what do I have to lose?" is answered before the buy CTA. */}
             <div className="hero-ctas">
+              <Link href="/sync" className="btn btn-primary">
+                <span className="lbl">FREE TO PLAY</span>
+                <span className="ttl">SYNC + CLAIM 10⬡ <span className="ar">→</span></span>
+              </Link>
               <a
-                className="btn btn-primary"
+                className="btn btn-secondary"
                 href="https://opensea.io/collection/freelons"
                 target="_blank"
                 rel="noreferrer"
               >
-                <span className="lbl">BUY A CITIZEN</span>
+                <span className="lbl">OR HOLD A CITIZEN</span>
                 <span className="ttl">VIEW ON OPENSEA <span className="ar">↗</span></span>
               </a>
               <Link
@@ -94,6 +100,19 @@ export default async function Home() {
                 <span aria-hidden>→</span>
               </Link>
             </div>
+            <p
+              style={{
+                marginTop: 12,
+                fontFamily: "var(--mono2)",
+                fontSize: 11,
+                color: "var(--ink-dim)",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                maxWidth: 480,
+              }}
+            >
+              ⬡ NO WALLET NEEDED TO START · NO PURCHASE TO EARN ⬡
+            </p>
 
             {/* Honoree thumbnails — Vitalik / Beeple / punk6529 / xcopy
                 as social proof bar. Pros: fastest trust signal a stranger
@@ -147,6 +166,14 @@ export default async function Home() {
           next" answer lands BEFORE the Bloomberg state panel because
           the user wants action, not analytics, first. */}
       <DoThisNow />
+
+      {/* GOOD VALUE TO SWEEP — addresses Discord 2026-05-25 WitschiDaD:
+          "is there better ones to sweep up or are they all equal?"
+          Live red-signal listings + the citizen's computed VALUE score
+          per card. Newcomer-friendly: tells you exactly which listings
+          are underpriced relative to rarity, without having to manually
+          scan all 4040. */}
+      <GoodValueToSweep />
 
       {/* HOLD THE LINE banner — distributed bid wall mission. Live
           defender count builds social proof as it fills. */}

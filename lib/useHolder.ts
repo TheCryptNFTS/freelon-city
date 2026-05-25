@@ -87,8 +87,14 @@ export function useHolder(): HolderState {
     let cancelled = false;
 
     async function resolveBalance(addr: string): Promise<number> {
-      // Try RPC first
-      let rpcBal: number | null = null;
+      // Try RPC first. Discord 2026-05-25 (Peterhawk71): the prior
+      // implementation short-circuited on `if (rpcBal > 0) return rpcBal`,
+      // so when RPC returned a partial count we never cross-checked
+      // OpenSea. Now we always run both and take the MAX — RPC is
+      // canonical for the contract, but the server tokens endpoint
+      // also paginates OpenSea as a backfill, so any positive answer
+      // from either source is real.
+      let rpcBal = 0;
       try {
         const bal = (await publicClient.readContract({
           address: CONTRACT as `0x${string}`,
@@ -97,20 +103,23 @@ export function useHolder(): HolderState {
           args: [addr as `0x${string}`],
         })) as bigint;
         rpcBal = Number(bal);
-        if (rpcBal > 0) return rpcBal;
-      } catch {
-        rpcBal = null;
-      }
-      // RPC said 0 or failed — confirm via OpenSea server route
+      } catch {/* fall through to server route */}
+
+      // Always also fetch the server-authoritative count (OpenSea-backed,
+      // paginated). takes the max so a stale RPC undercount can't pin a
+      // user to the wrong holder status.
+      let svrBal = 0;
       try {
         const r = await fetch(`/api/wallet/${addr.toLowerCase()}/tokens`, { cache: "no-store" });
         if (r.ok) {
           const j = (await r.json()) as { tokenIds?: number[]; balance?: number };
-          if (Array.isArray(j.tokenIds) && j.tokenIds.length > 0) return j.tokenIds.length;
-          if (typeof j.balance === "number" && j.balance > 0) return j.balance;
+          const idLen = Array.isArray(j.tokenIds) ? j.tokenIds.length : 0;
+          const reported = typeof j.balance === "number" ? j.balance : 0;
+          svrBal = Math.max(idLen, reported);
         }
       } catch {/* fall through */}
-      return rpcBal ?? 0;
+
+      return Math.max(rpcBal, svrBal);
     }
 
     (async () => {
