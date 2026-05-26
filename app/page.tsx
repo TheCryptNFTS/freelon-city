@@ -260,133 +260,15 @@ export default async function Home() {
         </Link>
       </section>
 
-      {/* HOMEPAGE COMPRESSION 2026-05-25 — hard cut 15→7 sections per
-          founder brief: "Make FREELON CITY understandable in under 10
-          seconds while preserving mystery. Push deeper lore into
-          discovery layers instead of homepage clutter."
-          Sections removed (still live at their deep links, just no
-          longer competing for hero attention):
-          - WHY FREELON (4 mechanic cards) → lives at /earn
-          - CivWarBoard → lives at /civ-wars
-          - The Four One-of-Ones → lives at /citizens + each vanity URL
-          - Honoree band → lives at /tribute
-          - Featured citizens → lives at /citizens
-          - TopPatronsStrip → lives at /patrons
-          - RecentTransmissions → lives at /transmissions + Pulse
-          Commented-out rather than deleted so we can restore any if
-          the bare-bones homepage tests as too thin.
-       */}
-      {/*
-      <section className="why-freelon">
-        <span className="kicker">⬡ THE LEDGER</span>
-        <h2 className="why-headline">
-          We&apos;re all building the city.<br />
-          <em>Hex flows to the ones who carry it.</em>
-        </h2>
-        <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 580, margin: "0 auto var(--s-4)", textAlign: "center" }}>
-          The city isn&apos;t a product — it&apos;s a thing we build together.
-          Snipe red signals, sweep the floor, sell into liquidity, post daily.
-          Sit still for 14 days and the meter pauses. The city remembers what you carried.
-        </p>
-        <div className="why-grid">
-          <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--gold)" } as React.CSSProperties}>
-            <div className="why-stat">
-              <span className="why-num">+500⬡</span>
-              <span className="why-unit">per snipe · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(500, usdPerEth)}</em></span>
-            </div>
-            <div className="why-body">
-              <span className="why-no">01 · SNIPE</span>
-              <h3>Snipe a <span style={{ color: "var(--state-danger)" }}>Red Signal</span></h3>
-              <p>Listings priced ≤ 90% of floor get flagged. Buy one, hold 14 days, the city pays the spread in hex — up to +500⬡ per snipe.</p>
-            </div>
-          </Link>
-          <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--signal-blue)" } as React.CSSProperties}>
-            <div className="why-stat">
-              <span className="why-num">+25⬡</span>
-              <span className="why-unit">per sweep · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(25, usdPerEth)}</em></span>
-            </div>
-            <div className="why-body">
-              <span className="why-no">02 · BUY</span>
-              <h3>Sweep a citizen on OpenSea</h3>
-              <p>The city credits 25 hex per buy. Three sweeps inside 24h adds +100⬡.</p>
-            </div>
-          </Link>
-          <Link href="/earn" className="why-card scan-card" style={{ "--accent": "var(--mars-rust)" } as React.CSSProperties}>
-            <div className="why-stat">
-              <span className="why-num">+10⬡</span>
-              <span className="why-unit">per share · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(10, usdPerEth)}</em></span>
-            </div>
-            <div className="why-body">
-              <span className="why-no">03 · SHARE</span>
-              <h3>Share the daily signal on X</h3>
-              <p>Once per day. 7-day streak = +100⬡. 30-day streak = +500⬡. The city remembers loyalty.</p>
-            </div>
-          </Link>
-          <Link href="/patrons" className="why-card scan-card" style={{ "--accent": "var(--signal-red)" } as React.CSSProperties}>
-            <div className="why-stat">
-              <span className="why-num">100⬡</span>
-              <span className="why-unit">to start · <em style={{ fontStyle: "normal", opacity: 0.85 }}>{hexToUsdLabel(100, usdPerEth)}</em></span>
-            </div>
-            <div className="why-body">
-              <span className="why-no">04 · BURN</span>
-              <h3>Carve your name into the city</h3>
-              <p>Burn hex to name your citizen, realign your civ, or post your name on the Patrons Wall for 7 days.</p>
-            </div>
-          </Link>
-        </div>
-        <div className="why-trust">
-          <span className="dot" />
-          <strong>4040 citizens</strong> · <strong>10 civilizations</strong> ·
-          <strong>16 sacred shapes</strong> · <strong>4 one-of-ones</strong> ·
-          <strong>35 honoraries</strong> · contract <code>{CONTRACT.slice(0, 6)}…{CONTRACT.slice(-4)}</code>
-        </div>
-      </section>
-
-      <CivWarBoard />
-      */}
-
-      {/* Phase 3: removed AlertsFeed (dup of CityFeedTicker marquee),
-         HexIndexHero (dup of CityTerminal Hex Index panel),
-         DailySignal (dup of CityTerminal Today's Signal panel),
-         CitizenOfDay (low-frequency moment, lives at /citizens),
-         BecomeACarrier (dup of /start funnel + DoThisNow sync card),
-         DailyMission (dup of DoThisNow claim card). */}
-
-      {/* SIGNAL CHECK section removed 2026-05-25 — the wallet scanner is
-         the signature interaction but its proper home is /archive (the
-         ownership terminal). Two scanners on adjacent surfaces was
-         fragmenting the brand's signature moment. */}
-
-      {/* Phase 4 compression 2026-05-25: Four One-of-Ones section
-         hidden — visitors discover them through /citizens (now the
-         first section there) + the 4 vanity URLs. Hero already
-         carries the brand. */}
-      {/*
-      <section className="sec-four reveal">
-        <div className="section-bar">
-          <div className="left-col">
-            <span className="kicker">FOUR CITIZENS · BRACKETS OF THE CITY</span>
-            <h2>Four <em>singular</em> citizens</h2>
-          </div>
-          <Link className="more" href="/citizens">VIEW ALL CITIZENS →</Link>
-        </div>
-        <div className="oneof-grid">
-          {ones.map((o) => {
-            const civ = (CIVILIZATIONS as Record<string, { color: string; name: string }>)[o.civilization];
-            const vanity: Record<number, string> = { 1: "origin-signal", 404: "patient-zero", 1337: "genesis-hex", 4040: "the-final-signal" };
-            const href = vanity[o.id] ? `/${vanity[o.id]}` : `/citizens/${o.id}`;
-            return (
-              <Link key={o.id} href={href} className="oneof-card relic-card scan-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
-                <div className="img-frame"><img src={heroImageUrl(o.id)} alt={o.name} loading="lazy" /></div>
-                <div className="row"><span className="id">#{o.id.toString().padStart(4, "0")}</span><span className="tag" style={{ color: civ?.color }}>1 / 1 · {civ?.name.split(" ")[0].toUpperCase()}</span></div>
-                <h3>{o.transmission_name || o.name}</h3>
-                <p className="role">{ONE_OF_ONE_TAGLINES[o.id] || ""}</p>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-      */}
+      {/* Compressed homepage spine. Earlier iterations of this file
+         carried ~200 LOC of commented-out JSX blocks (WHY FREELON,
+         CivWarBoard, Four One-of-Ones, honoree band, featured citizens,
+         TopPatronsStrip, RecentTransmissions) preserved as "revert
+         switches" after the 2026-05-25 mythic compression. Those
+         components moved to components/_archive/ on 2026-05-26 with
+         a README explaining how to restore one. The commented JSX
+         blocks were pruned here so the active spine reads cleanly.
+         To restore a section: see components/_archive/README.md. */}
 
       {/* CIVILIZATIONS */}
       <section className="civs-section reveal">

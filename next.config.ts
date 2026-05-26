@@ -16,6 +16,21 @@ const config: NextConfig = {
       { source: "/the-final-signal", destination: "/citizens/4040" },
     ];
   },
+  // 2026-05-26 dead-route cleanup. Four orphan pages (no inbound nav
+  // links) become permanent redirects to their nearest semantic parent.
+  // SEO best practice over noindex-and-leave: preserves any external/
+  // Discord bookmark traffic while removing maintenance surface. The
+  // page.tsx files are deleted in the same PR; this redirect rule owns
+  // the URL going forward. `permanent: true` sends a 308 (treated as
+  // 301 by search engines).
+  async redirects() {
+    return [
+      { source: "/flex",         destination: "/tribute", permanent: true },
+      { source: "/doppelganger", destination: "/sync",    permanent: true },
+      { source: "/regret",       destination: "/numbers", permanent: true },
+      { source: "/rebuild",      destination: "/canon",   permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
