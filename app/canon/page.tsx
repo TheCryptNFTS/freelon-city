@@ -12,10 +12,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "The locked rules, sacred numbers, archive layers, and named entities of FREELON CITY.";
 export const metadata: Metadata = {
-  title: "The Canon",
-  description:
-    "The city's reference library. Origin, civilizations, castes, shapes, lexicon, manifesto, art system — all in one place.",
+  title: "Canon · Reference Library",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Canon · Reference Library",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Canon · Reference Library",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 // The Next 15 build pipeline hits a webpack chunking failure

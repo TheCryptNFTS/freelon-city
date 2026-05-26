@@ -6,10 +6,25 @@ import { WalletScanner } from "./WalletScanner";
 
 export const dynamic = "force-dynamic";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "Sync your wallet to enter FREELON CITY and reveal the signal record connected to what you carry.";
 export const metadata: Metadata = {
-  title: "SYNC · The city detects you",
-  description:
-    "Paste a wallet, ENS, or X handle. The signal reads your alignment.",
+  title: "Enter the City",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Enter the City",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Enter the City",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 export default async function SyncPage({

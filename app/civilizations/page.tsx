@@ -1,8 +1,28 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { CivGlyph } from "@/components/CivGlyph";
 
-export const metadata = { title: "10 Civilizations" };
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "Ten signal doctrines. Every citizen belongs to one civilization inside FREELON CITY.";
+export const metadata: Metadata = {
+  title: "Ten Civilizations",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Ten Civilizations",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ten Civilizations",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
+};
 
 export default function Page() {
   return (

@@ -3,9 +3,25 @@ import type { Metadata } from "next";
 import { getHonoraries } from "@/lib/citizens";
 import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "Thirty-five honorary citizens named into the FREELON CITY record.";
 export const metadata: Metadata = {
-  title: "Tributes · 35 honoraries",
-  description: "Each of these 35 citizens carries a name. Tag the signal carrier.",
+  title: "Tribute · The Named",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Tribute · The Named",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tribute · The Named",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 export default function TributeIndex() {

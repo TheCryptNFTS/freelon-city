@@ -19,10 +19,25 @@ import type { Metadata } from "next";
 import { GODS, godOpenSeaUrl } from "@/lib/gods";
 import { CIVILIZATIONS } from "@/lib/constants";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "Recovered battle simulations from The Crypt. Ten ancient entities bound to civilizations. Signal reconstruction in progress.";
 export const metadata: Metadata = {
-  title: "Combat Archives · Signal Reconstruction",
-  description:
-    "Recovered battle simulations from The Crypt. Signal reconstruction in progress. Ten Gods sealed in the relic record.",
+  title: "Combat Archives · Ten Gods",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Combat Archives · Ten Gods",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Combat Archives · Ten Gods",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 type Fragment = {

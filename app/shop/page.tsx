@@ -3,10 +3,25 @@ import Link from "next/link";
 import { ShopGrid } from "./ShopGrid";
 import { CATEGORIES, ITEMS, itemsByCategory } from "@/lib/shop";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "Physical artefacts from FREELON CITY. Carrier garments, sealed objects, and archive fragments.";
 export const metadata: Metadata = {
-  title: "Hex Shop · Spend the signal",
-  description:
-    "Spend hex points on property, land, ceremonial weapons, robes, and signal-era artifacts. Off-chain inventory, on-chain mythology.",
+  title: "Shop · Artefacts of the Archive",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Shop · Artefacts of the Archive",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shop · Artefacts of the Archive",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 export default function ShopPage() {

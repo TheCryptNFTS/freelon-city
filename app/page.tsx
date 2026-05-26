@@ -1,8 +1,32 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
 import { CIVILIZATIONS, CONTRACT, METADATA_CID, heroImageUrl } from "@/lib/constants";
+
+// Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
+// `title.absolute` to bypass the layout template (otherwise the
+// title would become "404 — FREELON CITY · Bring identity back. ·
+// FREELON CITY" with the suffix duplicated).
+const HOME_DESC =
+  "The HEX disappeared. FREELON CITY formed around the signal. 4040 sealed citizens across 10 civilizations.";
+export const metadata: Metadata = {
+  title: { absolute: "404 — FREELON CITY · Bring identity back." },
+  description: HOME_DESC,
+  openGraph: {
+    title: "404 — FREELON CITY",
+    description: HOME_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "404 — FREELON CITY",
+    description: HOME_DESC,
+    images: ["/og/home.jpg"],
+  },
+};
 // Audit 2026-05-25 — homepage mythic compression. Removed from homepage
 // render + imports: DoThisNow (quest-board energy), CityTerminal
 // (dashboard above the fold), HonoreeStrip (celeb pfp grid in hero),

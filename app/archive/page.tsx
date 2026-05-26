@@ -17,10 +17,25 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg for now (Phase 2 will add per-route OG images).
+const PAGE_DESC =
+  "Six connected archive layers. Citizens, dead signals, combat relics, ancient species, memory fragments, and collapse records.";
 export const metadata: Metadata = {
   title: "Other Signals · Archive",
-  description:
-    "Before FREELON CITY, there were other signals. Recovered transmissions, dead archives, ancient species, memory fragments, collapse events. Not lost. Not abandoned. Reconnecting.",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Other Signals · Archive",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Other Signals · Archive",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 type ArchiveEntry = {

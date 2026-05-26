@@ -20,10 +20,25 @@ import { getCollapseState } from "@/lib/collapse-mode";
 
 export const revalidate = 300;
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "One pulse for the city: live receipts, sealed supply, and current signal state.";
 export const metadata: Metadata = {
-  title: "Pulse",
-  description:
-    "Live city pulse. One hero stat, current state, then every receipt below. Sales, holders, hex flow, transmissions. All public, all auto-updated.",
+  title: "Pulse · Live City Receipts",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Pulse · Live City Receipts",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pulse · Live City Receipts",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 const COLLECTION_SLUG = "freelons";

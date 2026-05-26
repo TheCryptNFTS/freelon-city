@@ -14,10 +14,25 @@ import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
 import { TOTAL } from "@/lib/constants";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg.
+const PAGE_DESC =
+  "Two minutes to understand FREELON CITY. Read the signal, find your civilization, and enter the archive.";
 export const metadata: Metadata = {
-  title: "Start Here",
-  description:
-    "Two-minute guide to FREELON CITY. What it is, what you can do today, where everything lives.",
+  title: "Start Here · 2-Min Guide",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "Start Here · 2-Min Guide",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Start Here · 2-Min Guide",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 export default function StartPage() {
