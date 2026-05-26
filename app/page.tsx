@@ -28,6 +28,13 @@ export const metadata: Metadata = {
     images: ["/og/home.jpg"],
   },
 };
+
+// 2026-05-26: cookies() inside the page already forces dynamic
+// rendering implicitly. Declaring it explicitly here protects the
+// cookie-aware CTA branch from a future refactor that might
+// accidentally re-enable static generation. Verified in production
+// headers: cache-control: private, no-cache, no-store on /.
+export const dynamic = "force-dynamic";
 // Audit 2026-05-25 — homepage mythic compression. Removed from homepage
 // render + imports: DoThisNow (quest-board energy), CityTerminal
 // (dashboard above the fold), HonoreeStrip (celeb pfp grid in hero),
@@ -173,6 +180,39 @@ export default async function Home() {
             color: var(--archival-bone, var(--ink));
             font-style: normal;
             font-weight: 700;
+          }
+          /* 2026-05-26 mobile fold fix: on <760px the hero stacks
+             with the image above content. Two changes together:
+             (1) reorder .hero-gloss to bottom so CTAs sit directly
+             under the sub-headline,
+             (2) shrink the hero image min-height from 56vh → 42vh
+             so there's enough room for the headline + sub + CTAs
+             above the fold on 844px viewports. The image still
+             dominates the first impression at 42vh (~354px); we
+             just stop letting it eat the CTAs. */
+          @media (max-width: 760px) {
+            .hero-left > div {
+              display: flex;
+              flex-direction: column;
+            }
+            .hero-left > div .hero-gloss {
+              order: 1;
+              margin-top: 18px;
+              margin-bottom: 0;
+            }
+            .hero-right {
+              min-height: 42vh !important;
+            }
+            /* Tighten vertical rhythm on mobile so primary CTA lands
+               within one thumb-scroll. globals.css sets the hero-left
+               gap to var(--s-7) = 48px and the mobile padding to
+               56px/80px — combined that's >250px of whitespace before
+               you reach the CTA. Compressing here doesn't touch
+               desktop. */
+            .hero-left {
+              padding: 28px 20px 36px !important;
+              gap: 16px !important;
+            }
           }
         `}</style>
         <div className="hero-right">

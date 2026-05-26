@@ -25,6 +25,28 @@ export function ShopGrid() {
   // only that button calls /api/shop/buy.
   const [pendingItem, setPendingItem] = useState<ShopItem | null>(null);
 
+  // 2026-05-26 polish: confirm-burn modal needed proper a11y. ESC
+  // dismisses (the comment promised it but the handler was missing),
+  // and body scroll is locked so the page behind the modal doesn't
+  // scroll. Busy state blocks ESC so a mid-burn API call doesn't get
+  // cancelled visually while still running. Cleanup on unmount or
+  // pendingItem change is symmetric.
+  useEffect(() => {
+    if (!pendingItem) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && busyId !== pendingItem.id) {
+        setPendingItem(null);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [pendingItem, busyId]);
+
   // Load carrier from localStorage
   useEffect(() => {
     const c = loadCarrier();
