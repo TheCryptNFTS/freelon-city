@@ -29,6 +29,7 @@ const GROUPS: Group[] = [
     items: [
       { href: "/canon",         label: "Canon" },
       { href: "/tribute",       label: "Tribute" },
+      { href: "/citizens",      label: "Citizens" },
       { href: "/numbers",       label: "Pulse" },
       { href: "/vault",         label: "⬡ Vault", gold: true },
       { href: "/carrier",       label: "Carrier" },

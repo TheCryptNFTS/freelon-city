@@ -3,8 +3,17 @@ import { useEffect, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
 import { cityNotice } from "@/lib/city-notice";
+import { ECONOMY } from "@/lib/economy-constants";
 
 type Props = { citizenId: number; currentName: string | null };
+
+// Discord 2026-05-26 (user attempted rename for "Rob", expected 100⬡,
+// got charged 500⬡ — current NAMING_COST). The form previously showed
+// no cost anywhere AND the success cityNotice hardcoded "-100 ⬡" so
+// even after-the-fact the user couldn't tell what they actually paid.
+// Fix: display the live NAMING_COST on the button + below the form,
+// and use the server-returned `burned` value in the success notice.
+const NAMING_COST = ECONOMY.NAMING_COST;
 
 export function CitizenNameEditor({ citizenId, currentName }: Props) {
   const h = useHolder();
@@ -59,13 +68,26 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setMsg({ kind: "err", text: data.error || "Failed to save name." });
+        // BUG FIX 2026-05-26: surface the actual cost in the
+        // insufficient-balance error so users aren't surprised again.
+        if (data.error === "insufficient_hex" && typeof data.required === "number") {
+          setMsg({
+            kind: "err",
+            text: `HEX BALANCE LOW · need ${data.required} ⬡, have ${data.balance ?? "?"} ⬡`,
+          });
+        } else {
+          setMsg({ kind: "err", text: data.error || "Failed to save name." });
+        }
       } else {
-        setMsg({ kind: "ok", text: "Saved. Refresh to see it." });
+        // Server returns `burned` (actual cost after collapse-mode
+        // discount). Use it instead of a hardcoded number so the
+        // notice can never lie about the charge again.
+        const actuallyBurned = typeof data.burned === "number" ? data.burned : NAMING_COST;
+        setMsg({ kind: "ok", text: `Saved. -${actuallyBurned} ⬡ burned. Refresh to see it.` });
         cityNotice({
           title: "CITIZEN REGISTERED",
           body: `#${id4} is now ${name}`,
-          delta: "-100 ⬡",
+          delta: `-${actuallyBurned} ⬡`,
         });
       }
     } catch (e) {
@@ -77,7 +99,7 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
 
   return (
     <section className="name-editor">
-      <span className="kicker">⬡ HOLDER · NAME CITIZEN #{id4}</span>
+      <span className="kicker">⬡ HOLDER · NAME CITIZEN #{id4} · {NAMING_COST} ⬡ BURN</span>
       <form onSubmit={submit} autoComplete="off">
         <input
           type="text"
@@ -87,13 +109,18 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
           placeholder="display name"
         />
         <button className="btn btn-primary" type="submit" disabled={busy}>
-          <span className="ttl">{busy ? "SIGNING…" : currentName ? "UPDATE NAME →" : "SET NAME →"}</span>
+          <span className="ttl">
+            {busy
+              ? "SIGNING…"
+              : `${currentName ? "UPDATE NAME" : "SET NAME"} · BURN ${NAMING_COST} ⬡ →`}
+          </span>
         </button>
       </form>
       {msg && <p className={`name-msg ${msg.kind === "err" ? "name-err" : "name-ok"}`}>{msg.text}</p>}
       {!msg && (
         <p className="name-msg">
           You&apos;ll sign a message to prove ownership. No gas. The name is stored off-chain.
+          This burns <strong>{NAMING_COST} ⬡</strong> on confirm.
         </p>
       )}
     </section>
