@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { InlineSync } from "@/components/InlineSync";
 import { normalizeHandle } from "@/lib/sync";
 import { WalletScanner } from "./WalletScanner";
+import { SyncWalletAction } from "./SyncWalletAction";
 
 export const dynamic = "force-dynamic";
 
@@ -62,13 +63,21 @@ export default async function SyncPage({
       }}
     >
       <section className="sync-hero">
-        <span className="kicker">⬡ SIGNAL SCANNER</span>
+        <span className="kicker">⬡ ENTER THE CITY</span>
         <h1>The city <em>detects</em> you</h1>
         <p>
-          Paste a wallet, ENS, or X handle. The signal reads your alignment and returns it.
+          {/* 2026-05-26 funnel repair: copy now describes both paths.
+             Wallet connect is the primary; paste-address stays as
+             fallback for users without a browser wallet. */}
+          Connect your wallet to enter — or paste a wallet, ENS, or X handle
+          and the signal will read your alignment.
         </p>
       </section>
 
+      {/* Primary path: connect wallet (eth_requestAccounts). */}
+      <SyncWalletAction />
+
+      {/* Fallback path: scan a pasted address/ENS/handle. */}
       <WalletScanner />
 
       <section

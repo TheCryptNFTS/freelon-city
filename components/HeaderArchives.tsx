@@ -15,13 +15,14 @@ type Item = { href: string; label: string; gold?: boolean };
 type Group = { heading: string; items: Item[] };
 
 // Route compression 2026-05-25 — More dropdown reduced from 5 groups
-// × 15 items → flat list of 6. The grouped LIVE/MARKET/HOLDER/
-// COMMUNITY/CANON taxonomy was scaffolding for a sprawl that no
-// longer exists in nav. Each remaining link is one of: canonical
-// reference (Canon), discovery/social proof (Tribute, Transmissions),
-// holder safeguard (Vault), public stats (Pulse), or onboarding
-// (Start). Everything else moved out of nav — pages still reachable
-// by direct URL.
+// × 15 items → flat list. 2026-05-26 community feedback (Nonz):
+// /carrier and /secrets had been hidden from nav entirely, making
+// holder utility (Carrier) hard to find and an on-canon lore page
+// (Secrets) impossible to reach on laptop. Restored to the dropdown
+// only — NOT to top nav, NOT as an EARN HEX header pill (deliberate
+// decision to kill the utility-token tell). Each remaining link is
+// canonical reference, discovery/social proof, holder safeguard,
+// public stats, holder utility, lore-fit, or onboarding.
 const GROUPS: Group[] = [
   {
     heading: "",
@@ -30,7 +31,9 @@ const GROUPS: Group[] = [
       { href: "/tribute",       label: "Tribute" },
       { href: "/numbers",       label: "Pulse" },
       { href: "/vault",         label: "⬡ Vault", gold: true },
+      { href: "/carrier",       label: "Carrier" },
       { href: "/transmissions", label: "Transmissions" },
+      { href: "/secrets",       label: "Secrets" },
       { href: "/start",         label: "Start Here · 2-min guide" },
     ],
   },
