@@ -19,8 +19,7 @@ import type { Metadata } from "next";
 import { GODS, godOpenSeaUrl } from "@/lib/gods";
 import { CIVILIZATIONS } from "@/lib/constants";
 
-// Phase 1 metadata 2026-05-26 — route-specific text, reuses
-// /og/home.jpg.
+// Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
 const PAGE_DESC =
   "Recovered battle simulations from The Crypt. Ten ancient entities bound to civilizations. Signal reconstruction in progress.";
 export const metadata: Metadata = {
@@ -29,14 +28,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Combat Archives · Ten Gods",
     description: PAGE_DESC,
-    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    images: [{ url: "/og/combat-archives.jpg", width: 1536, height: 1024 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Combat Archives · Ten Gods",
     description: PAGE_DESC,
-    images: ["/og/home.jpg"],
+    images: ["/og/combat-archives.jpg"],
   },
 };
 

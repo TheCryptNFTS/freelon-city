@@ -3,8 +3,7 @@ import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { CivGlyph } from "@/components/CivGlyph";
 
-// Phase 1 metadata 2026-05-26 — route-specific text, reuses
-// /og/home.jpg.
+// Phase 2 metadata 2026-05-27 — route-specific OG card (civilizations.jpg).
 const PAGE_DESC =
   "Ten signal doctrines. Every citizen belongs to one civilization inside FREELON CITY.";
 export const metadata: Metadata = {
@@ -13,14 +12,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Ten Civilizations",
     description: PAGE_DESC,
-    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    images: [{ url: "/og/civilizations.jpg", width: 1536, height: 1024 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Ten Civilizations",
     description: PAGE_DESC,
-    images: ["/og/home.jpg"],
+    images: ["/og/civilizations.jpg"],
   },
 };
 
