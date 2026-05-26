@@ -193,7 +193,13 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
       ``,
       `freeloncity.com/numbers`,
     ].join("\n");
-    await postTweet(reply, undefined, { replyToId: post.id });
+    // Register the follow-up too. Same reason as sales-pulse:
+    // carriers reply to the threaded message, not always the parent.
+    const followup = await postTweet(reply, undefined, { replyToId: post.id });
+    if (followup.ok && followup.id) {
+      const { rememberAutopostTweet } = await import("@/lib/reply-store");
+      await rememberAutopostTweet(followup.id);
+    }
   } catch {/* non-fatal */}
 
   if (hasUpstash) {

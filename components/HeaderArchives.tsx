@@ -34,6 +34,7 @@ const GROUPS: Group[] = [
       { href: "/vault",         label: "⬡ Vault", gold: true },
       { href: "/carrier",       label: "Carrier" },
       { href: "/transmissions", label: "Transmissions" },
+      { href: "/relay",         label: "Relay" },
       { href: "/secrets",       label: "Secrets" },
       { href: "/start",         label: "Start Here · 2-min guide" },
     ],

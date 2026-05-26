@@ -251,7 +251,15 @@ export async function runSalesPulse(sales: PulseSale[]): Promise<PulseResult> {
       ``,
       `freeloncity.com/sync`,
     ];
-    await postTweet(ctaLines.join("\n"), undefined, { replyToId: post.id });
+    // Register the CTA follow-up tweet too. 2026-05-26 — carriers
+    // sometimes reply to the CTA tweet (the one that literally says
+    // "Reply to this post to earn hex") instead of the parent.
+    // Without this, those replies got rejected as parent_not_recognized.
+    const ctaPost = await postTweet(ctaLines.join("\n"), undefined, { replyToId: post.id });
+    if (ctaPost.ok && ctaPost.id) {
+      const { rememberAutopostTweet } = await import("@/lib/reply-store");
+      await rememberAutopostTweet(ctaPost.id);
+    }
   } catch {/* non-fatal */}
 
   // ── 5. Refresh gate + dedupe ─────────────────────────────────

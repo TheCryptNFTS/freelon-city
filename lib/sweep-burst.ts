@@ -183,6 +183,16 @@ export async function runSweepBurst(sales: PulseSale[]): Promise<SweepBurstResul
     // Don't refresh the gate — try again next cron run.
     return { ok: false, reason: `post_failed_${post.reason}`, count: fresh.length };
   }
+  // Register the burst post so replies to it can earn hex. 2026-05-26
+  // Discord report (Nonz): replies to sweep-burst tweets were being
+  // rejected with "parent_not_recognized" because this registration
+  // call was missing — only sales-pulse + weekly-receipts were
+  // calling rememberAutopostTweet. Adding it here closes the gap for
+  // sweep-burst posts (one of three autopost paths).
+  try {
+    const { rememberAutopostTweet } = await import("@/lib/reply-store");
+    if (post.id) await rememberAutopostTweet(post.id);
+  } catch {/* non-fatal — fallback in-memory store still picks it up */}
 
   // ── 7. Broadcast in-app notification to top holders ────────────
   let notified = 0;

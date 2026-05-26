@@ -64,7 +64,13 @@ export function ReplySubmit() {
     handle_mismatch: "URL HANDLE DOESN'T MATCH YOUR BOUND X HANDLE",
     author_mismatch: "TWEET AUTHOR DOESN'T MATCH YOUR BOUND X HANDLE",
     not_a_reply: "THAT TWEET IS NOT A REPLY",
-    parent_not_recognized: "THAT REPLY IS NOT TO A @4040hex POST",
+    // 2026-05-26 — the unhelpful original copy ("THAT REPLY IS NOT
+    // TO A @4040hex POST") confused holders who HAD replied to
+    // @4040hex but to a tweet the city's autopost tracker hadn't
+    // registered. New copy explains both possibilities so the holder
+    // can either retry on a tracked post or report a missing one.
+    parent_not_recognized:
+      "REPLY MUST BE TO ONE OF @4040hex's RECENT AUTOPOSTED TWEETS (daily signal, sweep burst, weekly receipts). REPLIES TO MANUAL TWEETS DON'T EARN.",
     already_submitted: "ALREADY CLAIMED FOR THIS REPLY",
     daily_cap: "DAILY REPLY CAP HIT — COME BACK TOMORROW",
   };
