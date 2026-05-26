@@ -207,7 +207,7 @@ export default async function NumbersPage() {
             <span style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-2)", letterSpacing: "0.05em", lineHeight: 1.5 }}>
               {stateActive
                 ? "Earnings flow at 1.0×. Burns at 1.0×. The grid holds."
-                : "Earnings reduced. Burns reduced. Defenders called to the floor."}
+                : "Earnings reduced. Burns reduced. The grid trembles."}
             </span>
           </div>
         </div>
