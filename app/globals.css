@@ -5483,3 +5483,65 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   .home-page__recognitionLink { transition: none !important; }
 }
 
+/* =============================================================== */
+/* /TRIBUTE + /ARCHITECT — scoped archival overrides 2026-05-26      */
+/* Both pages now use the .home-page wrapper. These selectors        */
+/* flatten their existing card chrome to the archival surface so     */
+/* they match /archive, /home, the SIGNAL RECOGNITION block.         */
+/* =============================================================== */
+
+/* /tribute — honoree grid cells flatten to ash + bone-line */
+.home-page.tribute-index .tribute-cell {
+  background: var(--archival-surface) !important;
+  border: 1px solid var(--archival-line) !important;
+  border-left: 2px solid var(--civ, var(--archival-dust)) !important;
+  border-radius: 8px !important;
+  transition: border-color 240ms ease, transform 240ms ease;
+}
+.home-page.tribute-index .tribute-cell:hover {
+  border-color: var(--archival-rule-gold) !important;
+  transform: translateY(-1px);
+}
+.home-page.tribute-index .tribute-cell .meta .id {
+  color: var(--archival-dust) !important;
+}
+.home-page.tribute-index .tribute-cell .meta .name {
+  color: var(--archival-bone) !important;
+}
+.home-page.tribute-index .tribute-cell .meta .handle {
+  color: var(--archival-dust) !important;
+}
+.home-page.tribute-index .tribute-cell .meta .civ {
+  color: var(--archival-dust) !important;
+}
+.home-page.tribute-index .tribute-hero .kicker {
+  color: var(--archival-gold) !important;
+}
+.home-page.tribute-index .tribute-hero h1 {
+  color: var(--archival-bone) !important;
+}
+.home-page.tribute-index .tribute-hero h1 em {
+  color: var(--archival-gold) !important;
+}
+.home-page.tribute-index .tribute-hero .lead {
+  color: var(--archival-bone-2) !important;
+}
+
+/* /architect — Principle cards + Operational Facts panel flatten */
+.home-page .kicker {
+  color: var(--archival-gold);
+}
+/* Architect Principle cards (inline-styled, target by structure):
+   the layout uses <article> with 1px var(--line) border + faint
+   white rgba bg. Override to archival ash. */
+.home-page article[style*="border: 1px solid var(--line)"],
+.home-page div[style*="border: 1px solid var(--line)"] {
+  background: var(--archival-surface) !important;
+  border: 1px solid var(--archival-line) !important;
+  border-radius: 8px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page.tribute-index .tribute-cell { transition: none !important; }
+}
+

@@ -9,15 +9,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+// Phase 1 metadata 2026-05-26 — route-specific text, reuses
+// /og/home.jpg. Page wasn't in the canon 10 but is community-facing
+// (linked from Discord + the bus-factor question), so it deserves
+// the same treatment.
+const PAGE_DESC =
+  "One architect. Independent. Building FREELON CITY daily. The contract is sealed. The city is the work.";
 export const metadata: Metadata = {
   title: "The Architect",
-  description:
-    "One architect. Independent. No VC. Building FREELON CITY daily. The city is the work.",
+  description: PAGE_DESC,
+  openGraph: {
+    title: "The Architect",
+    description: PAGE_DESC,
+    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Architect",
+    description: PAGE_DESC,
+    images: ["/og/home.jpg"],
+  },
 };
 
 export default function ArchitectPage() {
   return (
-    <div style={{ maxWidth: 820, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    /* Archival visual pass 2026-05-26: .home-page wrapper triggers
+       the scoped archival system. The body's inline styles still
+       work; we override the card chrome via .home-page selectors in
+       globals.css so the cards flatten to archival surface. */
+    <div className="home-page" style={{ maxWidth: 820, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       <section style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ THE ARCHITECT</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(44px, 7vw, 80px)", lineHeight: 0.94, letterSpacing: "-0.02em", margin: "10px 0 14px" }}>
@@ -27,8 +48,8 @@ export default function ArchitectPage() {
         <p style={{ fontFamily: "var(--mono2)", fontSize: 14, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 640 }}>
           FREELON CITY is built and operated by a single architect, working
           independently and daily — but the city itself is built by every
-          carrier who posts, sweeps, transmits, or names a citizen. No VC,
-          no roadmap pressure, no exit plan. We&apos;re building this thing together.
+          carrier who carries it. No VC, no exit plan. We&apos;re building
+          this thing together.
         </p>
       </section>
 
@@ -117,10 +138,12 @@ export default function ArchitectPage() {
 
       <section style={{ marginTop: "var(--s-7)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
+        {/* CTA cleanup 2026-05-26: dropped THE ROADMAP (banned word per
+           earlier audit) + PRESS KIT (not the right next step for a
+           cold visitor reading the architect page). Two CTAs only. */}
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/numbers"><span className="ttl">SEE PULSE →</span></Link>
-          <Link className="btn btn-secondary" href="/roadmap"><span className="ttl">THE ROADMAP →</span></Link>
-          <Link className="btn btn-secondary" href="/press"><span className="ttl">PRESS KIT →</span></Link>
+          <Link className="btn btn-primary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
+          <Link className="btn btn-secondary" href="/numbers"><span className="ttl">READ THE PULSE →</span></Link>
         </div>
       </section>
     </div>

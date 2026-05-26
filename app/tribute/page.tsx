@@ -27,13 +27,18 @@ export const metadata: Metadata = {
 export default function TributeIndex() {
   const hs = getHonoraries();
   return (
-    <div className="tribute-index">
+    /* Archival visual pass 2026-05-26: .home-page wrapper triggers
+       the scoped archival system (textures, void bg, archival tokens).
+       Existing .tribute-* classes stay so layout is unchanged. The
+       additional .home-page .tribute-cell overrides in globals.css
+       flatten the card chrome to match /archive + /home. */
+    <div className="home-page tribute-index">
       <section className="tribute-hero">
-        <span className="kicker">⬡ 35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span>
+        <span className="kicker">⬡ THIRTY-FIVE NAMED CITIZENS</span>
         <h1>The <em>honoraries</em></h1>
         <p className="lead">
-          35 citizens carry the name of a human who shaped the signal.
-          Each has a pre-loaded tweet. Tag them. Tell them their citizen woke up.
+          Thirty-five citizens carry the name of a human who shaped the
+          signal. Each is permanent in the record.
         </p>
       </section>
       <section className="tribute-grid-wrap">
@@ -64,9 +69,11 @@ export default function TributeIndex() {
 
       <section style={{ marginTop: "var(--s-6)", maxWidth: "var(--maxw)", margin: "var(--s-6) auto 0", padding: "0 var(--pad)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
+        {/* CTA cleanup 2026-05-26: dropped "THE LEDGER → /earn" (gated
+           utility moved behind /sync) and "BROWSE ALL 4040" (moved to
+           citizen browser flow). Two CTAs only. */}
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <Link className="btn btn-primary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
-          <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
+          <Link className="btn btn-primary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
           <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
         </div>
       </section>

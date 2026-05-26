@@ -50,6 +50,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,400;0,500;1,500&display=swap"
           rel="stylesheet"
         />
+        {/* BUG-13 fix 2026-05-26: added /favicon.ico (multi-size ICO
+           with 16/32/48px embedded) so browsers' implicit
+           /favicon.ico request gets a 200 instead of a 404. The
+           explicit <link rel="icon" href="/favicon.png"> keeps the
+           higher-res PNG for browsers that prefer it. */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/favicon.png" />
         {/* Preload the LCP hero image — Final Signal #4040 — local mirror, no IPFS lag */}
