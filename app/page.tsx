@@ -217,9 +217,20 @@ export default async function Home() {
         `}</style>
         <div className="hero-right">
           <div className="img-frame">
+            {/* Mobile gets the 800w variant (~75KB), desktop gets the
+                1024w master (~146KB). Sizes split at 980px to match the
+                breakpoint where hero-right goes full-width.
+                2026-05-27 LCP debug. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
-            <img src={heroImageUrl(4040)} alt="FREELON CITY #4040 — THE FINAL SIGNAL" fetchPriority="high" decoding="async" />
+            <img
+              src="/heroes/4040.webp"
+              srcSet="/heroes/4040-800.webp 800w, /heroes/4040.webp 1024w"
+              sizes="(max-width: 980px) 100vw, 50vw"
+              alt="FREELON CITY #4040 — THE FINAL SIGNAL"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
           <div className="img-overlay" />
           <div className="img-id">
