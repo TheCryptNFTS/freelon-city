@@ -83,7 +83,15 @@ export function Header() {
         .nav-link:hover { color: var(--gold-bright); }
         .nav-start { color: var(--gold); font-weight: 600; }
         .nav-start:hover { color: var(--gold-bright); }
-        .nav-sync { text-transform: uppercase; letter-spacing: var(--tr-pill); }
+        .nav-sync {
+          text-transform: uppercase; letter-spacing: var(--tr-pill);
+          /* WCAG 2.5.5 tap target: bump primary CTA from .btn-sm's 40px
+             default to 44px so iPad-landscape touch users (above the 980px
+             mobile-nav cutoff) hit it reliably. Scoped here, not on global
+             .btn-sm. 2026-05-27 a11y debug. */
+          min-height: 44px;
+          display: inline-flex; align-items: center;
+        }
         .nav-earn-pill {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 6px 12px; border-radius: var(--r-pill);
@@ -115,6 +123,11 @@ export function Header() {
           letter-spacing: var(--tr-pill);
           font-size: var(--t-mono-sm);
           font-family: var(--mono2);
+          /* Explicit 44px hit area centered around the small text; bar is
+             align-items:center so this doesn't shift the visual baseline.
+             2026-05-27 a11y debug. */
+          min-height: 44px;
+          display: inline-flex; align-items: center;
         }
       `}</style>
     </header>
