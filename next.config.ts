@@ -34,6 +34,19 @@ const config: NextConfig = {
   async headers() {
     return [
       {
+        // Long-term immutable cache for static binary assets in /public/.
+        // These directories hold pre-baked images (heroes, OG cards, civ
+        // plates, glyphs, etc.) whose URLs are stable — if content changes,
+        // the filename changes. Default Vercel cache-control for /public/ is
+        // max-age=0 must-revalidate, which forces a 304 round-trip on every
+        // visit. Switching to one-year immutable removes that overhead.
+        // 2026-05-27 perf debug.
+        source: "/:dir(heroes|og|atmos|civs|glyphs|lore|origin|shop|social|textures|generated)/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           // Clickjacking protection
