@@ -17,6 +17,13 @@ export function ShopGrid() {
   const [filter, setFilter] = useState<string>(ALL);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // 2026-05-26 cost-confirm interstitial. The naming form was lying
+  // about cost ("-100 ⬡" hardcoded while actual was 500). Same class
+  // of bug existed here: BUY · 1,500 ⬡ → single click → permanent
+  // burn with no confirmation. Now the click sets pendingItem; the
+  // modal shows cost + remaining balance + a CONFIRM BURN button;
+  // only that button calls /api/shop/buy.
+  const [pendingItem, setPendingItem] = useState<ShopItem | null>(null);
 
   // Load carrier from localStorage
   useEffect(() => {
@@ -42,9 +49,25 @@ export function ShopGrid() {
     return ITEMS.filter((i) => owned.has(i.id));
   }, [owned]);
 
-  async function buy(item: ShopItem) {
+  // Entry point: clicking a product's BUY button no longer burns —
+  // it opens the confirm modal. Anon visitors get the existing
+  // "Sync a handle" error at this point (no point asking them to
+  // confirm a burn they can't perform yet).
+  function requestBuy(item: ShopItem) {
     if (!carrier?.handle) {
       setError("Sync a handle on /carrier first to spend hex points.");
+      return;
+    }
+    setError(null);
+    setPendingItem(item);
+  }
+
+  // Confirm step: runs the actual burn. Triggered ONLY by the modal's
+  // CONFIRM BURN button.
+  async function confirmBuy(item: ShopItem) {
+    if (!carrier?.handle) {
+      setError("Sync a handle on /carrier first to spend hex points.");
+      setPendingItem(null);
       return;
     }
     setBusyId(item.id);
@@ -85,6 +108,7 @@ export function ShopGrid() {
       setError(e instanceof Error ? `${CANON.LOST} · ${e.message}` : `${CANON.LOST} · retry`);
     } finally {
       setBusyId(null);
+      setPendingItem(null); // close confirm modal whether success or error
     }
   }
 
@@ -148,6 +172,150 @@ export function ShopGrid() {
         })}
       </div>
 
+      {/* Confirm-burn modal 2026-05-26. Renders when pendingItem set.
+         Shows cost + balance + balance-after + cancel. The CONFIRM
+         BURN button is the only path that actually calls /api/shop/buy.
+         Click outside or ESC dismisses. */}
+      {pendingItem && (() => {
+        const after = Math.max(0, balance - pendingItem.cost);
+        const busy = busyId === pendingItem.id;
+        return (
+          <div
+            className="shop-confirm-backdrop"
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !busy) setPendingItem(null);
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shop-confirm-title"
+          >
+            <div className="shop-confirm-card">
+              <div className="shop-confirm-kicker">⬡ CONFIRM BURN</div>
+              <h3 id="shop-confirm-title" className="shop-confirm-title">{pendingItem.name}</h3>
+              <p className="shop-confirm-desc">{pendingItem.description}</p>
+              <dl className="shop-confirm-stats">
+                <div>
+                  <dt>COST</dt>
+                  <dd className="shop-confirm-cost">{pendingItem.cost.toLocaleString()} ⬡</dd>
+                </div>
+                <div>
+                  <dt>BALANCE</dt>
+                  <dd>{balance.toLocaleString()} ⬡</dd>
+                </div>
+                <div>
+                  <dt>AFTER</dt>
+                  <dd>{after.toLocaleString()} ⬡</dd>
+                </div>
+              </dl>
+              <p className="shop-confirm-warn">
+                Burning ⬡ is permanent. The artefact joins your collection. No refund.
+              </p>
+              <div className="shop-confirm-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary shop-confirm-cancel"
+                  disabled={busy}
+                  onClick={() => setPendingItem(null)}
+                >
+                  CANCEL
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary shop-confirm-go"
+                  disabled={busy}
+                  onClick={() => confirmBuy(pendingItem)}
+                >
+                  {busy ? "BURNING…" : `BURN ${pendingItem.cost.toLocaleString()} ⬡`}
+                </button>
+              </div>
+            </div>
+            <style>{`
+              .shop-confirm-backdrop {
+                position: fixed; inset: 0;
+                background: rgba(5,5,5,0.78);
+                backdrop-filter: blur(4px);
+                z-index: 1000;
+                display: flex; align-items: center; justify-content: center;
+                padding: var(--s-4);
+              }
+              .shop-confirm-card {
+                max-width: 440px; width: 100%;
+                padding: clamp(20px, 4vw, 28px);
+                background: var(--archival-surface, #11100E);
+                border: 1px solid var(--archival-line, rgba(232,224,207,0.12));
+                border-radius: 8px;
+                position: relative;
+                box-shadow: 0 24px 60px -16px rgba(0,0,0,0.7);
+              }
+              .shop-confirm-card::before {
+                content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+                background: linear-gradient(180deg,
+                  var(--archival-rule-gold, rgba(200,163,90,0.22)) 0 1px,
+                  transparent 1px 2px,
+                  var(--archival-line-deep, rgba(232,224,207,0.06)) 2px 3px);
+                pointer-events: none;
+              }
+              .shop-confirm-kicker {
+                font-family: var(--mono2);
+                font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
+                color: var(--archival-gold, var(--gold));
+                margin-bottom: 12px;
+              }
+              .shop-confirm-title {
+                font-family: var(--display);
+                font-size: clamp(22px, 4vw, 28px);
+                line-height: 1.1; letter-spacing: -0.01em;
+                margin: 0 0 8px;
+                color: var(--archival-bone, var(--ink));
+                font-weight: 400; text-transform: none;
+              }
+              .shop-confirm-desc {
+                font-family: var(--mono2); font-size: 12px; line-height: 1.7;
+                color: var(--archival-bone-2, var(--ink-2));
+                margin: 0 0 18px;
+              }
+              .shop-confirm-stats {
+                display: grid; grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                margin: 0 0 16px;
+                padding: 14px 12px;
+                border-top: 1px solid var(--archival-line, rgba(232,224,207,0.12));
+                border-bottom: 1px solid var(--archival-line, rgba(232,224,207,0.12));
+              }
+              .shop-confirm-stats div { display: flex; flex-direction: column; gap: 4px; }
+              .shop-confirm-stats dt {
+                font-family: var(--mono2);
+                font-size: 9px; letter-spacing: 0.32em; text-transform: uppercase;
+                color: var(--archival-dust, var(--ink-dim));
+              }
+              .shop-confirm-stats dd {
+                font-family: var(--mono2); font-size: 13px;
+                color: var(--archival-bone, var(--ink));
+                margin: 0;
+              }
+              .shop-confirm-stats .shop-confirm-cost {
+                color: var(--archival-gold, var(--gold));
+                font-weight: 700;
+              }
+              .shop-confirm-warn {
+                font-family: var(--mono2); font-size: 11px; line-height: 1.6;
+                color: var(--archival-dust, var(--ink-dim));
+                letter-spacing: 0.04em;
+                margin: 0 0 20px;
+              }
+              .shop-confirm-actions {
+                display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
+              }
+              .shop-confirm-cancel, .shop-confirm-go { min-width: 140px; }
+              @media (max-width: 480px) {
+                .shop-confirm-actions { flex-direction: column-reverse; }
+                .shop-confirm-cancel, .shop-confirm-go { width: 100%; }
+              }
+            `}</style>
+          </div>
+        );
+      })()}
+
       <div className="shop-grid">
         {visible.map((i) => {
           const isOwned = owned.has(i.id);
@@ -205,7 +373,7 @@ export function ShopGrid() {
                 type="button"
                 className="buy-btn"
                 disabled={disabled}
-                onClick={() => buy(i)}
+                onClick={() => requestBuy(i)}
               >
                 {label}
               </button>

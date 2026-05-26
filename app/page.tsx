@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
@@ -43,7 +44,15 @@ export const metadata: Metadata = {
 // now that compression is final. To restore any section, revert the
 // commented blocks AND re-add the matching import.
 
-export default function Home() {
+export default async function Home() {
+  // Audit 2026-05-26: cookie-aware CTA swap. Cold visitors (no
+  // freelon_addr cookie) get START HERE as primary so they land on
+  // the 2-minute guide that defines hex / signal / civilization /
+  // burn vocabulary before they need it. Returning visitors keep
+  // ENTER THE CITY as primary so the funnel they already understand
+  // stays one click away.
+  const cookieStore = await cookies();
+  const isReturning = !!cookieStore.get("freelon_addr")?.value;
   return (
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */
@@ -74,24 +83,55 @@ export default function Home() {
               <strong>4040 citizens</strong> · 10 civilizations · sealed supply.
             </p>
 
-            {/* Audit 2026-05-25: hero CTAs collapsed from 4 → 1 primary + 1
-                secondary. Removed: FREE TO PLAY (freemium framing), OpenSea
-                exit (kills retention), ACCESS THE ARCHIVES (dup of nav),
-                "NO WALLET NEEDED" pill (anti-signal for the audience we
-                actually want). Mythology first, money later. */}
+            {/* Audit 2026-05-26: inline glosses for the 3 most-confusing
+               terms a cold visitor reads in their first 30 seconds. /start
+               has full definitions; this is the minimum vocabulary primer
+               for everyone who doesn't click /start. Designed as one quiet
+               line — dust mono, low contrast — so it teaches without
+               competing with the H1. */}
+            <p className="hero-gloss">
+              <em>404 HEX NOT FOUND</em> — X removed the hex from verified profiles. The city formed around its absence.<br />
+              <em>The signal</em> — the city's word for anything that moves: a sale, a connected archive, a transmission.<br />
+              <em>Sealed supply</em> — 4040 NFTs on Ethereum. No more will ever be made.
+            </p>
+
+            {/* Audit 2026-05-26: cookie-aware CTA swap. Cold visitor →
+               START HERE primary (drives them to the page that defines
+               every term they just read). Returning visitor → ENTER THE
+               CITY primary (one click into the funnel they already know).
+               Secondary CTA always points at the other path. */}
             <div className="hero-ctas">
-              <Link href="/sync" className="btn btn-primary">
-                <span className="ttl">ENTER THE CITY <span className="ar">→</span></span>
-              </Link>
-              <Link
-                href="/start"
-                className="new-here-pill new-here-pill--hero"
-                aria-label="New here? Start with the 2-minute guide"
-              >
-                <span aria-hidden>⬡</span>
-                <span>NEW HERE? · 2-MIN GUIDE</span>
-                <span aria-hidden>→</span>
-              </Link>
+              {isReturning ? (
+                <>
+                  <Link href="/sync" className="btn btn-primary">
+                    <span className="ttl">ENTER THE CITY <span className="ar">→</span></span>
+                  </Link>
+                  <Link
+                    href="/start"
+                    className="new-here-pill new-here-pill--hero"
+                    aria-label="New here? Start with the 2-minute guide"
+                  >
+                    <span aria-hidden>⬡</span>
+                    <span>NEW HERE? · 2-MIN GUIDE</span>
+                    <span aria-hidden>→</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/start" className="btn btn-primary">
+                    <span className="ttl">START HERE · 2-MIN GUIDE <span className="ar">→</span></span>
+                  </Link>
+                  <Link
+                    href="/sync"
+                    className="new-here-pill new-here-pill--hero"
+                    aria-label="Already know the city? Enter directly."
+                  >
+                    <span aria-hidden>⬡</span>
+                    <span>ALREADY HERE · ENTER</span>
+                    <span aria-hidden>→</span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -113,6 +153,27 @@ export default function Home() {
             transition: background 120ms ease, transform 120ms ease;
           }
           .new-here-pill:hover { background: rgba(200,167,93,0.20); transform: translateY(-1px); }
+          /* Inline glosses for the 3 most-confusing terms in the hero.
+             Quiet treatment — dust mono on archival ash card, smaller
+             than the hero body. Sits between hero-sub and hero-ctas. */
+          .hero-gloss {
+            margin: 14px 0 18px;
+            padding: 12px 16px;
+            border: 1px solid var(--archival-line, rgba(232,224,207,0.12));
+            border-left: 2px solid var(--archival-rule-gold, rgba(200,163,90,0.22));
+            background: var(--archival-surface, rgba(17,16,14,0.65));
+            border-radius: 6px;
+            max-width: 540px;
+            font-family: var(--mono2);
+            font-size: 12px;
+            line-height: 1.85;
+            color: var(--archival-dust, var(--ink-dim));
+          }
+          .hero-gloss em {
+            color: var(--archival-bone, var(--ink));
+            font-style: normal;
+            font-weight: 700;
+          }
         `}</style>
         <div className="hero-right">
           <div className="img-frame">
