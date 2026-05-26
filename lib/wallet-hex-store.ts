@@ -221,13 +221,33 @@ export async function listWalletHexRecords(limit = 500): Promise<WalletHex[]> {
   }
 }
 
+/**
+ * Thrown by debitWalletHex when the wallet's balance is too low to
+ * cover the requested debit. Callers can distinguish this expected
+ * business outcome from infrastructure failures (Upstash, RPC, etc.)
+ * via `e instanceof InsufficientHexError`. 2026-05-26 economy audit
+ * R4: replaces the prior untyped `new Error("insufficient_hex")`.
+ * Compatible with `Error` semantics — existing `catch (e: unknown)`
+ * sites that just propagate or stringify the error still work.
+ */
+export class InsufficientHexError extends Error {
+  readonly balance: number;
+  readonly requested: number;
+  constructor(addr: string, balance: number, requested: number) {
+    super(`insufficient_hex: wallet ${addr} balance ${balance} < requested ${requested}`);
+    this.name = "InsufficientHexError";
+    this.balance = balance;
+    this.requested = requested;
+  }
+}
+
 export async function debitWalletHex(
   addr: string,
   amount: number,
   ev: Omit<HexEvent, "ts" | "amount"> & { ts?: number },
 ): Promise<WalletHex> {
   const rec = await getWalletHex(addr);
-  if (rec.balance < amount) throw new Error("insufficient_hex");
+  if (rec.balance < amount) throw new InsufficientHexError(addr, rec.balance, amount);
   rec.balance -= amount;
   rec.events.unshift({
     ts: ev.ts ?? Date.now(),

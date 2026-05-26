@@ -16,7 +16,7 @@
  */
 import { NextResponse } from "next/server";
 import { CONTRACT } from "@/lib/constants";
-import { creditWalletHex, getWalletHex, setWalletHex, todayUTC } from "@/lib/wallet-hex-store";
+import { creditWalletHex, getWalletHex, setWalletHex, todayUTC, InsufficientHexError } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 
 export const dynamic = "force-dynamic";
@@ -184,7 +184,15 @@ export async function GET(req: Request) {
             try {
               const { creditCitizenSale } = await import("@/lib/citizen-value-store");
               await creditCitizenSale({ tokenId: tidNum, tx, priceEth, ts: Math.floor(ts / 1000) });
-            } catch {/* per-token credit failure is non-fatal */}
+            } catch (e) {
+              // R1 fix 2026-05-26: was silent. Per-token value credit
+              // is non-fatal to the sweep ledger (has its own SETNX),
+              // but a recurring failure here means the citizen card
+              // value/rank columns drift — worth surfacing.
+              logCronWarn("sweep.citizenValue.failed", {
+                tx, tokenId, buyer, tidNum, priceEth,
+              }, e);
+            }
 
             // Record sweep event for /hold-the-line "Recent Sweepers"
             // panel — aggregates by buyer wallet over trailing 4h window.
@@ -198,17 +206,45 @@ export async function GET(req: Request) {
                 ts: Math.floor(ts / 1000),
                 tx,
               });
-            } catch {/* sweeper recording is non-fatal */}
+            } catch (e) {
+              // R2 fix 2026-05-26: was silent. recordSweep powers the
+              // /hold-the-line "Recent Sweepers" panel — read-only UI
+              // feed, but worth visibility if it starts failing.
+              logCronWarn("sweep.sweeperFeed.failed", {
+                tx, tokenId, buyer, tidNum, priceEth,
+              }, e);
+            }
           }
         }
 
         // Collapse-mode earn multiplier applied inside creditSweep itself
         // so the dedupe key still represents "this event was processed".
-        const result = await creditSweep(buyer, ts);
-        if (result.credited > 0) {
-          processed++;
-          credited += result.credited;
-          if (result.bonus) bonuses++;
+        // R3 fix 2026-05-26: wrap creditSweep in try/catch with DEL
+        // rollback on the sweep eventKey (and ONLY this event's sweep
+        // key — never the rescue key, never any downstream key). If
+        // the wallet credit fails after we already acquired dedupe,
+        // releasing the key lets the next cron tick retry instead of
+        // leaving the credit lost forever.
+        try {
+          const result = await creditSweep(buyer, ts);
+          if (result.credited > 0) {
+            processed++;
+            credited += result.credited;
+            if (result.bonus) bonuses++;
+          }
+        } catch (e) {
+          logCronError("sweep.credit.failed", { tx, tokenId, buyer, eventKey }, e);
+          if (hasUpstash) {
+            try {
+              await upstash(["DEL", eventKey]);
+            } catch (delErr) {
+              logCronError("sweep.dedupe.rollback.failed", { tx, tokenId, eventKey }, delErr);
+            }
+          }
+          // Skip the rescue path for this event — if the primary credit
+          // didn't land, attempting the rescue side-effects would push
+          // ledger inconsistency further.
+          continue;
         }
 
         // ── RESCUE detection ────────────────────────────────────────
@@ -297,15 +333,22 @@ export async function GET(req: Request) {
                   });
                   burnApplied = burnAmt;
                 } catch (e) {
-                  // We can't reliably distinguish "insufficient balance"
-                  // from "infrastructure error" without instrumenting
-                  // debitWalletHex. Log loudly so a real outage spike
-                  // is visible. Rescue still proceeds — rescuer was
-                  // already credited above and the ledger now records
-                  // burnApplied: 0 (truthful).
-                  logCronWarn("rescue.debit.failed", {
-                    tx, tokenId, seller: ghost.seller, burnAmt,
-                  }, e);
+                  // R4 fix 2026-05-26: split expected business failure
+                  // (dumper can't afford the burn — expected and capped
+                  // by debit's own check) from unknown infra failure
+                  // (Upstash/RPC/etc — needs visibility for ops).
+                  // Rescue still proceeds: rescuer was already credited
+                  // above; ledger records burnApplied: 0 truthfully.
+                  if (e instanceof InsufficientHexError) {
+                    logCronWarn("rescue.debit.insufficientBalance", {
+                      tx, tokenId, seller: ghost.seller,
+                      burnAmt, balance: e.balance,
+                    });
+                  } else {
+                    logCronError("rescue.debit.infraFailure", {
+                      tx, tokenId, seller: ghost.seller, burnAmt,
+                    }, e);
+                  }
                 }
               }
               // Persist attribution + ledger — use ACTUAL burned amount
