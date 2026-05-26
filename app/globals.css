@@ -5527,6 +5527,55 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   color: var(--archival-bone-2) !important;
 }
 
+/* /shop — hero + product cards flatten to archival surface */
+.home-page.shop-page .shop-hero h1 {
+  color: var(--archival-bone) !important;
+  text-transform: none !important;
+}
+.home-page.shop-page .shop-hero h1 em {
+  color: var(--archival-gold) !important;
+}
+.home-page.shop-page .shop-hero .lead {
+  color: var(--archival-bone-2) !important;
+}
+.home-page.shop-page .shop-item {
+  background: var(--archival-surface) !important;
+  border: 1px solid var(--archival-line) !important;
+  border-radius: 8px !important;
+}
+.home-page.shop-page .shop-item:hover {
+  border-color: var(--archival-rule-gold) !important;
+}
+.home-page.shop-page .shop-item.owned {
+  border-color: var(--archival-rule-gold) !important;
+}
+.home-page.shop-page .shop-item .cat {
+  color: var(--archival-dust) !important;
+}
+.home-page.shop-page .shop-item h3 {
+  color: var(--archival-bone) !important;
+}
+.home-page.shop-page .shop-item .desc {
+  color: var(--archival-bone-2) !important;
+}
+.home-page.shop-page .shop-item .meta {
+  color: var(--archival-dust) !important;
+}
+.home-page.shop-page .shop-item .meta .cost {
+  color: var(--archival-gold) !important;
+}
+.home-page.shop-page .shop-item .buy-btn {
+  border-color: var(--archival-bone-2) !important;
+  color: var(--archival-bone) !important;
+}
+.home-page.shop-page .shop-item .buy-btn:hover:not(:disabled) {
+  background: var(--archival-bone-2) !important;
+  color: var(--archival-bg) !important;
+}
+.home-page.shop-page .shop-item .owned-tag {
+  color: var(--archival-gold) !important;
+}
+
 /* /architect — Principle cards + Operational Facts panel flatten */
 .home-page .kicker {
   color: var(--archival-gold);

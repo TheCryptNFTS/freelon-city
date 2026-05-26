@@ -29,21 +29,35 @@ export default function ShopPage() {
   for (const c of CATEGORIES) totals[c] = itemsByCategory(c).length;
 
   return (
-    <div className="shop-page">
+    /* Archival visual pass 2026-05-26: .home-page wrapper triggers the
+       scoped archival system (textures, void bg, ash panels). All
+       existing .shop-page + ShopGrid styles + buy logic are preserved
+       — the override is hero + CTAs only. */
+    <div className="home-page shop-page">
       <section className="shop-hero">
-        <span className="kicker">⬡ HEX SHOP · OFF-CHAIN INVENTORY</span>
+        {/* Audit 2026-05-26 cleanup:
+           - "HEX SHOP · OFF-CHAIN INVENTORY" → archive-native framing
+             ("OFF-CHAIN INVENTORY" was database-label tone, audit sev 7)
+           - "Own a piece of the city" → archive-native heading
+             (audit flagged as real-estate-sales tone)
+           - "rarest artifacts of the broken signal. Supply finite where
+             the lore demands" → restrained, no scarcity sales-talk
+           - CTA row 3 → 2: dropped /earn, /leaderboard, /patrons (all
+             hidden routes per the route compression; the storefront
+             must not re-expose them). */}
+        <span className="kicker">⬡ SHOP · ARCHIVE ARTEFACTS</span>
         <h1>
-          Spend the signal<br />
-          <em>Own a piece of the city</em>
+          Objects from <em>the signal.</em>
         </h1>
         <p className="lead">
-          Property, land, ceremonial arms, woven cloth, the rarest artifacts of the broken signal.
-          Pay in <strong>⬡ hex</strong>. Supply finite where the lore demands.
+          Physical fragments from FREELON CITY. Carrier garments, sealed
+          objects, and archive pieces tied to the world forming around the
+          missing HEX. Spent in <strong>⬡ hex</strong>.
         </p>
       </section>
 
       <div className="shop-totals" style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: "var(--s-5)", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.18em", color: "var(--ink-dim)" }}>
-        <span>{ITEMS.length} ITEMS</span>
+        <span>{ITEMS.length} ARTEFACTS</span>
         {CATEGORIES.map((c) => (
           <span key={c}>
             {c} · {totals[c]}
@@ -56,9 +70,8 @@ export default function ShopPage() {
       <section style={{ marginTop: "var(--s-6)", padding: "0 var(--pad)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <Link className="btn btn-primary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
-          <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">THE LEADERBOARD →</span></Link>
-          <Link className="btn btn-secondary" href="/patrons"><span className="ttl">THE PATRONS WALL →</span></Link>
+          <Link className="btn btn-primary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
+          <Link className="btn btn-secondary" href="/archive"><span className="ttl">READ THE ARCHIVE →</span></Link>
         </div>
       </section>
     </div>
