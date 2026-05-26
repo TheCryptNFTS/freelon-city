@@ -37,7 +37,11 @@ export const metadata: Metadata = {
 
 export default function StartPage() {
   return (
-    <div style={{ maxWidth: 820, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    /* Archival visual pass 2026-05-26: .home-page wrapper picks up
+       textures + bg from the scoped system + the catch-all override
+       in globals.css for inline-styled cards (Section/Box/Step) so
+       they flatten to archival surface. No structural edits. */
+    <div className="home-page" style={{ maxWidth: 820, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* ── HERO ── */}
       <section style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ START HERE · 2-MIN TOUR</span>
@@ -158,17 +162,27 @@ export default function StartPage() {
       </Section>
 
       {/* ── WEEKLY ── */}
+      {/* Audit 2026-05-26: trimmed two bullets that pointed at internal/
+         hidden routes — "dump ledger" (drives /graveyard, banned word)
+         and "leaderboard" (hidden route). Cold-visitor guide stays
+         focused on positive participation. */}
       <Section title="Your weekly 5 minutes">
         <Box>
           <Ul>
             <Li>Send a transmission (a mini-post — image + caption) for {`100 ⬡`}. Top weekly transmission earns 5,000 ⬡.</Li>
-            <Li>Check the dump ledger — see who tried to dump, who rescued, what the city remembers</Li>
-            <Li>Look at the leaderboard — climb if you can</Li>
+            <Li>Visit the archive — read which signals connect to your wallet.</Li>
           </Ul>
         </Box>
       </Section>
 
       {/* ── THE LINGO ── */}
+      {/* Audit 2026-05-26: removed three lingo entries that introduced
+         degen/floor/dump vocabulary to cold visitors — "ghosted",
+         "defender", "rescue". They were the internal price-defense
+         mechanic vocabulary. Cold-visitor lingo now keeps only the
+         positive identity terms (hex, carrier, citizen, civilization,
+         caste, signal, transmission) + adds "archive" to bridge to
+         /archive and /combat-archives. */}
       <Section title="The lingo (so nothing is confusing)">
         <dl style={{ display: "grid", gap: 12, fontFamily: "var(--mono2)", fontSize: 13 }}>
           <Lingo term="hex (⬡)" def="The city's credits. You earn it. You spend it. It is not money. It is not redeemable for anything outside the city." />
@@ -176,26 +190,22 @@ export default function StartPage() {
           <Lingo term="citizen" def={`An NFT. There are ${TOTAL.toLocaleString()} of them on Ethereum. Sealed supply — no more will be made.`} />
           <Lingo term="civilization" def="Your tribe. There are 10. Your X handle assigns you one when you sync." />
           <Lingo term="caste" def="A citizen's role inside the city. Seven of them." />
-          <Lingo term="signal" def="The city's word for anything that moves: a sale, a post, a transmission, a rescue." />
-          <Lingo term="ghosted" def="What happens to a citizen listed way under floor. The city refuses to recognise it until a rescuer buys." />
-          <Lingo term="defender" def="A wallet that has never dumped. Defenders earn a small bonus per month of clean record." />
+          <Lingo term="signal" def="The city's word for anything that moves: a sale, a post, a transmission, a connected archive." />
           <Lingo term="transmission" def="A small post (image + caption) carriers send to the city wall. Burns 100 ⬡ to send. Earns more if it scores." />
-          <Lingo term="rescue" def="When you buy a ghosted citizen. You earn a bounty. The dumper pays a burn. Both are recorded permanently." />
+          <Lingo term="archive" def="A connected collection the city recognises: The Crypt, Combat Archives, OOGIES, Emile, SMILES. Every archive your wallet carries deepens your record." />
         </dl>
       </Section>
 
       {/* ── FAQ ── */}
+      {/* Audit 2026-05-26: removed three FAQ entries that introduced
+         degen vocabulary to cold visitors:
+           - "Why is my citizen marked SIGNAL LOST?" (floor/dumps/graveyard)
+           - "The site says I'm not a holder but I own citizens" (debugging
+             trace, internal — belongs in a help doc, not /start)
+           - "I don't want to write tweets myself" (drives /relay, hidden)
+         Reframed "Where's the floor / sales / holders?" to ask about the
+         city's live numbers without the banned words in the question. */}
       <Section title="Questions people actually ask">
-        <Faq q="Why is my citizen marked SIGNAL LOST?">
-          It got listed for ≤85% of floor for more than 24h. The city refuses to recognise dumps.
-          To restore the signal: delist (and wait) or someone rescues it by buying.
-          Records live at <Link href="/graveyard" style={{ color: "var(--gold)" }}>/graveyard</Link>.
-        </Faq>
-        <Faq q="The site says I'm not a holder but I own citizens. What gives?">
-          Tell us your wallet — DM @4040hex on X. We&apos;ve fixed the bug in two places already (
-          <code>/pfp</code>, <code>/channel</code>) and just fixed it again for the naming form. If it happens elsewhere,
-          we want to know.
-        </Faq>
         <Faq q="Why didn't my post credit me hex?">
           Posting on X doesn&apos;t auto-credit — you need to either (a) reply to a city post (and be one of the first 10 in 30 min),
           or (b) hit the daily CLAIM button after sharing. Going to <Link href="/carrier" style={{ color: "var(--gold)" }}>/carrier</Link> and pressing CLAIM is what does it.
@@ -204,11 +214,8 @@ export default function StartPage() {
           No. Hex is city credits — usable to name citizens, realign, post transmissions, and unlock things on the site.
           It is not a token, not redeemable, not an investment. Hold it because you use it.
         </Faq>
-        <Faq q="Where's the floor / sales / holders?">
-          <Link href="/numbers" style={{ color: "var(--gold)" }}>/numbers</Link> — all live, auto-updated every 5 minutes.
-        </Faq>
-        <Faq q="I don't want to write tweets myself.">
-          Use <Link href="/relay" style={{ color: "var(--gold)" }}>/relay</Link>. Pre-written templates. Click POST, fill the blanks, done.
+        <Faq q="Where can I see the city's live numbers?">
+          <Link href="/numbers" style={{ color: "var(--gold)" }}>Pulse</Link> — sealed supply, current state, every receipt. Auto-updated every 5 minutes.
         </Faq>
         <Faq q="How do I safely move my citizens to another wallet?">
           Use <Link href="/vault" style={{ color: "var(--gold)" }}>/vault</Link>. It lets you batch-transfer
