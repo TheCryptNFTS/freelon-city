@@ -45,6 +45,33 @@ async function upstash(cmd: string[]): Promise<unknown> {
   return j.result;
 }
 
+/**
+ * Atomic dedupe acquire — wraps `SET key "1" NX EX <ttl>`.
+ * Returns true if the caller owns the key (proceed with side effects).
+ * Returns false if the key already existed (skip — already processed).
+ * Throws on infrastructure failure — caller must fail CLOSED (skip event,
+ * do not credit). 2026-05-26 economy safety pass: replaces the prior
+ * GET-then-SETEX two-step which had a race (two ticks could both GET
+ * null then both credit) AND a silent-failure mode (SETEX after credit
+ * failing would let the next tick double-credit).
+ */
+async function tryAcquireDedupe(key: string, ttlSec: number): Promise<boolean> {
+  const result = await upstash(["SET", key, "1", "NX", "EX", String(ttlSec)]);
+  return result === "OK";
+}
+
+/**
+ * Structured cron logging. Always goes through console.warn/error so
+ * Vercel surfaces it in the Functions log. Includes a `scope` so
+ * grep is easy across thousands of cron runs.
+ */
+function logCronWarn(scope: string, ctx: Record<string, unknown>, err?: unknown): void {
+  console.warn(`[sweep-bounty] ${scope}`, { ...ctx, error: err instanceof Error ? err.message : String(err ?? "") });
+}
+function logCronError(scope: string, ctx: Record<string, unknown>, err: unknown): void {
+  console.error(`[sweep-bounty] ${scope}`, { ...ctx, error: err instanceof Error ? err.message : String(err) });
+}
+
 type SaleEvent = {
   event_type?: string;
   transaction?: string;
@@ -129,12 +156,17 @@ export async function GET(req: Request) {
 
         const eventKey = `freelon:sweep:event:${tx}:${tokenId}`;
         if (hasUpstash) {
+          // BUG-04 fix 2026-05-26: switched from GET-then-SETEX (race +
+          // silent-failure mode) to atomic SET NX EX. Fails CLOSED on
+          // infrastructure error — better to skip a credit than to
+          // double-credit. Every skip is now logged so a real Upstash
+          // outage is visible in Vercel function logs (was previously
+          // a silent `continue`).
           try {
-            const already = (await upstash(["GET", eventKey])) as string | null;
-            if (already) continue;
-            await upstash(["SETEX", eventKey, "2592000", "1"]); // 30d
-          } catch {
-            // If Upstash fails, skip this event (better than double-credit)
+            const acquired = await tryAcquireDedupe(eventKey, 2592000); // 30d
+            if (!acquired) continue; // already processed this sale
+          } catch (e) {
+            logCronError("sweep.dedupe.acquire.failed", { tx, tokenId, buyer }, e);
             continue;
           }
         }
@@ -185,14 +217,22 @@ export async function GET(req: Request) {
         // bounty + a share of the dump discount. The dumper has hex burned
         // from their balance proportional to the discount.
         //
-        // Separate dedupe key from sweep-credit dedupe so a transient failure
-        // here doesn't block retry, and a successful rescue doesn't double-fire.
+        // BUG-03 fix 2026-05-26: dedupe restructured from "GET-then-credit-
+        // then-SETEX" (which double-credited if the GET failed transiently
+        // OR if the final SETEX failed after a successful credit) to
+        // "atomic-SET-NX-EX BEFORE credit, DEL on failure to roll back".
+        // This is the only correct pattern for at-most-once paid events.
         const rescueKey = `freelon:rescue:event:${tx}:${tokenId}`;
+        let rescueAcquired = false;
         if (hasUpstash) {
           try {
-            const already = (await upstash(["GET", rescueKey])) as string | null;
-            if (already) continue;
-          } catch { /* fall through — better to retry than to silently skip */ }
+            rescueAcquired = await tryAcquireDedupe(rescueKey, 2592000); // 30d
+            if (!rescueAcquired) continue; // already rescued — skip
+          } catch (e) {
+            // Fail CLOSED. If we can't confirm dedupe, do not pay.
+            logCronError("rescue.dedupe.acquire.failed", { tx, tokenId, buyer }, e);
+            continue;
+          }
         }
         try {
           const tid = parseInt(tokenId, 10);
@@ -241,19 +281,38 @@ export async function GET(req: Request) {
                 ? ECONOMY.DUMP_BURN_CAP * collapse.dumpBurnMultiplier
                 : ECONOMY.DUMP_BURN_CAP;
               const burnAmt = Math.min(burnRaw, burnCap);
+              // BUG-11 fix 2026-05-26: track ACTUAL burned amount.
+              // Previous code passed `burnAmt` to recordRescue regardless
+              // of whether debitWalletHex actually succeeded — meaning
+              // the ledger lied about burned amount when debit failed for
+              // ANY reason (insufficient balance OR Upstash/RPC error).
+              // Now: log every debit failure with full context, and pass
+              // the real burned amount through to the ledger.
+              let burnApplied = 0;
               if (burnAmt > 0) {
                 try {
                   await debitWalletHex(ghost.seller, burnAmt, {
                     kind: "manual",
                     note: `Dump burn · #${String(tid).padStart(4, "0")} · ${(discount * 100).toFixed(0)}% under floor · -${burnAmt}⬡`,
                   });
-                } catch { /* dumper has insufficient hex — burn capped at their balance via debit's own check */ }
+                  burnApplied = burnAmt;
+                } catch (e) {
+                  // We can't reliably distinguish "insufficient balance"
+                  // from "infrastructure error" without instrumenting
+                  // debitWalletHex. Log loudly so a real outage spike
+                  // is visible. Rescue still proceeds — rescuer was
+                  // already credited above and the ledger now records
+                  // burnApplied: 0 (truthful).
+                  logCronWarn("rescue.debit.failed", {
+                    tx, tokenId, seller: ghost.seller, burnAmt,
+                  }, e);
+                }
               }
-              // Persist attribution + ledger
+              // Persist attribution + ledger — use ACTUAL burned amount
               await recordRescue({
                 tokenId: tid, rescuer: buyer, dumper: ghost.seller,
                 priceEth, floorEth: ghost.floorEth,
-                hexPaid: rescuerPaid, hexBurned: burnAmt,
+                hexPaid: rescuerPaid, hexBurned: burnApplied,
                 rescuedAt: ts,
               });
               await appendDumpEntry({
@@ -262,9 +321,14 @@ export async function GET(req: Request) {
               });
               await breakDefenderStreak(ghost.seller);
               await clearGhost(tid);
-              // Notify both parties
+              // BUG-08 fix 2026-05-26: notify failure was previously
+              // swallowed silently. Rescue itself succeeds — the ledger
+              // is correct — but if neither party gets notified, that's
+              // an operational issue worth surfacing. Log per failed
+              // notify so a real outage is visible without corrupting
+              // event integrity.
+              const { notify } = await import("@/lib/notify");
               try {
-                const { notify } = await import("@/lib/notify");
                 await notify({
                   wallet: buyer,
                   eventKey: `rescue:${tid}:${ts}`,
@@ -272,23 +336,44 @@ export async function GET(req: Request) {
                   body: `⬡ RESCUED #${String(tid).padStart(4, "0")} at ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡ + permanent attribution`,
                   href: `/citizens/${tid}`,
                 });
+              } catch (e) {
+                logCronWarn("rescue.notify.buyer.failed", {
+                  tx, tokenId, buyer, tid,
+                }, e);
+              }
+              try {
                 await notify({
                   wallet: ghost.seller,
                   eventKey: `dump-burn:${tid}:${ts}`,
                   kind: "decay-warning",
-                  body: `⚠ #${String(tid).padStart(4, "0")} sold at ${(discount * 100).toFixed(0)}% under floor · -${burnAmt}⬡ burned · defender streak reset`,
+                  body: `⚠ #${String(tid).padStart(4, "0")} sold at ${(discount * 100).toFixed(0)}% under floor · -${burnApplied}⬡ burned · defender streak reset`,
                   href: "/graveyard",
                 });
-              } catch {/* non-fatal */}
-              // Mark rescue dedupe only AFTER the full success path. If any
-              // step above threw, the catch below skips this and the next
-              // cron run retries cleanly.
-              if (hasUpstash) {
-                try { await upstash(["SETEX", rescueKey, "2592000", "1"]); } catch {}
+              } catch (e) {
+                logCronWarn("rescue.notify.seller.failed", {
+                  tx, tokenId, seller: ghost.seller, tid,
+                }, e);
               }
+              // BUG-03 fix 2026-05-26: dedupe key was acquired BEFORE
+              // the rescue ran (via tryAcquireDedupe at line ~211). If
+              // we got here, the rescue succeeded — nothing more to do.
+              // The old post-success SETEX is gone because the atomic
+              // acquire already wrote the key.
             }
           }
-        } catch { /* rescue detection is non-blocking */ }
+        } catch (e) {
+          // Any throw inside the rescue block means the rescue did NOT
+          // complete cleanly. Release the dedupe key so the next cron
+          // run can retry — without this rollback, a partial failure
+          // would block the rescue forever (under-credit).
+          logCronError("rescue.processing.failed", { tx, tokenId, buyer }, e);
+          if (hasUpstash && rescueAcquired) {
+            try { await upstash(["DEL", rescueKey]); }
+            catch (delErr) {
+              logCronError("rescue.dedupe.rollback.failed", { tx, tokenId, rescueKey }, delErr);
+            }
+          }
+        }
       }
       next = d.next;
       if (!next) break;
