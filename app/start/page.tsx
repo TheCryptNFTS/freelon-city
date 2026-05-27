@@ -43,6 +43,12 @@ export default function StartPage() {
        they flatten to archival surface. No structural edits. */
     <div className="home-page" style={{ maxWidth: 820, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* ── HERO ── */}
+      {/* 2026-05-27 (post-Ogilvy down-funnel): hero rewritten to deliver
+         on the homepage h1 promise ("the city remembers what you carry").
+         Previous version: defensive ("plain English. No crypto vocabulary
+         needed.") + abstract ("the city is big, the steps are small")
+         — gave the visitor reassurance, not a reason. New version: states
+         what you'll know by the end of the page and what you'll have. */}
       <section style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ START HERE · 2-MIN TOUR</span>
         <h1
@@ -54,8 +60,8 @@ export default function StartPage() {
             margin: "10px 0 14px",
           }}
         >
-          A small guide.<br />
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>The city is big, the steps are small.</em>
+          Two minutes.<br />
+          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>One civilization. A daily signal.</em>
         </h1>
         <p
           style={{
@@ -66,8 +72,9 @@ export default function StartPage() {
             maxWidth: 620,
           }}
         >
-          Everything here is explained in plain English. No crypto vocabulary needed.
-          You don&apos;t have to read it all — pick the section that matches where you are.
+          By the end of this page you&apos;ll know what FREELON CITY is, which
+          civilization you belong to, and how to claim {ECONOMY.DAILY_CLAIM} ⬡
+          for showing up today. No wallet required to read on.
         </p>
       </section>
 

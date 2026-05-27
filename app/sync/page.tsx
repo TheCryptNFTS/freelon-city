@@ -66,11 +66,13 @@ export default async function SyncPage({
         <span className="kicker">⬡ ENTER THE CITY</span>
         <h1>The city <em>detects</em> you</h1>
         <p>
-          {/* 2026-05-26 funnel repair: copy now describes both paths.
-             Wallet connect is the primary; paste-address stays as
-             fallback for users without a browser wallet. */}
-          Connect your wallet to enter — or paste a wallet, ENS, or X handle
-          and the signal will read your alignment.
+          {/* 2026-05-27 (post-Ogilvy down-funnel): cut the overengineered
+             second clause that described every input method in one
+             sentence. The h1 is the moment; the lede should set up the
+             button, not catalog the form. Paste-fallback copy lives in
+             the secondary section below. */}
+          Connect to read the signal already in your wallet — your civilization,
+          your alignment, what you carry.
         </p>
       </section>
 
