@@ -156,7 +156,7 @@ export function HexEarningsLog({ address }: { address: string }) {
       {data.defenderTick && data.defenderTick.qualifyingTokens > 0 && (
         <div className="hl-tick">
           <span className="hl-tick-credit">+{data.defenderTick.hexCredited} ⬡</span>{" "}
-          floor defender · {data.defenderTick.qualifyingTokens} citizen{data.defenderTick.qualifyingTokens === 1 ? "" : "s"} held 30d+
+          floor signal bearer · {data.defenderTick.qualifyingTokens} citizen{data.defenderTick.qualifyingTokens === 1 ? "" : "s"} held 30d+
         </div>
       )}
 

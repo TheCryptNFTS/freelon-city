@@ -362,7 +362,7 @@ export default async function WalletPage({
               height={28}
               style={{ width: 28, height: 28, objectFit: "contain", display: "block" }}
             />
-            DEFENDER · {defenderMonths}MO · +{defenderBonus}%
+            SIGNAL BEARER · {defenderMonths}MO · +{defenderBonus}%
           </div>
         )}
       </section>
