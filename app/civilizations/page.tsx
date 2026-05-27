@@ -27,10 +27,20 @@ export default function Page() {
   return (
     <div className="civs-page">
       <section className="civs-hero">
+        {/* 2026-05-27 (post-Ogilvy down-funnel): h1 was taxonomic
+           ("10 Signal civilizations" — told you the count, not the
+           reason). New h1 answers "what do I get" — every citizen
+           belongs to one of these; this is the doctrine you sit
+           under, your color on every page, your earning bonus. The
+           "Silver Machine at 80 is sacred" name-drop moved to the
+           card grid where context exists; the lede now sells the
+           membership instead. */}
         <span className="kicker">⬡ CIVILIZATIONS</span>
-        <h1>10 <em>Signal</em> civilizations</h1>
+        <h1>Ten doctrines.<br /><em>One of them is yours.</em></h1>
         <p className="lead">
-          Each citizen belongs to one. Population dictates power. Silver Machine at 80 is sacred.
+          Every citizen belongs to one. Your civilization is your color, your
+          chant, your earning bonus, and the side you take when the city splits.
+          Below: the ten, in order of population.
         </p>
       </section>
       <section className="civs-list">
