@@ -247,14 +247,42 @@ export default function StartPage() {
         </Box>
       </Section>
 
-      {/* ── NEXT ── */}
+      {/* ── NEXT ──
+         2026-05-27 (post-Ogilvy 38-rule scorecard, Rule 37):
+         Collapsed three equal-weight CTAs into one primary action.
+         The hero promises "claim 10 ⬡ for showing up today" — /sync is
+         the path to that promise. /relay (post templates) and /numbers
+         (market pulse) were off-funnel exploration buttons that diluted
+         the call to action for a first-time visitor finishing the tour.
+         Both pages remain reachable from header nav. Secondary explore
+         link kept for visitors who genuinely don't want to sync yet. */}
       <section style={{ marginTop: "var(--s-6)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
+        <h2
+          style={{
+            fontFamily: "var(--display)",
+            fontSize: "clamp(28px, 4vw, 40px)",
+            lineHeight: 1.05,
+            letterSpacing: "-0.015em",
+            margin: "10px 0 var(--s-3)",
+          }}
+        >
+          Claim your <em style={{ color: "var(--gold)", fontStyle: "normal" }}>{ECONOMY.DAILY_CLAIM} ⬡</em> for today.
+        </h2>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/sync"><span className="ttl">SYNC NOW →</span></Link>
-          <Link className="btn btn-secondary" href="/relay"><span className="ttl">POST TEMPLATES →</span></Link>
-          <Link className="btn btn-secondary" href="/numbers"><span className="ttl">PULSE →</span></Link>
+          <Link className="btn btn-primary" href="/sync"><span className="ttl">SYNC + CLAIM →</span></Link>
         </div>
+        <p
+          style={{
+            marginTop: "var(--s-3)",
+            fontFamily: "var(--mono2)",
+            fontSize: 12,
+            color: "var(--ink-dim)",
+            letterSpacing: "0.12em",
+          }}
+        >
+          Not ready? <Link href="/civilizations" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>Browse the ten civilizations first.</Link>
+        </p>
       </section>
     </div>
   );
