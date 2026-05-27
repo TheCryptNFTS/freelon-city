@@ -5370,6 +5370,70 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   color: var(--archival-gold) !important;
 }
 
+/* ─── /civilizations (standalone showcase) — archival treatment ───
+   Cut the per-civ chroma volume. Civ color survives only as the 4px
+   left-edge accent and on the .chant. Body fills/text go archival.
+   Plate image stays visible (it's the showcase) but slightly muted. */
+.civs-page .civs-list .civ-card {
+  background: var(--archival-surface) !important;
+  background-color: var(--archival-surface) !important;
+  border: 1px solid var(--archival-line) !important;
+  border-top: 1px solid var(--archival-line) !important;
+  border-left: 4px solid var(--civ, var(--archival-dust)) !important;
+  border-radius: 8px !important;
+  color: var(--archival-bone) !important;
+  transition: border-color 240ms ease, transform 240ms ease;
+}
+.civs-page .civs-list .civ-card:hover {
+  border-color: var(--archival-line) !important;
+  border-left-color: var(--civ, var(--archival-gold)) !important;
+  transform: translateY(-1px);
+}
+.civs-page .civs-list .civ-card.has-plate::before {
+  opacity: 0.10 !important;
+  filter: saturate(0.6) contrast(1.0) !important;
+}
+.civs-page .civs-list .civ-card.has-plate:hover::before {
+  opacity: 0.18 !important;
+}
+.civs-page .civs-list .civ-card .stamp {
+  color: var(--archival-dust) !important;
+}
+.civs-page .civs-list .civ-card .full-name {
+  color: var(--archival-bone-2) !important;
+}
+.civs-page .civs-list .civ-card h2 {
+  color: var(--archival-bone) !important;
+}
+.civs-page .civs-list .civ-card .pop {
+  color: var(--archival-bone) !important;
+}
+.civs-page .civs-list .civ-card .role {
+  color: var(--archival-bone-2) !important;
+}
+.civs-page .civs-list .civ-card .meta-row {
+  border-top-color: var(--archival-line) !important;
+}
+.civs-page .civs-list .civ-card .essence {
+  color: var(--archival-dust) !important;
+}
+.civs-page .civs-list .civ-card .chant {
+  color: var(--civ) !important;
+  opacity: 0.85;
+}
+.civs-page .civs-hero .kicker {
+  color: var(--archival-dust) !important;
+}
+.civs-page .civs-hero h1 {
+  color: var(--archival-bone) !important;
+}
+.civs-page .civs-hero h1 em {
+  color: var(--archival-gold) !important;
+}
+.civs-page .civs-hero .lead {
+  color: var(--archival-bone-2) !important;
+}
+
 /* ─── Pull quote — quiet and expensive ─── */
 .home-page section.pull {
   position: relative;
