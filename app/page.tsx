@@ -76,18 +76,23 @@ export default async function Home() {
             {/* Brand badge */}
             <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
 
-            {/* Hero headline locked to founder brief 2026-05-25:
-                Title = "404 HEX NOT FOUND" (carried by the term-badge above).
-                H1 = "The HEX disappeared." subtext + "FREELON CITY formed
-                around the signal." */}
+            {/* Hero headline 2026-05-27 (post-Ogilvy audit). The previous
+                "The HEX disappeared." h1 was mythic but buried the offer —
+                cold visitors learned what happened, not what they get.
+                Promoted a brand-true line that answers "why would I want
+                to be here": the city is a memory system, and what you
+                carry persists. The collapse line is preserved as a kicker
+                so the IP frame stays intact. Founder brief's "404 HEX NOT
+                FOUND" still carries via the term-badge above. */}
+            <span className="hero-kicker">⬡ THE HEX DISAPPEARED. THE CITY FORMED AROUND THE SIGNAL.</span>
             <h1 className="hero-headline">
-              The HEX<br />
-              <em>disappeared.</em>
+              The city<br />
+              <em>remembers</em><br />
+              what you carry.
             </h1>
             <p className="hero-sub">
-              FREELON CITY formed around the signal.
-              <br />
-              <strong>4040 citizens</strong> · 10 civilizations · sealed supply.
+              <strong>4040 citizens</strong> across 10 civilizations.
+              Sealed supply. Every signal you send leaves a record.
             </p>
 
             {/* Audit 2026-05-26: inline glosses for the 3 most-confusing
