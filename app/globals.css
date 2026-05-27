@@ -3,7 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --bg:        #050505;
+  /* 2026-05-28 — visual direction shift toward "clean graffiti + neon noir"
+     (Cyberpunk Edgerunners + Off-White benchmark). Existing collection art
+     was already 70% in this lane (sync.webp electric-cyan hex, blue-synthesis
+     cyan veins, red-corruption neon kintsugi, void-404 chromatic aberration,
+     not-found.webp gold-neon-hex-on-stone-wall = literal graffiti tag).
+     The site chrome was dressed mythic-archival while the art was already
+     dressed neon. These tokens align the chrome to the art. Gold stays as
+     a STRUCTURAL color (hex borders, halo rings); cyan becomes the new
+     accent (the signal color). */
+  --bg:        #0A0E27;  /* lifted near-black with deep-blue undertone —
+                            holds neon glow better than pure #050505;
+                            confirmed against Edgerunners / BR2049 palette */
   --bg-2:      #0A0A0B;
   --surface:   #0B0B0C;
   --surface-2: #111113;
@@ -17,6 +28,19 @@
   --gold:        #C8A75D;
   --gold-bright: #E9C984;
   --gold-deep:   #8A7A40;
+
+  /* NEON ACCENT SYSTEM (2026-05-28) — for interactive / signal moments.
+     Cyan = THE signal color (matches sync.webp, blue-synthesis civ, hero
+     iridescence). Magenta = the human/graffiti counterbalance — reserved
+     for secondary urgent states. Gold stays for structural geometry. */
+  --neon-cyan:    #00E5FF;
+  --neon-magenta: #FF0070;
+  --neon-glow-cyan:
+    0 0 12px rgba(0, 229, 255, 0.55),
+    0 0 32px rgba(0, 229, 255, 0.28);
+  --neon-glow-magenta:
+    0 0 12px rgba(255, 0, 112, 0.55),
+    0 0 32px rgba(255, 0, 112, 0.28);
 
   /* Premium signal colors — use sparingly, one per context */
   --mars-rust:   #A84F2A;
@@ -444,9 +468,17 @@ a { color: inherit; text-decoration: none; }
   font-size: 11px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
+  /* 2026-05-28 — kicker glyph (⬡) glows cyan to mark it as the signal
+     overline. Rest of the text stays dim ink so it reads as a label,
+     not a primary line. The glow lives only on the hex glyph itself,
+     applied via the ::first-letter pseudo-element below. */
   color: var(--ink-dim, var(--ink-2));
   margin: var(--s-5) 0 var(--s-2);
   line-height: 1.4;
+}
+.hero-kicker::first-letter {
+  color: var(--neon-cyan);
+  text-shadow: var(--neon-glow-cyan);
 }
 .hero-headline {
   font-family: var(--display);
@@ -459,7 +491,12 @@ a { color: inherit; text-decoration: none; }
 }
 .hero-headline em {
   font-style: normal;
-  color: var(--gold);
+  /* 2026-05-28 — em is the verb of the h1 ("remembers"). The city
+     REMEMBERS via the signal — cyan is the signal color across the
+     collection art (sync.webp glowing hex, blue-synthesis civ veins).
+     Literalizing the lore: the verb itself glows like a transmission. */
+  color: var(--neon-cyan);
+  text-shadow: var(--neon-glow-cyan);
   font-weight: 400;
 }
 .hero-sub {
