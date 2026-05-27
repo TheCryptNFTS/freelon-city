@@ -55,16 +55,23 @@
   --danger-bright:  #df6857;
   --info:           #4a8acb;   /* info / link accent */
 
-  --civ-blue:   #4a8acb;
-  --civ-red:    #c54a3a;
-  --civ-green:  #5a9a4a;
-  --civ-purple: #8a4ac5;
-  --civ-white:  #F5F2E8;
-  --civ-pink:   #d97aa0;
-  --civ-black:  #404045;
-  --civ-gold:   #C8A75D;
-  --civ-void:   #3a2a6e;
-  --civ-silver: #b0b4be;
+  /* 2026-05-28 — civ colors shifted from "tasteful muted" to neon-noir
+     saturation. The previous values were polite NFT-collection palette;
+     the source art is electric (blue-synthesis cyan veins, red-corruption
+     lava kintsugi, green-growth phosphor vines, void-404 chromatic
+     aberration). The civ chrome was undershooting the civ art. These
+     tokens bring the chrome up to where the art is. Old values kept
+     as fallback comment for revert reference. */
+  --civ-blue:   #00B8FF;   /* was #4a8acb — electric cyan, Synthesis signal */
+  --civ-red:    #FF3A2D;   /* was #c54a3a — neon Corruption ember */
+  --civ-green:  #4CFF7A;   /* was #5a9a4a — electric Growth phosphor */
+  --civ-purple: #B85CFF;   /* was #8a4ac5 — neon Oracle violet */
+  --civ-white:  #F5F2E8;   /* unchanged — already at ink */
+  --civ-pink:   #FF5CB4;   /* was #d97aa0 — neon Luxury rose */
+  --civ-black:  #404045;   /* unchanged — Fracture stays muted by design */
+  --civ-gold:   #FFD24A;   /* was #C8A75D — electric Sovereignty gold (Edgerunners yellow) */
+  --civ-void:   #6A3AFF;   /* was #3a2a6e — neon Void indigo (was nearly invisible on bg) */
+  --civ-silver: #C9D2DE;   /* was #b0b4be — brightened Machine silver */
 
   /* TYPOGRAPHY STACK — Fontshare premium */
   --display: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
@@ -479,6 +486,21 @@ a { color: inherit; text-decoration: none; }
 .hero-kicker::first-letter {
   color: var(--neon-cyan);
   text-shadow: var(--neon-glow-cyan);
+}
+/* 2026-05-28 — Off-White-style quotation brackets. <q> renders smart
+   quotes natively; we restyle them to feel like spray-stencil ticks
+   rather than typographic curls. Dim them slightly so they read as
+   structural tags, not loud punctuation. */
+.hero-kicker__q {
+  font-style: normal;
+  quotes: "\201C" "\201D";
+}
+.hero-kicker__q::before,
+.hero-kicker__q::after {
+  color: var(--neon-cyan);
+  opacity: 0.7;
+  margin: 0 2px;
+  font-weight: 700;
 }
 .hero-headline {
   font-family: var(--display);

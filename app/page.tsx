@@ -84,7 +84,13 @@ export default async function Home() {
                 carry persists. The collapse line is preserved as a kicker
                 so the IP frame stays intact. Founder brief's "404 HEX NOT
                 FOUND" still carries via the term-badge above. */}
-            <span className="hero-kicker">⬡ THE HEX DISAPPEARED. THE CITY FORMED AROUND THE SIGNAL.</span>
+            {/* 2026-05-28 — Off-White-style quotation marks reframe the
+               kicker from declarative narration to a tagged transmission.
+               The ⬡ stays as the brand mark prefix (outside the quotes,
+               cyan-glowing via ::first-letter); the WORDS get bracketed
+               like Virgil's "FOR WALKING" / "SHOELACES" labels. Reads
+               as a citation from the city itself, not a stage direction. */}
+            <span className="hero-kicker">⬡ <q className="hero-kicker__q">THE HEX DISAPPEARED. THE CITY FORMED AROUND THE SIGNAL.</q></span>
             <h1 className="hero-headline">
               The city<br />
               <em>remembers</em><br />
