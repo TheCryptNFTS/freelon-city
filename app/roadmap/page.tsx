@@ -30,8 +30,8 @@ const ITEMS: Array<{
   // ─── SHIPPED ───
   {
     status: "SHIPPED",
-    title: "Dump-deterrent trinity",
-    body: "Listings ≤85% of floor become 404 SIGNAL LOST on every city surface. Rescuers earn hex + permanent attribution. Dumpers' hex burns. Defender streak rewards clean wallets.",
+    title: "Signal-loss enforcement",
+    body: "Listings ≤85% of floor become 404 SIGNAL LOST on every city surface. Wallets who restore them earn hex and permanent attribution. Wallets who break the floor lose hex. Clean-wallet streaks compound the rewards.",
     href: "/graveyard",
   },
   {
@@ -122,7 +122,7 @@ const ITEMS: Array<{
   {
     status: "LATER",
     title: "City almanac — printable / PDF year-in-review",
-    body: "End of year, the city publishes a free printable almanac: top transmissions, biggest rescues, named citizens, doctrine fragments collected. Historical record holders can print.",
+    body: "End of year, the city publishes a free printable almanac: top transmissions, largest signal recoveries, named citizens, doctrine fragments collected. Historical record holders can print.",
   },
 ];
 
