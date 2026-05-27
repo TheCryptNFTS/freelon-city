@@ -1,10 +1,10 @@
 import Link from "next/link";
 import citizensData from "@/data/citizens.json";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
+import { listNames, type NameEntry } from "@/lib/name-store";
 
 export const revalidate = 300;
 
-type NameEntry = { citizenId: number; name: string; owner: string; setAt: number };
 type Citizen = { id: number; civilization: string; name?: string; tier?: string };
 
 const citizens = citizensData as Citizen[];
@@ -24,12 +24,7 @@ function timeAgo(ms: number): string {
 
 async function loadNames(): Promise<NameEntry[]> {
   try {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || "";
-    const url = base ? `${base}/api/names` : `http://localhost:${process.env.PORT || 3000}/api/names`;
-    const res = await fetch(url, { next: { revalidate: 300 } });
-    if (!res.ok) return [];
-    const j = (await res.json()) as { names: NameEntry[] };
-    return j.names || [];
+    return await listNames(200);
   } catch {
     return [];
   }
