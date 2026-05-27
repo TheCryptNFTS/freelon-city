@@ -29,6 +29,11 @@ const config: NextConfig = {
       { source: "/doppelganger", destination: "/sync",    permanent: true },
       { source: "/regret",       destination: "/numbers", permanent: true },
       { source: "/rebuild",      destination: "/canon",   permanent: true },
+      // 2026-05-27 — /hold-the-line renamed to /synthesis to drop
+      // crypto-degen war framing in favor of the Synthesis doctrine
+      // (Blue Synthesis: tech monks · network civilization). The mechanic
+      // is unchanged; only the route name + page copy were updated.
+      { source: "/hold-the-line", destination: "/synthesis", permanent: true },
     ];
   },
   async headers() {

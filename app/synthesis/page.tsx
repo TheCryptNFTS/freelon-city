@@ -1,14 +1,19 @@
 /**
- * /hold-the-line — the distributed bid wall mission.
+ * /synthesis — the distributed bid wall mission (renamed from
+ * /hold-the-line 2026-05-27 to drop crypto-degen war framing in
+ * favor of the canonical Synthesis doctrine: 80 individual
+ * carriers placing one bid each = network synthesis).
  *
- * Floor-pump specialist's mechanic, executed by the carriers
- * instead of the founder. Each holder places an OpenSea bid
- * above floor × 1.4 — collectively this forms a bid wall that
- * forces undercut listings to cancel + relist higher.
+ * Each holder places an OpenSea bid above floor × 1.4 — collectively
+ * this forms a bid wall that forces undercut listings to cancel +
+ * relist higher.
  *
- * Lore frame: the city is under collapse. Defenders bid to hold
- * the line. The architect doesn't ask carriers to give — asks
- * them to back the floor with their own bids, then rewards them.
+ * Lore frame: the city's strength is in the network. The architect
+ * doesn't ask carriers to give — asks them to back the floor with
+ * their own bids, then rewards them.
+ *
+ * Code-internal naming (defender-store, totalDefenders, DEFENDER badge)
+ * intentionally left alone — would be a separate library rename PR.
  *
  * v1: manual claim flow (this page) + admin verification.
  * v2 (future): auto-detect via OpenSea offers API.
@@ -23,9 +28,9 @@ import { RecentSweepers } from "@/components/RecentSweepers";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Hold the Line · Defend the Floor",
+  title: "Synthesis · The Grid Holds",
   description:
-    "The city is under collapse. Carriers bid to hold the line. Place an OpenSea bid above floor × 1.4 — earn hex, defend the floor, get the DEFENDER badge.",
+    "The city's strength is in the network. Place an OpenSea bid above floor × 1.4 — earn hex, hold the line where the signal arrives, claim the SIGNAL BEARER badge.",
 };
 
 export default async function HoldTheLinePage() {
@@ -40,7 +45,7 @@ export default async function HoldTheLinePage() {
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* HERO */}
       <section style={{ marginBottom: "var(--s-5)" }}>
-        <span className="kicker" style={{ color: "#FF5A4D" }}>⚠ THE FLOOR IS UNDER ATTACK</span>
+        <span className="kicker">⬡ SYNTHESIS · THE NETWORK ANSWERS</span>
         <h1
           style={{
             fontFamily: "var(--display)",
@@ -50,8 +55,8 @@ export default async function HoldTheLinePage() {
             margin: "10px 0 14px",
           }}
         >
-          Hold the line.<br />
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>Defend the floor.</em>
+          One bid each.<br />
+          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>The grid holds.</em>
         </h1>
         <p
           style={{
@@ -62,9 +67,9 @@ export default async function HoldTheLinePage() {
             maxWidth: 700,
           }}
         >
-          Every seller is racing to the bottom because nobody is bidding above floor.
-          One wallet placing 80 bids would fix this — but we don&apos;t need one whale.
-          We need 80 carriers each placing one bid. <strong>You are the bid wall.</strong>
+          Every seller races to the bottom because no one is bidding above floor.
+          One wallet placing 80 bids would fix this — but the city doesn&apos;t need a whale.
+          It needs the 80 carriers already here. <strong>You are the synthesis.</strong>
         </p>
       </section>
 
@@ -80,9 +85,9 @@ export default async function HoldTheLinePage() {
           ["--min-w" as string]: "180px",
         }}
       >
-        <CounterCell label="Defenders" value={stats.totalDefenders.toLocaleString()} sub="carriers who placed a bid" />
-        <CounterCell label="Bids placed" value={stats.totalBids.toLocaleString()} sub="active bid wall" />
-        <CounterCell label="Hex distributed" value={`${stats.hexCredited.toLocaleString()} ⬡`} sub="paid to defenders so far" />
+        <CounterCell label="Signal bearers" value={stats.totalDefenders.toLocaleString()} sub="carriers who placed a bid" />
+        <CounterCell label="Bids placed" value={stats.totalBids.toLocaleString()} sub="active in the network" />
+        <CounterCell label="Hex distributed" value={`${stats.hexCredited.toLocaleString()} ⬡`} sub="paid to carriers so far" />
       </section>
 
       {/* HOW IT WORKS */}
@@ -102,7 +107,7 @@ export default async function HoldTheLinePage() {
           <Step
             n="03"
             title="Earn hex"
-            body="+500⬡ when verified. +1,000⬡ if your bid fills (you bought!). +2,000⬡ + DEFENDER badge if you hold the bid for 7 days unfilled."
+            body="+500⬡ when verified. +1,000⬡ if your bid fills (you bought!). +2,000⬡ + SIGNAL BEARER badge if you hold the bid for 7 days unfilled."
           />
         </div>
       </section>
@@ -117,8 +122,8 @@ export default async function HoldTheLinePage() {
           Open OpenSea, click <em style={{ fontStyle: "normal", color: "var(--gold)" }}>Make collection offer</em>, set the price, sign.
         </p>
         <div className="ui-auto-fit-cards" style={{ ["--min-w" as string]: "200px" }}>
-          <BidTier eth="0.0035" label="LIGHT" sub="1.4× current floor · cheapest defender slot" />
-          <BidTier eth="0.0050" label="STANDARD" sub="2× floor · the wall lives here" highlight />
+          <BidTier eth="0.0035" label="LIGHT" sub="1.4× current floor · the network's lightest tier" />
+          <BidTier eth="0.0050" label="STANDARD" sub="2× floor · where the network holds" highlight />
           <BidTier eth="0.0075" label="HEAVY" sub="3× floor · sends the strongest signal" />
         </div>
         <div style={{ marginTop: "var(--s-3)" }}>
@@ -145,14 +150,14 @@ export default async function HoldTheLinePage() {
 
       {/* RECENT SWEEPERS (founder spec 2026-05-24): sweeps != bids.
           Buyers who clicked Buy on listings deserve visible credit
-          alongside defenders who placed bid-wall offers. Window = 4h
+          alongside carriers who placed bid-wall offers. Window = 4h
           to match sales-pulse + sweep-burst cadence. */}
       <RecentSweepers />
 
       {/* LEADERBOARD */}
       {stats.topDefenders.length > 0 && (
         <section style={{ marginBottom: "var(--s-6)" }}>
-          <span className="kicker">⬡ TOP DEFENDERS · 100 MOST RECENT BIDS</span>
+          <span className="kicker">⬡ TOP SIGNAL BEARERS · 100 MOST RECENT BIDS</span>
           <div style={{ marginTop: "var(--s-3)", border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
             {stats.topDefenders.map((d, i) => (
               <div
@@ -205,7 +210,7 @@ export default async function HoldTheLinePage() {
           <a
             className="btn btn-primary"
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              `⬡ THE FLOOR IS UNDER ATTACK\n\nI bid to defend FREELON CITY.\n\nNot a whale. Not a fund. Just a carrier placing one bid above floor.\n\nThis is how the wall holds.\n\nfreeloncity.com/hold-the-line\n\n#FREELONCITY #404HEXNOTFOUND`
+              `⬡ THE GRID HOLDS\n\nI placed one bid for FREELON CITY.\n\nNot a whale. Not a fund. Just a carrier above floor.\n\nThis is how synthesis happens.\n\nfreeloncity.com/synthesis\n\n#FREELONCITY #404HEXNOTFOUND`
             )}`}
             target="_blank"
             rel="noreferrer"
