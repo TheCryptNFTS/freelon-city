@@ -34,6 +34,12 @@ const config: NextConfig = {
       // (Blue Synthesis: tech monks · network civilization). The mechanic
       // is unchanged; only the route name + page copy were updated.
       { source: "/hold-the-line", destination: "/synthesis", permanent: true },
+      // 2026-05-27 — /lore pruned. Its unique IP (founding/geography +
+      // per-civ history/ritual prose) was merged into /canon's expanded
+      // origin + civilizations tabs. Anchor sends visitors directly to
+      // the merged section. The orphan-from-nav page is gone; the
+      // content survives in the canonical reference library.
+      { source: "/lore", destination: "/canon#civilizations", permanent: true },
     ];
   },
   async headers() {

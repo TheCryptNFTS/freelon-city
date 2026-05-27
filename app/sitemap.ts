@@ -7,12 +7,14 @@ const BASE = "https://www.freeloncity.com";
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  // /rebuild dropped 2026-05-26 — route now 301 redirects to /canon
-  // (see next.config redirects). Sitemap should not list redirect
-  // sources or destinations users can't reach as their own page.
+  // /rebuild dropped 2026-05-26 — route now 301 redirects to /canon.
+  // /lore dropped 2026-05-27 — prose merged into /canon's expanded
+  // origin + civilizations tabs; /lore now 308 redirects to
+  // /canon#civilizations. Sitemap should not list redirect sources.
   const staticRoutes: MetadataRoute.Sitemap = [
-    "/", "/origin", "/lore", "/manifesto", "/carrier", "/sync",
+    "/", "/origin", "/manifesto", "/carrier", "/sync",
     "/pfp", "/tribute", "/citizens", "/civilizations", "/shapes", "/lexicon",
+    "/canon",
     "/legal", "/legal/terms", "/legal/privacy", "/legal/honorary-notice", "/legal/dmca",
   ].map((p) => ({
     url: `${BASE}${p}`,

@@ -11,6 +11,8 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CITY_LORE, CIVILIZATION_LORE } from "@/lib/worldbuilding";
+import { CIVILIZATIONS } from "@/lib/constants";
 
 // Phase 1 metadata 2026-05-26 — route-specific text, reuses
 // /og/home.jpg.
@@ -47,6 +49,9 @@ type Tab = {
   hrefLabel: string;
   summary: string[];
   quote?: string;
+  /** Optional extended view rendered inside the <details> after the
+   *  summary + quote. Used for the merged /lore content (2026-05-27). */
+  extended?: "origin" | "civilizations";
 };
 
 const TABS: Tab[] = [
@@ -61,6 +66,9 @@ const TABS: Tab[] = [
       "FREELON CITY is the answer to that absence. Humanity colonised Mars, then began detecting a signal. A city formed around it. The signal reshaped its citizens biologically, spiritually, technologically. The hexagon — present in the signal's mathematics — became sacred. 4040 citizens. 10 civilizations. 7 castes. 16 shapes.",
     ],
     quote: "The platform removed the frame. The people became the frame.",
+    // 2026-05-27 /lore prune: founding + geography prose merged here from
+    // the (now-redirected) /lore page. CITY_LORE is the single source.
+    extended: "origin",
   },
   {
     id: "civilizations",
@@ -73,6 +81,10 @@ const TABS: Tab[] = [
       "The civilizations page is the city's only interactive map: explore each doctrine's district, population, holders, and signal score. Silver Machine's 80 is the rarest — they were here before the colonists.",
     ],
     quote: "We did not split. We refracted.",
+    // 2026-05-27 /lore prune: full per-civ history + ritual prose merged
+    // here from the (now-redirected) /lore page. CIVILIZATION_LORE is the
+    // single source of truth.
+    extended: "civilizations",
   },
   {
     id: "castes",
@@ -345,6 +357,9 @@ function TabBlock({ t, defaultOpen = false }: { t: Tab; defaultOpen?: boolean })
           </blockquote>
         )}
 
+        {t.extended === "origin" && <ExtendedOrigin />}
+        {t.extended === "civilizations" && <ExtendedCivilizations />}
+
         <Link
           href={t.href}
           className="btn btn-secondary btn-sm"
@@ -354,5 +369,84 @@ function TabBlock({ t, defaultOpen = false }: { t: Tab; defaultOpen?: boolean })
         </Link>
       </div>
     </details>
+  );
+}
+
+/* ── Extended sections ──────────────────────────────────────────────
+   Merged here from the deleted /lore page (2026-05-27). The narrative
+   prose used to live only on /lore; consolidating it here means /canon
+   is now the true canonical reference, /lore redirects in, and the
+   unique IP (founding/geography/per-civ history+ritual) is preserved
+   without an orphan surface.
+*/
+
+function ExtendedOrigin() {
+  return (
+    <div style={{ marginTop: "var(--s-3)", paddingTop: "var(--s-3)", borderTop: "1px dashed var(--line)" }}>
+      <span className="kicker" style={{ display: "block", marginBottom: 6 }}>⬡ THE FOUNDING</span>
+      <h3 style={{ fontFamily: "var(--display)", fontSize: 18, margin: "4px 0 8px", letterSpacing: "-0.005em" }}>
+        {CITY_LORE.founding.title}
+      </h3>
+      <p style={{ fontFamily: "var(--mono2)", fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.7, margin: "0 0 var(--s-3)" }}>
+        {CITY_LORE.founding.body}
+      </p>
+
+      <span className="kicker" style={{ display: "block", marginBottom: 6 }}>⬡ THE MAP</span>
+      <h3 style={{ fontFamily: "var(--display)", fontSize: 18, margin: "4px 0 8px", letterSpacing: "-0.005em" }}>
+        {CITY_LORE.geography.title}
+      </h3>
+      <p style={{ fontFamily: "var(--mono2)", fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.7, margin: "0 0 var(--s-2)" }}>
+        {CITY_LORE.geography.body}
+      </p>
+    </div>
+  );
+}
+
+function ExtendedCivilizations() {
+  return (
+    <div style={{ marginTop: "var(--s-3)", paddingTop: "var(--s-3)", borderTop: "1px dashed var(--line)" }}>
+      <span className="kicker" style={{ display: "block", marginBottom: 10 }}>⬡ THE TEN · FULL CANON</span>
+      {Object.entries(CIVILIZATION_LORE).map(([slug, lore]) => {
+        const civ = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; color: string; chant: string; population: number }>)[slug];
+        if (!civ) return null;
+        return (
+          <article
+            key={slug}
+            style={{
+              padding: "var(--s-3) var(--s-4)",
+              marginBottom: 12,
+              borderLeft: `3px solid ${civ.color}`,
+              background: "rgba(255,255,255,0.02)",
+              borderRadius: 8,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.24em", textTransform: "uppercase", color: civ.color }}>
+                {civ.doctrine}
+              </span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", letterSpacing: "0.18em" }}>
+                · {civ.population} citizens
+              </span>
+            </div>
+            <h3 style={{ fontFamily: "var(--display)", fontSize: 20, margin: "4px 0 6px", letterSpacing: "-0.005em" }}>
+              {civ.name}
+            </h3>
+            <p style={{ fontFamily: "var(--mono2)", fontSize: 12, fontStyle: "italic", color: "var(--ink)", margin: "0 0 var(--s-2)" }}>
+              “{lore.motto}”
+            </p>
+            <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, margin: "0 0 var(--s-2)" }}>
+              <strong style={{ color: "var(--ink)" }}>HISTORY · </strong>{lore.history}
+            </p>
+            <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, margin: "0 0 var(--s-2)" }}>
+              <strong style={{ color: "var(--ink)" }}>RITUAL · </strong>{lore.ritual}
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.1em" }}>
+              <span><strong style={{ color: "var(--ink-2)" }}>DISTRICT:</strong> {lore.district}</span>
+              <span><strong style={{ color: "var(--ink-2)" }}>CHANT:</strong> {lore.chant}</span>
+            </div>
+          </article>
+        );
+      })}
+    </div>
   );
 }
