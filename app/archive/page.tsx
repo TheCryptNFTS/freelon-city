@@ -240,6 +240,9 @@ export default function ArchivePage() {
           <Link className="btn btn-secondary" href="/civilizations">
             <span className="ttl">10 CIVILIZATIONS →</span>
           </Link>
+          <Link className="btn btn-secondary" href="/citizens">
+            <span className="ttl">BROWSE ALL 4040 →</span>
+          </Link>
           <Link className="btn btn-secondary" href="/canon">
             <span className="ttl">THE CANON →</span>
           </Link>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { InlineSync } from "@/components/InlineSync";
 import { normalizeHandle } from "@/lib/sync";
@@ -109,6 +110,42 @@ export default async function SyncPage({
         </p>
         <div className="big-input">
           <InlineSync />
+        </div>
+      </section>
+
+      {/* NEXT — 2026-05-28 funnel fix: /sync previously dead-ended after
+         the connect/handle widgets. Post-sync home is the dashboard;
+         the city wall is the other natural next step. Both linked here
+         so a synced visitor always has a clear forward path. */}
+      <section
+        className="sync-next"
+        style={{
+          maxWidth: 720,
+          margin: "var(--s-6) auto 0",
+          padding: "0 var(--pad)",
+          textAlign: "center",
+        }}
+      >
+        <span
+          className="kicker"
+          style={{ display: "block", marginBottom: "var(--s-3)" }}
+        >
+          ⬡ NEXT
+        </span>
+        <div
+          style={{
+            display: "inline-flex",
+            gap: 12,
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <Link className="btn btn-primary" href="/dashboard">
+            <span className="ttl">VIEW YOUR DASHBOARD →</span>
+          </Link>
+          <Link className="btn btn-secondary" href="/transmissions">
+            <span className="ttl">THE CITY WALL →</span>
+          </Link>
         </div>
       </section>
     </div>
