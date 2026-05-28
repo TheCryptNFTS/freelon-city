@@ -76,8 +76,12 @@ const config: NextConfig = {
               "default-src 'self'",
               // Next.js inlines a hydration script; allow inline + eval for now (tighten later with nonces)
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io",
-              "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com",
-              "font-src 'self' https://cdn.fontshare.com data:",
+              // 2026-05-28: added Google Fonts hosts — Space Mono loads from
+              // fonts.googleapis.com (CSS) + fonts.gstatic.com (font files).
+              // Without these the link was silently CSP-blocked in prod and
+              // mono data fell back to system monospace.
+              "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com https://fonts.googleapis.com",
+              "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link",
               "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth.llamarpc.com https://ethereum.publicnode.com https://rpc.ankr.com https://*.upstash.io https://api.x.com https://plausible.io",
               "frame-ancestors 'self'",

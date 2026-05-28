@@ -124,10 +124,14 @@ export default async function Home() {
                   <Link href="/sync" className="btn btn-primary">
                     <span className="ttl">ENTER THE CITY <span className="ar">→</span></span>
                   </Link>
+                  {/* 2026-05-28 a11y (WCAG 2.5.3): dropped aria-label — it
+                     didn't contain the visible text, so voice-control users
+                     couldn't activate it by saying what they see. The visible
+                     "NEW HERE? · 2-MIN GUIDE" is the accessible name; the
+                     ⬡/→ glyphs are aria-hidden. */}
                   <Link
                     href="/start"
                     className="new-here-pill new-here-pill--hero"
-                    aria-label="New here? Start with the 2-minute guide"
                   >
                     <span aria-hidden>⬡</span>
                     <span>NEW HERE? · 2-MIN GUIDE</span>
@@ -139,10 +143,11 @@ export default async function Home() {
                   <Link href="/start" className="btn btn-primary">
                     <span className="ttl">START HERE · 2-MIN GUIDE <span className="ar">→</span></span>
                   </Link>
+                  {/* 2026-05-28 a11y (WCAG 2.5.3): aria-label dropped — see
+                     note above. Visible "ALREADY HERE · ENTER" is the name. */}
                   <Link
                     href="/sync"
                     className="new-here-pill new-here-pill--hero"
-                    aria-label="Already know the city? Enter directly."
                   >
                     <span aria-hidden>⬡</span>
                     <span>ALREADY HERE · ENTER</span>
