@@ -568,6 +568,22 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink-2);
   max-width: 56ch; margin: 0 0 var(--s-7);
 }
+/* 2026-05-28 collector pass — quiet live market line under the hero CTAs.
+   Uses --mono (Space Mono = data font); gold floor value + teal OpenSea
+   cue keep it premium-market, not degen-banner. */
+.hero-market {
+  display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: var(--s-2);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ink-dim);
+  text-decoration: none; transition: color .2s ease;
+}
+.hero-market__k { color: var(--ink-dim); }
+.hero-market__v { color: var(--gold); }
+.hero-market__sep { color: var(--ink-fade); }
+.hero-market__cta { color: var(--neon-cyan); }
+.hero-market:hover { color: var(--ink-2); }
+.hero-market:hover .hero-market__cta { text-decoration: underline; }
 .hero-ctas { display: flex; flex-wrap: wrap; gap: var(--s-3); max-width: 720px; margin-bottom: var(--s-5); }
 .hero-ctas .btn { /* Use base pill defaults — no overrides */ }
 .hero-ctas .btn .lbl {

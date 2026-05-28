@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
+import { HeroMarketStat } from "@/components/HeroMarketStat";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
 import { CIVILIZATIONS, CONTRACT, METADATA_CID, heroImageUrl } from "@/lib/constants";
@@ -156,6 +157,10 @@ export default async function Home() {
                 </>
               )}
             </div>
+            {/* 2026-05-28 collector pass (founder: "lean in") — live floor
+               + sealed-supply line under the CTAs. Client-side fetch, never
+               blocks the hero LCP. */}
+            <HeroMarketStat />
           </div>
         </div>
         <style>{`
