@@ -46,9 +46,16 @@ const GROUPS: NavGroup[] = [
   {
     heading: "HOLDER",
     links: [
+      // 2026-05-28 mobile parity: dashboard/earn/leaderboard were added to
+      // the desktop More dropdown (HeaderArchives) by the nav-funnel pass
+      // but the matching mobile entries were missed. Added here so the
+      // sheet exposes the same post-sync surfaces the laptop nav does.
+      { href: "/dashboard",     label: "Dashboard" },
       { href: "/vault",         label: "⬡ Vault", gold: true },
       { href: "/transmissions", label: "Transmissions" },
       { href: "/relay",         label: "Relay" },
+      { href: "/earn",          label: "Earn" },
+      { href: "/leaderboard",   label: "Leaderboard" },
     ],
   },
   {
