@@ -221,7 +221,11 @@ export default async function Home() {
                you reach the CTA. Compressing here doesn't touch
                desktop. */
             .hero-left {
-              padding: 28px 20px 36px !important;
+              /* 2026-05-28 funnel fix: trimmed top/bottom mobile padding
+                 ~20% (28→22, 36→29) so the primary CTA lands within the
+                 first scroll on a 375x812 phone. Horizontal padding and
+                 gap unchanged. */
+              padding: 22px 20px 29px !important;
               gap: 16px !important;
             }
           }
