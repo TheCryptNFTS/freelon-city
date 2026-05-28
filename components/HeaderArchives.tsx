@@ -23,22 +23,42 @@ type Group = { heading: string; items: Item[] };
 // decision to kill the utility-token tell). Each remaining link is
 // canonical reference, discovery/social proof, holder safeguard,
 // public stats, holder utility, lore-fit, or onboarding.
+// 2026-05-28 collector pass ("lean in"): the collector red-team flagged
+// holder tools (Dashboard/Vault/Earn/Leaderboard) as buried in a flat
+// 13-item dump. Re-grouped into labelled sections with HOLDER tools first
+// so a collector/holder finds their surfaces immediately. Same 13 routes,
+// now scannable. (The component already renders headings + dividers.)
 const GROUPS: Group[] = [
   {
-    heading: "",
+    heading: "Holder",
+    items: [
+      { href: "/dashboard",     label: "Dashboard" },
+      { href: "/vault",         label: "⬡ Vault", gold: true },
+      { href: "/earn",          label: "Earn" },
+      { href: "/leaderboard",   label: "Leaderboard" },
+      { href: "/carrier",       label: "Carrier" },
+    ],
+  },
+  {
+    heading: "Explore",
+    items: [
+      { href: "/citizens",      label: "Citizens" },
+      { href: "/numbers",       label: "Pulse" },
+      { href: "/transmissions", label: "Transmissions" },
+      { href: "/relay",         label: "Relay" },
+    ],
+  },
+  {
+    heading: "Lore",
     items: [
       { href: "/canon",         label: "Canon" },
       { href: "/tribute",       label: "Tribute" },
-      { href: "/citizens",      label: "Citizens" },
-      { href: "/dashboard",     label: "Dashboard" },
-      { href: "/leaderboard",   label: "Leaderboard" },
-      { href: "/earn",          label: "Earn" },
-      { href: "/numbers",       label: "Pulse" },
-      { href: "/vault",         label: "⬡ Vault", gold: true },
-      { href: "/carrier",       label: "Carrier" },
-      { href: "/transmissions", label: "Transmissions" },
-      { href: "/relay",         label: "Relay" },
       { href: "/secrets",       label: "Secrets" },
+    ],
+  },
+  {
+    heading: "New here",
+    items: [
       { href: "/start",         label: "Start Here · 2-min guide" },
     ],
   },
