@@ -1,19 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ECONOMY } from "@/lib/economy-constants";
 
 /**
- * <HeroMarketStat /> — quiet live market line under the hero CTAs.
+ * <HeroMarketStat /> — quiet two-part market/holder line under the hero CTAs.
  *
- * 2026-05-28 collector pass: the collector red-team (6/10) flagged that a
- * buyer can't see entry cost (floor) without leaving the homepage. This
- * surfaces it — but premium, not degen: one mono line (mono = the data
- * font), gold floor value, teal OpenSea link. Scarcity ("4040 SEALED")
- * sits beside the floor so the framing stays "rare collection," not
- * "check the chart."
+ * Collector pass ("lean in"):
+ *  - Collector cue: live floor + sealed supply + OpenSea link (entry cost).
+ *  - Holder cue: "claim N ⬡ daily — free" → /sync (the no-cost on-ramp the
+ *    founder approved for the hero). Kept premium: mono (data font), gold
+ *    values, one tight row that wraps on mobile.
  *
- * Fetches CLIENT-SIDE (after paint) on purpose — a server-side floor
- * fetch is exactly what blocked the hero LCP (fixed in 81081dc); this
- * must never re-enter the critical render path.
+ * Floor fetches CLIENT-SIDE on purpose — a server-side fetch is what blocked
+ * the hero LCP (fixed 81081dc); this must never re-enter the critical path.
  */
 export function HeroMarketStat() {
   const [floor, setFloor] = useState<number | null>(null);
@@ -32,17 +32,23 @@ export function HeroMarketStat() {
   }, []);
 
   return (
-    <a
-      className="hero-market"
-      href="https://opensea.io/collection/freelons"
-      target="_blank"
-      rel="noreferrer"
-    >
-      <span className="hero-market__k">⬡ Floor</span>
-      <span className="hero-market__v">{floor != null ? `${floor.toFixed(4)} Ξ` : "—"}</span>
-      <span className="hero-market__sep">·</span>
-      <span className="hero-market__k">4040 sealed</span>
-      <span className="hero-market__cta">On OpenSea →</span>
-    </a>
+    <div className="hero-market-row">
+      <a
+        className="hero-market"
+        href="https://opensea.io/collection/freelons"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span className="hero-market__k">⬡ Floor</span>
+        <span className="hero-market__v">{floor != null ? `${floor.toFixed(4)} Ξ` : "—"}</span>
+        <span className="hero-market__sep">·</span>
+        <span className="hero-market__k">4040 sealed</span>
+        <span className="hero-market__cta">OpenSea →</span>
+      </a>
+      <Link className="hero-market hero-market--claim" href="/sync">
+        <span className="hero-market__k">⬡ Claim {ECONOMY.DAILY_CLAIM} ⬡ daily</span>
+        <span className="hero-market__cta">free →</span>
+      </Link>
+    </div>
   );
 }

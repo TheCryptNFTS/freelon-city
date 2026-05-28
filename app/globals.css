@@ -33,19 +33,17 @@
      Cyan = THE signal color (matches sync.webp, blue-synthesis civ, hero
      iridescence). Magenta = the human/graffiti counterbalance — reserved
      for secondary urgent states. Gold stays for structural geometry. */
-  /* 2026-05-28 color-coherence overpass — accent shifted from pure icy
-     cyan #00E5FF to teal #00D9B8. The pure cyan was the only max-saturation
-     COLD element in an otherwise warm palette (ivory ink + gold), so it
-     read as pasted-on. Teal carries a yellow undertone that echoes gold,
-     so it stays electric/signal without clashing. This is the global
-     accent token — REMEMBERS, the kicker ⬡, focus rings, the carousel
-     scrollbar all follow. --civ-blue (#00B8FF) is a separate civ identity
-     token and stays pure (it lives scoped inside its own card). */
-  --neon-cyan:    #00D9B8;
+  /* 2026-05-28 — accent reverted to GOLD (founder: "I don't like the teal,
+     use the gold again"). The cyan→teal experiment is dropped; the signal
+     accent is now bright gold, fully in the warm ivory+gold family. Token
+     name kept (--neon-cyan) for its existing references — REMEMBERS, the
+     kicker ⬡, focus rings, the carousel scrollbar — all now read gold. The
+     glow is a soft gold luminance, not a neon spike. */
+  --neon-cyan:    #E9C984;
   --neon-magenta: #FF0070;
   --neon-glow-cyan:
-    0 0 2px rgba(0, 217, 184, 0.85),
-    0 0 14px rgba(0, 217, 184, 0.35);
+    0 0 2px rgba(233, 201, 132, 0.7),
+    0 0 16px rgba(233, 201, 132, 0.28);
   --neon-glow-magenta:
     0 0 2px rgba(255, 0, 112, 0.85),
     0 0 14px rgba(255, 0, 112, 0.35);
@@ -568,12 +566,15 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink-2);
   max-width: 56ch; margin: 0 0 var(--s-7);
 }
-/* 2026-05-28 collector pass — quiet live market line under the hero CTAs.
-   Uses --mono (Space Mono = data font); gold floor value + teal OpenSea
-   cue keep it premium-market, not degen-banner. */
+/* 2026-05-28 collector pass — quiet market/holder row under the hero CTAs.
+   Two cues: collector (floor + OpenSea) and holder (claim daily, free).
+   Uses --mono (Space Mono = data font); gold values keep it premium. */
+.hero-market-row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 8px 22px; margin-top: var(--s-3);
+}
 .hero-market {
-  display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin-top: var(--s-2);
+  display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
   text-transform: uppercase; color: var(--ink-dim);
   text-decoration: none; transition: color .2s ease;
@@ -581,9 +582,11 @@ a { color: inherit; text-decoration: none; }
 .hero-market__k { color: var(--ink-dim); }
 .hero-market__v { color: var(--gold); }
 .hero-market__sep { color: var(--ink-fade); }
-.hero-market__cta { color: var(--neon-cyan); }
+.hero-market__cta { color: var(--gold-bright); }
 .hero-market:hover { color: var(--ink-2); }
 .hero-market:hover .hero-market__cta { text-decoration: underline; }
+/* holder cue — same family, slightly forward so the free on-ramp reads */
+.hero-market--claim .hero-market__k { color: var(--ink-2); }
 .hero-ctas { display: flex; flex-wrap: wrap; gap: var(--s-3); max-width: 720px; margin-bottom: var(--s-5); }
 .hero-ctas .btn { /* Use base pill defaults — no overrides */ }
 .hero-ctas .btn .lbl {
