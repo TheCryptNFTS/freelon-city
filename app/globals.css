@@ -239,8 +239,12 @@ html {
 
 /* Global type rhythm — all section headings inherit */
 h1, h2, h3, h4 { margin: 0; }
-h1 { font-family: var(--display); font-weight: 400; line-height: 0.88; letter-spacing: -0.02em; text-transform: uppercase; }
-h2 { font-family: var(--display); font-weight: 400; line-height: 0.92; letter-spacing: -0.015em; text-transform: uppercase; }
+/* 2026-05-28 — weight bumped 400→600 for Clash Display. Satoshi 400 read
+   substantial as big display; Clash Display 400 is thin/elegant — it only
+   reads as the "editorial graffiti" face the founder picked at 600-700.
+   The /type-lab comparison rendered candidates at 700; matching that punch. */
+h1 { font-family: var(--display); font-weight: 600; line-height: 0.88; letter-spacing: -0.02em; text-transform: uppercase; }
+h2 { font-family: var(--display); font-weight: 600; line-height: 0.92; letter-spacing: -0.015em; text-transform: uppercase; }
 h3 { font-family: var(--grotesk); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
 p  { margin: 0 0 1em 0; }
 
@@ -517,7 +521,9 @@ a { color: inherit; text-decoration: none; }
 }
 .hero-headline {
   font-family: var(--display);
-  font-weight: 400;
+  /* 700 = exactly the weight rendered in /type-lab option A that was
+     picked. The homepage hero is the signature; it gets full Clash punch. */
+  font-weight: 700;
   font-size: var(--t-display);
   line-height: 0.86; letter-spacing: -0.025em;
   margin: var(--s-3) 0 var(--s-5);
