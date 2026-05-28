@@ -67,9 +67,9 @@ export default async function HoldTheLinePage() {
             maxWidth: 700,
           }}
         >
-          Every seller races to the bottom because no one is bidding above floor.
-          One wallet placing 80 bids would fix this — but the city doesn&apos;t need a whale.
-          It needs the 80 carriers already here. <strong>You are the synthesis.</strong>
+          The bids have gone quiet beneath the floor. One wallet could place eighty
+          and lift it — but the city doesn&apos;t need a whale. It needs the eighty
+          carriers already here. <strong>You are the synthesis.</strong>
         </p>
       </section>
 

@@ -65,7 +65,7 @@ export default async function SyncPage({
     >
       <section className="sync-hero">
         <span className="kicker">⬡ ENTER THE CITY</span>
-        <h1>The city <em>detects</em> you</h1>
+        <h1>The city <em>remembers</em> you</h1>
         <p>
           {/* 2026-05-27 (post-Ogilvy down-funnel): cut the overengineered
              second clause that described every input method in one
