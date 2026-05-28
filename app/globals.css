@@ -88,7 +88,10 @@
   --sans:    'Clash Grotesk', 'Satoshi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --mono:    'Space Mono', ui-monospace, Menlo, monospace;
   --mono2:   'Space Mono', ui-monospace, Menlo, monospace;
-  --lore:    'EB Garamond', Georgia, serif;
+  /* 2026-05-28 — EB Garamond removed (loaded but referenced nowhere; the
+     --lore token had no consumers). Repointed to the body grotesque so any
+     future/dynamic use stays in-system instead of resurrecting a serif. */
+  --lore:    'Clash Grotesk', 'Satoshi', 'Helvetica Neue', sans-serif;
   --tanker:  'Clash Display', 'Clash Grotesk', 'Helvetica Neue', sans-serif;
   /* Legacy aliases — for any rule still pointing at --anton, alias to --display */
   --anton:   var(--display);
