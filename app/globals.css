@@ -35,12 +35,16 @@
      for secondary urgent states. Gold stays for structural geometry. */
   --neon-cyan:    #00E5FF;
   --neon-magenta: #FF0070;
+  /* 2026-05-28 Track 1 polish — sharpened from a double-blur (12px+32px)
+     that read as a diffuse blob. Premium neon (Edgerunners) is CRISP: a
+     tight 2px core defines the letterform edge, a contained bloom sells
+     the glow. Dropped the wide 32px wash entirely. */
   --neon-glow-cyan:
-    0 0 12px rgba(0, 229, 255, 0.55),
-    0 0 32px rgba(0, 229, 255, 0.28);
+    0 0 2px rgba(0, 229, 255, 0.85),
+    0 0 14px rgba(0, 229, 255, 0.35);
   --neon-glow-magenta:
-    0 0 12px rgba(255, 0, 112, 0.55),
-    0 0 32px rgba(255, 0, 112, 0.28);
+    0 0 2px rgba(255, 0, 112, 0.85),
+    0 0 14px rgba(255, 0, 112, 0.35);
 
   /* Premium signal colors — use sparingly, one per context */
   --mars-rust:   #A84F2A;
@@ -484,8 +488,12 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.4;
 }
 .hero-kicker::first-letter {
+  /* 2026-05-28 Track 1 — glow removed here. The hero had TWO competing
+     cyan glows (this ⬡ glyph + the headline verb "remembers"). One anchor
+     reads premium; two reads busy. The headline verb keeps the glow (it's
+     the louder, more meaningful moment); the kicker ⬡ keeps only the cyan
+     color so it still reads as the signal-marked brand glyph. */
   color: var(--neon-cyan);
-  text-shadow: var(--neon-glow-cyan);
 }
 /* 2026-05-28 — Off-White-style quotation brackets. <q> renders smart
    quotes natively; we restyle them to feel like spray-stencil ticks
