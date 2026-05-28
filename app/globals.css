@@ -770,6 +770,53 @@ a { color: inherit; text-decoration: none; }
 .statement .stat .l { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; color: var(--ink-dim); }
 @media (max-width: 980px) { .statement .grid { grid-template-columns: 1fr; gap: 48px; } }
 
+/* ============ LANDING DOORS (4-box triage) 2026-05-28 ============
+   The first screen after the hero — scannable intent-doors that route a
+   cold visitor by intent. Matches the civ-card treatment (surface + gold
+   left-edge + lift on hover) so it reads as one system. */
+.landing-doors {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--s-7) var(--pad);
+  border-bottom: 1px solid var(--line);
+}
+.landing-box {
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 200px;
+  padding: 26px 22px 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--gold);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+.landing-box:hover, .landing-box:focus-visible {
+  background: var(--bg-2);
+  border-left-color: var(--gold-bright);
+  transform: translateY(-2px);
+  outline: none;
+}
+.landing-box__k {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--ink-dim);
+}
+.landing-box__t {
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(19px, 2.2vw, 25px); line-height: 1.04;
+  letter-spacing: -0.01em; color: var(--ink); margin: 2px 0 0;
+}
+.landing-box__d {
+  font-family: var(--sans); font-size: 13px; line-height: 1.55;
+  color: var(--ink-2); margin: 0;
+}
+.landing-box__cta {
+  margin-top: auto; padding-top: 8px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--gold-bright);
+}
+.landing-box:hover .landing-box__cta { text-decoration: underline; }
+
 /* ============ CIVS CAROUSEL ============
    2026-05-28 Track 3 — converted from a 5x2 grid (which hid civs 6-10 on
    iPad/desktop with no scroll affordance, per the layout red-team) to a
@@ -5596,6 +5643,16 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   position: relative;
   padding-top: var(--s-7);
   padding-bottom: var(--s-7);
+  /* 2026-05-28 — atmospheric backdrop (founder: "we need backgrounds, at
+     the moment it's just plain colour"). The gold-hex-on-stone image
+     ("the frame") sits behind this quote about the frame, under a heavy
+     dark gradient (88–94%) so the quote stays fully legible. Plain black
+     → a quiet textured moment. */
+  background-image:
+    linear-gradient(rgba(10, 14, 39, 0.74), rgba(10, 14, 39, 0.86)),
+    url(/atmos/not-found.webp);
+  background-size: cover;
+  background-position: center;
 }
 /* Two faint gold lines bracketing the quote — sacred document frame. */
 .home-page section.pull::before,

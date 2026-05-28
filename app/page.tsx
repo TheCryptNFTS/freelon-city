@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
+import { ResponsiveGrid } from "@/components/ui/ResponsiveGrid";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
 import { CIVILIZATIONS, CONTRACT, METADATA_CID, heroImageUrl } from "@/lib/constants";
@@ -270,6 +271,41 @@ export default async function Home() {
             FORMED AROUND THE SIGNAL
           </div>
         </div>
+      </section>
+
+      {/* LANDING DOORS — 2026-05-28: the first screen after the hero is now
+         4 scannable intent-doors instead of a text pile (founder: "the
+         landing decides whether they stay or go"). Each routes a visitor
+         by intent; the long-form text sections live below for the curious.
+         Box 3 → /archive for now (it already hosts the cross-collection
+         SignalInventoryPanel); repoints to /signal once that hub ships. */}
+      <section className="landing-doors" aria-label="Where to go next">
+        <ResponsiveGrid cols={4} colsMd={2} variant="cards">
+          <Link className="landing-box" href="/start">
+            <span className="landing-box__k">⬡ 01 · New here</span>
+            <h2 className="landing-box__t">What is this?</h2>
+            <p className="landing-box__d">4040 sealed citizens across 10 civilizations — a city that formed around a missing hex.</p>
+            <span className="landing-box__cta">The 2-minute guide →</span>
+          </Link>
+          <Link className="landing-box" href="/civilizations">
+            <span className="landing-box__k">⬡ 02 · Belong</span>
+            <h2 className="landing-box__t">Your civilization</h2>
+            <p className="landing-box__d">Ten signal doctrines. Every citizen belongs to one. Find yours.</p>
+            <span className="landing-box__cta">See the ten →</span>
+          </Link>
+          <Link className="landing-box" href="/archive">
+            <span className="landing-box__k">⬡ 03 · Your signal</span>
+            <h2 className="landing-box__t">Everything you hold</h2>
+            <p className="landing-box__d">Your citizens, relics and signals across all six collections of the Crypt — one place.</p>
+            <span className="landing-box__cta">Read your signal →</span>
+          </Link>
+          <Link className="landing-box" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+            <span className="landing-box__k">⬡ 04 · Collect</span>
+            <h2 className="landing-box__t">Own a citizen</h2>
+            <p className="landing-box__d">4040 sealed. No more will ever be made. Enter on OpenSea.</p>
+            <span className="landing-box__cta">On OpenSea →</span>
+          </Link>
+        </ResponsiveGrid>
       </section>
 
       {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
