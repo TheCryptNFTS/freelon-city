@@ -83,13 +83,13 @@
      Labels/kickers/data = Space Mono (hand-set feel vs corporate Plex).
      Satoshi + Clash both fall back to Helvetica Neue; Space Mono to Plex
      then system mono. */
-  --display: 'Clash Display', 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
-  --grotesk: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
-  --sans:    'Satoshi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --mono:    'Space Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
-  --mono2:   'Space Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --display: 'Clash Display', 'Clash Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --grotesk: 'Clash Grotesk', 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+  --sans:    'Clash Grotesk', 'Satoshi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono:    'Space Mono', ui-monospace, Menlo, monospace;
+  --mono2:   'Space Mono', ui-monospace, Menlo, monospace;
   --lore:    'EB Garamond', Georgia, serif;
-  --tanker:  'Clash Display', 'Satoshi', 'Helvetica Neue', sans-serif;
+  --tanker:  'Clash Display', 'Clash Grotesk', 'Helvetica Neue', sans-serif;
   /* Legacy aliases — for any rule still pointing at --anton, alias to --display */
   --anton:   var(--display);
 

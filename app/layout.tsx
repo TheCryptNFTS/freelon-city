@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
            text face). IBM Plex Mono kept loaded as a fallback for any
            data-dense surface that needs Space Mono dialed back later. */}
         <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=clash-display@400,500,600,700&f[]=ibm-plex-mono@400,500&display=swap"
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=clash-grotesk@400,500,600&f[]=satoshi@400,500,700&display=swap"
           rel="stylesheet"
         />
         <link
