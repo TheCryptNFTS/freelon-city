@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -83,9 +84,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>
         <Header />
-        {/* Lore-framed status banner — only renders when the city is
-            in measurable collapse. Server component, cheap (60s cache). */}
-        <CollapseBanner />
+        {/* Lore-framed status banner — only renders when the city is in
+            measurable collapse. 2026-05-28 LCP fix: this is an async server
+            component that awaits getCollapseState() → a server-to-self
+            fetch to /api/hex-index (uncached, hits OpenSea). Unwrapped, it
+            blocked the entire HTML stream — including the hero LCP element —
+            for the duration of that fetch (measured ~17s p-tail at baseline).
+            Wrapping in Suspense lets the hero stream immediately; the banner
+            streams in when its data resolves. Fallback is null (the banner
+            also renders null when the city is healthy), so zero layout shift. */}
+        <Suspense fallback={null}>
+          <CollapseBanner />
+        </Suspense>
         {/* Persistent site-wide ticker — sales / red signals / floor /
             holders / alerts. Constant motion = the city feels alive on
             every page, not just the homepage. */}
