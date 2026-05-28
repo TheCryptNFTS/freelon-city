@@ -35,12 +35,16 @@
      for secondary urgent states. Gold stays for structural geometry. */
   --neon-cyan:    #00E5FF;
   --neon-magenta: #FF0070;
+  /* 2026-05-28 Track 1 polish — sharpened from a double-blur (12px+32px)
+     that read as a diffuse blob. Premium neon (Edgerunners) is CRISP: a
+     tight 2px core defines the letterform edge, a contained bloom sells
+     the glow. Dropped the wide 32px wash entirely. */
   --neon-glow-cyan:
-    0 0 12px rgba(0, 229, 255, 0.55),
-    0 0 32px rgba(0, 229, 255, 0.28);
+    0 0 2px rgba(0, 229, 255, 0.85),
+    0 0 14px rgba(0, 229, 255, 0.35);
   --neon-glow-magenta:
-    0 0 12px rgba(255, 0, 112, 0.55),
-    0 0 32px rgba(255, 0, 112, 0.28);
+    0 0 2px rgba(255, 0, 112, 0.85),
+    0 0 14px rgba(255, 0, 112, 0.35);
 
   /* Premium signal colors — use sparingly, one per context */
   --mars-rust:   #A84F2A;
@@ -73,14 +77,22 @@
   --civ-void:   #6A3AFF;   /* was #3a2a6e — neon Void indigo (was nearly invisible on bg) */
   --civ-silver: #C9D2DE;   /* was #b0b4be — brightened Machine silver */
 
-  /* TYPOGRAPHY STACK — Fontshare premium */
-  --display: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
-  --grotesk: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
-  --sans:    'Satoshi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --mono:    'IBM Plex Mono', ui-monospace, Menlo, monospace;
-  --mono2:   'IBM Plex Mono', ui-monospace, Menlo, monospace;
-  --lore:    'EB Garamond', Georgia, serif;
-  --tanker:  'Satoshi', 'Helvetica Neue', sans-serif;
+  /* TYPOGRAPHY STACK — "Editorial Graffiti" (2026-05-28 studio-pass T2).
+     Display = Clash Display (headlines, civ names — fashion-grade attitude).
+     Body = Satoshi (Clash is display-only; Satoshi keeps text legible).
+     Labels/kickers/data = Space Mono (hand-set feel vs corporate Plex).
+     Satoshi + Clash both fall back to Helvetica Neue; Space Mono to Plex
+     then system mono. */
+  --display: 'Clash Display', 'Clash Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --grotesk: 'Clash Grotesk', 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+  --sans:    'Clash Grotesk', 'Satoshi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono:    'Space Mono', ui-monospace, Menlo, monospace;
+  --mono2:   'Space Mono', ui-monospace, Menlo, monospace;
+  /* 2026-05-28 — EB Garamond removed (loaded but referenced nowhere; the
+     --lore token had no consumers). Repointed to the body grotesque so any
+     future/dynamic use stays in-system instead of resurrecting a serif. */
+  --lore:    'Clash Grotesk', 'Satoshi', 'Helvetica Neue', sans-serif;
+  --tanker:  'Clash Display', 'Clash Grotesk', 'Helvetica Neue', sans-serif;
   /* Legacy aliases — for any rule still pointing at --anton, alias to --display */
   --anton:   var(--display);
 
@@ -230,8 +242,12 @@ html {
 
 /* Global type rhythm — all section headings inherit */
 h1, h2, h3, h4 { margin: 0; }
-h1 { font-family: var(--display); font-weight: 400; line-height: 0.88; letter-spacing: -0.02em; text-transform: uppercase; }
-h2 { font-family: var(--display); font-weight: 400; line-height: 0.92; letter-spacing: -0.015em; text-transform: uppercase; }
+/* 2026-05-28 — weight bumped 400→600 for Clash Display. Satoshi 400 read
+   substantial as big display; Clash Display 400 is thin/elegant — it only
+   reads as the "editorial graffiti" face the founder picked at 600-700.
+   The /type-lab comparison rendered candidates at 700; matching that punch. */
+h1 { font-family: var(--display); font-weight: 600; line-height: 0.88; letter-spacing: -0.02em; text-transform: uppercase; }
+h2 { font-family: var(--display); font-weight: 600; line-height: 0.92; letter-spacing: -0.015em; text-transform: uppercase; }
 h3 { font-family: var(--grotesk); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
 p  { margin: 0 0 1em 0; }
 
@@ -484,8 +500,12 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.4;
 }
 .hero-kicker::first-letter {
+  /* 2026-05-28 Track 1 — glow removed here. The hero had TWO competing
+     cyan glows (this ⬡ glyph + the headline verb "remembers"). One anchor
+     reads premium; two reads busy. The headline verb keeps the glow (it's
+     the louder, more meaningful moment); the kicker ⬡ keeps only the cyan
+     color so it still reads as the signal-marked brand glyph. */
   color: var(--neon-cyan);
-  text-shadow: var(--neon-glow-cyan);
 }
 /* 2026-05-28 — Off-White-style quotation brackets. <q> renders smart
    quotes natively; we restyle them to feel like spray-stencil ticks
@@ -504,7 +524,9 @@ a { color: inherit; text-decoration: none; }
 }
 .hero-headline {
   font-family: var(--display);
-  font-weight: 400;
+  /* 700 = exactly the weight rendered in /type-lab option A that was
+     picked. The homepage hero is the signature; it gets full Clash punch. */
+  font-weight: 700;
   font-size: var(--t-display);
   line-height: 0.86; letter-spacing: -0.025em;
   margin: var(--s-3) 0 var(--s-5);
@@ -519,7 +541,10 @@ a { color: inherit; text-decoration: none; }
      Literalizing the lore: the verb itself glows like a transmission. */
   color: var(--neon-cyan);
   text-shadow: var(--neon-glow-cyan);
-  font-weight: 400;
+  /* 2026-05-28 — was pinned at 400 while the rest of .hero-headline went
+     to 700, so "remembers" rendered thin and looked unchanged. Match the
+     headline weight so the whole h1 is consistent bold Clash. */
+  font-weight: 700;
 }
 .hero-sub {
   font-family: var(--sans);

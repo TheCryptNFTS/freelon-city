@@ -42,12 +42,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* 2026-05-28 studio-pass Track 2 — "Editorial Graffiti" type system.
+           Clash Display (Fontshare) is the new display face (headlines);
+           Space Mono (Google) replaces IBM Plex Mono for labels/kickers.
+           Satoshi stays as the BODY grotesque (Clash is display-only, not a
+           text face). IBM Plex Mono kept loaded as a fallback for any
+           data-dense surface that needs Space Mono dialed back later. */}
         <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=ibm-plex-mono@400,500&display=swap"
+          href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=clash-grotesk@400,500,600&f[]=satoshi@400,500,700&display=swap"
           rel="stylesheet"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,400;0,500;1,500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
           rel="stylesheet"
         />
         {/* BUG-13 fix 2026-05-26: added /favicon.ico (multi-size ICO
