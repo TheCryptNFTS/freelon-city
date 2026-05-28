@@ -77,14 +77,19 @@
   --civ-void:   #6A3AFF;   /* was #3a2a6e — neon Void indigo (was nearly invisible on bg) */
   --civ-silver: #C9D2DE;   /* was #b0b4be — brightened Machine silver */
 
-  /* TYPOGRAPHY STACK — Fontshare premium */
-  --display: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
+  /* TYPOGRAPHY STACK — "Editorial Graffiti" (2026-05-28 studio-pass T2).
+     Display = Clash Display (headlines, civ names — fashion-grade attitude).
+     Body = Satoshi (Clash is display-only; Satoshi keeps text legible).
+     Labels/kickers/data = Space Mono (hand-set feel vs corporate Plex).
+     Satoshi + Clash both fall back to Helvetica Neue; Space Mono to Plex
+     then system mono. */
+  --display: 'Clash Display', 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
   --grotesk: 'Satoshi', 'Helvetica Neue', Arial, sans-serif;
   --sans:    'Satoshi', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --mono:    'IBM Plex Mono', ui-monospace, Menlo, monospace;
-  --mono2:   'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --mono:    'Space Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --mono2:   'Space Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
   --lore:    'EB Garamond', Georgia, serif;
-  --tanker:  'Satoshi', 'Helvetica Neue', sans-serif;
+  --tanker:  'Clash Display', 'Satoshi', 'Helvetica Neue', sans-serif;
   /* Legacy aliases — for any rule still pointing at --anton, alias to --display */
   --anton:   var(--display);
 
