@@ -787,6 +787,23 @@ a { color: inherit; text-decoration: none; }
 }
 .civ-grid > a:hover { background: var(--bg-2); }
 .civ-grid > a:focus-visible { background: var(--bg-2); outline: 1px solid var(--civ); outline-offset: -1px; }
+/* 2026-05-28 — affordance: red-team (visual + UX) flagged the carousel
+   cards as reading like static text, not clickable. A persistent faint →
+   in the corner signals "enterable" at rest (works on touch, no hover
+   needed); on hover/focus it brightens to the civ color and nudges. */
+.civ-grid > a::after {
+  content: "→";
+  position: absolute;
+  bottom: 26px; right: 22px;
+  font-family: var(--mono2); font-size: 15px;
+  color: var(--ink-fade);
+  transition: color .2s ease, transform .2s ease;
+}
+.civ-grid > a:hover::after,
+.civ-grid > a:focus-visible::after {
+  color: var(--civ);
+  transform: translateX(3px);
+}
 .civ-grid .top { display: flex; justify-content: space-between; align-items: baseline; }
 .civ-grid .idx { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-fade); }
 .civ-grid .pop { font-family: var(--display); font-weight: 600; font-size: clamp(48px, 5vw, 84px); line-height: 0.95; letter-spacing: -0.02em; color: var(--civ); }
@@ -795,6 +812,7 @@ a { color: inherit; text-decoration: none; }
 .civ-grid .chant {
   margin-top: auto;
   font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--civ);
+  padding-right: 24px; /* reserve room for the corner → affordance */
 }
 @media (prefers-reduced-motion: reduce) {
   .civ-grid { scroll-snap-type: none; scroll-behavior: auto; }
