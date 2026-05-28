@@ -301,7 +301,12 @@ export default async function Home() {
           </div>
           <Link className="more" href="/civilizations">ENTER A CIVILIZATION →</Link>
         </div>
-        <div className="civ-grid">
+        <div
+          className="civ-grid"
+          role="region"
+          aria-label="The ten civilizations — scroll horizontally to explore"
+          tabIndex={0}
+        >
           {Object.entries(CIVILIZATIONS).map(([slug, c]) => (
             <Link
               key={slug}

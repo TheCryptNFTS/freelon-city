@@ -74,7 +74,7 @@
   --civ-pink:   #FF5CB4;   /* was #d97aa0 — neon Luxury rose */
   --civ-black:  #404045;   /* unchanged — Fracture stays muted by design */
   --civ-gold:   #FFD24A;   /* was #C8A75D — electric Sovereignty gold (Edgerunners yellow) */
-  --civ-void:   #6A3AFF;   /* was #3a2a6e — neon Void indigo (was nearly invisible on bg) */
+  --civ-void:   #8A5DFF;   /* was #3a2a6e — neon Void indigo, brightened from #6A3AFF per color red-team (too dark on lifted-black) */
   --civ-silver: #C9D2DE;   /* was #b0b4be — brightened Machine silver */
 
   /* TYPOGRAPHY STACK — "Editorial Graffiti" (2026-05-28 studio-pass T2).
@@ -747,50 +747,53 @@ a { color: inherit; text-decoration: none; }
 .statement .stat .l { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; color: var(--ink-dim); }
 @media (max-width: 980px) { .statement .grid { grid-template-columns: 1fr; gap: 48px; } }
 
-/* ============ CIVS STRIP (horizontal scroll on small) ============ */
+/* ============ CIVS CAROUSEL ============
+   2026-05-28 Track 3 — converted from a 5x2 grid (which hid civs 6-10 on
+   iPad/desktop with no scroll affordance, per the layout red-team) to a
+   single horizontal scroll-snap carousel at ALL breakpoints. The partial
+   next-card peek IS the affordance. A11y: cards are <a> so keyboard tab
+   auto-scrolls each into view; the region is labelled + focusable in
+   page.tsx; reduced-motion users get no snap. */
 .civs-section { padding: 0; border-bottom: 1px solid var(--line); }
 .civ-grid {
-  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(260px, 78vw, 300px);  /* peek next card at every width */
+  gap: 1px;
   background: var(--line);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  /* thin neon scrollbar so the track reads as intentional */
+  scrollbar-width: thin;
+  scrollbar-color: var(--neon-cyan) transparent;
 }
+.civ-grid::-webkit-scrollbar { height: 3px; }
+.civ-grid::-webkit-scrollbar-thumb { background: var(--neon-cyan); }
+.civ-grid:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: -2px; }
 .civ-grid > a {
   background: var(--bg); padding: 32px 24px 28px;
   position: relative;
   display: flex; flex-direction: column; gap: 14px;
   min-height: 220px; transition: background .2s ease;
+  scroll-snap-align: start;
 }
 .civ-grid > a::before {
   content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--civ);
 }
 .civ-grid > a:hover { background: var(--bg-2); }
+.civ-grid > a:focus-visible { background: var(--bg-2); outline: 1px solid var(--civ); outline-offset: -1px; }
 .civ-grid .top { display: flex; justify-content: space-between; align-items: baseline; }
 .civ-grid .idx { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-fade); }
-.civ-grid .pop { font-family: var(--display); font-weight: 400; font-size: clamp(48px, 5vw, 84px); line-height: 0.95; letter-spacing: -0.02em; color: var(--civ); }
+.civ-grid .pop { font-family: var(--display); font-weight: 600; font-size: clamp(48px, 5vw, 84px); line-height: 0.95; letter-spacing: -0.02em; color: var(--civ); }
 .civ-grid .name { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; color: var(--ink); text-transform: uppercase; }
 .civ-grid .role { font-family: var(--grotesk); font-style: normal; font-size: 14px; color: var(--ink-2); margin: 0; }
 .civ-grid .chant {
   margin-top: auto;
   font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--civ);
 }
-/* iPad-portrait + small-laptop band: 5-col grid that fits the 10 civs
-   in 2 rows of 5. Previously this band fell through to the 10-col
-   horizontal-scroll rule, which hid 5+ civilizations behind a
-   sideways-swipe that wasn't visually signaled. 2026-05-26 layout debug. */
-@media (min-width: 761px) and (max-width: 1100px) {
-  .civ-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: var(--s-3);
-  }
-}
-/* Phone: 10 civs as a horizontal scroller is fine because swipe is
-   natural on touch. Keep the original behavior at <=760. */
-@media (max-width: 760px) {
-  .civ-grid {
-    grid-template-columns: repeat(10, minmax(220px, 1fr));
-    overflow-x: auto; scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  .civ-grid > a { scroll-snap-align: start; }
+@media (prefers-reduced-motion: reduce) {
+  .civ-grid { scroll-snap-type: none; scroll-behavior: auto; }
 }
 
 /* ============ FEATURED CITIZENS BAND ============ */
@@ -5454,7 +5457,11 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   color: var(--archival-bone) !important;
 }
 .home-page .civs-section .civ-grid .pop {
-  color: var(--archival-bone) !important;
+  /* 2026-05-28 Track 3 — the population number now carries the civ's neon
+     color (was muted to archival-bone). One electric accent per card (this
+     number + the left edge); idx/name/role/chant stay neutral so 10 neon
+     colors don't fight at once (the color red-team's chaos worry). */
+  color: var(--civ, var(--archival-bone)) !important;
 }
 .home-page .civs-section .civ-grid .role {
   color: var(--archival-bone-2) !important;
