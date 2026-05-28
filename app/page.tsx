@@ -242,32 +242,32 @@ export default async function Home() {
         `}</style>
         <div className="hero-right">
           <div className="img-frame">
-            {/* Mobile gets the 800w variant (~75KB), desktop gets the
-                1024w master (~146KB). Sizes split at 980px to match the
-                breakpoint where hero-right goes full-width.
-                2026-05-27 LCP debug. */}
+            {/* 2026-05-28 — hero image swapped from the single #4040 NFT
+                render to the FREELON CITY skyline (founder: "the first
+                image is just one of the NFTs, not good"). The first thing
+                a visitor sees is now the WORLD — a Mars cityscape — not a
+                product. Labels below reframed to city context; the "4040"
+                now reads as the city's population, not a token id. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <img
-              src="/heroes/4040.webp"
-              srcSet="/heroes/4040-800.webp 800w, /heroes/4040.webp 1024w"
-              sizes="(max-width: 980px) 100vw, 50vw"
-              alt="FREELON CITY #4040 — THE FINAL SIGNAL"
+              src="/lore/city.webp"
+              alt="FREELON CITY — a hex-spired skyline on Mars"
               fetchPriority="high"
               decoding="async"
             />
           </div>
           <div className="img-overlay" />
           <div className="img-id">
-            4040<small>ONE OF ONE · ETH</small>
+            4040<small>SEALED CITIZENS</small>
           </div>
           <div className="img-stamp">
-            ⬡ THE FOURTH BRACKET
-            <h2>The Final <em>Signal</em></h2>
+            ⬡ CYDONIA BASIN · MARS
+            <h2>FREELON <em>City</em></h2>
           </div>
           <div className="img-meta">
-            VOID 404 · SANCTUM<br />
-            FACE — TRANSMISSION LOCKED
+            10 CIVILIZATIONS · SEALED SUPPLY<br />
+            FORMED AROUND THE SIGNAL
           </div>
         </div>
       </section>

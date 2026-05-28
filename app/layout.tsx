@@ -65,18 +65,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/favicon.png" />
-        {/* Preload the LCP hero image — Final Signal #4040 — local mirror, no
-            IPFS lag. imageSrcSet/imageSizes let the browser preload the
-            mobile variant (800w ~75KB) on small screens instead of the
-            1024w master (~146KB). Matches the img tag's srcset/sizes on
-            the homepage hero. 2026-05-27 LCP debug. */}
+        {/* Preload the LCP hero image — the FREELON CITY skyline (123KB
+            webp). 2026-05-28: swapped from the #4040 NFT render to the
+            cityscape so the hero leads with the world, not a product. */}
         <link
           rel="preload"
           as="image"
           fetchPriority="high"
-          href="/heroes/4040.webp"
-          imageSrcSet="/heroes/4040-800.webp 800w, /heroes/4040.webp 1024w"
-          imageSizes="(max-width: 980px) 100vw, 50vw"
+          href="/lore/city.webp"
           type="image/webp"
         />
         <link rel="preconnect" href="https://gateway.pinata.cloud" />
