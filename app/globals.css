@@ -538,7 +538,10 @@ a { color: inherit; text-decoration: none; }
      Literalizing the lore: the verb itself glows like a transmission. */
   color: var(--neon-cyan);
   text-shadow: var(--neon-glow-cyan);
-  font-weight: 400;
+  /* 2026-05-28 — was pinned at 400 while the rest of .hero-headline went
+     to 700, so "remembers" rendered thin and looked unchanged. Match the
+     headline weight so the whole h1 is consistent bold Clash. */
+  font-weight: 700;
 }
 .hero-sub {
   font-family: var(--sans);
