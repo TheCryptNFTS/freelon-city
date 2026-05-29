@@ -212,6 +212,98 @@ export function tweetTransmission(input: {
 }
 
 /**
+ * Proof of Signal share — the daily puzzle result. The spoiler-free emoji
+ * grid is the hook (recognisable Wordle-style), the score is the flex, and
+ * /play/proof is the recruitment funnel: any reader can play the same day.
+ */
+export function tweetProof(input: {
+  day: number;
+  attempts: number; // guesses used
+  max: number;
+  solved: boolean;
+  grid: string; // pre-built emoji rows, newline-separated
+}): string {
+  const score = input.solved ? `${input.attempts}/${input.max}` : `X/${input.max}`;
+  const head = input.solved
+    ? `⬡ ${HANDLE} · SIGNAL LOCKED · Proof of Signal #${input.day} · ${score}`
+    : `⬡ ${HANDLE} · LOST IN THE NOISE · Proof of Signal #${input.day} · ${score}`;
+  return [
+    head,
+    ``,
+    input.grid,
+    ``,
+    `Can you receive today's transmission?`,
+    `${HASHTAGS}`,
+    `${SITE}/play/proof`,
+  ].join("\n");
+}
+
+/**
+ * The Reckoning share — the weekly civ-vs-civ tribute war. Two modes:
+ *   - rally: "I just mustered for <civ>" after a tribute (recruitment for the
+ *     side you back — the burn flexes commitment, the muster flexes holdings).
+ *   - standings: the current leader + week, a spectator hook.
+ * /play/reckoning is the funnel — any reader can pick a side and burn.
+ */
+export function tweetReckoning(input: {
+  week: number;
+  mode: "rally" | "standings";
+  civName: string; // the civ you backed (rally) or the leader (standings)
+  burned?: number; // hex burned this tribute (rally)
+  rank?: number | null; // civ's current standing 1..10 (rally)
+}): string {
+  if (input.mode === "rally") {
+    const burnLine =
+      input.burned != null ? `${input.burned.toLocaleString()} ⬡ burned for the cause.` : `I picked my side.`;
+    const rankLine = input.rank ? `${input.civName.toUpperCase()} sits #${input.rank} this week.` : null;
+    return [
+      `⬡ ${HANDLE} · I MUSTERED FOR ${input.civName.toUpperCase()}.`,
+      ``,
+      burnLine,
+      rankLine,
+      ``,
+      `The Reckoning · Week ${input.week}. Which civ do you bleed for?`,
+      `${HASHTAGS}`,
+      `${SITE}/play/reckoning`,
+    ].filter(Boolean).join("\n");
+  }
+  return [
+    `⬡ ${HANDLE} · THE RECKONING · WEEK ${input.week}`,
+    ``,
+    `${input.civName.toUpperCase()} is winning the war.`,
+    ``,
+    `Ten civilizations. One crown a week. Burn for your side.`,
+    `${HASHTAGS}`,
+    `${SITE}/play/reckoning`,
+  ].join("\n");
+}
+
+/**
+ * Sweep Run share — the reflex arcade score. No wallet, pure top-of-funnel:
+ * the score is the flex, /play/sweep is the recruitment funnel (anyone can
+ * beat it). New-best gets a louder line.
+ */
+export function tweetSweep(input: {
+  score: number;
+  streak: number; // best streak this run
+  best: number; // all-time best on this device
+  newBest: boolean;
+}): string {
+  const head = input.newBest
+    ? `⬡ ${HANDLE} · NEW BEST · I SWEPT ${input.score.toLocaleString()} SIGNAL`
+    : `⬡ ${HANDLE} · I SWEPT ${input.score.toLocaleString()} SIGNAL`;
+  return [
+    head,
+    ``,
+    `Best streak ×${input.streak} · clearing the corrupted off the FREELON CITY floor.`,
+    ``,
+    `Think you can sweep faster?`,
+    `${HASHTAGS}`,
+    `${SITE}/play/sweep`,
+  ].join("\n");
+}
+
+/**
  * Generic share — used by the ShareOG component.
  */
 export function tweetGeneric(text: string, pageUrl: string): string {
