@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getLastClaim, todayUTC, tryClaimToday } from "@/lib/daily-claim-store";
+import { getLastClaim, todayUTC, tryClaimToday, releaseClaimToday } from "@/lib/daily-claim-store";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
@@ -68,9 +68,16 @@ export async function POST(req: Request) {
     );
   }
 
-  // Update streak + milestone bonuses on the wallet hex ledger
+  // Streak + base daily credit. 2026-05-29 fix: this block used to swallow
+  // ALL errors and still return ok:true — so an Upstash blip during the
+  // credit left the user locked out for the day (claim consumed) with zero
+  // hex. Now the base credit is money-critical: if it throws, NOTHING was
+  // paid (creditWalletHex either fully persists or throws without
+  // crediting), so we RELEASE the claim lock and 500 — the user keeps their
+  // claim and can retry.
   let streak = 0;
   let bonus = 0;
+  let dailyHex: number = ECONOMY.DAILY_CLAIM;
   try {
     const rec = await getWalletHex(addr);
     const last = rec.lastClaimDay ?? null;
@@ -83,35 +90,46 @@ export async function POST(req: Request) {
     // Collapse-mode earn multiplier
     const { getCollapseState, applyEarnMultiplier } = await import("@/lib/collapse-mode");
     const collapse = await getCollapseState();
-    const dailyHex = applyEarnMultiplier(ECONOMY.DAILY_CLAIM, collapse);
+    dailyHex = applyEarnMultiplier(ECONOMY.DAILY_CLAIM, collapse);
     const noteSuffix = collapse.active ? " (collapse ½)" : "";
 
-    // Base claim
+    // Base claim — the first money operation.
     await creditWalletHex(addr, dailyHex, {
       kind: "manual",
       note: `Daily X share · streak ${streak}d · +${dailyHex}⬡${noteSuffix}`,
     });
 
-    bonus = STREAK_MILESTONES[streak] || 0;
-    if (bonus > 0) {
-      // 30-day streak is the milestone-of-milestones — earns the rare
-      // 404 RESOLVED canon label. Lesser streaks use plain phrasing.
-      const label = streak === 30 ? CANON.RESOLVED : "Streak milestone";
-      const bonusHex = applyEarnMultiplier(bonus, collapse);
-      await creditWalletHex(addr, bonusHex, {
-        kind: "manual",
-        note: `${label} · ${streak}d · +${bonusHex}⬡${noteSuffix}`,
-      });
-      bonus = bonusHex; // return the actual amount paid
+    // Streak milestone bonus — a SEPARATE, non-critical credit. If it fails
+    // we must NOT roll back the claim: the base was already paid, so a retry
+    // would double-credit the base. Log it and return the base as success.
+    const milestone = STREAK_MILESTONES[streak] || 0;
+    if (milestone > 0) {
+      try {
+        // 30-day streak is the milestone-of-milestones — earns the rare
+        // 404 RESOLVED canon label. Lesser streaks use plain phrasing.
+        const label = streak === 30 ? CANON.RESOLVED : "Streak milestone";
+        const bonusHex = applyEarnMultiplier(milestone, collapse);
+        await creditWalletHex(addr, bonusHex, {
+          kind: "manual",
+          note: `${label} · ${streak}d · +${bonusHex}⬡${noteSuffix}`,
+        });
+        bonus = bonusHex; // return the actual amount paid
+      } catch (e) {
+        console.error("[claim] streak bonus credit failed (base paid, not rolled back)", addr, e);
+      }
     }
-  } catch {
-    /* non-fatal */
+  } catch (e) {
+    // Base credit failed → nothing was paid. Release the claim so the user
+    // can retry, and surface the failure instead of lying with ok:true.
+    console.error("[claim] base credit failed — releasing claim for retry", addr, e);
+    await releaseClaimToday(addr);
+    return NextResponse.json({ error: "credit_failed" }, { status: 500 });
   }
 
   return NextResponse.json({
     ok: true,
     day: todayUTC(),
-    awarded: ECONOMY.DAILY_CLAIM,
+    awarded: dailyHex,
     streak,
     streakBonus: bonus,
   });

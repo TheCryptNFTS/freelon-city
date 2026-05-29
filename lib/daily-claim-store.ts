@@ -83,3 +83,24 @@ export async function tryClaimToday(addr: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Release today's claim lock so the caller can retry. 2026-05-29 — used by
+ * the claim route to roll back ONLY when the hex credit failed before any
+ * money was paid out (i.e. nothing credited yet). Must never be called after
+ * a successful credit, or the wallet could be credited twice on retry.
+ *
+ * Best-effort: a failed release just means the user can't retry until the
+ * 48h TTL expires — annoying, never a double-credit.
+ */
+export async function releaseClaimToday(addr: string): Promise<void> {
+  if (!hasUpstash) {
+    memory.delete(addr.toLowerCase());
+    return;
+  }
+  try {
+    await upstash(["DEL", KEY(addr)]);
+  } catch {
+    /* best-effort — leave the lock; user retries after TTL */
+  }
+}

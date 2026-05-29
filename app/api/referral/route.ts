@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { normalizeHandle } from "@/lib/sync";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { isSameOrigin } from "@/lib/x-session";
+import { requireXSession } from "@/lib/require-x";
 import {
   setReferrer,
   listInvitedBy,
@@ -34,6 +36,18 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+
+  // 2026-05-29 security fix: this route previously had no auth → any caller
+  // could bind an arbitrary joiner to an arbitrary referrer and hijack
+  // referral attribution. Mirror the other mutating routes: same-origin CSRF
+  // guard + a verified X session bound to the JOINER (the identity that gets
+  // bound, so it's the one that must be proven). The referrer is just data.
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "bad_origin" }, { status: 403 });
+  }
+  const session = await requireXSession(req, { handle: joiner });
+  if (session instanceof NextResponse) return session;
+
   if (joiner === referrer) {
     return NextResponse.json(
       { ok: false, reason: "self_referral" },

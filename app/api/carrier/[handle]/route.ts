@@ -40,6 +40,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ handle:
 export async function POST(req: Request, { params }: { params: Promise<{ handle: string }> }) {
   const rl = await limit(req, "carrier-post", { max: 20 });
   if (!rl.ok) return tooManyResponse(rl);
+  // 2026-05-29 security: same-origin CSRF check (was missing; siblings have it).
+  const { isSameOrigin } = await import("@/lib/x-session");
+  if (!isSameOrigin(req)) return NextResponse.json({ error: "bad_origin" }, { status: 403 });
   const { handle } = await params;
   const h = normalizeHandle(handle);
   if (!h) return NextResponse.json({ error: "invalid handle" }, { status: 400 });
