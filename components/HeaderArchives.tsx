@@ -49,6 +49,12 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    heading: "Play",
+    items: [
+      { href: "/play",          label: "⬡ Arcade", gold: true },
+    ],
+  },
+  {
     heading: "Lore",
     items: [
       { href: "/canon",         label: "Canon" },
@@ -100,14 +106,44 @@ export function HeaderArchives() {
       if (menuRef.current?.contains(t)) return;
       setOpen(false);
     }
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const menu = menuRef.current;
+      if (!menu) return;
+      const items = Array.from(
+        menu.querySelectorAll<HTMLElement>(FOCUSABLE),
+      );
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !menu.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
+    // Move focus into the menu when it opens.
+    const menu = menuRef.current;
+    const firstFocusable = menu?.querySelector<HTMLElement>(FOCUSABLE);
+    firstFocusable?.focus();
     return () => {
       document.removeEventListener("mousedown", onDocClick);
       document.removeEventListener("keydown", onKey);
+      // Return focus to the trigger when the menu closes.
+      triggerRef.current?.focus();
     };
   }, [open]);
 

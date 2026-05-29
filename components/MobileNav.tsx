@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 // Route compression 2026-05-25 — mobile nav reduced from 33 links to
@@ -59,6 +59,12 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
+    heading: "PLAY",
+    links: [
+      { href: "/play", label: "⬡ Arcade", gold: true },
+    ],
+  },
+  {
     heading: "NEW HERE?",
     links: [
       { href: "/start", label: "Start Here · 2-min guide" },
@@ -69,6 +75,8 @@ const GROUPS: NavGroup[] = [
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const navRef = useRef<HTMLElement>(null);
 
   // Portal target only available after mount (avoids SSR mismatch)
   useEffect(() => { setMounted(true); }, []);
@@ -76,11 +84,41 @@ export function MobileNav() {
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const nav = navRef.current;
+      if (!nav) return;
+      const items = Array.from(nav.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !nav.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
+    // Move focus into the sheet when it opens.
+    const firstFocusable =
+      navRef.current?.querySelector<HTMLElement>(FOCUSABLE);
+    firstFocusable?.focus();
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKey);
+      // Return focus to the trigger when the sheet closes.
+      triggerRef.current?.focus();
     };
   }, [open]);
 
@@ -90,7 +128,7 @@ export function MobileNav() {
       onClick={() => setOpen(false)}
       aria-hidden={!open}
     >
-      <nav onClick={(e) => e.stopPropagation()}>
+      <nav ref={navRef} onClick={(e) => e.stopPropagation()}>
         <span className="kicker">⬡ FREELON CITY · NAVIGATION</span>
         {GROUPS.map((g, gi) => (
           <div key={g.heading ?? `g${gi}`} className="mobile-sheet__group">
@@ -122,6 +160,7 @@ export function MobileNav() {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         className={`mobile-trigger ${open ? "open" : ""}`}
         aria-label={open ? "Close navigation" : "Open navigation"}
