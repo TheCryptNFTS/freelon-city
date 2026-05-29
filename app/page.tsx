@@ -86,9 +86,8 @@ export default function Home() {
 
           {/* The 4 intent-doors ARE the landing. Box 1 (start) + Box 4
               (collect) cover the cold/returning split the old cookie swap
-              used to handle. Box 3 → /archive for now (it hosts the
-              cross-collection SignalInventoryPanel); repoints to /signal
-              once that hub ships. */}
+              used to handle. Box 3 → /signal (the cross-collection
+              "your signal across the universe" portfolio). */}
           <div className="hero-landing__boxes">
             <ResponsiveGrid cols={4} colsMd={2} variant="cards">
               <Link className="landing-box" href="/start">
@@ -109,7 +108,7 @@ export default function Home() {
                   <span className="landing-box__cta">See the ten</span>
                 </span>
               </Link>
-              <Link className="landing-box" href="/archive">
+              <Link className="landing-box" href="/signal">
                 <span className="landing-box__img" style={{ backgroundImage: "url(/atmos/carrier.webp)" }} aria-hidden />
                 <span className="landing-box__body">
                   <span className="landing-box__k">⬡ 03 · Your signal</span>
