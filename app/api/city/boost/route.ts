@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import {
+  creditWalletHex,
   debitWalletHex,
   getWalletHex,
   InsufficientHexError,
@@ -81,8 +82,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "debit_failed" }, { status: 500 });
   }
 
+  // Credit the isolated city ledger. If this write fails AFTER the hex debit
+  // already landed, refund the hex — the debit and the city credit must not
+  // diverge, or an infra hiccup would silently burn a user's hex for nothing.
   const citySignal = hex * BOOST_RATE;
-  const wallet = await applyBoost(address, citySignal);
+  let wallet;
+  try {
+    wallet = await applyBoost(address, citySignal);
+  } catch {
+    try {
+      await creditWalletHex(address, hex, {
+        kind: "manual",
+        note: "city boost refund (ledger write failed)",
+      });
+    } catch {
+      /* refund itself failed — surfaced as boost_failed for manual reconcile */
+    }
+    return NextResponse.json({ error: "boost_failed" }, { status: 500 });
+  }
   const state = await getCityState();
   const ledger = await getWalletHex(address);
 

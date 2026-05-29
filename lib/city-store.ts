@@ -31,6 +31,7 @@ import {
   setMultiplier,
 } from "@/lib/city-config";
 import { getWalletSet } from "@/lib/signal-set";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 import type { CasteName } from "@/lib/constants";
 
 export type CityState = {
@@ -63,23 +64,13 @@ const SET_REFRESH_MS = 10 * 60_000;
 const memState = new Map<string, CityState>();
 const memWallet = new Map<string, CityWallet>();
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
-
 const STATE_KEY = `freelon:city:v1:s${CITY_SEASON}:state`;
+/** The global running total lives in its OWN numeric key (NOT inside the
+ *  STATE_KEY JSON blob) so every wallet's collect can bump it with an ATOMIC
+ *  INCRBYFLOAT. A read-modify-write on a shared blob loses updates under
+ *  concurrent collects — the one number the whole community shares would
+ *  silently undercount as players pile in. */
+const TOTAL_KEY = `freelon:city:v1:s${CITY_SEASON}:total`;
 const WALLET_KEY = (addr: string) =>
   `freelon:city:v1:s${CITY_SEASON}:w:${addr.toLowerCase()}`;
 
@@ -123,32 +114,73 @@ export function derivedCastes(tokenIds: number[]): CasteName[] {
 }
 
 // ── global state ─────────────────────────────────────────────────────────
+
+/** Once-per-process guard for the legacy-blob → numeric-key migration. */
+let totalSeeded = false;
+
+/** One-time seed of the numeric total key from the legacy STATE_KEY blob, so
+ *  an existing season's accumulated signal isn't reset to 0 when we switch to
+ *  the atomic counter. SETNX guards against concurrent double-seeding, and it
+ *  always runs BEFORE any INCRBYFLOAT so a fresh INCR can't create the key at
+ *  delta and lose the legacy total. Memoized per process — a no-op after the
+ *  first successful call. */
+async function ensureTotalSeeded(): Promise<void> {
+  if (!hasUpstash || totalSeeded) return;
+  try {
+    const raw = (await upstash(["GET", TOTAL_KEY])) as string | null;
+    if (raw === null) {
+      const legacy = (await upstash(["GET", STATE_KEY])) as string | null;
+      const seed = legacy ? (JSON.parse(legacy) as CityState).totalSignal || 0 : 0;
+      await upstash(["SET", TOTAL_KEY, String(seed), "NX"]);
+    }
+    totalSeeded = true;
+  } catch {
+    /* leave unseeded — retry on the next call */
+  }
+}
+
+/** Read the global total from the atomic numeric key (in-memory blob fallback
+ *  when Upstash is absent). */
+async function readTotal(): Promise<number> {
+  if (!hasUpstash) return (memState.get(STATE_KEY) ?? emptyState()).totalSignal;
+  try {
+    const raw = (await upstash(["GET", TOTAL_KEY])) as string | null;
+    return raw === null ? 0 : Number(raw) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 export async function getCityState(): Promise<CityState> {
   if (!hasUpstash) return memState.get(STATE_KEY) ?? emptyState();
-  try {
-    const raw = (await upstash(["GET", STATE_KEY])) as string | null;
-    if (!raw) return emptyState();
-    return JSON.parse(raw) as CityState;
-  } catch {
-    return emptyState();
-  }
+  await ensureTotalSeeded();
+  return {
+    season: CITY_SEASON,
+    totalSignal: await readTotal(),
+    updatedTs: Date.now(),
+  };
 }
 
-async function setCityState(s: CityState): Promise<void> {
-  s.updatedTs = Date.now();
+/** Add to the global total. ATOMIC under Upstash (INCRBYFLOAT) so concurrent
+ *  collects can't clobber each other; the in-memory fallback is single-process
+ *  so a plain add is safe there. Never throws — a counter outage degrades to a
+ *  stale total, it must not fail the caller's accrual. */
+async function addGlobal(delta: number): Promise<number> {
   if (!hasUpstash) {
+    const s = memState.get(STATE_KEY) ?? emptyState();
+    if (delta > 0) s.totalSignal += delta;
+    s.updatedTs = Date.now();
     memState.set(STATE_KEY, s);
-    return;
+    return s.totalSignal;
   }
-  await upstash(["SET", STATE_KEY, JSON.stringify(s)]);
-}
-
-/** Add to the global total (the only writer of totalSignal). */
-async function addGlobal(delta: number): Promise<CityState> {
-  const s = await getCityState();
-  if (delta > 0) s.totalSignal += delta;
-  await setCityState(s);
-  return s;
+  await ensureTotalSeeded();
+  if (delta <= 0) return readTotal();
+  try {
+    const res = await upstash(["INCRBYFLOAT", TOTAL_KEY, String(delta)]);
+    return Number(res) || 0;
+  } catch {
+    return readTotal();
+  }
 }
 
 // ── per-wallet ───────────────────────────────────────────────────────────
