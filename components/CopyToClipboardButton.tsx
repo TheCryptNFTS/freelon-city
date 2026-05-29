@@ -15,7 +15,7 @@ export function CopyToClipboardButton({ text }: { text: string }) {
         padding: "10px 14px",
         border: "1px solid var(--line-2)",
         background: "rgba(255,255,255,0.03)",
-        color: copied ? "#7AE08D" : "var(--ink-2)",
+        color: copied ? "var(--state-active)" : "var(--ink-2)",
         borderRadius: 8,
         fontFamily: "var(--mono2)",
         fontSize: 11,

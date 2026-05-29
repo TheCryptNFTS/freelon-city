@@ -56,7 +56,7 @@ export function CityFeedTicker() {
     if (tone === "gold") return "var(--gold-bright)";
     if (tone === "blue") return "var(--signal-blue)";
     if (tone === "rust") return "var(--mars-rust)";
-    if (tone === "red") return "#FF5A4D";
+    if (tone === "red") return "var(--state-danger)";
     return undefined;
   };
   return (

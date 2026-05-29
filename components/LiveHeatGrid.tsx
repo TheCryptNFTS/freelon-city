@@ -116,7 +116,7 @@ export function LiveHeatGrid() {
                   <div style={{ fontFamily: "var(--mono2)", fontSize: 9, color: "var(--ink-dim)", letterSpacing: "0.12em" }}>SALES</div>
                 </div>
                 <div>
-                  <div style={{ fontFamily: "var(--display)", fontSize: 22, color: "#FF5A4D", lineHeight: 1 }}>{c.signals}</div>
+                  <div style={{ fontFamily: "var(--display)", fontSize: 22, color: "var(--state-danger)", lineHeight: 1 }}>{c.signals}</div>
                   <div style={{ fontFamily: "var(--mono2)", fontSize: 9, color: "var(--ink-dim)", letterSpacing: "0.12em" }}>SIGNALS</div>
                 </div>
               </div>

@@ -19,10 +19,10 @@ const LABEL: Record<Bucket, string> = {
   "21+": "21+ citizens",
 };
 const COLOR: Record<Bucket, string> = {
-  "1": "#4a8acb",
-  "2-5": "#5a9a4a",
+  "1": "var(--info)",
+  "2-5": "var(--success)",
   "6-20": "#c8aa64",
-  "21+": "#c54a3a",
+  "21+": "var(--danger)",
 };
 
 function shorten(addr: string) {

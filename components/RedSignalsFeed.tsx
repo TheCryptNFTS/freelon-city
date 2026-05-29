@@ -42,7 +42,7 @@ export function RedSignalsFeed() {
   if (!data) {
     return (
       <div className="red-signals red-signals-loading">
-        <span className="kicker" style={{ color: "#FF5A4D" }}>⬡ RED SIGNALS · SCANNING</span>
+        <span className="kicker" style={{ color: "var(--state-danger)" }}>⬡ RED SIGNALS · SCANNING</span>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export function RedSignalsFeed() {
   if (signals.length === 0) {
     return (
       <div className="red-signals red-signals-empty">
-        <span className="kicker" style={{ color: "#FF5A4D" }}>⬡ RED SIGNALS</span>
+        <span className="kicker" style={{ color: "var(--state-danger)" }}>⬡ RED SIGNALS</span>
         <span className="sf-empty">No undervalued listings · the floor is steady</span>
       </div>
     );
@@ -59,7 +59,7 @@ export function RedSignalsFeed() {
   return (
     <div className="red-signals" style={{ border: "1px solid #FF5A4D33", borderRadius: 14, padding: "var(--s-4)", background: "#FF5A4D08", margin: "var(--s-4) 0" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "var(--s-3)" }}>
-        <span className="kicker" style={{ color: "#FF5A4D" }}>⬡ RED SIGNALS · SNIPE FOR HEX</span>
+        <span className="kicker" style={{ color: "var(--state-danger)" }}>⬡ RED SIGNALS · SNIPE FOR HEX</span>
         <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
           HOLD {data.holdDays ?? 7}D · CAP {data.bountyCap ?? 500}⬡
         </span>
@@ -93,7 +93,7 @@ export function RedSignalsFeed() {
                   </span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ fontFamily: "var(--display)", fontSize: 18, color: "#FF5A4D", fontWeight: 600 }}>+{s.bountyHex}⬡</span>
+                  <span style={{ fontFamily: "var(--display)", fontSize: 18, color: "var(--state-danger)", fontWeight: 600 }}>+{s.bountyHex}⬡</span>
                   <span style={{ fontFamily: "var(--mono2)", fontSize: 9, color: "var(--ink-dim)", letterSpacing: "0.18em" }}>SNIPE</span>
                 </div>
               </a>

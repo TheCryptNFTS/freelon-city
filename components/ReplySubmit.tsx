@@ -139,7 +139,7 @@ export function ReplySubmit() {
         <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 8, fontFamily: "var(--mono2)", fontSize: 12, lineHeight: 1.6,
           background: result.ok ? "rgba(122,224,141,0.08)" : "rgba(255,90,77,0.08)",
           border: `1px solid ${result.ok ? "#7AE08D55" : "#FF5A4D55"}`,
-          color: result.ok ? "#9ad4a8" : "#FF5A4D",
+          color: result.ok ? "#9ad4a8" : "var(--state-danger)",
         }}>
           {result.ok ? (
             <>

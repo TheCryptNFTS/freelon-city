@@ -113,7 +113,7 @@ export function TransmissionSubmit({ onSubmitted }: { onSubmitted?: (id: string)
   if (!x.verified) {
     return (
       <div className="tx-submit-gate">
-        <span className="kicker" style={{ color: "#FF5A4D" }}>⬡ X SESSION REQUIRED</span>
+        <span className="kicker" style={{ color: "var(--state-danger)" }}>⬡ X SESSION REQUIRED</span>
         <p>Transmissions require an X session bound to this wallet.</p>
         <a className="btn btn-primary" href={`/api/x/start?bind=${encodeURIComponent(viewer.addr)}`}>
           <span className="ttl">SIGN IN WITH X →</span>

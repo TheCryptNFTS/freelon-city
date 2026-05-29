@@ -146,9 +146,9 @@ export function TransmissionCard({ t: initialT, compact }: { t: Public; compact?
           disabled={signaling || hasSignaled}
           style={{
             padding: "8px 12px",
-            border: `1px solid ${hasSignaled ? "#7AE08D" : color}`,
+            border: `1px solid ${hasSignaled ? "var(--state-active)" : color}`,
             background: hasSignaled ? "rgba(122,224,141,0.12)" : `${color}14`,
-            color: hasSignaled ? "#7AE08D" : color,
+            color: hasSignaled ? "var(--state-active)" : color,
             borderRadius: 8,
             fontFamily: "var(--mono2)",
             fontSize: 11,
@@ -206,7 +206,7 @@ export function TransmissionCard({ t: initialT, compact }: { t: Public; compact?
         </div>
       </div>
       {err && (
-        <div style={{ padding: "8px 12px", fontFamily: "var(--mono2)", fontSize: 10, color: "#FF5A4D", borderTop: `1px solid ${color}22` }}>
+        <div style={{ padding: "8px 12px", fontFamily: "var(--mono2)", fontSize: 10, color: "var(--state-danger)", borderTop: `1px solid ${color}22` }}>
           {err}
         </div>
       )}
