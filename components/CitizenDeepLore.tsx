@@ -5,6 +5,7 @@ import { DeepLore } from "@/lib/deep-lore";
 import { loadCarrier, spendPoints, CarrierState } from "@/lib/carrier";
 import { useHolder } from "@/lib/useHolder";
 import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
+import { useLoreKey } from "@/lib/useLoreKey";
 
 type Props = {
   citizenId: number;
@@ -17,6 +18,7 @@ type Props = {
 export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Props) {
   const holder = useHolder();
   const ownership = useOwnsCitizen(citizenId, holder.address);
+  const loreKey = useLoreKey(holder.address);
   const [carrier, setCarrier] = useState<CarrierState | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const [giftInfo, setGiftInfo] = useState<{ gifter?: string }>({});
@@ -46,7 +48,8 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
   }, [citizenId, carrier?.handle]);
 
   const ownerFree = ownership.isOwner;
-  const canShow = unlocked || ownerFree;
+  const keyFree = loreKey.hasKey;
+  const canShow = unlocked || ownerFree || keyFree;
 
   async function doUnlock() {
     setErr(null);
@@ -204,6 +207,11 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
       {canShow && ownerFree && !giftInfo.gifter && (
         <p className="dl-owner-attribution">
           ⬡ Unlocked because you own this citizen.
+        </p>
+      )}
+      {canShow && keyFree && !ownerFree && !giftInfo.gifter && (
+        <p className="dl-owner-attribution">
+          ⬡ Unlocked by your EMILE memory-fragment key — the city&apos;s memory opens for you.
         </p>
       )}
     </section>

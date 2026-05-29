@@ -15,6 +15,7 @@ import {
   classFlavor,
   type WalletClass,
 } from "@/lib/wallet-classification";
+import { getWalletSet } from "@/lib/signal-set";
 
 export const revalidate = 120;
 
@@ -52,11 +53,12 @@ export default async function PassportPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, hex, x, hexRecords] = await Promise.all([
+  const [tokensRes, hex, x, hexRecords, set] = await Promise.all([
     getWalletTokens(norm, 500),
     getWalletHex(norm),
     getXVerification(norm),
     listWalletHexRecords(500),
+    getWalletSet(norm),
   ]);
 
   const tokenIds = tokensRes?.tokenIds ?? [];
@@ -216,6 +218,58 @@ export default async function PassportPage({
           </span>
         </div>
       </div>
+
+      {/* ── THE FULL SIGNAL — cross-collection set ─────────────────── */}
+      <h2 className="kicker passport-section-kicker" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+        <span>⬡ ARTEFACT ALIGNMENT</span>
+        <span style={{ fontFamily: "var(--mono2)", color: set.full ? "var(--gold)" : "var(--ink-dim)" }}>
+          {set.full ? "★ FULL SIGNAL" : `${set.tiersHeld} / ${set.entries.length}`}
+        </span>
+      </h2>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+          gap: 8,
+          margin: "var(--s-2) 0 var(--s-4)",
+        }}
+      >
+        {set.entries.map((e) => (
+          <div
+            key={e.slug}
+            title={e.unknown ? "Holdings unavailable — syncing" : e.has ? `${e.count}${e.count >= 50 ? "+" : ""} held` : "Not held"}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              padding: "10px 12px",
+              borderRadius: 8,
+              border: `1px solid ${e.has ? e.color : "var(--line)"}`,
+              background: e.has ? "rgba(255,255,255,0.03)" : "transparent",
+              opacity: e.has ? 1 : 0.4,
+            }}
+          >
+            <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: e.has ? e.color : "var(--ink-dim)" }}>
+              {e.has ? "⬡" : e.unknown ? "…" : "○"} {e.role}
+            </span>
+            <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)" }}>
+              {e.name}
+              {e.has && !e.unknown ? (
+                <span style={{ color: "var(--ink-dim)" }}>{` · ${e.count >= 50 ? "50+" : e.count}`}</span>
+              ) : null}
+            </span>
+          </div>
+        ))}
+      </div>
+      {set.full ? (
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--gold)", letterSpacing: "0.05em", margin: "0 0 var(--s-4)", lineHeight: 1.6 }}>
+          This wallet carries the FULL SIGNAL — one artefact from every layer of the city. The complete set.
+        </p>
+      ) : set.partial ? (
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", margin: "0 0 var(--s-4)" }}>
+          Some holdings are still syncing — alignment is provisional.
+        </p>
+      ) : null}
 
       {thumbIds.length > 0 ? (
         <>
