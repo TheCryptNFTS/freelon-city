@@ -9,11 +9,11 @@ type Prefs = { dmEnabled: boolean; optOut: NotifKind[] };
 const KIND_LABEL: Record<string, { label: string; color: string }> = {
   "decay-warning":        { label: "DECAY",     color: "#FF8A4D" },
   "streak-milestone-soon":{ label: "STREAK",    color: "var(--gold)" },
-  "watchlist-flag":       { label: "WATCHLIST", color: "#FF5A4D" },
+  "watchlist-flag":       { label: "WATCHLIST", color: "var(--state-danger)" },
   "transmission-boosted": { label: "BOOST",     color: "#A989C7" },
   "civ-wars-monday":      { label: "CIV WARS",  color: "#7AB7FF" },
   "civ-wars-mid-week":    { label: "CIV WARS",  color: "#7AB7FF" },
-  "snipe-matured":        { label: "SNIPE",     color: "#7AE08D" },
+  "snipe-matured":        { label: "SNIPE",     color: "var(--state-active)" },
   "fresh-citizen":        { label: "WELCOME",   color: "var(--gold)" },
 };
 

@@ -626,7 +626,7 @@ export function VaultClient() {
         .v-check--prominent input { width: 20px; height: 20px; }
         .v-bullets { font-family: var(--mono2); font-size: 12px; color: var(--ink-2); line-height: 1.8; margin: 14px 0 0; padding: 0; list-style: none; }
         .v-connected { display: flex; align-items: center; gap: 12px; font-family: var(--mono2); font-size: 13px; color: var(--ink); }
-        .v-dot { width: 8px; height: 8px; border-radius: 50%; background: #7AE08D; box-shadow: 0 0 8px #7AE08D; }
+        .v-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--state-active); box-shadow: 0 0 8px var(--state-active); }
         .v-addr { color: var(--gold); letter-spacing: 0.08em; }
         .v-meta { color: var(--ink-2); letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
         .v-safety-list { font-family: var(--mono2); font-size: 13px; color: var(--ink-2); line-height: 1.75; padding-left: 18px; margin: 12px 0 0; }
@@ -650,9 +650,9 @@ export function VaultClient() {
         .v-input:focus { outline: none; border-color: var(--gold); }
         .v-input-sm { font-size: 12px; padding: 8px 10px; }
         .v-validation { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.08em; min-height: 16px; }
-        .v-ok { color: #7AE08D; }
-        .v-err { color: #FF5A4D; font-family: var(--mono2); font-size: 12px; }
-        .v-warn { color: #E8B247; font-family: var(--mono2); font-size: 12px; margin-top: 8px; }
+        .v-ok { color: var(--state-active); }
+        .v-err { color: var(--state-danger); font-family: var(--mono2); font-size: 12px; }
+        .v-warn { color: var(--state-surge); font-family: var(--mono2); font-size: 12px; margin-top: 8px; }
         .v-trusted { margin-top: 12px; }
         .v-trusted-label { display: block; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-2); text-transform: uppercase; margin-bottom: 6px; }
         .v-save-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
@@ -673,7 +673,7 @@ export function VaultClient() {
         .v-pstate { color: var(--ink-2); letter-spacing: 0.16em; font-size: 10px; min-width: 80px; }
         .v-plink { color: var(--ink-2); text-decoration: underline; font-size: 11px; }
         .v-plink:hover { color: var(--gold); }
-        .v-perr { color: #FF5A4D; font-size: 11px; opacity: 0.8; }
+        .v-perr { color: var(--state-danger); font-size: 11px; opacity: 0.8; }
         .v-foot { display: flex; gap: 12px; justify-content: center; margin-top: var(--s-5); }
       `}</style>
     </div>

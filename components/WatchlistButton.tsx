@@ -102,7 +102,7 @@ export function WatchlistButton({ tokenId }: Props) {
   }
 
   const insufficient = !watching && balance !== null && balance < cost;
-  const color = watching ? "#FF5A4D" : "var(--gold)";
+  const color = watching ? "var(--state-danger)" : "var(--gold)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -197,7 +197,7 @@ export function WatchlistButton({ tokenId }: Props) {
         Watchers get a 24h private snipe window if this citizen flags as a Red Signal — before the public feed sees it. Snapshot is frozen at flag time; adding after doesn&apos;t help.
       </p>
       {error && (
-        <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "#FF5A4D" }}>{error}</p>
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--state-danger)" }}>{error}</p>
       )}
     </div>
   );
