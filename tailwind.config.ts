@@ -8,12 +8,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#0a0c12",
-        "bg-lifted": "#131316",
-        ink: "#e6e1d2",
-        "ink-dim": "#888888",
-        gold: "#c8aa64",
-        "gold-bright": "#e6c47a",
+        bg: "var(--bg)",
+        // "bg-lifted" has no matching :root token; closest is --surface (#141417).
+        // Mapped to --surface so the lifted-card utility tracks the token system.
+        "bg-lifted": "var(--surface)",
+        ink: "var(--ink)",
+        "ink-dim": "var(--ink-dim)",
+        gold: "var(--gold)",
+        "gold-bright": "var(--gold-bright)",
       },
       fontFamily: {
         sans: ['"Satoshi"', '"Helvetica Neue"', "Helvetica", "Arial", "sans-serif"],

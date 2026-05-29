@@ -221,7 +221,7 @@ export function FeaturedCitizenPicker({
             marginTop: 10,
             fontFamily: "var(--mono2)",
             fontSize: 11,
-            color: "#FF8A6E",
+            color: "var(--state-warning)",
             letterSpacing: "0.12em",
           }}
         >
