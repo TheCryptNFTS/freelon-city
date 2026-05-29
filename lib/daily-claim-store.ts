@@ -3,24 +3,11 @@
  * One claim per UTC day. In-memory for dev, Upstash REST in prod.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 const memory = new Map<string, string>(); // addr → YYYY-MM-DD
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 const KEY = (addr: string) => `freelon:claim:v1:${addr.toLowerCase()}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export function todayUTC(): string {
   const d = new Date();

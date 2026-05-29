@@ -28,27 +28,12 @@ import { getCitizen } from "@/lib/citizens";
 import { heroImageUrl, CIVILIZATIONS } from "@/lib/constants";
 import { getXVerification } from "@/lib/x-store";
 import { postTweet, postingCapable, uploadMedia } from "@/lib/x-autopost";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const PULSE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const KEY_LAST = "freelon:autopost:last";
 const KEY_TWEETED = (tx: string, tokenId: string | number) =>
   `freelon:autopost:event:${tx}:${tokenId}`;
-
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export type PulseSale = {
   tx: string;

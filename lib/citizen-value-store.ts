@@ -29,6 +29,7 @@
  */
 
 import { getCitizen, getAllCitizens } from "@/lib/citizens";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 /** Small wrapper since lib/citizens doesn't export a civ-of helper. */
 function civilizationOf(tokenId: number): string | null {
@@ -38,10 +39,6 @@ function civilizationOf(tokenId: number): string | null {
 const allCitizens = () => getAllCitizens();
 
 export const CITIZEN_HEX_PER_SALE = 25;
-
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 // In-memory fallback so the helper compiles + runs in local dev.
 const mem = {
@@ -57,18 +54,6 @@ const KEY_LAST_SALE = (id: number) => `freelon:cit:lastSale:${id}`;
 const KEY_LAST_SALE_TS = (id: number) => `freelon:cit:lastSaleTs:${id}`;
 const KEY_TRANSFER_TS = (id: number) => `freelon:cit:transferTs:${id}`;
 const KEY_EVENT = (tx: string, id: number) => `freelon:cit:hex:event:${tx}:${id}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const r = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!r.ok) throw new Error(`Upstash ${r.status}`);
-  const j = (await r.json()) as { result: unknown };
-  return j.result;
-}
 
 async function upstashPipeline(cmds: string[][]): Promise<unknown[]> {
   if (cmds.length === 0) return [];

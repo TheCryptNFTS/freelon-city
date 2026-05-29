@@ -22,6 +22,8 @@
  * Idempotent: re-seeing the same tx:tokenId in a retry is a no-op.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 export type SweepEvent = {
   wallet: string;
   tokenId: number;
@@ -38,10 +40,6 @@ export type SweeperRow = {
   tokenIds: number[]; // up to 6 most recent
 };
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
 const KEY_LIST = "freelon:sweeper:recent:list";
 const KEY_EVENT = (tx: string, tokenId: number) =>
   `freelon:sweeper:event:${tx}:${tokenId}`;
@@ -52,18 +50,6 @@ const mem: { list: SweepEvent[]; seen: Set<string> } = {
   list: [],
   seen: new Set(),
 };
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const r = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!r.ok) throw new Error(`Upstash ${r.status}`);
-  const j = (await r.json()) as { result: unknown };
-  return j.result;
-}
 
 /**
  * Record a sweep event. Idempotent on (tx, tokenId).

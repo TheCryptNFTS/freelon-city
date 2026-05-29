@@ -20,6 +20,8 @@
  * can validate that submitted reply targets actually came from us.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 export type ReplyRecord = {
   /** X tweet id of the carrier's reply. */
   replyId: string;
@@ -51,27 +53,11 @@ const memory = {
   parentTweets: new Set<string>(),
 };
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
 const KEY_REPLY = (id: string) => `freelon:reply:v1:${id}`;
 const KEY_DAY = (w: string, d: string) => `freelon:reply:byday:${w.toLowerCase()}:${d}`;
 const KEY_PARENT = (id: string) => `freelon:reply:byparent:${id}`;
 const KEY_PENDING_SCAN = "freelon:reply:pending-eng-scan";
 const KEY_PARENT_INDEX = "freelon:autopost:parent-tweets";
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 function todayUTC(): string { return new Date().toISOString().slice(0, 10); }
 

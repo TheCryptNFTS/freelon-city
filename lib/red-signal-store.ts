@@ -14,6 +14,7 @@
  */
 
 import { ECONOMY } from "@/lib/economy-constants";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 export type RedSignal = {
   tokenId: number;
@@ -36,24 +37,9 @@ export type RedSignal = {
 };
 
 const memory = new Map<string, RedSignal>();
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 const KEY = (tokenId: number) => `freelon:redSignal:v1:${tokenId}`;
 const TTL_SEC = 30 * 86400;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export async function getRedSignal(tokenId: number): Promise<RedSignal | null> {
   if (!hasUpstash) return memory.get(String(tokenId)) ?? null;

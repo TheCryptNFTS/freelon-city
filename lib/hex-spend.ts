@@ -21,28 +21,13 @@
 import type { XSession } from "@/lib/x-session";
 import { creditWalletHex } from "@/lib/wallet-hex-store";
 import { getCarrier, putCarrier } from "@/lib/carrier-store";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const ADDR_RE = /^0x[a-f0-9]{40}$/;
-
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 // In-memory fallback lock set (dev, no Upstash). JS is single-threaded per
 // process so the has()/add() pair below is effectively atomic.
 const memoryFoldLocks = new Set<string>();
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 /**
  * Return the wallet address bound to this X session, lowercased, iff it is

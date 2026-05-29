@@ -11,6 +11,8 @@
  * Wallet keys are always lowercased.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 export type HexEvent = {
   ts: number;
   kind: "hold" | "sweep" | "sweep_streak" | "quest" | "manual";
@@ -47,9 +49,6 @@ export type WalletHex = {
 };
 
 const memory = new Map<string, WalletHex>();
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 /** Per-process memoization: wallets whose defender streak start has been
  *  ensured this session. Avoids repeated Upstash GET on every credit. */
@@ -68,18 +67,6 @@ async function fireDefenderEnsure(addr: string): Promise<void> {
 }
 
 const KEY = (addr: string) => `freelon:walletHex:v1:${addr.toLowerCase()}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 function emptyRecord(addr: string): WalletHex {
   return {

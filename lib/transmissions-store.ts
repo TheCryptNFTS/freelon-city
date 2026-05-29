@@ -16,6 +16,8 @@
  * Soft-launch moderation: 3 reports auto-hide pending review.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 const memory = {
   records: new Map<string, Transmission>(),
   index: new Map<string, number>(), // id → ts
@@ -24,28 +26,12 @@ const memory = {
   reports: new Set<string>(),       // "id:wallet"
 };
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
 const KEY = (id: string) => `freelon:tx:v1:${id}`;
 const IDX_RECENT = "freelon:tx:index";
 const IDX_SCORE = "freelon:tx:byScore";
 const IDX_CIV = (slug: string) => `freelon:tx:byCiv:${slug}`;
 const KEY_SIGNAL = (id: string, w: string) => `freelon:tx:signal:${id}:${w.toLowerCase()}`;
 const KEY_REPORT = (id: string, w: string) => `freelon:tx:report:${id}:${w.toLowerCase()}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 // ─── Types ───────────────────────────────────────────────────────────
 

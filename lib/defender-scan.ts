@@ -28,6 +28,7 @@ import { CONTRACT } from "@/lib/constants";
 import { creditWalletHex } from "@/lib/wallet-hex-store";
 import { recordBid, bumpHexCredited } from "@/lib/defender-store";
 import { weiToEth } from "@/lib/eth-math";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const COLLECTION_SLUG = "freelons";
 const BID_MULTIPLIER = 1.4;
@@ -35,22 +36,6 @@ const REWARD_PLACED = 500;
 const REWARD_FILLED = 1000;
 const REWARD_HOLD_7D = 2000;
 const HOLD_DAYS = 7;
-
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 const KEY_OFFER_SEEN = (hash: string) => `freelon:defender:offer-seen:${hash}`;
 const KEY_OFFER_TS = (hash: string) => `freelon:defender:offer-ts:${hash}`;

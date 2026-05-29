@@ -5,24 +5,13 @@
  * In-memory for dev. Upstash REST for prod.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 export type NameRecord = { name: string; owner: string; setAt: number };
 
 const memory = new Map<number, NameRecord>();
-const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 
 const KEY = (id: number) => `freelon:name:v1:${id}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export async function getName(citizenId: number): Promise<NameRecord | null> {
   if (!hasUpstash) return memory.get(citizenId) ?? null;

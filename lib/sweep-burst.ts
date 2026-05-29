@@ -26,6 +26,7 @@ import { getCitizen } from "@/lib/citizens";
 import { postTweet, postingCapable, uploadMedia } from "@/lib/x-autopost";
 import { notify } from "@/lib/notify";
 import type { PulseSale } from "@/lib/sales-pulse";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const BURST_THRESHOLD = 5;
 const BURST_INTERVAL_MS = 4 * 60 * 60 * 1000; // share 4h cadence with sales-pulse
@@ -36,22 +37,6 @@ const KEY_NOTIFIED = (wallet: string, burstId: string) =>
   `freelon:sweep-burst:notified:${burstId}:${wallet}`;
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://www.freeloncity.com";
-
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export type SweepBurstResult = {
   ok: boolean;

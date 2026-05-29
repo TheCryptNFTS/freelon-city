@@ -23,6 +23,7 @@
  */
 
 import { ECONOMY } from "@/lib/economy-constants";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 export type GhostRecord = {
   tokenId: number;
@@ -82,10 +83,6 @@ const memory = {
   defenders: new Map<string, number>(),
 };
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
 const KEY_GHOST = (t: number) => `freelon:ghost:v1:${t}`;
 const KEY_GHOST_IDX = "freelon:ghost:idx";
 const KEY_RESCUE = (t: number) => `freelon:ghost:rescued:${t}`;
@@ -95,18 +92,6 @@ const KEY_DEFENDER = (w: string) => `freelon:ghost:defender:${w.toLowerCase()}`;
 
 const GHOST_TTL_SEC = 60 * 86400;   // 60 days
 const RESCUE_TTL_SEC = 365 * 86400; // 1 year of rescue history
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 // ─── Ghost CRUD ──────────────────────────────────────────────────────
 

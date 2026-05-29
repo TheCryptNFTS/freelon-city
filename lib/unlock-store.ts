@@ -8,25 +8,13 @@
  * Upstash Redis in production.
  */
 
-const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const memHandleSet = new Map<string, Set<number>>();      // handle → Set<citizenId>
 const memCitizenUnlockers = new Map<number, Set<string>>(); // citizenId → Set<handle>
 const memGiftAttribution = new Map<number, string>();      // citizenId → handle of original gifter
 
 const KEY = (s: string) => `freelon:unlock:v1:${s}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export async function hasUnlocked(handle: string, citizenId: number): Promise<boolean> {
   const h = handle.toLowerCase().replace(/^@/, "");

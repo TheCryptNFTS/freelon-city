@@ -19,6 +19,8 @@
  *   2. On-site inbox card (always written so user sees it next visit)
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 export type NotifKind =
   | "decay-warning"          // 3 days before passive earnings pause
   | "streak-milestone-soon"  // T-1 before 7d / 30d streak unlock
@@ -51,9 +53,6 @@ export type NotifPrefs = {
 const memory = new Map<string, NotifEvent[]>();
 const memDelivered = new Set<string>();        // "wallet:eventKey"
 const memPrefs = new Map<string, NotifPrefs>();
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 const KEY_INBOX = (w: string) => `freelon:notif:v1:inbox:${w.toLowerCase()}`;
 const KEY_DELIVERED = (w: string, k: string) =>
@@ -62,18 +61,6 @@ const KEY_PREFS = (w: string) => `freelon:notif:v1:prefs:${w.toLowerCase()}`;
 
 const INBOX_CAP = 50;
 const DELIVERED_TTL_SEC = 90 * 86400;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 // ─── Dedupe ──────────────────────────────────────────────────────────
 

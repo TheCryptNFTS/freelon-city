@@ -11,24 +11,11 @@
  * No other code changes needed.
  */
 import { CarrierState } from "./carrier";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const memory = new Map<string, CarrierState>();
 
-const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-
 const KEY_PREFIX = "freelon:carrier:v1:";
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export async function getCarrier(handle: string): Promise<CarrierState | null> {
   const norm = handle.toLowerCase().replace(/^@/, "");

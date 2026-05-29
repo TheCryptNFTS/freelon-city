@@ -17,27 +17,13 @@
  */
 
 import { CIVILIZATIONS } from "@/lib/constants";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const memory: Record<string, { sales: number; signals: number }> = {};
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 const KEY_SALES = (slug: string) => `freelon:heat:v1:sales:${slug}`;
 const KEY_SIGNALS = (slug: string) => `freelon:heat:v1:signals:${slug}`;
 const TTL_SEC = 60 * 60;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export async function bumpHeat(slug: string, kind: "sale" | "signal"): Promise<void> {
   if (!hasUpstash) {

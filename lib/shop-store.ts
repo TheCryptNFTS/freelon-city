@@ -7,25 +7,13 @@
  * Mirrors lib/unlock-store.ts pattern.
  */
 
-const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const memOwned = new Map<string, Set<string>>();  // handle -> Set<itemId>
 const memSold = new Map<string, number>();         // itemId -> count
 
 const KEY_OWNED = (h: string) => `freelon:shop:owned:${h}`;
 const KEY_SOLD = (id: string) => `freelon:shop:sold:${id}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 function normHandle(handle: string): string {
   return handle.toLowerCase().replace(/^@/, "");

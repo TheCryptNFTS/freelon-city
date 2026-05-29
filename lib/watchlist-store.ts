@@ -19,30 +19,16 @@
  */
 
 import { ECONOMY } from "@/lib/economy-constants";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 export const WATCHLIST_COST = 50; // hex per token added
 
 const memory = new Map<string, Set<number>>();     // address -> tokenIds
 const memoryByToken = new Map<number, Set<string>>(); // tokenId -> addresses
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 const KEY_WALLET = (a: string) => `freelon:watch:v1:wallet:${a.toLowerCase()}`;
 const KEY_TOKEN = (t: number) => `freelon:watch:v1:token:${t}`;
 const TTL_SEC = 90 * 86400; // 90-day watchlist expiry
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export async function addToWatchlist(address: string, tokenId: number): Promise<void> {
   const a = address.toLowerCase();

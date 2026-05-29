@@ -21,26 +21,11 @@ import { listWalletHexRecords } from "@/lib/wallet-hex-store";
 import { listTransmissions } from "@/lib/transmissions-store";
 import { listDumpLedger } from "@/lib/ghost-store";
 import { postTweet, postingCapable } from "@/lib/x-autopost";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const KEY_LAST = "freelon:weekly-receipts:last";
 const WEEK_MS = 6 * 24 * 60 * 60 * 1000; // gate at 6d — ensures one fire per ISO week even with cron jitter
 const POST_DOW = 0; // Sunday (UTC) — 0 = Sunday in JS getUTCDay()
-
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 const COLLECTION_SLUG = "freelons";
 

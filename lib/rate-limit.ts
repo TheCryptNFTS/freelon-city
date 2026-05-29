@@ -3,21 +3,9 @@
  * 30 req/min per IP per route by default.
  */
 import { NextResponse } from "next/server";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const memory = new Map<string, { count: number; reset: number }>();
-const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 function getIp(req: Request): string {
   // Prefer the trusted Vercel header (x-real-ip is set by Vercel's edge and

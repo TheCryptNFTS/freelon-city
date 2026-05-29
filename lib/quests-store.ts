@@ -7,6 +7,7 @@ import { creditWalletHex } from "@/lib/wallet-hex-store";
 import { CIVILIZATIONS } from "@/lib/constants";
 import citizensData from "@/data/citizens.json";
 import { ECONOMY } from "@/lib/economy-constants";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 // Allowlists per quest. Reject anything not on the list — closes the
 // "submit fake stepIds to farm the reward" exploit.
@@ -67,23 +68,8 @@ export type QuestState = {
 };
 
 const memory = new Map<string, QuestState>();
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 const KEY = (key: string) => `freelon:quests:v1:${key.toLowerCase()}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 function empty(key: string): QuestState {
   return {

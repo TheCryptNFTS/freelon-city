@@ -22,6 +22,7 @@ import {
   weekEndTs,
 } from "@/lib/reckoning-config";
 import { CIVILIZATIONS } from "@/lib/constants";
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const CIV_SLUGS = Object.keys(CIVILIZATIONS);
 
@@ -64,10 +65,6 @@ export type ReckoningView = {
   archive: ArchiveEntry[];
 };
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
 const mem = new Map<string, string>();
 
 const NS = `freelon:reckoning:v${RECKONING_VERSION}`;
@@ -76,18 +73,6 @@ const GEN_KEY = (week: number, addr: string) =>
   `${NS}:wk${week}:gen:${addr.toLowerCase()}`;
 const SETTLED_KEY = `${NS}:settled`;
 const ARCHIVE_KEY = `${NS}:archive`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 async function getJSON<T>(key: string): Promise<T | null> {
   if (!hasUpstash) {

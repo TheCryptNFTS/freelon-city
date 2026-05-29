@@ -8,6 +8,8 @@
  * In-memory fallback when no Upstash env. Handles are lowercased.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 export type Referral = {
   referrer: string;       // X handle of inviter (lowercased)
   joiner: string;         // X handle of new user (lowercased)
@@ -19,26 +21,10 @@ export type Referral = {
 const memoryByJoiner = new Map<string, Referral>();
 const memoryByReferrer = new Map<string, Referral[]>();
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
-
 const KEY_JOINER = (handle: string) =>
   `freelon:ref:by-joiner:${handle.toLowerCase()}`;
 const KEY_REFERRER = (handle: string) =>
   `freelon:ref:by-referrer:${handle.toLowerCase()}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export async function getReferral(joiner: string): Promise<Referral | null> {
   const k = joiner.toLowerCase();

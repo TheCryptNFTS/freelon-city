@@ -16,9 +16,7 @@
  * v2 will auto-detect via OpenSea offers API on the sweep-bounty cron.
  */
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const KEY_STATS = "freelon:defender:stats";
 const KEY_IDX = "freelon:defender:idx";
@@ -28,18 +26,6 @@ const KEY_WALLET = (addr: string) => `freelon:defender:wallet:${addr.toLowerCase
 const memStats = { totalBids: 0, totalDefenders: 0, hexCredited: 0 };
 const memBids = new Map<string, DefenderBid>();
 const memWallets = new Map<string, number>();
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 export type DefenderBid = {
   id: string;

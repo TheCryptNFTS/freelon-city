@@ -19,26 +19,12 @@
  * before we persist it.
  */
 
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
+import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const KEY = (wallet: string) => `freelon:featured:${wallet.toLowerCase()}`;
 
 // In-memory fallback for dev
 const mem = new Map<string, number>();
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const r = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!r.ok) throw new Error(`Upstash ${r.status}`);
-  const j = (await r.json()) as { result: unknown };
-  return j.result;
-}
 
 /** Read the featured citizen for a wallet. Returns null if none set. */
 export async function getFeaturedCitizen(wallet: string): Promise<number | null> {

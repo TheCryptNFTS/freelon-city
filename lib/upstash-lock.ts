@@ -15,24 +15,11 @@
  *     unblocking subsequent calls.
  */
 
+import { upstash, hasUpstash } from "@/lib/upstash-client";
+
 const memory = new Map<string, number>(); // key -> expiresAt(ms)
-const hasUpstash = !!(
-  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
-);
 
 const KEY = (k: string) => `freelon:lock:v1:${k}`;
-
-async function upstash(cmd: string[]): Promise<unknown> {
-  const url = process.env.UPSTASH_REDIS_REST_URL!;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
-  const res = await fetch(`${url}/${cmd.map(encodeURIComponent).join("/")}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
-  return j.result;
-}
 
 async function acquire(key: string, ttlSec: number): Promise<boolean> {
   if (!hasUpstash) {
