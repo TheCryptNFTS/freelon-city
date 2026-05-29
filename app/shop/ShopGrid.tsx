@@ -5,6 +5,7 @@ import { CATEGORIES, ITEMS, type ShopItem } from "@/lib/shop";
 import { loadCarrier, type CarrierState } from "@/lib/carrier";
 import { cityNotice } from "@/lib/city-notice";
 import { CANON } from "@/lib/canon";
+import { useViewerAddr } from "@/lib/use-viewer";
 
 type SoldMap = Record<string, number>;
 
@@ -12,6 +13,12 @@ const ALL = "ALL";
 
 export function ShopGrid() {
   const [carrier, setCarrier] = useState<CarrierState | null>(null);
+  // 2026-05-29 ledger unification: when a wallet is connected, the shop now
+  // spends the WALLET ledger (where hex is earned), so show THAT balance — not
+  // the handle-keyed carrier balance that caused "I have 270 but it says 50".
+  // Falls back to carrier-hex for handle-only (non-holder) viewers.
+  const viewer = useViewerAddr();
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [sold, setSold] = useState<SoldMap>({});
   const [filter, setFilter] = useState<string>(ALL);
@@ -61,6 +68,23 @@ export function ShopGrid() {
         .catch(() => {});
     }
   }, []);
+
+  // When a wallet is connected, fetch its real (spendable) hex balance. This
+  // is the number the buy route will actually debit, so it's what we show.
+  useEffect(() => {
+    if (!viewer.ready || !viewer.addr) {
+      setWalletBalance(null);
+      return;
+    }
+    let alive = true;
+    fetch(`/api/wallet/${viewer.addr.toLowerCase()}/hex`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { balance?: number } | null) => {
+        if (alive && j && typeof j.balance === "number") setWalletBalance(j.balance);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [viewer.ready, viewer.addr]);
 
   const visible = useMemo<ShopItem[]>(() => {
     if (filter === ALL) return ITEMS;
@@ -113,6 +137,8 @@ export function ShopGrid() {
           localStorage.setItem("freelon::carrier::v1", JSON.stringify(j.state));
         } catch {}
       }
+      // Wallet path returns the authoritative post-debit balance.
+      if (typeof j.walletBalance === "number") setWalletBalance(j.walletBalance);
       setOwned((prev) => {
         const next = new Set(prev);
         next.add(item.id);
@@ -134,7 +160,9 @@ export function ShopGrid() {
     }
   }
 
-  const balance = carrier?.hexPoints ?? 0;
+  // Spendable balance: wallet ledger when connected, else carrier-hex.
+  const usingWallet = walletBalance !== null;
+  const balance = usingWallet ? walletBalance : (carrier?.hexPoints ?? 0);
 
   return (
     <div>
@@ -144,7 +172,7 @@ export function ShopGrid() {
             {carrier?.handle ? `@${carrier.handle}` : "NOT SYNCED"}
           </div>
           <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.18em", color: "var(--ink-2)", marginTop: 4 }}>
-            HEX BALANCE
+            {usingWallet ? "WALLET HEX BALANCE" : "HEX BALANCE"}
           </div>
         </div>
         <div className="balance-amount">{balance.toLocaleString()} ⬡</div>

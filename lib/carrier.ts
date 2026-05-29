@@ -36,6 +36,11 @@ export type CarrierState = {
   hexPoints: number;     // ⬡ currency — spend on bio unlocks
   totalEarned: number;   // lifetime earned (audit trail)
   totalSpent: number;    // lifetime spent
+  // 2026-05-29 — set once the carrier's hexPoints have been folded into the
+  // wallet ledger (lib/hex-spend.ts foldCarrierIntoWallet). Presence means
+  // "already migrated"; the fold is skipped thereafter. Holds the wallet
+  // address the balance was moved to (audit).
+  migratedTo?: string;
 };
 
 const DECAY_PER_DAY = 4;

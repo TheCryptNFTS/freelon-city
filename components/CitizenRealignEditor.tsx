@@ -91,8 +91,17 @@ export function CitizenRealignEditor({ citizenId, tier, originalCiv, currentReal
       setMsg({ kind: "err", text: "Select a target civilization." });
       return;
     }
-    if (!window.ethereum || !h.address) {
-      setMsg({ kind: "err", text: "Wallet not available." });
+    // 2026-05-29 — realign signs with the wallet too; same clearer split as
+    // the name editor so scan-only users know to open in a wallet browser.
+    if (!window.ethereum) {
+      setMsg({
+        kind: "err",
+        text: "No wallet detected here. Open this page in your wallet's browser (e.g. MetaMask) or a desktop browser with a wallet extension, then connect.",
+      });
+      return;
+    }
+    if (!h.address) {
+      setMsg({ kind: "err", text: "Connect your wallet first (top-right · or the Vault), then try again." });
       return;
     }
     if (!handle) {

@@ -12,14 +12,19 @@
      dressed neon. These tokens align the chrome to the art. Gold stays as
      a STRUCTURAL color (hex borders, halo rings); cyan becomes the new
      accent (the signal color). */
-  --bg:        #0A0E27;  /* lifted near-black with deep-blue undertone —
-                            holds neon glow better than pure #050505;
-                            confirmed against Edgerunners / BR2049 palette */
-  --bg-2:      #0A0A0B;
-  --surface:   #0B0B0C;
-  --surface-2: #111113;
-  --line:      rgba(255,255,255,.10);
-  --line-2:    rgba(255,255,255,.18);
+  /* 2026-05-29 — DE-CHEAP PASS. The deep-blue base (#0A0E27) was the #1
+     "2018 web3 template" tell (flat saturated navy = Tailwind slate-900
+     default). Swapped to a WARM near-black so gold reads as expensive metal,
+     not neon-on-navy. Surfaces lifted (#141417/#1A1A1F) so cards sit as
+     layered planes with real elevation instead of stamped flat fills.
+     Borders re-based on warm ivory (--ink) instead of pure white so every
+     hairline carries the warm cast. Old values kept inline for revert. */
+  --bg:        #0B0B0D;  /* was #0A0E27 — warm near-black, no blue cast */
+  --bg-2:      #101012;  /* was #0A0A0B — hover/recessed step */
+  --surface:   #141417;  /* was #0B0B0C — lifted card canvas (depth) */
+  --surface-2: #1A1A1F;  /* was #111113 — raised card / nested surface */
+  --line:      rgba(245,242,232,.09);   /* warm ivory hairline (was pure white .10) */
+  --line-2:    rgba(245,242,232,.16);   /* was pure white .18 */
   --ink:       #F5F2E8;
   --ink-2:     rgba(245,242,232,.82);
   --ink-dim:   rgba(245,242,232,.66);
@@ -162,7 +167,7 @@
   --tint-gold-2:   rgba(200,167,93,0.20);
 
   /* PANEL SURFACES — opaque dark canvas for cards */
-  --panel-bg:      rgba(8,10,14,0.95);
+  --panel-bg:      rgba(15,15,17,0.95);  /* was rgba(8,10,14) — de-blued */
   --panel-bg-2:    rgba(255,255,255,0.02);
   --panel-bg-3:    rgba(255,255,255,0.03);
 
@@ -173,8 +178,11 @@
   --r-4:    14px;
   --r-pill: 999px;
 
-  /* ELEVATION */
-  --sh-1:        0 12px 40px -12px rgba(0,0,0,0.6);
+  /* ELEVATION — 2026-05-29 de-cheap: richer layered shadow (close contact
+     + far soft cast) so cards read as lifted planes, not flat stamps. */
+  --sh-1:        0 1px 0 rgba(245,242,232,.04) inset,
+                 0 2px 8px -2px rgba(0,0,0,0.5),
+                 0 24px 60px -18px rgba(0,0,0,0.75);
   --sh-glow-gold:0 12px 40px rgba(245,242,232,.16);
 
   /* DOT SIZES */
@@ -261,9 +269,12 @@ p  { margin: 0 0 1em 0; }
 
 body {
   min-height: 100vh;
+  /* 2026-05-29 de-cheap: bottom radial was BLUE (rgba(74,138,203)) — the
+     last blue cast in the base. Swapped to a warm mars-rust ember so the
+     field reads warm near-black with a faint gold-top / rust-bottom glow. */
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,170,100,0.08), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 50% 110%, rgba(74,138,203,0.05), transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,170,100,0.07), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 110%, rgba(168,79,42,0.06), transparent 60%),
     var(--bg);
   overflow-x: hidden;
   position: relative;
@@ -292,6 +303,19 @@ body::after {
   background-size: 64px 64px;
   -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent 75%);
   mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent 75%);
+}
+/* 2026-05-29 de-cheap #3 — GLOBAL VIGNETTE. Grain (body::before) was
+   already present; a vignette is the other half of the "flat fill → film"
+   upgrade. Darkens the far edges/corners so the warm near-black reads as a
+   lit cinematic field instead of a single flat swatch. Fixed, pointer-none,
+   z-index 1 → sits above the background but below all content (z-index 2),
+   so it never dims text or cards (they have their own surfaces). */
+html::after {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse 120% 100% at 50% 42%, transparent 56%, rgba(0,0,0,0.50) 100%);
 }
 main, header, footer { position: relative; z-index: 2; }
 
@@ -774,48 +798,162 @@ a { color: inherit; text-decoration: none; }
    The first screen after the hero — scannable intent-doors that route a
    cold visitor by intent. Matches the civ-card treatment (surface + gold
    left-edge + lift on hover) so it reads as one system. */
-.landing-doors {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: var(--s-7) var(--pad);
+/* 2026-05-28 landing rebuild (founder: "4 clean boxes and that epic
+   background"). The hero is no longer a 2-col split — it's a single
+   full-bleed Mars-city backdrop with one centered column over it. The
+   giant "THE CITY REMEMBERS" headline + side image panel are gone; the
+   4 intent-doors ARE the hero. ::before paints the city, ::after darkens
+   it into the page bg so white box text + gold stay legible with zero
+   layout shift (background is paint-only). */
+.hero--landing {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: calc(100vh - 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(72px, 11vh, 132px) var(--pad);
   border-bottom: 1px solid var(--line);
 }
+.hero--landing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url("/lore/city.webp") center 30% / cover no-repeat;
+  filter: contrast(1.05) brightness(0.5) saturate(0.92);
+}
+.hero--landing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* 2026-05-29 de-cheap: overlay was navy rgba(10,14,39) — warmed to the
+     new near-black (11,11,13) so the city photo grades into a warm field,
+     plus a vignette (darker edges) for cinematic depth. */
+  background:
+    radial-gradient(125% 95% at 50% 0%, rgba(11,11,13,0.10), rgba(11,11,13,0.68) 66%, var(--bg) 100%),
+    linear-gradient(180deg, rgba(11,11,13,0.20) 0%, rgba(11,11,13,0.48) 50%, var(--bg) 100%),
+    radial-gradient(130% 120% at 50% 45%, transparent 55%, rgba(0,0,0,0.55) 100%);
+}
+.hero-landing__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--maxw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--s-5);
+}
+.hero-landing__tag {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(15px, 1.9vw, 21px);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 640px;
+  text-shadow: 0 1px 24px rgba(0,0,0,0.6);
+}
+.hero-landing__tag strong {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.hero-landing__boxes { width: 100%; margin-top: var(--s-2); }
+/* Doors over the photo: keep them legible but let the epic bg breathe
+   through with a soft glass tint + drop shadow so they read as floating
+   panels, not flat cutouts. */
+.hero-landing__boxes .landing-box {
+  background: rgba(11,11,12,0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--sh-1);
+}
+/* 2026-05-28 (founder: "the civilization boxes look good, copy them").
+   The landing doors now wear the exact civ-card language: flush 4px gold
+   left bar (::before), solid panel, faint corner → that brightens + nudges
+   on hover. Over the hero photo the fill is held slightly translucent +
+   blurred so the epic city still breathes through. */
+.hero-landing__boxes .landing-box:hover,
+.hero-landing__boxes .landing-box:focus-visible {
+  background: rgba(15,15,17,0.88);
+}
 .landing-box {
-  display: flex; flex-direction: column; gap: 10px;
-  min-height: 200px;
-  padding: 26px 22px 22px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--gold);
-  border-radius: 8px;
+  position: relative;
+  display: flex; flex-direction: column;
+  min-height: 360px;
+  background: var(--bg);
   text-decoration: none;
-  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+  overflow: hidden;
+  transition: background .2s ease;
+}
+.landing-box::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px; background: var(--gold); z-index: 2;
 }
 .landing-box:hover, .landing-box:focus-visible {
   background: var(--bg-2);
-  border-left-color: var(--gold-bright);
-  transform: translateY(-2px);
   outline: none;
 }
+/* Image header — fills the top of the card, scales on hover (featured-
+   citizen treatment). A gradient at its base blends the photo into the
+   solid panel so the text never sits on a hard seam. */
+.landing-box__img {
+  display: block;
+  height: 168px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: contrast(1.05) brightness(0.92) saturate(1.02);
+  transition: transform .45s ease;
+}
+.landing-box__img::after {
+  content: ""; position: absolute; left: 0; right: 0;
+  top: 132px; height: 36px;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+}
+.landing-box:hover .landing-box__img,
+.landing-box:focus-visible .landing-box__img { transform: scale(1.05); }
+.landing-box__body {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 10px;
+  flex: 1;
+  padding: 20px 24px 26px;
+}
+/* corner → affordance, anchored to the body's bottom-right */
+.landing-box__body::after {
+  content: "→";
+  position: absolute; bottom: 24px; right: 22px;
+  font-family: var(--mono2); font-size: 15px; color: var(--ink-fade);
+  transition: color .2s ease, transform .2s ease;
+}
+.landing-box:hover .landing-box__body::after,
+.landing-box:focus-visible .landing-box__body::after {
+  color: var(--gold-bright); transform: translateX(3px);
+}
 .landing-box__k {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em;
-  text-transform: uppercase; color: var(--ink-dim);
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--ink-fade);
 }
 .landing-box__t {
   font-family: var(--display); font-weight: 600;
-  font-size: clamp(19px, 2.2vw, 25px); line-height: 1.04;
+  font-size: clamp(20px, 2.2vw, 26px); line-height: 1.04;
   letter-spacing: -0.01em; color: var(--ink); margin: 2px 0 0;
 }
 .landing-box__d {
-  font-family: var(--sans); font-size: 13px; line-height: 1.55;
+  font-family: var(--grotesk); font-size: 13.5px; line-height: 1.5;
   color: var(--ink-2); margin: 0;
 }
 .landing-box__cta {
-  margin-top: auto; padding-top: 8px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--gold-bright);
+  margin-top: auto;
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--gold);
+  padding-right: 24px; /* reserve room for the corner → affordance */
 }
-.landing-box:hover .landing-box__cta { text-decoration: underline; }
 
 /* ============ CIVS CAROUSEL ============
    2026-05-28 Track 3 — converted from a 5x2 grid (which hid civs 6-10 on
@@ -1258,8 +1396,8 @@ a { color: inherit; text-decoration: none; }
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
   background:
     radial-gradient(circle at 22% 30%, rgba(200,170,100,0.10), transparent 38%),
-    radial-gradient(circle at 78% 78%, rgba(106,74,138,0.08), transparent 42%),
-    radial-gradient(circle at 50% 110%, rgba(74,138,203,0.06), transparent 50%);
+    radial-gradient(circle at 78% 78%, rgba(106,74,138,0.06), transparent 42%),
+    radial-gradient(circle at 50% 110%, rgba(168,79,42,0.06), transparent 50%);  /* was blue 74,138,203 */
   animation: ambient 18s ease-in-out infinite alternate;
 }
 .hero > * { position: relative; z-index: 1; }
@@ -5649,7 +5787,7 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
      dark gradient (88–94%) so the quote stays fully legible. Plain black
      → a quiet textured moment. */
   background-image:
-    linear-gradient(rgba(10, 14, 39, 0.74), rgba(10, 14, 39, 0.86)),
+    linear-gradient(rgba(11, 11, 13, 0.74), rgba(11, 11, 13, 0.88)),
     url(/atmos/not-found.webp);
   background-size: cover;
   background-position: center;
@@ -5724,9 +5862,18 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   margin: var(--s-7) auto;
   padding: var(--s-7) var(--s-5) var(--s-6);
   text-align: center;
-  background: var(--archival-surface);
+  /* 2026-05-29 de-cheap #5: was a flat archival fill — the most prominent
+     flat block on the page. Now the carrier atmos render sits behind it
+     under a heavy warm-black gradient (88–94%) so the recognition moment
+     reads as a lit, textured surface, not an empty box. */
+  background:
+    linear-gradient(rgba(11,11,13,0.90), rgba(11,11,13,0.94)),
+    url(/atmos/carrier.webp);
+  background-size: cover;
+  background-position: center;
   border: 1px solid var(--archival-line);
   border-radius: 8px;
+  box-shadow: var(--sh-1);
   overflow: hidden;
 }
 .home-page__recognition::before {

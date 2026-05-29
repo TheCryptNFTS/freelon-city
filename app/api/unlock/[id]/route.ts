@@ -7,6 +7,8 @@ import { getCitizen } from "@/lib/citizens";
 import { COST, CarrierState, POINTS } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { requireXSession } from "@/lib/require-x";
+import { walletFromSession, foldCarrierIntoWallet } from "@/lib/hex-spend";
+import { debitWalletHex, getWalletHex, InsufficientHexError } from "@/lib/wallet-hex-store";
 
 function dayKey() { return Math.floor(Date.now() / 86400000); }
 
@@ -74,24 +76,51 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const cost = action === "gift" ? COST.GIFT_UNLOCK : unlockCost(cid);
+
+  // 2026-05-29 ledger unification: spend the WALLET ledger when a wallet is
+  // bound to the session; else fall back to legacy carrier-hex.
+  const wallet = walletFromSession(session);
+
+  async function recordUnlock() {
+    if (action === "self") {
+      await unlock(handle, cid);
+    } else if (action === "gift") {
+      await unlock(recipient!, cid, handle);
+    }
+  }
+
+  if (wallet) {
+    await foldCarrierIntoWallet(handle, wallet);
+    try {
+      await debitWalletHex(wallet, cost, { kind: "manual", note: `Unlock #${cid} (${action})` });
+    } catch (e) {
+      if (e instanceof InsufficientHexError) {
+        return NextResponse.json({ error: "insufficient hex points", required: e.requested, have: e.balance }, { status: 402 });
+      }
+      throw e;
+    }
+    await recordUnlock();
+    const rec = await getWalletHex(wallet);
+    const folded = await getCarrier(handle);
+    return NextResponse.json({
+      ok: true,
+      state: { ...(folded ?? carrier), hexPoints: rec.balance },
+      walletBalance: rec.balance,
+      cost, action, citizenId: cid, recipient,
+    });
+  }
+
+  // Legacy carrier-hex path (handle-only, no wallet bound).
   if (carrier.hexPoints < cost) {
     return NextResponse.json({ error: "insufficient hex points", required: cost, have: carrier.hexPoints }, { status: 402 });
   }
-
-  // Deduct points
   const next: CarrierState = {
     ...carrier,
     hexPoints: carrier.hexPoints - cost,
     totalSpent: carrier.totalSpent + cost,
   };
   await putCarrier(next);
-
-  // Record unlock
-  if (action === "self") {
-    await unlock(handle, cid);
-  } else if (action === "gift") {
-    await unlock(recipient!, cid, handle);
-  }
+  await recordUnlock();
 
   return NextResponse.json({ ok: true, state: next, cost, action, citizenId: cid, recipient });
 }

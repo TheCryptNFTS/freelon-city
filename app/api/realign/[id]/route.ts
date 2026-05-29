@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import { verifyMessage } from "viem";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { getCitizen } from "@/lib/citizens";
-import { getCarrier, putCarrier } from "@/lib/carrier-store";
-import { CarrierState } from "@/lib/carrier";
+import { getCarrier } from "@/lib/carrier-store";
 import { normalizeHandle } from "@/lib/sync";
 import { getRealignment, setRealignment } from "@/lib/realignment-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { ECONOMY } from "@/lib/economy-constants";
 import { getXVerification } from "@/lib/x-store";
 import { verifyOwnership } from "@/lib/owner-of";
+import { foldCarrierIntoWallet } from "@/lib/hex-spend";
+import { debitWalletHex, getWalletHex, InsufficientHexError } from "@/lib/wallet-hex-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -138,31 +139,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     );
   }
 
-  const carrier = await getCarrier(handle);
-  if (!carrier) {
-    return NextResponse.json(
-      { error: "carrier not found — relay the signal first to earn hex points" },
-      { status: 404 },
-    );
-  }
   // Collapse-mode sink discount
   const { getCollapseState, applySinkMultiplier } = await import("@/lib/collapse-mode");
   const collapse = await getCollapseState();
   const cost = applySinkMultiplier(REALIGN_COST, collapse);
 
-  if (carrier.hexPoints < cost) {
-    return NextResponse.json(
-      { error: "insufficient hex points", required: cost, have: carrier.hexPoints },
-      { status: 402 },
-    );
+  // 2026-05-29 ledger unification: realign now spends the WALLET ledger.
+  // The wallet is signature-proven above (verifyMessage + verifyOwnership),
+  // so it's a trusted spend identity. Fold any leftover carrier-hex in first
+  // (idempotent) so previously-earned hex is spendable.
+  await foldCarrierIntoWallet(handle, address);
+  try {
+    await debitWalletHex(address, cost, {
+      kind: "manual",
+      note: `Realign #${cid} → ${targetCiv}`,
+    });
+  } catch (e) {
+    if (e instanceof InsufficientHexError) {
+      return NextResponse.json(
+        { error: "insufficient hex points", required: e.requested, have: e.balance },
+        { status: 402 },
+      );
+    }
+    throw e;
   }
-
-  const nextCarrier: CarrierState = {
-    ...carrier,
-    hexPoints: carrier.hexPoints - cost,
-    totalSpent: carrier.totalSpent + cost,
-  };
-  await putCarrier(nextCarrier);
 
   const rec = {
     citizenId: cid,
@@ -173,12 +173,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   };
   await setRealignment(rec);
 
+  const wrec = await getWalletHex(address);
+  const folded = await getCarrier(handle);
   return NextResponse.json({
     ok: true,
     record: rec,
     cost,
     originalCost: REALIGN_COST,
     collapseDiscountApplied: collapse.active,
-    state: nextCarrier,
+    walletBalance: wrec.balance,
+    state: folded ? { ...folded, hexPoints: wrec.balance } : null,
   });
 }

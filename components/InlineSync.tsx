@@ -14,14 +14,19 @@ export function InlineSync() {
     router.push(`/sync?h=${encodeURIComponent(h)}`);
   }
   const xSignin = () => {
-    // Bind X session to the connected wallet so the resulting session
-    // can actually act on the wallet's behalf. If no wallet, focus
-    // the header connect button — never bind to a temp value (silent fail).
+    // Bind X session to the connected wallet so the resulting session can
+    // actually act on the wallet's behalf. If no wallet is connected yet,
+    // send them to /sync — which has a real CONNECT WALLET button on every
+    // viewport.
+    //
+    // 2026-05-29 fix: the old path scroll-to-top'd and focused
+    // `.wallet-connect button`, but that pill is desktop-only (display:none
+    // below 980px in Header.tsx). On phones it scrolled to a header with no
+    // connect control — the exact "I click connect, it jumps to the top and
+    // there's no wallet icon" dead-end users reported in Discord. Routing to
+    // /sync works everywhere.
     if (!viewer.addr) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setTimeout(() => {
-        document.querySelector<HTMLButtonElement>(".wallet-connect button")?.focus();
-      }, 400);
+      router.push("/sync");
       return;
     }
     window.location.href = `/api/x/start?bind=${encodeURIComponent(viewer.addr)}`;

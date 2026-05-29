@@ -6,6 +6,8 @@ import { normalizeHandle, syncHandle } from "@/lib/sync";
 import { CarrierState, POINTS } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { requireXSession } from "@/lib/require-x";
+import { walletFromSession, foldCarrierIntoWallet } from "@/lib/hex-spend";
+import { debitWalletHex, getWalletHex, InsufficientHexError } from "@/lib/wallet-hex-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,15 +62,12 @@ export async function POST(req: Request) {
     await putCarrier(carrier);
   }
 
-  // Affordability
-  if (carrier.hexPoints < item.cost) {
-    return NextResponse.json(
-      { error: "insufficient hex points", required: item.cost, have: carrier.hexPoints },
-      { status: 402 },
-    );
-  }
+  // 2026-05-29 ledger unification: if this session carries a real wallet,
+  // the shop spends from the WALLET ledger (where hex is actually earned).
+  // Otherwise (handle-only relayer, no wallet) fall back to carrier-hex.
+  const wallet = walletFromSession(session);
 
-  // Supply check (limited items only)
+  // Supply check (limited items only) — runs before any debit.
   if (item.supply !== null && item.supply !== undefined) {
     const sold = await getGlobalSold(item.id);
     if (sold >= item.supply) {
@@ -76,13 +75,51 @@ export async function POST(req: Request) {
     }
   }
 
-  // Already-owned check (idempotent)
+  // Already-owned check (idempotent) — before debit so re-clicks don't charge.
   const owned = await getOwned(handle);
   if (owned.includes(item.id)) {
     return NextResponse.json({ error: "already owned", state: carrier }, { status: 409 });
   }
 
-  // Deduct, record
+  if (wallet) {
+    // Fold any leftover carrier-hex into the wallet first (idempotent), so
+    // previously-earned/relayed hex is spendable in the shop.
+    await foldCarrierIntoWallet(handle, wallet);
+    try {
+      await debitWalletHex(wallet, item.cost, { kind: "manual", note: `Shop: ${item.id}` });
+    } catch (e) {
+      if (e instanceof InsufficientHexError) {
+        return NextResponse.json(
+          { error: "insufficient hex points", required: e.requested, have: e.balance },
+          { status: 402 },
+        );
+      }
+      throw e;
+    }
+    await addOwned(handle, item.id);
+    await incrementSold(item.id);
+    const sold = await getGlobalSold(item.id);
+    const rec = await getWalletHex(wallet);
+    // Keep returning a carrier-shaped `state` for the client, but with the
+    // authoritative wallet balance mirrored into hexPoints so the UI total
+    // reflects the real spendable number.
+    const folded = await getCarrier(handle);
+    return NextResponse.json({
+      ok: true,
+      state: { ...(folded ?? carrier), hexPoints: rec.balance },
+      walletBalance: rec.balance,
+      item,
+      sold,
+    });
+  }
+
+  // Legacy carrier-hex path (handle-only, no wallet bound).
+  if (carrier.hexPoints < item.cost) {
+    return NextResponse.json(
+      { error: "insufficient hex points", required: item.cost, have: carrier.hexPoints },
+      { status: 402 },
+    );
+  }
   const next: CarrierState = {
     ...carrier,
     hexPoints: carrier.hexPoints - item.cost,

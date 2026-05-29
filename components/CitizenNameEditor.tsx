@@ -50,8 +50,24 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
       setMsg({ kind: "err", text: "1-32 chars · letters, numbers, space, dash, underscore" });
       return;
     }
-    if (!window.ethereum || !h.address) {
-      setMsg({ kind: "err", text: "Wallet not available." });
+    // 2026-05-29 — naming needs a real wallet signature (personal_sign), not
+    // just a scanned/pasted address. Discord users hit a bare "Wallet not
+    // available" here after a read-only scan: the editor renders (the
+    // freelon_addr cookie makes useHolder report ownership) but there's no
+    // injected provider to sign with. Split the two failure modes so the
+    // message tells them what to actually do.
+    if (!window.ethereum) {
+      setMsg({
+        kind: "err",
+        text: "No wallet detected here. Open this page in your wallet's browser (e.g. MetaMask) or a desktop browser with a wallet extension, then connect — naming needs a signature to prove ownership.",
+      });
+      return;
+    }
+    if (!h.address) {
+      setMsg({
+        kind: "err",
+        text: "Connect your wallet first (top-right · or the Vault), then try again.",
+      });
       return;
     }
     setBusy(true);

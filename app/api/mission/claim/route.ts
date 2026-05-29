@@ -40,31 +40,34 @@ function normalizeKey(raw: string): string | null {
   return null;
 }
 
-async function alreadyClaimed(storageKey: string): Promise<boolean> {
+/**
+ * Atomic single-claim guard. Returns true only for the FIRST caller to
+ * claim this storageKey; false for every subsequent (or concurrent) call.
+ *
+ * 2026-05-29 SECURITY FIX — the old code did alreadyClaimed() [GET] then
+ * markClaimed() [SET] as two separate steps. That is a TOCTOU race: a user
+ * "rifle-clicking" the claim button fires several POSTs that can all pass
+ * the GET before any of them writes, so each one credits MISSION_REWARD —
+ * minting hex from nothing. Replaced with Redis SET NX (set-if-absent),
+ * which is atomic: only one of N concurrent requests gets "OK". Mirrors the
+ * already-hardened daily-claim path (lib/daily-claim-store.ts tryClaimToday).
+ */
+async function claimOnce(storageKey: string): Promise<boolean> {
   if (hasUpstash) {
     try {
-      const r = (await upstash(["GET", storageKey])) as string | null;
-      return !!r;
+      const res = await upstash(["SET", storageKey, "1", "NX", "EX", String(TTL_SECONDS)]);
+      return res === "OK"; // null when the key already existed
     } catch {
       // fall through to memory
     }
   }
+  // In-memory dev fallback. JS is single-threaded per instance, so this
+  // get-then-set is effectively atomic within one process (no await between
+  // the check and the write).
   const exp = memory.get(storageKey);
-  if (exp && exp > Date.now()) return true;
-  if (exp) memory.delete(storageKey);
-  return false;
-}
-
-async function markClaimed(storageKey: string): Promise<void> {
-  if (hasUpstash) {
-    try {
-      await upstash(["SET", storageKey, "1", "EX", String(TTL_SECONDS)]);
-      return;
-    } catch {
-      // fall through
-    }
-  }
+  if (exp && exp > Date.now()) return false;
   memory.set(storageKey, Date.now() + TTL_SECONDS * 1000);
+  return true;
 }
 
 // POST { key, missionId }
@@ -118,11 +121,12 @@ export async function POST(req: Request) {
   const day = utcDayKey();
   const storageKey = `freelon:mission:claimed:${key}:${requestedId}:${day}`;
 
-  if (await alreadyClaimed(storageKey)) {
+  // Atomic claim: only the first caller wins. Concurrent rifle-clicks all
+  // lose the SET NX race and short-circuit here with zero credit. This must
+  // happen BEFORE any credit so the lock and the payout can't desync.
+  if (!(await claimOnce(storageKey))) {
     return NextResponse.json({ already: true, rewardHex: 0 });
   }
-
-  await markClaimed(storageKey);
 
   // Only credit hex if the key is a wallet address. Handle-keyed callers
   // get the claim recorded but no ledger credit (matches quests-store pattern).

@@ -13,7 +13,6 @@ import { CityNotice } from "@/components/CityNotice";
 import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
-import { CityFeedTicker } from "@/components/CityFeedTicker";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.freeloncity.com"),
@@ -92,10 +91,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense fallback={null}>
           <CollapseBanner />
         </Suspense>
-        {/* Persistent site-wide ticker — sales / red signals / floor /
-            holders / alerts. Constant motion = the city feels alive on
-            every page, not just the homepage. */}
-        <CityFeedTicker />
+        {/* 2026-05-29 — CityFeedTicker removed (founder de-cheap pass). A
+            scrolling sales/floor/holders price-crawl in tiny monospace was
+            the textbook "2018 crypto dashboard" tell — AAA game sites lead
+            with art, not a Bloomberg ribbon. Component kept at
+            components/CityFeedTicker.tsx if a reskinned status line is ever
+            wanted, but it no longer renders site-wide. */}
         <FourOFourEvent />
         <main id="main">{children}</main>
         <Footer />

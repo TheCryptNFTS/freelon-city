@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
 import { ResponsiveGrid } from "@/components/ui/ResponsiveGrid";
@@ -31,11 +30,11 @@ export const metadata: Metadata = {
   },
 };
 
-// 2026-05-26: cookies() inside the page already forces dynamic
-// rendering implicitly. Declaring it explicitly here protects the
-// cookie-aware CTA branch from a future refactor that might
-// accidentally re-enable static generation. Verified in production
-// headers: cache-control: private, no-cache, no-store on /.
+// 2026-05-28: the landing was rebuilt to 4 static intent-doors over a
+// full-bleed city backdrop — the cookie-aware CTA swap (and its
+// cookies() call) is gone. Kept force-dynamic so the wallet-aware
+// client islands (IdentityGreeting / HeroMarketStat) never get baked
+// into a stale static shell.
 export const dynamic = "force-dynamic";
 // Audit 2026-05-25 — homepage mythic compression. Removed from homepage
 // render + imports: DoThisNow (quest-board energy), CityTerminal
@@ -53,259 +52,89 @@ export const dynamic = "force-dynamic";
 // now that compression is final. To restore any section, revert the
 // commented blocks AND re-add the matching import.
 
-export default async function Home() {
-  // Audit 2026-05-26: cookie-aware CTA swap. Cold visitors (no
-  // freelon_addr cookie) get START HERE as primary so they land on
-  // the 2-minute guide that defines hex / signal / civilization /
-  // burn vocabulary before they need it. Returning visitors keep
-  // ENTER THE CITY as primary so the funnel they already understand
-  // stays one click away.
-  const cookieStore = await cookies();
-  const isReturning = !!cookieStore.get("freelon_addr")?.value;
+export default function Home() {
   return (
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */
     <div className="home-page">
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-left">
-          <div>
-            {/* Live identity greeting — wallet-aware. For known viewers
-                the page transforms into a personal experience (civ color,
-                handle, citizen count, hex balance). */}
-            <IdentityGreeting />
+      {/* HERO — 2026-05-28 rebuilt (founder: "4 clean boxes and that epic
+          background", cut the giant text wall). Full-bleed Mars-city
+          backdrop; the 4 intent-doors ARE the hero. The old giant "THE CITY
+          REMEMBERS" headline + split panel + gloss are gone — Box 1 ("What
+          is this?") carries comprehension; the mythic line lives on in
+          /canon, not as a homepage wall. */}
+      <section className="hero--landing" aria-label="FREELON CITY">
+        {/* Full-bleed Mars-city backdrop + dark gradient live in
+            .hero--landing (globals.css). Everything below sits in one
+            centered column over it. */}
+        <div className="hero-landing__inner">
+          {/* Live identity greeting — wallet-aware. For known viewers
+              the page transforms into a personal experience (civ color,
+              handle, citizen count, hex balance). */}
+          <IdentityGreeting />
 
-            {/* Brand badge */}
-            <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
+          <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
 
-            {/* Hero headline 2026-05-27 (post-Ogilvy audit). The previous
-                "The HEX disappeared." h1 was mythic but buried the offer —
-                cold visitors learned what happened, not what they get.
-                Promoted a brand-true line that answers "why would I want
-                to be here": the city is a memory system, and what you
-                carry persists. The collapse line is preserved as a kicker
-                so the IP frame stays intact. Founder brief's "404 HEX NOT
-                FOUND" still carries via the term-badge above. */}
-            {/* 2026-05-28 — Off-White-style quotation marks reframe the
-               kicker from declarative narration to a tagged transmission.
-               The ⬡ stays as the brand mark prefix (outside the quotes,
-               cyan-glowing via ::first-letter); the WORDS get bracketed
-               like Virgil's "FOR WALKING" / "SHOELACES" labels. Reads
-               as a citation from the city itself, not a stage direction. */}
-            <span className="hero-kicker">⬡ <q className="hero-kicker__q">THE HEX DISAPPEARED. THE CITY FORMED AROUND THE SIGNAL.</q></span>
-            <h1 className="hero-headline">
-              The city<br />
-              <em>remembers</em><br />
-              what you carry.
-            </h1>
-            <p className="hero-sub">
-              <strong>4040 citizens</strong> across 10 civilizations.
-              Sealed supply. Every signal you send leaves a record.
-            </p>
+          {/* 2026-05-28 — the giant "THE CITY REMEMBERS" headline + 3-line
+              gloss + split image panel were cut per founder ("4 clean boxes
+              and that epic background"). One short tagline states what this
+              is; the 4 doors do the rest, over the full-bleed city. */}
+          <p className="hero-landing__tag">
+            A city formed around a missing signal.<br />
+            <strong>4040 sealed citizens · 10 civilizations.</strong>
+          </p>
 
-            {/* Audit 2026-05-26: inline glosses for the 3 most-confusing
-               terms a cold visitor reads in their first 30 seconds. /start
-               has full definitions; this is the minimum vocabulary primer
-               for everyone who doesn't click /start. Designed as one quiet
-               line — dust mono, low contrast — so it teaches without
-               competing with the H1. */}
-            <p className="hero-gloss">
-              <em>404 HEX NOT FOUND</em> — X removed the hex from verified profiles. The city formed around its absence.<br />
-              <em>The signal</em> — the city's word for anything that moves: a sale, a connected archive, a transmission.<br />
-              <em>Sealed supply</em> — 4040 NFTs on Ethereum. No more will ever be made.
-            </p>
-
-            {/* Audit 2026-05-26: cookie-aware CTA swap. Cold visitor →
-               START HERE primary (drives them to the page that defines
-               every term they just read). Returning visitor → ENTER THE
-               CITY primary (one click into the funnel they already know).
-               Secondary CTA always points at the other path. */}
-            <div className="hero-ctas">
-              {isReturning ? (
-                <>
-                  <Link href="/sync" className="btn btn-primary">
-                    <span className="ttl">ENTER THE CITY <span className="ar">→</span></span>
-                  </Link>
-                  {/* 2026-05-28 a11y (WCAG 2.5.3): dropped aria-label — it
-                     didn't contain the visible text, so voice-control users
-                     couldn't activate it by saying what they see. The visible
-                     "NEW HERE? · 2-MIN GUIDE" is the accessible name; the
-                     ⬡/→ glyphs are aria-hidden. */}
-                  <Link
-                    href="/start"
-                    className="new-here-pill new-here-pill--hero"
-                  >
-                    <span aria-hidden>⬡</span>
-                    <span>NEW HERE? · 2-MIN GUIDE</span>
-                    <span aria-hidden>→</span>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/start" className="btn btn-primary">
-                    <span className="ttl">START HERE · 2-MIN GUIDE <span className="ar">→</span></span>
-                  </Link>
-                  {/* 2026-05-28 a11y (WCAG 2.5.3): aria-label dropped — see
-                     note above. Visible "ALREADY HERE · ENTER" is the name. */}
-                  <Link
-                    href="/sync"
-                    className="new-here-pill new-here-pill--hero"
-                  >
-                    <span aria-hidden>⬡</span>
-                    <span>ALREADY HERE · ENTER</span>
-                    <span aria-hidden>→</span>
-                  </Link>
-                </>
-              )}
-            </div>
-            {/* 2026-05-28 collector pass (founder: "lean in") — live floor
-               + sealed-supply line under the CTAs. Client-side fetch, never
-               blocks the hero LCP. */}
-            <HeroMarketStat />
+          {/* The 4 intent-doors ARE the landing. Box 1 (start) + Box 4
+              (collect) cover the cold/returning split the old cookie swap
+              used to handle. Box 3 → /archive for now (it hosts the
+              cross-collection SignalInventoryPanel); repoints to /signal
+              once that hub ships. */}
+          <div className="hero-landing__boxes">
+            <ResponsiveGrid cols={4} colsMd={2} variant="cards">
+              <Link className="landing-box" href="/start">
+                <span className="landing-box__img" style={{ backgroundImage: "url(/lore/city.webp)" }} aria-hidden />
+                <span className="landing-box__body">
+                  <span className="landing-box__k">⬡ 01 · New here</span>
+                  <h2 className="landing-box__t">What is this?</h2>
+                  <p className="landing-box__d">4040 sealed citizens across 10 civilizations — a city that formed around a missing hex.</p>
+                  <span className="landing-box__cta">The 2-minute guide</span>
+                </span>
+              </Link>
+              <Link className="landing-box" href="/civilizations">
+                <span className="landing-box__img" style={{ backgroundImage: "url(/civs/gold-sovereignty.webp)" }} aria-hidden />
+                <span className="landing-box__body">
+                  <span className="landing-box__k">⬡ 02 · Belong</span>
+                  <h2 className="landing-box__t">Your civilization</h2>
+                  <p className="landing-box__d">Ten signal doctrines. Every citizen belongs to one. Find yours.</p>
+                  <span className="landing-box__cta">See the ten</span>
+                </span>
+              </Link>
+              <Link className="landing-box" href="/archive">
+                <span className="landing-box__img" style={{ backgroundImage: "url(/atmos/carrier.webp)" }} aria-hidden />
+                <span className="landing-box__body">
+                  <span className="landing-box__k">⬡ 03 · Your signal</span>
+                  <h2 className="landing-box__t">Everything you hold</h2>
+                  <p className="landing-box__d">Your citizens, relics and signals across all six collections of the Crypt — one place.</p>
+                  <span className="landing-box__cta">Read your signal</span>
+                </span>
+              </Link>
+              <Link className="landing-box" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+                <span className="landing-box__img" style={{ backgroundImage: "url(/heroes/0404.webp)" }} aria-hidden />
+                <span className="landing-box__body">
+                  <span className="landing-box__k">⬡ 04 · Collect</span>
+                  <h2 className="landing-box__t">Own a citizen</h2>
+                  <p className="landing-box__d">4040 sealed. No more will ever be made. Enter on OpenSea.</p>
+                  <span className="landing-box__cta">On OpenSea</span>
+                </span>
+              </Link>
+            </ResponsiveGrid>
           </div>
+
+          {/* 2026-05-28 collector pass (founder: "lean in") — live floor
+              + sealed-supply line under the doors. Client-side fetch, never
+              blocks the hero LCP. */}
+          <HeroMarketStat />
         </div>
-        <style>{`
-          .new-here-pill {
-            display: inline-flex; align-items: center; gap: 8px;
-            margin: 10px 0 6px;
-            padding: 6px 14px;
-            border-radius: 999px;
-            border: 1px solid var(--gold);
-            background: rgba(200,167,93,0.10);
-            color: var(--gold);
-            font-family: var(--mono2);
-            font-size: 10px;
-            letter-spacing: 0.26em;
-            text-transform: uppercase;
-            font-weight: 700;
-            text-decoration: none;
-            transition: background 120ms ease, transform 120ms ease;
-          }
-          .new-here-pill:hover { background: rgba(200,167,93,0.20); transform: translateY(-1px); }
-          /* Inline glosses for the 3 most-confusing terms in the hero.
-             Quiet treatment — dust mono on archival ash card, smaller
-             than the hero body. Sits between hero-sub and hero-ctas. */
-          .hero-gloss {
-            margin: 14px 0 18px;
-            padding: 12px 16px;
-            border: 1px solid var(--archival-line, rgba(232,224,207,0.12));
-            border-left: 2px solid var(--archival-rule-gold, rgba(200,163,90,0.22));
-            background: var(--archival-surface, rgba(17,16,14,0.65));
-            border-radius: 6px;
-            max-width: 540px;
-            font-family: var(--mono2);
-            font-size: 12px;
-            line-height: 1.85;
-            color: var(--archival-dust, var(--ink-dim));
-          }
-          .hero-gloss em {
-            color: var(--archival-bone, var(--ink));
-            font-style: normal;
-            font-weight: 700;
-          }
-          /* 2026-05-26 mobile fold fix: on <760px the hero stacks
-             with the image above content. Two changes together:
-             (1) reorder .hero-gloss to bottom so CTAs sit directly
-             under the sub-headline,
-             (2) shrink the hero image min-height from 56vh → 42vh
-             so there's enough room for the headline + sub + CTAs
-             above the fold on 844px viewports. The image still
-             dominates the first impression at 42vh (~354px); we
-             just stop letting it eat the CTAs. */
-          @media (max-width: 760px) {
-            .hero-left > div {
-              display: flex;
-              flex-direction: column;
-            }
-            .hero-left > div .hero-gloss {
-              order: 1;
-              margin-top: 18px;
-              margin-bottom: 0;
-            }
-            .hero-right {
-              min-height: 42vh !important;
-            }
-            /* Tighten vertical rhythm on mobile so primary CTA lands
-               within one thumb-scroll. globals.css sets the hero-left
-               gap to var(--s-7) = 48px and the mobile padding to
-               56px/80px — combined that's >250px of whitespace before
-               you reach the CTA. Compressing here doesn't touch
-               desktop. */
-            .hero-left {
-              /* 2026-05-28 funnel fix: trimmed top/bottom mobile padding
-                 ~20% (28→22, 36→29) so the primary CTA lands within the
-                 first scroll on a 375x812 phone. Horizontal padding and
-                 gap unchanged. */
-              padding: 22px 20px 29px !important;
-              gap: 16px !important;
-            }
-          }
-        `}</style>
-        <div className="hero-right">
-          <div className="img-frame">
-            {/* 2026-05-28 — hero image swapped from the single #4040 NFT
-                render to the FREELON CITY skyline (founder: "the first
-                image is just one of the NFTs, not good"). The first thing
-                a visitor sees is now the WORLD — a Mars cityscape — not a
-                product. Labels below reframed to city context; the "4040"
-                now reads as the city's population, not a token id. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {/* eslint-disable-next-line jsx-a11y/alt-text */}
-            <img
-              src="/lore/city.webp"
-              alt="FREELON CITY — a hex-spired skyline on Mars"
-              fetchPriority="high"
-              decoding="async"
-            />
-          </div>
-          <div className="img-overlay" />
-          <div className="img-id">
-            4040<small>SEALED CITIZENS</small>
-          </div>
-          <div className="img-stamp">
-            ⬡ CYDONIA BASIN · MARS
-            <h2>FREELON <em>City</em></h2>
-          </div>
-          <div className="img-meta">
-            10 CIVILIZATIONS · SEALED SUPPLY<br />
-            FORMED AROUND THE SIGNAL
-          </div>
-        </div>
-      </section>
-
-      {/* LANDING DOORS — 2026-05-28: the first screen after the hero is now
-         4 scannable intent-doors instead of a text pile (founder: "the
-         landing decides whether they stay or go"). Each routes a visitor
-         by intent; the long-form text sections live below for the curious.
-         Box 3 → /archive for now (it already hosts the cross-collection
-         SignalInventoryPanel); repoints to /signal once that hub ships. */}
-      <section className="landing-doors" aria-label="Where to go next">
-        <ResponsiveGrid cols={4} colsMd={2} variant="cards">
-          <Link className="landing-box" href="/start">
-            <span className="landing-box__k">⬡ 01 · New here</span>
-            <h2 className="landing-box__t">What is this?</h2>
-            <p className="landing-box__d">4040 sealed citizens across 10 civilizations — a city that formed around a missing hex.</p>
-            <span className="landing-box__cta">The 2-minute guide →</span>
-          </Link>
-          <Link className="landing-box" href="/civilizations">
-            <span className="landing-box__k">⬡ 02 · Belong</span>
-            <h2 className="landing-box__t">Your civilization</h2>
-            <p className="landing-box__d">Ten signal doctrines. Every citizen belongs to one. Find yours.</p>
-            <span className="landing-box__cta">See the ten →</span>
-          </Link>
-          <Link className="landing-box" href="/archive">
-            <span className="landing-box__k">⬡ 03 · Your signal</span>
-            <h2 className="landing-box__t">Everything you hold</h2>
-            <p className="landing-box__d">Your citizens, relics and signals across all six collections of the Crypt — one place.</p>
-            <span className="landing-box__cta">Read your signal →</span>
-          </Link>
-          <Link className="landing-box" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
-            <span className="landing-box__k">⬡ 04 · Collect</span>
-            <h2 className="landing-box__t">Own a citizen</h2>
-            <p className="landing-box__d">4040 sealed. No more will ever be made. Enter on OpenSea.</p>
-            <span className="landing-box__cta">On OpenSea →</span>
-          </Link>
-        </ResponsiveGrid>
       </section>
 
       {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
