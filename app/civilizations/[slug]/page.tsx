@@ -22,7 +22,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const c = (CIVILIZATIONS as Record<string, { name: string; doctrine: string }>)[slug];
   if (!c) return { title: "Not found" };
-  return { title: `${c.name} · ${c.doctrine}` };
+  // The per-civ OG card already exists at /api/og/civ-pride/[slug]; wire it
+  // into the page metadata so a shared civ link unfurls with that image
+  // instead of the imageless title-only card it had before.
+  const og = `/api/og/civ-pride/${slug}`;
+  const title = `${c.name} · ${c.doctrine}`;
+  return {
+    title,
+    openGraph: { title, description: c.doctrine, images: [{ url: og, width: 1200, height: 630 }] },
+    twitter: { card: "summary_large_image", title, description: c.doctrine, images: [og] },
+  };
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
