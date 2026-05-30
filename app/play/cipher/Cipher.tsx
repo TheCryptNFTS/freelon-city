@@ -366,7 +366,7 @@ export function Cipher() {
           }}
         >
           <span style={{ color: dStreak > 0 ? "var(--gold-bright)" : "var(--ink-fade)" }}>
-            🔥 STREAK {dStreak}
+            ⬡ STREAK {dStreak}
           </span>
           {!playedToday && <span>TRIES LEFT {dTriesLeft}</span>}
         </div>
@@ -679,7 +679,7 @@ export function Cipher() {
                   marginBottom: 8,
                 }}
               >
-                🔥 STREAK {dStreak}
+                ⬡ STREAK {dStreak}
               </div>
               <div
                 style={{

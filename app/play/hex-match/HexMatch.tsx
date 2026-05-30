@@ -16,6 +16,8 @@ import {
   seedBoard,
   playableBoard,
   resolveStep,
+  rowOf,
+  colIdxOf,
 } from "@/lib/hex-match-engine";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
@@ -506,7 +508,7 @@ export function HexMatch() {
         >
           <span>DAY {dayNum}</span>
           <span style={{ color: streak > 0 ? "var(--gold-bright)" : "var(--ink-fade)" }}>
-            🔥 STREAK {streak}
+            ⬡ STREAK {streak}
           </span>
           <span>GOAL: LEVEL {DAILY_GOAL_LEVEL}</span>
         </div>
@@ -731,7 +733,7 @@ export function HexMatch() {
                       fontWeight: 700,
                     }}
                   >
-                    🔥 STREAK {streak}
+                    ⬡ STREAK {streak}
                   </div>
                   <div
                     style={{
@@ -962,8 +964,8 @@ export function HexMatch() {
                   borderTop: "1px solid var(--line-2)",
                 }}
               >
-                <span style={{ color: "var(--ink-dim)", width: 34 }}>
-                  {e.rank <= 3 ? ["🥇", "🥈", "🥉"][e.rank - 1] : `#${e.rank}`}
+                <span style={{ color: e.rank <= 3 ? "var(--gold-bright)" : "var(--ink-dim)", width: 34, fontWeight: e.rank <= 3 ? 700 : 400 }}>
+                  #{e.rank}
                 </span>
                 <span
                   style={{

@@ -241,7 +241,7 @@ export function Reckoning() {
               className={`reck-row${isSel ? " is-sel" : ""}${isLeader ? " is-leader" : ""}`}
               style={{ ["--civ" as string]: civ?.color ?? "#888" }}
             >
-              <span className="reck-rank">{isLeader ? "👑" : String(i + 1).padStart(2, "0")}</span>
+              <span className="reck-rank">{isLeader ? "★" : String(i + 1).padStart(2, "0")}</span>
               <CivGlyph slug={c.slug} color={civ?.color ?? "#888"} size={26} title={civ?.name} />
               <span className="reck-civ">
                 <span className="reck-civ-name">{civ?.name ?? c.slug}</span>

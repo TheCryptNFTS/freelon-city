@@ -50,7 +50,7 @@ export function ArcadeSoundToggle({ style }: { style?: React.CSSProperties }) {
         ...style,
       }}
     >
-      <span aria-hidden style={{ fontSize: 12 }}>{on ? "\u{1F50A}" : "\u{1F507}"}</span>
+      <span aria-hidden style={{ fontSize: 12, opacity: on ? 1 : 0.5 }}>⬡</span>
       {label}
     </button>
   );

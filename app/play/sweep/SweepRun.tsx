@@ -425,7 +425,7 @@ export function SweepRun() {
         <div className="sweep-stat">
           <span className="sweep-stat-l">{mode === "daily" ? "STREAK" : "BEST"}</span>
           <span className="sweep-stat-n">
-            {mode === "daily" ? `🔥 ${dayStreak}` : best.toLocaleString()}
+            {mode === "daily" ? `⬡ ${dayStreak}` : best.toLocaleString()}
           </span>
         </div>
       </div>
@@ -452,7 +452,7 @@ export function SweepRun() {
         <div className="sweep-daily-strip">
           <span>DAY {dayNum}</span>
           <span style={{ color: dayStreak > 0 ? "var(--gold-bright)" : "var(--ink-fade)" }}>
-            🔥 STREAK {dayStreak}
+            ⬡ STREAK {dayStreak}
           </span>
           <span>PAR {DAILY_PAR}</span>
         </div>
@@ -516,7 +516,7 @@ export function SweepRun() {
                       {dailyResult?.won ? "⬡ DAILY BANKED" : "STREAK LOST"}
                     </div>
                     <p className="sweep-ov-body">
-                      🔥 Streak {dayStreak} · come back tomorrow for a new board.
+                      ⬡ Streak {dayStreak} · come back tomorrow for a new board.
                     </p>
                     <button type="button" className="btn btn-primary" onClick={() => start("endless")}>
                       PLAY ENDLESS →
@@ -537,7 +537,7 @@ export function SweepRun() {
                 <p className="sweep-ov-body">
                   Day {dayNum} · {dailyResult?.won ? `cleared PAR ${DAILY_PAR}` : `PAR ${DAILY_PAR} — fell short`}
                 </p>
-                <div className="sweep-ov-streak">🔥 STREAK {dayStreak}</div>
+                <div className="sweep-ov-streak">⬡ STREAK {dayStreak}</div>
                 <p className="sweep-ov-body">ONE BOARD A DAY — COME BACK TOMORROW</p>
                 <div className="sweep-ov-actions">
                   <button type="button" className="btn btn-primary" onClick={() => start("endless")}>
@@ -620,8 +620,8 @@ export function SweepRun() {
           <ol className="sweep-lb-list">
             {lbTop.map((e) => (
               <li key={e.id}>
-                <span className="sweep-lb-rank">
-                  {e.rank <= 3 ? ["🥇", "🥈", "🥉"][e.rank - 1] : `#${e.rank}`}
+                <span className="sweep-lb-rank" style={e.rank <= 3 ? { color: "var(--gold-bright)", fontWeight: 700 } : undefined}>
+                  #{e.rank}
                 </span>
                 <span className="sweep-lb-handle">{e.handle}</span>
                 <span className="sweep-lb-score">{e.score.toLocaleString()}</span>

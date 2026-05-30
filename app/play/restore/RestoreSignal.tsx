@@ -596,7 +596,7 @@ export function RestoreSignal() {
                       marginTop: 4,
                     }}
                   >
-                    {casteOk ? `✓ ${s.caste}` : `🔒 HOLD A ${s.caste} CITIZEN`}
+                    {casteOk ? `✓ ${s.caste}` : `× HOLD A ${s.caste} CITIZEN`}
                   </div>
                 )}
               </div>
