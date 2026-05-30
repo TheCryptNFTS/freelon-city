@@ -5,6 +5,8 @@ import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { CivGlyph } from "@/components/CivGlyph";
 import { tweetIntent, tweetProof } from "@/lib/share";
+import { cue } from "@/lib/arcade-feedback";
+import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import {
   PROOF_CODE_LEN,
   PROOF_MAX_ATTEMPTS,
@@ -90,7 +92,11 @@ export function ProofOfSignal() {
   const pick = useCallback(
     (slug: string) => {
       if (status !== "playing") return;
-      setCurrent((c) => (c.length >= PROOF_CODE_LEN ? c : [...c, slug]));
+      setCurrent((c) => {
+        if (c.length >= PROOF_CODE_LEN) return c;
+        cue("tap");
+        return [...c, slug];
+      });
     },
     [status],
   );
@@ -114,6 +120,7 @@ export function ProofOfSignal() {
     setGuesses(nextGuesses);
     setCurrent([]);
     setStatus(nextStatus);
+    cue(solved ? "win" : nextStatus === "lost" ? "lose" : "clear");
 
     try {
       localStorage.setItem(
@@ -434,6 +441,9 @@ export function ProofOfSignal() {
           <Link className="btn btn-ghost btn-sm" href="/play">
             <span className="ttl">← ARCADE</span>
           </Link>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+          <ArcadeSoundToggle />
         </div>
       </div>
 

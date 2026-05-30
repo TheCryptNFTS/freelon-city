@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { cue } from "@/lib/arcade-feedback";
+import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 
 /**
  * The Cipher — prototype #3 (the community ARG / glue).
@@ -129,16 +131,19 @@ export function Cipher() {
       if (!current) return;
       const guess = norm(input);
       if (current.accept.some((a) => norm(a) === guess) && guess.length > 0) {
+        const nextSolved = save.solved + 1;
         persist({
-          solved: save.solved + 1,
+          solved: nextSolved,
           tries: save.tries,
         });
         setInput("");
         setJustSolved(true);
+        cue(nextSolved >= STAGES.length ? "win" : "special");
         setTimeout(() => setJustSolved(false), 1400);
       } else {
         const tries = { ...save.tries, [current.n]: (save.tries[current.n] ?? 0) + 1 };
         persist({ ...save, tries });
+        cue("error");
         // Respect reduced-motion preference — skip the shake (vestibular safety).
         const reduce =
           typeof window !== "undefined" &&
@@ -408,6 +413,7 @@ export function Cipher() {
         <button className="btn btn-ghost" onClick={reset} style={{ opacity: 0.6 }}>
           <span className="ttl">RESET</span>
         </button>
+        <ArcadeSoundToggle />
       </div>
 
       <style>{`

@@ -15,6 +15,8 @@ import {
   reclaimMultiplier,
   setMultiplier,
 } from "@/lib/city-config";
+import { cue } from "@/lib/arcade-feedback";
+import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 
 /**
  * Restore the Signal — v2, the ONE shared city.
@@ -199,14 +201,17 @@ export function RestoreSignal() {
         const j = await r.json();
         if (!r.ok) {
           setMsg(errorText(j));
+          cue("error");
         } else {
           setState(j.state);
           setWallet(j.wallet);
           setDisplay(j.wallet.signal);
           setGlobalDisplay(j.state.totalSignal);
+          cue("levelup");
         }
       } catch {
         setMsg("NETWORK ERROR");
+        cue("error");
       } finally {
         setBusy(null);
       }
@@ -226,15 +231,18 @@ export function RestoreSignal() {
       const j = await r.json();
       if (!r.ok) {
         setMsg(errorText(j));
+        cue("error");
       } else {
         setState(j.state);
         setWallet(j.wallet);
         setDisplay(j.wallet.signal);
         setGlobalDisplay(j.state.totalSignal);
         setMsg(`BURNED ${fmt(j.burned)} HEX → +${fmt(j.citySignal)} SIGNAL`);
+        cue("special");
       }
     } catch {
       setMsg("NETWORK ERROR");
+      cue("error");
     } finally {
       setBusy(null);
     }
@@ -821,6 +829,7 @@ export function RestoreSignal() {
         <Link className="btn btn-ghost" href="/play">
           <span className="ttl">← ARCADE</span>
         </Link>
+        <ArcadeSoundToggle />
       </div>
 
       <p

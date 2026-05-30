@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { tweetSweep, tweetIntent } from "@/lib/share";
+import { cue } from "@/lib/arcade-feedback";
+import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 
 /**
  * Sweep Run — prototype #5 (reflex acquisition hit).
@@ -167,12 +169,14 @@ export function SweepRun() {
     const finalScore = scoreRef.current;
     setBest((prev) => {
       if (finalScore > prev) {
+        cue("win");
         setNewBest(true);
         try {
           window.localStorage.setItem(BEST_KEY, String(finalScore));
         } catch {}
         return finalScore;
       }
+      cue("lose");
       return prev;
     });
   }, []);
@@ -217,6 +221,7 @@ export function SweepRun() {
       if (missed) {
         streakRef.current = 0;
         setStreak(0);
+        cue("error");
         setLives((l) => {
           const next = l - 1;
           if (next <= 0) endRun();
@@ -277,12 +282,15 @@ export function SweepRun() {
         setBestStreak(bestStreakRef.current);
         setScore(scoreRef.current);
         setFlash({ cell: t.cell, kind: "sweep" });
+        // A cleaner combo cue every time the multiplier steps up (5,10,15…).
+        cue(ns % 5 === 0 ? "combo" : "clear");
         remove();
       } else {
         // Tapped a LIVE citizen — penalty.
         streakRef.current = 0;
         setStreak(0);
         setFlash({ cell: t.cell, kind: "spare-hit" });
+        cue("error");
         remove();
         setLives((l) => {
           const next = l - 1;
@@ -473,6 +481,10 @@ export function SweepRun() {
             ))}
           </ol>
         )}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 22 }}>
+        <ArcadeSoundToggle />
       </div>
 
       <p className="sweep-foot">

@@ -16,6 +16,8 @@ import {
   playableBoard,
   resolveStep,
 } from "@/lib/hex-match-engine";
+import { cue } from "@/lib/arcade-feedback";
+import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 
 /**
  * Hex Match — prototype #1 (the free hook).
@@ -180,9 +182,18 @@ export function HexMatch() {
         levelScoreRef.current += gained;
         setScore(scoreRef.current);
         setLevelScore(levelScoreRef.current);
-        if (step.specials.some((s) => s.kind === "mega")) popFlash("MEGA FORGED");
-        else if (step.specials.some((s) => s.kind === "line")) popFlash("LINE FORGED");
-        else if (chain > 1) popFlash(`COMBO ×${chain}  +${gained}`);
+        if (step.specials.some((s) => s.kind === "mega")) {
+          popFlash("MEGA FORGED");
+          cue("special");
+        } else if (step.specials.some((s) => s.kind === "line")) {
+          popFlash("LINE FORGED");
+          cue("special");
+        } else if (chain > 1) {
+          popFlash(`COMBO ×${chain}  +${gained}`);
+          cue("combo");
+        } else {
+          cue("clear");
+        }
         await wait(220);
 
         current = step.board;
@@ -206,6 +217,7 @@ export function HexMatch() {
     async (i: number) => {
       if (busy || over) return;
       if (selected === null) {
+        cue("tap");
         setSelected(i);
         return;
       }
@@ -214,12 +226,14 @@ export function HexMatch() {
         return;
       }
       if (!adjacent(selected, i)) {
+        cue("tap");
         setSelected(i);
         return;
       }
 
       // attempt swap
       setBusy(true);
+      cue("swap");
       const swapped = board.slice();
       [swapped[selected], swapped[i]] = [swapped[i], swapped[selected]];
       setBoard(swapped);
@@ -233,6 +247,7 @@ export function HexMatch() {
         [reverted[selected], reverted[i]] = [reverted[i], reverted[selected]];
         setBoard(reverted);
         popFlash("NO SIGNAL");
+        cue("error");
         await new Promise((r) => setTimeout(r, 120));
         setBusy(false);
         return;
@@ -255,10 +270,12 @@ export function HexMatch() {
         setMoves(movesRef.current);
         setLevelScore(0);
         popFlash(`LEVEL ${levelRef.current}`);
+        cue("levelup");
       } else if (movesRef.current <= 0) {
         overRef.current = true;
         setOver(true);
         popFlash("SIGNAL LOST");
+        cue("lose");
       }
       setBusy(false);
     },
@@ -635,6 +652,7 @@ export function HexMatch() {
         <Link className="btn btn-ghost" href="/play">
           <span className="ttl">← ARCADE</span>
         </Link>
+        <ArcadeSoundToggle />
       </div>
 
       <p

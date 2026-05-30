@@ -6,6 +6,8 @@ import { CIVILIZATIONS } from "@/lib/constants";
 import { RECKONING_MIN_TRIBUTE } from "@/lib/reckoning-config";
 import { tweetReckoning, tweetIntent } from "@/lib/share";
 import { useHolder } from "@/lib/useHolder";
+import { cue } from "@/lib/arcade-feedback";
+import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 
 type CivRow = { slug: string; score: number; rawHex: number; tributes: number };
 type General = { address: string; score: number; rawHex: number; topCiv: string | null };
@@ -151,14 +153,17 @@ export function Reckoning() {
         else if (typeof j?.error === "string" && j.error.startsWith("min_tribute_"))
           setError(`TRIBUTE FLOOR · minimum ${RECKONING_MIN_TRIBUTE} ⬡`);
         else setError(j?.error || `TRANSMISSION FAILED · ${r.status}`);
+        cue("error");
         return;
       }
       if (typeof j.burned === "number") setWalletHex((h) => (h !== null ? Math.max(0, h - j.burned) : h));
       await loadState();
       setLastBurn({ civ: selected, burned: j.burned, rank: rankOf(selected) });
+      cue("special");
       window.dispatchEvent(new CustomEvent("freelon:hex-refresh"));
     } catch {
       setError("SIGNAL LOST · retry");
+      cue("error");
     } finally {
       setBusy(false);
     }
@@ -229,7 +234,10 @@ export function Reckoning() {
             <button
               key={c.slug}
               type="button"
-              onClick={() => setSelected(c.slug)}
+              onClick={() => {
+                cue("tap");
+                setSelected(c.slug);
+              }}
               className={`reck-row${isSel ? " is-sel" : ""}${isLeader ? " is-leader" : ""}`}
               style={{ ["--civ" as string]: civ?.color ?? "#888" }}
             >
@@ -398,6 +406,10 @@ export function Reckoning() {
           )}
         </div>
       </section>
+
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
+        <ArcadeSoundToggle />
+      </div>
 
       <p className="reck-foot">
         PROTOTYPE · TRIBUTES BURN REAL HEX (A SINK · NEVER MINTED) · WINNER CROWNED WEEKLY · GLORY ONLY FOR NOW

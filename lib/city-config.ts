@@ -22,8 +22,10 @@ export const ACCRUAL_CAP_SEC = 12 * 3600;
 
 /** One-time starting grant on a wallet's first collect, so a brand-new player
  *  (0 structures → 0 rate) can afford their first Signal Nodes and bootstrap
- *  the accrual loop. Enough for a few base nodes; not enough to skip the climb. */
-export const STARTING_SIGNAL = 30;
+ *  the accrual loop. Sized so a new player can immediately raise ~5 nodes and
+ *  watch their signal/sec jump in the first minute (the early-cadence hook);
+ *  still nowhere near enough to skip the climb to the caste structures. */
+export const STARTING_SIGNAL = 60;
 
 /** Real-hex boost: 1 burned hex → this much city signal (credited to the
  *  burner's contribution + the global total + their spendable balance).
@@ -132,8 +134,8 @@ export const STRUCTURES: Structure[] = [
     name: "Signal Node",
     desc: "A citizen comes back online. Anyone can raise one.",
     caste: null,
-    baseCost: 10,
-    rate: 0.2,
+    baseCost: 8,
+    rate: 0.5,
     accent: "var(--neon-cyan)",
   },
   {
