@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CivGlyph } from "@/components/CivGlyph";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { RECKONING_MIN_TRIBUTE } from "@/lib/reckoning-config";
@@ -70,9 +70,17 @@ export function Reckoning() {
   const [lastBurn, setLastBurn] = useState<{ civ: string; burned: number; rank: number | null } | null>(null);
   const [, force] = useState(0);
 
-  // Re-render once a minute so the countdown ticks.
+  // Live momentum: war-signal gained per civ since the previous refresh. Pure
+  // client-side derivation from the server-authoritative board — we snapshot
+  // each civ's score and diff it on the next poll, so the board can show which
+  // side is actually surging right now. Reads only; writes nothing.
+  const [momentum, setMomentum] = useState<Record<string, number>>({});
+  const prevCivScores = useRef<Record<string, number> | null>(null);
+
+  // Re-render every 30s so the countdown ticks AND the war board re-polls for
+  // live momentum (the endgame leans on a fresh lead margin).
   useEffect(() => {
-    const id = setInterval(() => force((n) => n + 1), 60_000);
+    const id = setInterval(() => force((n) => n + 1), 30_000);
     return () => clearInterval(id);
   }, []);
 
@@ -80,7 +88,22 @@ export function Reckoning() {
     try {
       const q = address ? `?address=${address}` : "";
       const r = await fetch(`/api/reckoning/state${q}`, { cache: "no-store" });
-      if (r.ok) setState((await r.json()) as State);
+      if (!r.ok) return;
+      const s = (await r.json()) as State;
+      setState(s);
+      // diff against the previous snapshot to surface live momentum
+      const prev = prevCivScores.current;
+      const snap: Record<string, number> = {};
+      for (const c of s.civs) snap[c.slug] = c.score;
+      if (prev) {
+        const delta: Record<string, number> = {};
+        for (const c of s.civs) {
+          const d = c.score - (prev[c.slug] ?? c.score);
+          if (d > 0) delta[c.slug] = d;
+        }
+        setMomentum(delta);
+      }
+      prevCivScores.current = snap;
     } catch {
       /* keep prior */
     }
@@ -88,6 +111,12 @@ export function Reckoning() {
 
   useEffect(() => {
     loadState();
+  }, [loadState]);
+
+  // Poll the board on the same 30s cadence as the countdown tick.
+  useEffect(() => {
+    const id = setInterval(() => loadState(), 30_000);
+    return () => clearInterval(id);
   }, [loadState]);
 
   // Wallet hex balance + X-verification (same pattern as TitheForm).
@@ -124,6 +153,49 @@ export function Reckoning() {
 
   const maxScore = ranked.reduce((m, c) => Math.max(m, c.score), 0) || 1;
   const rankOf = (slug: string) => ranked.findIndex((c) => c.slug === slug) + 1 || null;
+
+  // ── live momentum + endgame tension (derived, read-only) ─────────────────
+  // The single biggest gainer since the last refresh is "surging".
+  const surgeSlug = useMemo(() => {
+    let best: string | null = null;
+    let bestD = 0;
+    for (const [slug, d] of Object.entries(momentum)) {
+      if (d > bestD) {
+        bestD = d;
+        best = slug;
+      }
+    }
+    return best;
+  }, [momentum]);
+
+  // Endgame: how close to the crown, and how tight is the race. As the week
+  // closes the board gets louder; a narrow lead reads as CONTESTED.
+  const msLeft = state ? Math.max(0, state.weekEndTs - Date.now()) : Infinity;
+  const finalHours = state ? msLeft <= 6 * 3_600_000 && state.totalScore > 0 : false;
+  const finalDay = state ? msLeft <= 24 * 3_600_000 && state.totalScore > 0 : false;
+  const leadMargin = ranked.length >= 2 ? ranked[0].score - ranked[1].score : ranked[0]?.score ?? 0;
+  const contested = ranked.length >= 2 && ranked[0].score > 0 && leadMargin <= ranked[0].score * 0.15;
+  const leaderCiv = ranked[0] ? CIVS[ranked[0].slug] : null;
+
+  // ── hall of crowns — dynasty tally from the archive (read-only) ──────────
+  const crownTally = useMemo(() => {
+    const t: Record<string, number> = {};
+    for (const a of state?.archive ?? []) if (a.winner) t[a.winner] = (t[a.winner] ?? 0) + 1;
+    return t;
+  }, [state]);
+  const dynasty = useMemo(() => {
+    let slug: string | null = null;
+    let n = 0;
+    for (const [s, c] of Object.entries(crownTally)) if (c > n) ((n = c), (slug = s));
+    return slug ? { slug, crowns: n } : null;
+  }, [crownTally]);
+  const crownedCivs = useMemo(
+    () =>
+      Object.entries(crownTally).sort(
+        (a, b) => b[1] - a[1] || Object.keys(CIVS).indexOf(a[0]) - Object.keys(CIVS).indexOf(b[0]),
+      ),
+    [crownTally],
+  );
 
   const amountN = parseInt(amount, 10);
   const validAmount = Number.isFinite(amountN) && amountN >= RECKONING_MIN_TRIBUTE;
@@ -222,6 +294,26 @@ export function Reckoning() {
             <span>{fmt(state.totalHex)} ⬡ BURNED</span>
           </div>
         )}
+
+        {/* endgame tension — the week is closing and the crown is near */}
+        {finalDay && leaderCiv && (
+          <div
+            className={`reck-endgame${finalHours ? " is-final" : ""}`}
+            style={{ ["--civ" as string]: leaderCiv.color }}
+          >
+            <span className="reck-endgame-tag">{finalHours ? "⬡ FINAL HOURS" : "⬡ CLOSING"}</span>
+            {contested ? (
+              <span className="reck-endgame-msg">
+                DEAD HEAT · <strong>{leaderCiv.name}</strong> leads by just {fmt(leadMargin)}
+              </span>
+            ) : (
+              <span className="reck-endgame-msg">
+                <strong>{leaderCiv.name}</strong> holds the crown by {fmt(leadMargin)} signal
+              </span>
+            )}
+            <span className="reck-endgame-clock">{countdown(state!.weekEndTs)} to crown</span>
+          </div>
+        )}
       </section>
 
       {/* ── WAR BOARD ─────────────────────────────────────────── */}
@@ -231,6 +323,8 @@ export function Reckoning() {
           const isLeader = state?.leader === c.slug;
           const isSel = selected === c.slug;
           const pct = Math.max(2, Math.round((c.score / maxScore) * 100));
+          const gained = momentum[c.slug] ?? 0;
+          const isSurging = surgeSlug === c.slug && gained > 0;
           return (
             <button
               key={c.slug}
@@ -239,20 +333,26 @@ export function Reckoning() {
                 cue("tap");
                 setSelected(c.slug);
               }}
-              className={`reck-row${isSel ? " is-sel" : ""}${isLeader ? " is-leader" : ""}`}
+              className={`reck-row${isSel ? " is-sel" : ""}${isLeader ? " is-leader" : ""}${isSurging ? " is-surging" : ""}`}
               style={{ ["--civ" as string]: civ?.color ?? "#888" }}
             >
               <span className="reck-rank">{isLeader ? "★" : String(i + 1).padStart(2, "0")}</span>
               <CivGlyph slug={c.slug} color={civ?.color ?? "#888"} size={26} title={civ?.name} />
               <span className="reck-civ">
-                <span className="reck-civ-name">{civ?.name ?? c.slug}</span>
+                <span className="reck-civ-name">
+                  {civ?.name ?? c.slug}
+                  {isSurging && <span className="reck-surge">▲ SURGING</span>}
+                </span>
                 <span className="reck-civ-doc">{civ?.doctrine}</span>
               </span>
               <span className="reck-bar-wrap">
                 <span className="reck-bar" style={{ width: `${pct}%` }} />
               </span>
               <span className="reck-score">
-                <span className="reck-score-n">{fmt(c.score)}</span>
+                <span className="reck-score-n">
+                  {fmt(c.score)}
+                  {gained > 0 && <span className="reck-gain">+{fmt(gained)}</span>}
+                </span>
                 <span className="reck-score-l">{c.tributes} tribute{c.tributes === 1 ? "" : "s"}</span>
               </span>
             </button>
@@ -352,6 +452,38 @@ export function Reckoning() {
           </>
         )}
       </section>
+
+      {/* ── HALL OF CROWNS — dynasties forged across past weeks ─── */}
+      {crownedCivs.length > 0 && (
+        <section className="reck-hall">
+          <h3 className="reck-col-h">
+            HALL OF CROWNS
+            {dynasty && (
+              <span className="reck-dynasty" style={{ ["--civ" as string]: CIVS[dynasty.slug]?.color ?? "#888" }}>
+                ★ DYNASTY · {CIVS[dynasty.slug]?.name ?? dynasty.slug} · {dynasty.crowns}×
+              </span>
+            )}
+          </h3>
+          <div className="reck-hall-grid">
+            {crownedCivs.map(([slug, crowns]) => {
+              const civ = CIVS[slug];
+              const isDynasty = dynasty?.slug === slug;
+              return (
+                <div
+                  key={slug}
+                  className={`reck-crown${isDynasty ? " is-dynasty" : ""}`}
+                  title={`${civ?.name ?? slug} · ${crowns} crown${crowns === 1 ? "" : "s"}`}
+                  style={{ ["--civ" as string]: civ?.color ?? "#888" }}
+                >
+                  <CivGlyph slug={slug} color={civ?.color ?? "#888"} size={22} title={civ?.name} />
+                  <span className="reck-crown-name">{civ?.name ?? slug}</span>
+                  <span className="reck-crown-n">{"★".repeat(Math.min(crowns, 5))}{crowns > 5 ? ` ${crowns}` : ""}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ── GENERALS + ARCHIVE ────────────────────────────────── */}
       <section className="reck-cols">
@@ -483,6 +615,37 @@ export function Reckoning() {
         .reck-share-standings { margin-top: 14px; width: 100%; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; }
 
         .reck-foot { text-align: center; margin-top: 36px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-fade); }
+
+        /* endgame tension banner */
+        .reck-endgame { max-width: 620px; margin: 18px auto 0; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 10px 16px; border: 1px solid color-mix(in srgb, var(--civ) 50%, var(--line)); border-left: 3px solid var(--civ); background: color-mix(in srgb, var(--civ) 8%, var(--bg-2)); font-family: var(--mono); font-size: 12px; }
+        .reck-endgame-tag { color: var(--civ); letter-spacing: 0.16em; font-size: 10px; }
+        .reck-endgame-msg { color: var(--ink-dim); }
+        .reck-endgame-msg strong { color: var(--civ); }
+        .reck-endgame-clock { color: var(--ink-fade); font-size: 10px; letter-spacing: 0.12em; }
+        .reck-endgame.is-final { animation: reck-pulse 1.8s ease-in-out infinite; }
+        @keyframes reck-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 transparent; }
+          50% { box-shadow: 0 0 22px color-mix(in srgb, var(--civ) 45%, transparent); }
+        }
+
+        /* live momentum on the board */
+        .reck-row.is-surging { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--civ) 45%, transparent), 0 0 16px color-mix(in srgb, var(--civ) 25%, transparent); }
+        .reck-surge { margin-left: 8px; font-family: var(--mono); font-size: 8px; letter-spacing: 0.14em; color: var(--civ); vertical-align: middle; animation: reck-blink 1.4s steps(2, start) infinite; }
+        .reck-gain { display: block; font-family: var(--mono); font-size: 9px; color: var(--civ); margin-top: 1px; }
+        @keyframes reck-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+        /* hall of crowns */
+        .reck-hall { max-width: 760px; margin: 28px auto 0; }
+        .reck-dynasty { margin-left: 12px; font-size: 9px; letter-spacing: 0.12em; color: var(--civ); }
+        .reck-hall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+        .reck-crown { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--line); border-left: 2px solid var(--civ); }
+        .reck-crown.is-dynasty { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--civ) 35%, transparent); }
+        .reck-crown-name { font-family: var(--mono); font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+        .reck-crown-n { font-family: var(--mono); font-size: 10px; color: var(--civ); letter-spacing: 0.04em; white-space: nowrap; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .reck-endgame.is-final, .reck-surge { animation: none; }
+        }
 
         @media (max-width: 640px) {
           .reck-row { grid-template-columns: 24px 22px 1fr auto; }
