@@ -13,11 +13,11 @@
 
 import { CIVILIZATIONS, type CivilizationSlug } from "@/lib/constants";
 
-export const PROOF_CODE_LEN = 4;
-export const PROOF_MAX_ATTEMPTS = 8;
+export const PROOF_CODE_LEN = 5;
+export const PROOF_MAX_ATTEMPTS = 6;
 
 /** The ten signals, in canonical CIVILIZATIONS order. Repeats are allowed in a
- *  code, so a 4-long frequency has 10^4 possibilities. */
+ *  code, so a 5-long frequency has 10^5 possibilities. */
 export const SIGNALS = Object.keys(CIVILIZATIONS) as CivilizationSlug[];
 
 /** Day 1 = launch day, 2026-05-28 UTC. Stable forever — do NOT move this, the

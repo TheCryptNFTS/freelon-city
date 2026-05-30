@@ -37,7 +37,9 @@ const PEG_STYLE: Record<Peg, { bg: string; ring: string; label: string }> = {
 };
 
 function saveKey(dayKey: string) {
-  return `freelon:proof:v1:${dayKey}`;
+  // v2: code length grew 4→5, so old 4-signal saves must not rehydrate into
+  // the new 5-cell board. A fresh key cleanly retires them.
+  return `freelon:proof:v2:${dayKey}`;
 }
 const STREAK_KEY = "freelon:proof:v1:streak";
 

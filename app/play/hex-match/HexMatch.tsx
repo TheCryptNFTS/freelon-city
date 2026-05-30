@@ -18,6 +18,20 @@ import Link from "next/link";
 const SIZE = 7;
 const MIN_RUN = 3;
 
+// ── Difficulty: the board is no longer endless. Each level you must score
+// `target` points within a `moves` budget. Clear it → next level (higher
+// target, fewer moves). Run out of moves short of the target → SIGNAL LOST.
+// Targets balloon while the move budget tightens, so the curve eventually
+// outpaces you — your high score is how deep you push. */
+const MOVES_BASE = 24; // moves granted at level 1
+const MOVES_MIN = 12; // floor as levels tighten
+const TARGET_BASE = 700; // points to clear level 1
+const TARGET_GROWTH = 1.55; // per-level target multiplier
+
+const movesForLevel = (l: number) => Math.max(MOVES_MIN, MOVES_BASE - (l - 1));
+const targetForLevel = (l: number) =>
+  Math.round(TARGET_BASE * Math.pow(TARGET_GROWTH, l - 1));
+
 // The six main signal civilizations, by color. These ARE the tile identities.
 // Each carries a distinct glyph so the tiles are tellable apart by SHAPE, not
 // just color — keeps the board playable for colorblind players (cyan/green and
@@ -167,12 +181,26 @@ export function HexMatch() {
   const [board, setBoard] = useState<Board>(seedBoard);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
-  const [combo, setCombo] = useState(0);
   const [clearing, setClearing] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [highScore, setHighScore] = useState(0);
   const [flash, setFlash] = useState<string | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── run state: level / move budget / per-level progress / fail flag ───────
+  const [level, setLevel] = useState(1);
+  const [moves, setMoves] = useState(MOVES_BASE);
+  const [target, setTarget] = useState(TARGET_BASE);
+  const [levelScore, setLevelScore] = useState(0);
+  const [over, setOver] = useState(false);
+  // Refs mirror the run state so the post-cascade bookkeeping in onTile reads
+  // current values synchronously (setState is async and would be stale).
+  const scoreRef = useRef(0);
+  const levelScoreRef = useRef(0);
+  const movesRef = useRef(MOVES_BASE);
+  const levelRef = useRef(1);
+  const targetRef = useRef(TARGET_BASE);
+  const overRef = useRef(false);
 
   useEffect(() => {
     // Client-only randomization — avoids the SSR/hydration mismatch that a
@@ -202,11 +230,13 @@ export function HexMatch() {
     flashTimer.current = setTimeout(() => setFlash(null), 900);
   }, []);
 
-  // Resolve all cascades starting from `start`. Recursive-ish via loop.
+  // Resolve all cascades starting from `start`. Returns the total points this
+  // swap earned (so onTile can settle moves/level/game-over against truth).
   const resolveCascades = useCallback(
-    async (start: Board) => {
+    async (start: Board): Promise<number> => {
       let current = start;
       let chain = 0;
+      let totalGained = 0;
       // step delay helper
       const wait = (ms: number) =>
         new Promise<void>((res) => setTimeout(res, ms));
@@ -215,12 +245,15 @@ export function HexMatch() {
         const matches = findMatches(current);
         if (matches.size === 0) break;
         chain++;
-        setCombo(chain);
 
         // mark clearing for the animation
         setClearing(new Set(matches));
         const gained = matches.size * 10 * chain;
-        setScore((s) => s + gained);
+        totalGained += gained;
+        scoreRef.current += gained;
+        levelScoreRef.current += gained;
+        setScore(scoreRef.current);
+        setLevelScore(levelScoreRef.current);
         if (chain > 1) popFlash(`COMBO ×${chain}  +${gained}`);
         await wait(220);
 
@@ -234,7 +267,6 @@ export function HexMatch() {
         setClearing(new Set());
         await wait(140);
       }
-      setCombo(0);
 
       // No legal swap left → reshuffle rather than strand the player.
       if (!hasMove(current)) {
@@ -242,13 +274,14 @@ export function HexMatch() {
         await wait(500);
         setBoard(playableBoard());
       }
+      return totalGained;
     },
     [popFlash],
   );
 
   const onTile = useCallback(
     async (i: number) => {
-      if (busy) return;
+      if (busy || over) return;
       if (selected === null) {
         setSelected(i);
         return;
@@ -283,16 +316,47 @@ export function HexMatch() {
       }
 
       await resolveCascades(swapped);
+
+      // A committed (legal) swap spends one move. Settle the run: clearing the
+      // level's target wins it (target first, so reaching it on your last move
+      // still counts); otherwise an empty move budget ends the run.
+      movesRef.current -= 1;
+      setMoves(movesRef.current);
+      if (levelScoreRef.current >= targetRef.current) {
+        levelRef.current += 1;
+        targetRef.current = targetForLevel(levelRef.current);
+        movesRef.current = movesForLevel(levelRef.current);
+        levelScoreRef.current = 0;
+        setLevel(levelRef.current);
+        setTarget(targetRef.current);
+        setMoves(movesRef.current);
+        setLevelScore(0);
+        popFlash(`LEVEL ${levelRef.current}`);
+      } else if (movesRef.current <= 0) {
+        overRef.current = true;
+        setOver(true);
+        popFlash("SIGNAL LOST");
+      }
       setBusy(false);
     },
-    [board, busy, selected, popFlash, resolveCascades],
+    [board, busy, over, selected, popFlash, resolveCascades],
   );
 
   const reset = useCallback(() => {
     if (busy) return;
+    scoreRef.current = 0;
+    levelScoreRef.current = 0;
+    levelRef.current = 1;
+    targetRef.current = TARGET_BASE;
+    movesRef.current = MOVES_BASE;
+    overRef.current = false;
     setBoard(playableBoard());
     setScore(0);
-    setCombo(0);
+    setLevelScore(0);
+    setLevel(1);
+    setTarget(TARGET_BASE);
+    setMoves(MOVES_BASE);
+    setOver(false);
     setSelected(null);
   }, [busy]);
 
@@ -311,20 +375,65 @@ export function HexMatch() {
       <div
         style={{
           display: "flex",
-          gap: 24,
+          gap: 18,
           justifyContent: "center",
           alignItems: "baseline",
-          marginBottom: 18,
+          marginBottom: 12,
           fontFamily: "var(--mono)",
+          flexWrap: "wrap",
         }}
       >
-        <Stat label="SCORE" value={score.toLocaleString()} accent="var(--neon-cyan)" />
-        <Stat label="BEST" value={highScore.toLocaleString()} accent="var(--gold)" />
+        <Stat label="LEVEL" value={String(level)} accent="var(--neon-magenta)" />
         <Stat
-          label="COMBO"
-          value={combo > 0 ? `×${combo}` : "—"}
-          accent="var(--neon-magenta)"
+          label="MOVES"
+          value={String(moves)}
+          accent={moves <= 5 ? "var(--state-danger)" : "var(--neon-cyan)"}
         />
+        <Stat label="SCORE" value={score.toLocaleString()} accent="var(--ink)" />
+        <Stat label="BEST" value={highScore.toLocaleString()} accent="var(--gold)" />
+      </div>
+
+      {/* level progress: points this level toward the target */}
+      <div
+        style={{
+          width: "min(92vw, 460px)",
+          margin: "0 auto 16px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            letterSpacing: "0.16em",
+            color: "var(--ink-fade)",
+            marginBottom: 5,
+          }}
+        >
+          <span>LEVEL {level}</span>
+          <span>
+            {Math.min(levelScore, target).toLocaleString()} / {target.toLocaleString()}
+          </span>
+        </div>
+        <div
+          style={{
+            height: 6,
+            background: "var(--line-2)",
+            borderRadius: 3,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${Math.min(100, (levelScore / target) * 100)}%`,
+              background: "var(--gold-bright)",
+              boxShadow: "0 0 8px var(--gold-bright)",
+              transition: "width .2s ease",
+            }}
+          />
+        </div>
       </div>
 
       {/* board */}
@@ -413,6 +522,61 @@ export function HexMatch() {
             {flash}
           </div>
         )}
+
+        {/* game over — moves ran out before the target */}
+        {over && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(7,9,16,0.86)",
+              backdropFilter: "blur(2px)",
+              borderRadius: 8,
+            }}
+          >
+            <div style={{ textAlign: "center", padding: 18 }}>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 11,
+                  letterSpacing: "0.26em",
+                  color: "var(--state-danger)",
+                  marginBottom: 10,
+                }}
+              >
+                ✕ SIGNAL LOST
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--display)",
+                  fontStyle: "italic",
+                  fontSize: "clamp(26px, 7vw, 40px)",
+                  color: "var(--ink)",
+                  lineHeight: 1.05,
+                  marginBottom: 6,
+                }}
+              >
+                LEVEL {level}
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 13,
+                  color: "var(--ink-dim)",
+                  marginBottom: 18,
+                }}
+              >
+                {score.toLocaleString()} POINTS
+                {score >= highScore && score > 0 ? " · NEW BEST" : ""}
+              </div>
+              <button className="btn btn-primary" onClick={reset}>
+                <span className="ttl">RUN IT BACK ↻</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div
@@ -425,7 +589,7 @@ export function HexMatch() {
         }}
       >
         <button className="btn btn-secondary" onClick={reset}>
-          <span className="ttl">NEW BOARD ↻</span>
+          <span className="ttl">{over ? "RESTART ↻" : "NEW RUN ↻"}</span>
         </button>
         <Link className="btn btn-ghost" href="/play">
           <span className="ttl">← ARCADE</span>
@@ -445,8 +609,9 @@ export function HexMatch() {
           lineHeight: 1.6,
         }}
       >
-        TAP A HEX, THEN TAP A NEIGHBOR TO SWAP. MAKE A LINE OF THREE OR MORE OF
-        THE SAME SIGNAL. CASCADES CHAIN INTO COMBOS.
+        HIT THE TARGET SCORE BEFORE YOUR MOVES RUN OUT TO CLEAR THE LEVEL. EACH
+        LEVEL DEMANDS MORE AND GIVES YOU FEWER MOVES. CASCADES CHAIN INTO COMBOS
+        FOR BIG POINTS.
       </p>
     </div>
   );
