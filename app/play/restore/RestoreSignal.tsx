@@ -72,6 +72,36 @@ function shortAddr(a: string): string {
   return `0x${a.slice(2, 6)}…${a.slice(-4)}`;
 }
 
+/**
+ * Restorer Rank — a client-only PRESTIGE layer over the shared city. Your
+ * lifetime contribution (the server-authoritative `contributed`) earns a
+ * standing in the relight. Pure status: it READS the ledger, never writes it,
+ * grants nothing spendable, and touches no economy — so it stays inside the
+ * economy-isolation rule. It just gives the long climb a visible identity.
+ */
+const RESTORER_RANKS = [
+  { at: 0, title: "Dark Citizen", glyph: "·" },
+  { at: 50, title: "First Spark", glyph: "⬡" },
+  { at: 1_000, title: "Signal Hand", glyph: "⬡" },
+  { at: 15_000, title: "Relay Keeper", glyph: "✦" },
+  { at: 200_000, title: "Grid Warden", glyph: "✦" },
+  { at: 2_500_000, title: "Architect of Light", glyph: "★" },
+  { at: 30_000_000, title: "Beacon Sovereign", glyph: "★" },
+] as const;
+
+function restorerRank(contributed: number) {
+  let idx = 0;
+  for (let i = 0; i < RESTORER_RANKS.length; i++) {
+    if (contributed >= RESTORER_RANKS[i].at) idx = i;
+  }
+  const cur = RESTORER_RANKS[idx];
+  const next = RESTORER_RANKS[idx + 1] ?? null;
+  const pct = next
+    ? Math.min(100, ((contributed - cur.at) / (next.at - cur.at)) * 100)
+    : 100;
+  return { idx, cur, next, pct };
+}
+
 const POST = {
   method: "POST",
   headers: { "content-type": "application/json" },
@@ -277,6 +307,9 @@ export function RestoreSignal() {
   const cryptCount = wallet?.cryptCount ?? 0;
   const reclaimMult = wallet?.reclaimMultiplier ?? reclaimMultiplier(cryptCount);
 
+  // Prestige standing from lifetime contribution (display-only).
+  const rank = restorerRank(wallet?.contributed ?? 0);
+
   return (
     <div className="manifesto" style={{ paddingBottom: 64 }}>
       <section className="manifesto-hero" style={{ paddingBottom: 8 }}>
@@ -407,7 +440,86 @@ export function RestoreSignal() {
         ) : null}
       </div>
 
-      {/* offline gain */}
+      {/* prestige standing — Restorer Rank from lifetime contribution */}
+      {address && (
+        <div
+          style={{
+            maxWidth: 520,
+            margin: "0 auto 18px",
+            border: "1px solid var(--line)",
+            borderLeft: "2px solid var(--gold-bright)",
+            background: "var(--bg-2)",
+            padding: "12px 16px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+              gap: 10,
+              marginBottom: rank.next ? 8 : 0,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 13,
+                letterSpacing: "0.08em",
+                color: "var(--gold-bright)",
+              }}
+            >
+              {rank.cur.glyph} {rank.cur.title.toUpperCase()}
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.16em",
+                color: "var(--ink-fade)",
+              }}
+            >
+              RESTORER RANK {rank.idx + 1}/{RESTORER_RANKS.length}
+            </span>
+          </div>
+          {rank.next && (
+            <>
+              <div
+                style={{
+                  height: 5,
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--line)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${rank.pct}%`,
+                    background: "var(--gold-bright)",
+                    boxShadow: "0 0 10px var(--gold-bright)",
+                    transition: "width .3s linear",
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 9,
+                  letterSpacing: "0.14em",
+                  color: "var(--ink-fade)",
+                  marginTop: 5,
+                  textAlign: "right",
+                }}
+              >
+                {fmt(Math.max(0, rank.next.at - (wallet?.contributed ?? 0)))} ⬡ TO {rank.next.title.toUpperCase()}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* offline gain — the city kept working while you were dark */}
       {offlineGain !== null && (
         <div
           style={{
@@ -421,10 +533,37 @@ export function RestoreSignal() {
             fontSize: 12,
             color: "var(--ink-dim)",
             textAlign: "center",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
           }}
         >
-          WHILE YOU WERE DARK, YOU GENERATED{" "}
-          <strong style={{ color: "var(--neon-cyan)" }}>{fmt(offlineGain)} ⬡</strong>
+          <span>
+            THE CITY KEPT WORKING — YOU BANKED{" "}
+            <strong style={{ color: "var(--neon-cyan)" }}>{fmt(offlineGain)} ⬡</strong>
+            {ownRate > 0 && (
+              <span style={{ color: "var(--ink-fade)" }}> · {fmt(ownRate)}/SEC ONLINE</span>
+            )}
+          </span>
+          <button
+            type="button"
+            onClick={() => setOfflineGain(null)}
+            aria-label="dismiss"
+            style={{
+              border: "1px solid var(--line)",
+              background: "transparent",
+              color: "var(--ink-fade)",
+              fontFamily: "var(--mono)",
+              fontSize: 11,
+              lineHeight: 1,
+              padding: "4px 8px",
+              cursor: "pointer",
+            }}
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -682,13 +821,27 @@ export function RestoreSignal() {
           civ's webp "plate" sits behind a civ-colored, rounded, scan-line
           relic card. Dark = plate dimmed to a whisper; lit = plate brightens
           and the civ color glows. */}
+      <div
+        style={{
+          fontFamily: "var(--mono)",
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          color: "var(--ink-fade)",
+          textAlign: "center",
+          maxWidth: 520,
+          margin: "28px auto 10px",
+        }}
+      >
+        THE RELIGHT LADDER · {litCount}/{CITY_CIVS.length} LIT
+      </div>
       <div className="city-skyline">
         {CITY_CIVS.map((c) => {
           const lit = total >= c.at;
+          const isNext = nextCiv?.slug === c.slug;
           return (
             <div
               key={c.slug}
-              className={`relic-card scan-card city-skyline__plate${lit ? " is-lit" : ""}`}
+              className={`relic-card scan-card city-skyline__plate${lit ? " is-lit" : ""}${isNext ? " is-next" : ""}`}
               title={`${c.name} · ${fmt(c.at)} ⬡`}
               style={
                 {
@@ -698,8 +851,12 @@ export function RestoreSignal() {
               }
             >
               <span className="city-skyline__dot" aria-hidden />
+              {isNext && <span className="city-skyline__flag">NEXT</span>}
               <span className="city-skyline__name">
                 {c.name.split(" ")[1]?.toUpperCase()}
+              </span>
+              <span className="city-skyline__at">
+                {lit ? "✓" : fmt(c.at)}
               </span>
             </div>
           );
@@ -772,6 +929,42 @@ export function RestoreSignal() {
           position: relative;
         }
         .city-skyline__plate.is-lit .city-skyline__name { color: var(--ink); }
+        .city-skyline__at {
+          font-family: var(--mono);
+          font-size: 7px;
+          letter-spacing: 0.06em;
+          line-height: 1;
+          margin-top: 2px;
+          color: var(--ink-fade);
+          position: relative;
+        }
+        .city-skyline__plate.is-lit .city-skyline__at { color: var(--civ); }
+        .city-skyline__plate.is-next {
+          border-color: var(--civ);
+          box-shadow: 0 0 0 1px var(--civ), 0 0 20px color-mix(in srgb, var(--civ) 45%, transparent);
+          animation: skyline-next 2s ease-in-out infinite;
+        }
+        .city-skyline__plate.is-next .city-skyline__at { color: var(--civ); }
+        .city-skyline__flag {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          font-family: var(--mono2);
+          font-size: 6px;
+          letter-spacing: 0.14em;
+          padding: 1px 3px;
+          border-radius: 3px;
+          background: var(--civ);
+          color: var(--bg);
+          z-index: 1;
+        }
+        @keyframes skyline-next {
+          0%, 100% { box-shadow: 0 0 0 1px var(--civ), 0 0 14px color-mix(in srgb, var(--civ) 30%, transparent); }
+          50% { box-shadow: 0 0 0 1px var(--civ), 0 0 26px color-mix(in srgb, var(--civ) 60%, transparent); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .city-skyline__plate.is-next { animation: none; }
+        }
       `}</style>
 
       {/* leaderboard */}
