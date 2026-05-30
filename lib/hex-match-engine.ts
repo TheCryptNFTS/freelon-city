@@ -22,7 +22,13 @@
  */
 
 export const SIZE = 7;
-export const COLORS = 6;
+// 2026-05-29 — was 6. On a 7×7 board, 6 colours left only ~12% of adjacent
+// swaps legal, so players kept hitting "NO SIGNAL" (the flavour text for "that
+// swap makes no match") and felt the game wouldn't let them move. Dropping to
+// 5 roughly doubles the legal-move density — far more forgiving — while the
+// match/cascade rules are unchanged. COLORS is decoupled from the 6-entry tile
+// palette in HexMatch.tsx, so the 6th palette colour simply goes unused.
+export const COLORS = 5;
 export const MIN_RUN = 3;
 
 export type Cell = number;

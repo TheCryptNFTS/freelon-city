@@ -54,10 +54,19 @@ export async function GET(req: Request) {
   authUrl.searchParams.set("code_challenge_method", "S256");
 
   const res = NextResponse.redirect(authUrl.toString());
+  // 2026-05-29 fix — the X-connect "loops back to login" bug. These PKCE/
+  // state/bind cookies must survive the cross-site round-trip to x.com and
+  // back to /api/x/callback. With sameSite:"lax" they were getting dropped
+  // on the return navigation in in-app browsers (MetaMask's webview, iOS
+  // Safari) and some redirect chains — so the callback saw "missing_cookies"
+  // and bounced to /carrier, i.e. the loop. sameSite:"none" (valid only with
+  // secure:true, which we already set) is the standard, correct setting for
+  // OAuth flow cookies: it explicitly permits the cookie on the cross-site
+  // redirect. They're short-lived (10 min) and HttpOnly, so this is safe.
   const cookieOpts = {
     httpOnly: true,
-    secure: true, // always — protects PKCE verifier on staging/preview hosts
-    sameSite: "lax" as const,
+    secure: true,
+    sameSite: "none" as const,
     path: "/",
     maxAge: 600, // 10 minutes
   };

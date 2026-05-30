@@ -22,6 +22,17 @@ function clearViewerCookie() {
   document.cookie = `freelon_addr=; path=/; max-age=0; samesite=lax`;
 }
 
+// Last-connected wallet from the persisted cookie. Used to re-hydrate the
+// connected UI on load when the injected provider isn't reporting an account
+// yet (locked wallet, extension still waking up, in-app browser).
+function readViewerCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const m = document.cookie.match(/(?:^|; )freelon_addr=([^;]+)/);
+  if (!m) return null;
+  const v = decodeURIComponent(m[1]).toLowerCase();
+  return /^0x[a-f0-9]{40}$/.test(v) ? v : null;
+}
+
 // Minimal ERC-721 ABI for balanceOf
 const ABI = [
   {
@@ -144,12 +155,24 @@ export function WalletConnect() {
   }, []);
 
   useEffect(() => {
+    // 2026-05-29 persistence fix — "wallet doesn't stay connected". The UI
+    // used to depend solely on eth_accounts at mount; if the injected
+    // provider was absent or returned [] (wallet locked, extension still
+    // initializing, in-app browser), the pill flipped back to CONNECT even
+    // though the freelon_addr cookie still held the last-connected wallet.
+    // Now we seed from the cookie first so the connected state persists, then
+    // upgrade to the live provider account if/when it reports one.
+    const cookieAddr = readViewerCookie();
+    if (cookieAddr) {
+      setAddr(cookieAddr);
+      void checkHolder(cookieAddr);
+    }
     if (typeof window === "undefined" || !window.ethereum) return;
     window.ethereum
       .request({ method: "eth_accounts" })
       .then((accs) => {
         const list = accs as string[];
-        if (list && list[0]) {
+        if (list && list[0] && list[0].toLowerCase() !== cookieAddr) {
           setAddr(list[0]);
           void checkHolder(list[0]);
         }
