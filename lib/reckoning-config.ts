@@ -17,8 +17,10 @@
 
 import { ECONOMY } from "@/lib/economy-constants";
 
-/** Schema/season tag. Bump to wipe all weeks and start a fresh war record. */
-export const RECKONING_VERSION = 1;
+/** Schema/season tag. Bump to wipe all weeks and start a fresh war record.
+ *  v2: opened a fresh season alongside the anti-whale war curve so no wallet
+ *  gets re-scored mid-week — every general starts clean under the new rules. */
+export const RECKONING_VERSION = 2;
 
 /** Week 1 anchor — Monday 2026-05-25 00:00 UTC, the launch-era week. Weeks are
  *  fixed 7-day UTC windows from here. Do NOT move this retroactively or every
