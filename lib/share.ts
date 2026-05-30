@@ -32,6 +32,32 @@ export function tweetIntent(text: string): string {
   return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
 }
 
+/**
+ * Build the score-share landing URL for an arcade result. When this URL is
+ * posted to X it unfurls into a summary_large_image card whose picture is the
+ * themed /api/og/score render — that's the "nice image" attached to a score.
+ * Humans who click it bounce straight to /play/{game}.
+ *
+ *   g   game key (sweep | proof | cipher | reckoning | hex-match)
+ *   n   the big headline value (e.g. "12,400" or "4/6")
+ *   nl  label under the number (e.g. "SIGNAL SWEPT")
+ *   sub secondary line (e.g. "Best streak ×7")
+ *   tag status chip (e.g. "NEW BEST", "LOCKED")
+ */
+export function shareScoreUrl(input: {
+  g: "sweep" | "proof" | "cipher" | "reckoning" | "hex-match";
+  n: string;
+  nl?: string;
+  sub?: string;
+  tag?: string;
+}): string {
+  const qs = new URLSearchParams({ g: input.g, n: input.n });
+  if (input.nl) qs.set("nl", input.nl);
+  if (input.sub) qs.set("sub", input.sub);
+  if (input.tag) qs.set("tag", input.tag);
+  return `${SITE}/share/score?${qs.toString()}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // Per-surface tweet builders
 // ─────────────────────────────────────────────────────────────────────
@@ -234,7 +260,12 @@ export function tweetProof(input: {
     ``,
     `Can you receive today's transmission?`,
     `${HASHTAGS}`,
-    `${SITE}/play/proof`,
+    shareScoreUrl({
+      g: "proof",
+      n: score,
+      nl: `PROOF #${input.day}`,
+      tag: input.solved ? "LOCKED" : "LOST IN THE NOISE",
+    }),
   ].join("\n");
 }
 
@@ -263,7 +294,12 @@ export function tweetProofPractice(input: {
     ``,
     `${input.len}-signal ${input.tier} drill. Can you tune to today's daily transmission?`,
     `${HASHTAGS}`,
-    `${SITE}/play/proof`,
+    shareScoreUrl({
+      g: "proof",
+      n: score,
+      nl: `${input.tier} DRILL`,
+      tag: input.solved ? "CRACKED" : "LOST IN THE NOISE",
+    }),
   ].join("\n");
 }
 
@@ -291,7 +327,12 @@ export function tweetCipher(input: {
     ``,
     `Can you decode today's intercepted transmission?`,
     `${HASHTAGS}`,
-    `${SITE}/play/cipher`,
+    shareScoreUrl({
+      g: "cipher",
+      n: score,
+      nl: `CIPHER #${input.day}`,
+      tag: input.won ? "DECODED" : "SIGNAL LOST",
+    }),
   ].join("\n");
 }
 
@@ -321,7 +362,13 @@ export function tweetReckoning(input: {
       ``,
       `The Reckoning · Week ${input.week}. Which civ do you bleed for?`,
       `${HASHTAGS}`,
-      `${SITE}/play/reckoning`,
+      shareScoreUrl({
+        g: "reckoning",
+        n: input.burned != null ? `${input.burned.toLocaleString()} ⬡` : `WK ${input.week}`,
+        nl: `MUSTERED FOR ${input.civName.toUpperCase()}`,
+        sub: input.rank ? `${input.civName} sits #${input.rank} this week` : undefined,
+        tag: `WEEK ${input.week}`,
+      }),
     ].filter(Boolean).join("\n");
   }
   return [
@@ -331,7 +378,12 @@ export function tweetReckoning(input: {
     ``,
     `Ten civilizations. One crown a week. Burn for your side.`,
     `${HASHTAGS}`,
-    `${SITE}/play/reckoning`,
+    shareScoreUrl({
+      g: "reckoning",
+      n: `WK ${input.week}`,
+      nl: `${input.civName.toUpperCase()} LEADS`,
+      tag: "CIV WAR",
+    }),
   ].join("\n");
 }
 
@@ -356,7 +408,52 @@ export function tweetSweep(input: {
     ``,
     `Think you can sweep faster?`,
     `${HASHTAGS}`,
-    `${SITE}/play/sweep`,
+    shareScoreUrl({
+      g: "sweep",
+      n: input.score.toLocaleString(),
+      nl: "SIGNAL SWEPT",
+      sub: `Best streak ×${input.streak}`,
+      tag: input.newBest ? "NEW BEST" : undefined,
+    }),
+  ].join("\n");
+}
+
+/**
+ * Hex Match share — the match-3 arcade run. Daily banks a streak; endless is
+ * pure score. The score + level is the flex, /play/hex-match the funnel.
+ */
+export function tweetHexMatch(input: {
+  score: number;
+  level: number;
+  daily: boolean;
+  day?: number;
+  streak?: number;
+  won?: boolean; // daily target cleared
+  newBest: boolean;
+}): string {
+  const head = input.daily
+    ? input.won
+      ? `⬡ ${HANDLE} · DAILY BANKED · Hex Match #${input.day}`
+      : `⬡ ${HANDLE} · STREAK LOST · Hex Match #${input.day}`
+    : input.newBest
+      ? `⬡ ${HANDLE} · NEW BEST · I LINED UP ${input.score.toLocaleString()} SIGNAL`
+      : `⬡ ${HANDLE} · I LINED UP ${input.score.toLocaleString()} SIGNAL`;
+  const streakLine =
+    input.daily && input.streak != null ? `⬡ Streak ${input.streak} · Level ${input.level}.` : `Level ${input.level} · matching the signal off the FREELON CITY floor.`;
+  return [
+    head,
+    ``,
+    streakLine,
+    ``,
+    `Think you can match faster?`,
+    `${HASHTAGS}`,
+    shareScoreUrl({
+      g: "hex-match",
+      n: input.score.toLocaleString(),
+      nl: "SIGNAL MATCHED",
+      sub: input.daily && input.streak != null ? `Streak ${input.streak} · Level ${input.level}` : `Level ${input.level}`,
+      tag: input.daily ? (input.won ? "DAILY BANKED" : "STREAK LOST") : input.newBest ? "NEW BEST" : undefined,
+    }),
   ].join("\n");
 }
 

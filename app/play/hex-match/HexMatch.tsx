@@ -24,6 +24,7 @@ import { cue } from "@/lib/arcade-feedback";
 import { awardXp, getProgress, rankedUp, rankFor, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import { ArcadeTutorial } from "@/components/ArcadeTutorial";
+import { tweetHexMatch, tweetIntent } from "@/lib/share";
 import {
   dayNumber,
   dayKey,
@@ -473,7 +474,7 @@ export function HexMatch() {
         const reverted = swapped.slice();
         [reverted[a], reverted[i]] = [reverted[i], reverted[a]];
         setBoard(reverted);
-        popFlash("NO SIGNAL");
+        popFlash("NO MATCH");
         cue("error");
         await new Promise((r) => setTimeout(r, 120));
         setBusy(false);
@@ -964,9 +965,33 @@ export function HexMatch() {
                   >
                     ONE BOARD A DAY — COME BACK TOMORROW
                   </div>
-                  <button className="btn btn-secondary" onClick={() => begin("endless")}>
-                    <span className="ttl">PLAY ENDLESS →</span>
-                  </button>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() =>
+                        window.open(
+                          tweetIntent(
+                            tweetHexMatch({
+                              score: dailyResult?.score ?? score,
+                              level: dailyResult?.level ?? level,
+                              daily: true,
+                              day: dayNum,
+                              streak,
+                              won: dailyResult?.won,
+                              newBest: false,
+                            }),
+                          ),
+                          "_blank",
+                          "noopener",
+                        )
+                      }
+                    >
+                      <span className="ttl">SHARE ⬡</span>
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => begin("endless")}>
+                      <span className="ttl">PLAY ENDLESS →</span>
+                    </button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -1077,9 +1102,30 @@ export function HexMatch() {
                     </div>
                   )}
 
-                  <button className="btn btn-secondary" onClick={reset}>
-                    <span className="ttl">RUN IT BACK ↻</span>
-                  </button>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() =>
+                        window.open(
+                          tweetIntent(
+                            tweetHexMatch({
+                              score,
+                              level,
+                              daily: false,
+                              newBest: score >= highScore && score > 0,
+                            }),
+                          ),
+                          "_blank",
+                          "noopener",
+                        )
+                      }
+                    >
+                      <span className="ttl">SHARE ⬡</span>
+                    </button>
+                    <button className="btn btn-secondary" onClick={reset}>
+                      <span className="ttl">RUN IT BACK ↻</span>
+                    </button>
+                  </div>
                 </>
               )}
             </div>
