@@ -16,6 +16,7 @@ import {
   seedBoard,
   playableBoard,
   resolveStep,
+  detonatePair,
   rowOf,
   colIdxOf,
 } from "@/lib/hex-match-engine";
@@ -61,6 +62,19 @@ const TARGET_GROWTH = 1.55; // per-level target multiplier
 const movesForLevel = (l: number) => Math.max(MOVES_MIN, MOVES_BASE - (l - 1));
 const targetForLevel = (l: number) =>
   Math.round(TARGET_BASE * Math.pow(TARGET_GROWTH, l - 1));
+
+// ── Bonus objectives: a secondary goal that rotates per level so the run
+// isn't just "score X" every time. Meeting it once grants +3 moves — a
+// breather you earn by playing for the special, the combo, or the big sweep
+// rather than only the score bar. Deterministic by level (daily-safe).
+const BONUS_MOVES = 3;
+type Objective = { id: "special" | "combo" | "sweep"; label: string };
+const OBJECTIVES: Objective[] = [
+  { id: "special", label: "Forge a special tile" },
+  { id: "combo", label: "Chain a ×3 combo" },
+  { id: "sweep", label: "Clear 10+ in one blast" },
+];
+const objectiveForLevel = (l: number) => OBJECTIVES[(l - 1) % OBJECTIVES.length];
 
 // The six main signal civilizations, by color. These ARE the tile identities.
 // Each carries a distinct glyph so the tiles are tellable apart by SHAPE, not
@@ -131,6 +145,9 @@ export function HexMatch() {
   const [target, setTarget] = useState(TARGET_BASE);
   const [levelScore, setLevelScore] = useState(0);
   const [over, setOver] = useState(false);
+  // Whether this level's bonus objective has been met yet (one award/level).
+  const [objectiveMet, setObjectiveMet] = useState(false);
+  const objectiveMetRef = useRef(false);
   // Refs mirror the run state so the post-cascade bookkeeping in onTile reads
   // current values synchronously (setState is async and would be stale).
   const scoreRef = useRef(0);
@@ -296,17 +313,69 @@ export function HexMatch() {
     }
   }, [popFlash, today]);
 
+  // Award the level's bonus objective the first time it's satisfied this
+  // level: +3 moves, a flash, a chime. Idempotent per level via the ref.
+  const tryBonus = useCallback(
+    (chain: number, cleared: number, forged: boolean) => {
+      if (objectiveMetRef.current) return;
+      const obj = objectiveForLevel(levelRef.current);
+      const met =
+        obj.id === "special" ? forged : obj.id === "combo" ? chain >= 3 : cleared >= 10;
+      if (!met) return;
+      objectiveMetRef.current = true;
+      setObjectiveMet(true);
+      movesRef.current += BONUS_MOVES;
+      setMoves(movesRef.current);
+      popFlash(`OBJECTIVE ✓  +${BONUS_MOVES} MOVES`);
+      cue("levelup");
+    },
+    [popFlash],
+  );
+
   // Resolve all cascades starting from `start`. `pivot` is the cell the player
   // swapped into place (it gets promoted to a special when it lands in a long
   // run). Returns the total points this swap earned so onTile can settle
   // moves/level/game-over against truth.
   const resolveCascades = useCallback(
-    async (start: Board, pivot: number): Promise<number> => {
+    async (
+      start: Board,
+      pivot: number,
+      pair?: [number, number],
+    ): Promise<number> => {
       let current = start;
       let chain = 0;
       let totalGained = 0;
       const wait = (ms: number) =>
         new Promise<void>((res) => setTimeout(res, ms));
+
+      // Opening blast: swapping two specials together detonates as one combined
+      // wipe (no colour run needed) before the normal cascade loop takes over.
+      if (pair) {
+        const blast = detonatePair(current, pair[0], pair[1], rngRef.current);
+        if (blast) {
+          chain++;
+          setClearing(new Set(blast.clearedCells));
+          // A pair blast pays a richer base than a plain clear — it's the
+          // hardest setup to engineer, so it should feel like the jackpot.
+          const gained = blast.cleared * 14;
+          totalGained += gained;
+          scoreRef.current += gained;
+          levelScoreRef.current += gained;
+          setScore(scoreRef.current);
+          setLevelScore(levelScoreRef.current);
+          spawnBurst(blast.clearedCells, current, 3);
+          setChainPulse(3);
+          triggerShake(3);
+          popFlash(`SPECIAL × SPECIAL  +${gained}`);
+          cue("special");
+          tryBonus(chain, blast.cleared, false);
+          await wait(280);
+          current = blast.board;
+          setBoard(current);
+          setClearing(new Set());
+          await wait(150);
+        }
+      }
 
       while (true) {
         const step = resolveStep(current, chain === 0 ? pivot : undefined, rngRef.current);
@@ -336,11 +405,15 @@ export function HexMatch() {
           popFlash("LINE FORGED");
           cue("special");
         } else if (chain > 1) {
-          popFlash(`COMBO ×${chain}  +${gained}`);
+          // Escalating combo wording so a long chain feels like it's building.
+          const word =
+            chain >= 6 ? "UNREAL" : chain >= 5 ? "MASSIVE" : chain >= 4 ? "MEGA" : "COMBO";
+          popFlash(`${word} ×${chain}  +${gained}`);
           cue("combo");
         } else {
           cue("clear");
         }
+        tryBonus(chain, step.cleared, step.specials.length > 0);
         await wait(220);
 
         current = step.board;
@@ -359,7 +432,7 @@ export function HexMatch() {
       }
       return totalGained;
     },
-    [popFlash, spawnBurst, triggerShake],
+    [popFlash, spawnBurst, triggerShake, tryBonus],
   );
 
   const onTile = useCallback(
@@ -383,17 +456,22 @@ export function HexMatch() {
       // attempt swap
       setBusy(true);
       cue("swap");
+      // Swapping two SPECIAL tiles together is always a legal move (it
+      // detonates as a combined blast even with no colour run), so detect it
+      // from the pre-swap board before the usual "must form a match" check.
+      const pairSwap = isSpecial(board[selected]) && isSpecial(board[i]);
       const swapped = board.slice();
       [swapped[selected], swapped[i]] = [swapped[i], swapped[selected]];
       setBoard(swapped);
+      const a = selected;
       setSelected(null);
 
       await new Promise((r) => setTimeout(r, 120));
 
-      if (!hasMatch(swapped)) {
+      if (!pairSwap && !hasMatch(swapped)) {
         // illegal — swap back
         const reverted = swapped.slice();
-        [reverted[selected], reverted[i]] = [reverted[i], reverted[selected]];
+        [reverted[a], reverted[i]] = [reverted[i], reverted[a]];
         setBoard(reverted);
         popFlash("NO SIGNAL");
         cue("error");
@@ -402,7 +480,7 @@ export function HexMatch() {
         return;
       }
 
-      await resolveCascades(swapped, i);
+      await resolveCascades(swapped, i, pairSwap ? [a, i] : undefined);
 
       // A committed (legal) swap spends one move. Settle the run: clearing the
       // level's target wins it (target first, so reaching it on your last move
@@ -414,6 +492,8 @@ export function HexMatch() {
         targetRef.current = targetForLevel(levelRef.current);
         movesRef.current = movesForLevel(levelRef.current);
         levelScoreRef.current = 0;
+        objectiveMetRef.current = false;
+        setObjectiveMet(false);
         setLevel(levelRef.current);
         setTarget(targetRef.current);
         setMoves(movesRef.current);
@@ -452,6 +532,8 @@ export function HexMatch() {
     targetRef.current = TARGET_BASE;
     movesRef.current = MOVES_BASE;
     overRef.current = false;
+    objectiveMetRef.current = false;
+    setObjectiveMet(false);
     modeRef.current = m;
     rngRef.current = m === "daily" ? dailyRng(dayNumber(), "hex") : undefined;
     setMode(m);
@@ -656,6 +738,23 @@ export function HexMatch() {
               transition: "width .2s ease",
             }}
           />
+        </div>
+        {/* rotating bonus objective — a second goal worth +moves */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            letterSpacing: "0.14em",
+            color: objectiveMet ? "var(--neon-cyan)" : "var(--ink-fade)",
+            marginTop: 7,
+          }}
+        >
+          <span>
+            ⬡ BONUS: {objectiveForLevel(level).label.toUpperCase()}
+          </span>
+          <span>{objectiveMet ? "✓ +3" : `+${BONUS_MOVES} MOVES`}</span>
         </div>
       </div>
 

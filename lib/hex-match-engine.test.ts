@@ -14,6 +14,9 @@ import {
   freshBoard,
   collapse,
   resolveStep,
+  detonatePair,
+  rowOf,
+  colIdxOf,
   idx,
   type Board,
 } from "./hex-match-engine";
@@ -150,6 +153,75 @@ describe("resolveStep — detonation", () => {
     // too, so the total is just "all of colour 0").
     expect(res.cleared).toBe(total);
     expect(res.cleared).toBeGreaterThan(3);
+  });
+});
+
+describe("detonatePair — special × special swaps", () => {
+  it("returns null unless BOTH swapped cells are specials", () => {
+    const b = seedBoard();
+    b[idx(3, 2)] = lineTile(0);
+    // neighbour (3,3) is a normal tile → not a pair detonation
+    expect(detonatePair(b, idx(3, 2), idx(3, 3))).toBeNull();
+  });
+
+  it("line + line clears both tiles' full row and column", () => {
+    const b = seedBoard();
+    const a = idx(3, 2);
+    const c = idx(3, 3);
+    b[a] = lineTile(0);
+    b[c] = lineTile(1);
+    const res = detonatePair(b, a, c)!;
+    // Every cell in rows/cols 3, and columns 2 & 3, is cleared.
+    const cleared = new Set(res.clearedCells);
+    for (let k = 0; k < SIZE; k++) {
+      expect(cleared.has(idx(3, k))).toBe(true); // row 3
+      expect(cleared.has(idx(k, 2))).toBe(true); // col 2
+      expect(cleared.has(idx(k, 3))).toBe(true); // col 3
+    }
+  });
+
+  it("mega + mega clears the entire board", () => {
+    const b = seedBoard();
+    const a = idx(2, 2);
+    const c = idx(2, 3);
+    b[a] = megaTile(0);
+    b[c] = megaTile(1);
+    const res = detonatePair(b, a, c)!;
+    expect(res.cleared).toBe(SIZE * SIZE);
+  });
+
+  it("line + mega clears three rows and three columns around the pair", () => {
+    const b = seedBoard();
+    const a = idx(3, 3);
+    const c = idx(3, 4);
+    b[a] = lineTile(0);
+    b[c] = megaTile(1);
+    const res = detonatePair(b, a, c)!;
+    const cleared = new Set(res.clearedCells);
+    // rows 2,3,4 fully cleared
+    for (const r of [2, 3, 4]) for (let k = 0; k < SIZE; k++) {
+      expect(cleared.has(idx(r, k))).toBe(true);
+    }
+    // columns 2..5 (3 around col 3 plus 3 around col 4) cleared
+    for (const col of [2, 3, 4, 5]) for (let k = 0; k < SIZE; k++) {
+      expect(cleared.has(idx(k, col))).toBe(true);
+    }
+  });
+
+  it("chains into another special caught in the blast", () => {
+    const b = seedBoard();
+    const a = idx(3, 2);
+    const c = idx(3, 3);
+    b[a] = lineTile(0);
+    b[c] = lineTile(1);
+    // a mega sitting in row 3 (caught by the line blast) should wipe its colour
+    const mega = idx(3, 5);
+    b[mega] = megaTile(2);
+    // plant extra colour-2 cells off the blast lines so chaining is observable
+    const stray = idx(6, 6);
+    b[stray] = 2;
+    const res = detonatePair(b, a, c)!;
+    expect(new Set(res.clearedCells).has(stray)).toBe(true);
   });
 });
 

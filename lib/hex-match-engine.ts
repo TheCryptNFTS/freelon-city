@@ -262,3 +262,80 @@ function allOfColor(board: Board, color: number): number[] {
   for (let i = 0; i < board.length; i++) if (colorOf(board[i]) === color) out.push(i);
   return out;
 }
+
+/** The three rows / three columns centered on a cell (clamped to the board). */
+function bandCells(i: number): number[] {
+  const r = rowOf(i);
+  const c = colIdxOf(i);
+  const out: number[] = [];
+  for (let dr = -1; dr <= 1; dr++) {
+    const rr = r + dr;
+    if (rr >= 0 && rr < SIZE) for (let k = 0; k < SIZE; k++) out.push(idx(rr, k));
+  }
+  for (let dc = -1; dc <= 1; dc++) {
+    const cc = c + dc;
+    if (cc >= 0 && cc < SIZE) for (let k = 0; k < SIZE; k++) out.push(idx(k, cc));
+  }
+  return out;
+}
+
+/**
+ * Swapping two SPECIAL tiles together is the depth payoff: it detonates as one
+ * combined blast (no colour run required). Returns null if either swapped cell
+ * isn't a special. The blast escalates with the pair's rarity:
+ *   - line + line  → clear both tiles' full row AND column (two crosses).
+ *   - line + mega  → clear three rows + three columns centered on the pair.
+ *   - mega + mega  → clear the ENTIRE board.
+ * Any other specials caught in the blast detonate too, chaining to a fixpoint
+ * (matching resolveStep's behaviour). Pass the post-swap board with the two
+ * specials already at indices `a` and `b`.
+ */
+export function detonatePair(
+  board: Board,
+  a: number,
+  b: number,
+  rng: Rng = Math.random,
+): StepResult | null {
+  if (!isSpecial(board[a]) || !isSpecial(board[b])) return null;
+  const megaCount = (isMega(board[a]) ? 1 : 0) + (isMega(board[b]) ? 1 : 0);
+
+  const toClear = new Set<number>();
+  if (megaCount === 2) {
+    for (let i = 0; i < board.length; i++) toClear.add(i);
+  } else if (megaCount === 1) {
+    for (const i of [a, b]) for (const j of bandCells(i)) toClear.add(j);
+  } else {
+    for (const i of [a, b]) for (const j of rowColCells(i)) toClear.add(j);
+  }
+  // The two swapped specials are always consumed.
+  toClear.add(a);
+  toClear.add(b);
+
+  // Chain: any further special swept up in the blast detonates as well.
+  const detonated = new Set<number>([a, b]);
+  let frontier = [...toClear].filter((i) => isSpecial(board[i]) && !detonated.has(i));
+  while (frontier.length > 0) {
+    const nextFrontier: number[] = [];
+    for (const i of frontier) {
+      if (detonated.has(i)) continue;
+      detonated.add(i);
+      const blast = isMega(board[i]) ? allOfColor(board, colorOf(board[i])) : rowColCells(i);
+      for (const j of blast) {
+        if (!toClear.has(j)) {
+          toClear.add(j);
+          if (isSpecial(board[j]) && !detonated.has(j)) nextFrontier.push(j);
+        }
+      }
+    }
+    frontier = nextFrontier;
+  }
+
+  const next = board.slice();
+  for (const i of toClear) next[i] = -1;
+  return {
+    board: collapse(next, rng),
+    cleared: toClear.size,
+    clearedCells: [...toClear],
+    specials: [],
+  };
+}
