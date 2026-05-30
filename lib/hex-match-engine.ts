@@ -38,13 +38,18 @@ export const isSpecial = (v: Cell): boolean => isLine(v) || isMega(v);
 export const lineTile = (color: number): Cell => LINE_BASE + color;
 export const megaTile = (color: number): Cell => MEGA_BASE + color;
 
-const rnd = (n: number) => Math.floor(Math.random() * n);
+/** A 0..1 source. Defaults to Math.random; pass a seeded one (lib/daily) to
+ *  make a whole run deterministic — that's what the Daily Challenge uses so
+ *  every player faces the identical board + refill stream. */
+export type Rng = () => number;
+
+const rnd = (n: number, rng: Rng = Math.random) => Math.floor(rng() * n);
 export const idx = (r: number, c: number) => r * SIZE + c;
 export const rowOf = (i: number) => Math.floor(i / SIZE);
 export const colIdxOf = (i: number) => i % SIZE;
 
-export function randomTile(): Cell {
-  return rnd(COLORS);
+export function randomTile(rng: Rng = Math.random): Cell {
+  return rnd(COLORS, rng);
 }
 
 export type Run = { cells: number[]; len: number; color: number; orient: "h" | "v" };
@@ -93,10 +98,10 @@ export function hasMatch(board: Board): boolean {
 }
 
 /** A board with no pre-existing matches (normal tiles only). */
-export function freshBoard(): Board {
+export function freshBoard(rng: Rng = Math.random): Board {
   let board: Board;
   do {
-    board = Array.from({ length: SIZE * SIZE }, randomTile);
+    board = Array.from({ length: SIZE * SIZE }, () => randomTile(rng));
   } while (hasMatch(board));
   return board;
 }
@@ -111,7 +116,7 @@ export function seedBoard(): Board {
 }
 
 /** Drop tiles into gaps (-1) and refill the top with fresh normal tiles. */
-export function collapse(board: Board): Board {
+export function collapse(board: Board, rng: Rng = Math.random): Board {
   const next = board.slice();
   for (let c = 0; c < SIZE; c++) {
     let write = SIZE - 1;
@@ -122,7 +127,7 @@ export function collapse(board: Board): Board {
         write--;
       }
     }
-    for (let r = write; r >= 0; r--) next[idx(r, c)] = randomTile();
+    for (let r = write; r >= 0; r--) next[idx(r, c)] = randomTile(rng);
   }
   return next;
 }
@@ -153,9 +158,9 @@ export function hasMove(board: Board): boolean {
 }
 
 /** A fresh board guaranteed to have a legal move (and no pre-matches). */
-export function playableBoard(): Board {
-  let b = freshBoard();
-  while (!hasMove(b)) b = freshBoard();
+export function playableBoard(rng: Rng = Math.random): Board {
+  let b = freshBoard(rng);
+  while (!hasMove(b)) b = freshBoard(rng);
   return b;
 }
 
@@ -189,7 +194,7 @@ function rowColCells(i: number): number[] {
  *    base for this step). `pivot` is the cell the player swapped into place —
  *    when it sits inside a long run it is the one promoted to a special.
  */
-export function resolveStep(board: Board, pivot?: number): StepResult | null {
+export function resolveStep(board: Board, pivot?: number, rng: Rng = Math.random): StepResult | null {
   const runs = findRuns(board);
   if (runs.length === 0) return null;
 
@@ -245,7 +250,7 @@ export function resolveStep(board: Board, pivot?: number): StepResult | null {
   }
 
   return {
-    board: collapse(next),
+    board: collapse(next, rng),
     cleared: toClear.size,
     clearedCells: [...toClear],
     specials: [...creations].map(([index, kind]) => ({ index, kind })),

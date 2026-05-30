@@ -11,11 +11,23 @@ import {
   findRuns,
   hasMatch,
   seedBoard,
+  freshBoard,
   collapse,
   resolveStep,
   idx,
   type Board,
 } from "./hex-match-engine";
+
+/** A tiny deterministic source so two runs can be compared bit-for-bit. */
+function seqRng(seed = 1): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 /** seedBoard is match-free; overwriting ONE row span with a colour can only add
  *  a single horizontal run (vertical triples are impossible since seed columns
@@ -41,8 +53,33 @@ describe("encoding", () => {
   });
 });
 
+describe("seeded determinism (daily challenge)", () => {
+  it("freshBoard is identical for two equally-seeded RNGs", () => {
+    expect(freshBoard(seqRng(99))).toEqual(freshBoard(seqRng(99)));
+  });
+
+  it("freshBoard differs across seeds", () => {
+    expect(freshBoard(seqRng(1))).not.toEqual(freshBoard(seqRng(2)));
+  });
+
+  it("collapse refills deterministically from a seeded RNG", () => {
+    const a = seedBoard();
+    const b = seedBoard();
+    a[idx(0, 0)] = -1; // a gap to refill
+    b[idx(0, 0)] = -1;
+    expect(collapse(a, seqRng(5))).toEqual(collapse(b, seqRng(5)));
+  });
+
+  it("resolveStep produces an identical board for equal seeds + same play", () => {
+    const board = withRow(3, 0, 3, 0); // a clean horizontal triple
+    const r1 = resolveStep(board.slice(), undefined, seqRng(7));
+    const r2 = resolveStep(board.slice(), undefined, seqRng(7));
+    expect(r1?.board).toEqual(r2?.board);
+  });
+});
+
 describe("findRuns", () => {
-  it("finds nothing on the seed board", () => {
+  it("finds nothing on the seed board", () =>{
     expect(hasMatch(seedBoard())).toBe(false);
   });
   it("detects a horizontal run of 4", () => {

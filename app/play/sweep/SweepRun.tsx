@@ -5,6 +5,13 @@ import Link from "next/link";
 import { tweetSweep, tweetIntent } from "@/lib/share";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import {
+  dayNumber,
+  dayKey,
+  dailyRng,
+  resolveStreak,
+  type StreakState,
+} from "@/lib/daily";
 
 /**
  * Sweep Run — prototype #5 (reflex acquisition hit).
@@ -33,6 +40,17 @@ const GAME = "sweep-run";
 const HANDLE_KEY = "freelon::play::handle::v1";
 type LbEntry = { id: string; handle: string; score: number; rank: number };
 
+// ── Daily Challenge ───────────────────────────────────────────────────────
+// One deterministic spawn stream per UTC day (seeded so every player faces the
+// same sequence of cells/decoys), one attempt, and a streak you don't want to
+// break. Banking = clearing PAR signal before the city goes dark. Daily runs
+// aren't logged to the global leaderboard (a fixed stream isn't comparable).
+type Mode = "endless" | "daily";
+const DAILY_PAR = 300; // signal needed to bank the daily
+const STREAK_KEY = "freelon::play::sweep::streak::v1";
+const DAILY_RESULT_KEY = "freelon::play::sweep::daily::v1";
+type DailyResult = { dayKey: string; won: boolean; score: number };
+
 // Live-citizen decoys — civ colors + glyphs (must be SPARED, not swept).
 const LIVE = [
   { name: "Synthesis", color: "#00B8FF", glyph: "◇" },
@@ -52,8 +70,6 @@ type Target = {
 };
 
 type Status = "idle" | "playing" | "over";
-
-const rnd = (n: number) => Math.floor(Math.random() * n);
 
 // Difficulty curve — spawn faster + shorter lifespans as the score climbs.
 function spawnInterval(score: number): number {
@@ -83,6 +99,17 @@ export function SweepRun() {
   const [wallet, setWallet] = useState<string | null>(null);
   const [sendState, setSendState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [myRank, setMyRank] = useState<number | null>(null);
+
+  // ── daily challenge: mode, the day's seeded spawn RNG, streak + result ────
+  const [mode, setMode] = useState<Mode>("endless");
+  const modeRef = useRef<Mode>("endless");
+  const rngRef = useRef<(() => number) | null>(null);
+  const [dayNum, setDayNum] = useState(0);
+  const [today, setToday] = useState("");
+  const [dayStreak, setDayStreak] = useState(0);
+  const streakStateRef = useRef<StreakState | null>(null);
+  const [dailyResult, setDailyResult] = useState<DailyResult | null>(null);
+  const playedToday = dailyResult != null && dailyResult.dayKey === today;
 
   const loadTop = useCallback(async () => {
     try {
@@ -114,6 +141,23 @@ export function SweepRun() {
     const savedHandle = window.localStorage.getItem(HANDLE_KEY);
     if (savedHandle) setHandle(savedHandle);
     void loadTop();
+
+    // Daily: resolve the day client-side, hydrate streak + today's result.
+    setDayNum(dayNumber());
+    setToday(dayKey());
+    try {
+      const s = window.localStorage.getItem(STREAK_KEY);
+      if (s) {
+        const parsed = JSON.parse(s) as StreakState;
+        streakStateRef.current = parsed;
+        setDayStreak(parsed.streak || 0);
+      }
+      const d = window.localStorage.getItem(DAILY_RESULT_KEY);
+      if (d) setDailyResult(JSON.parse(d) as DailyResult);
+    } catch {
+      /* corrupt prefs are non-fatal */
+    }
+
     if (window.ethereum) {
       window.ethereum
         .request({ method: "eth_accounts" })
@@ -167,6 +211,28 @@ export function SweepRun() {
     setStatus("over");
     setTargets([]);
     const finalScore = scoreRef.current;
+
+    // Daily: bank the result + resolve the streak (one attempt per day, so the
+    // one-shot lock prevents a replay from double-counting). No leaderboard —
+    // a fixed spawn stream isn't comparable to endless runs.
+    if (modeRef.current === "daily") {
+      const won = finalScore >= DAILY_PAR;
+      cue(won ? "win" : "lose");
+      setNewBest(false);
+      const next = resolveStreak(streakStateRef.current, won);
+      streakStateRef.current = next;
+      setDayStreak(next.streak);
+      const result: DailyResult = { dayKey: today, won, score: finalScore };
+      setDailyResult(result);
+      try {
+        window.localStorage.setItem(STREAK_KEY, JSON.stringify(next));
+        window.localStorage.setItem(DAILY_RESULT_KEY, JSON.stringify(result));
+      } catch {
+        /* persistence is best-effort */
+      }
+      return;
+    }
+
     setBest((prev) => {
       if (finalScore > prev) {
         cue("win");
@@ -179,11 +245,16 @@ export function SweepRun() {
       cue("lose");
       return prev;
     });
-  }, []);
+  }, [today]);
 
   // ── the game loop ──────────────────────────────────────────────────────
-  const start = useCallback(() => {
+  const start = useCallback((m: Mode = "endless") => {
     if (loopRef.current) clearInterval(loopRef.current);
+    modeRef.current = m;
+    setMode(m);
+    // Daily seeds a deterministic spawn stream from the day number; endless
+    // leaves rngRef null so spawns fall back to Math.random.
+    rngRef.current = m === "daily" ? dailyRng(dayNumber(), "sweep") : null;
     setScore(0);
     setLives(LIVES);
     setStreak(0);
@@ -236,15 +307,17 @@ export function SweepRun() {
         const free: number[] = [];
         for (let i = 0; i < CELLS; i++) if (!occupied.has(i)) free.push(i);
         if (free.length) {
-          const cell = free[rnd(free.length)];
-          const isLive = Math.random() < liveChance(sc);
+          // Seeded in daily mode (deterministic stream), Math.random otherwise.
+          const draw = rngRef.current ?? Math.random;
+          const cell = free[Math.floor(draw() * free.length)];
+          const isLive = draw() < liveChance(sc);
           const t: Target = {
             id: nextIdRef.current++,
             cell,
             kind: isLive ? "live" : "dead",
             born: now,
             ttl: targetTtl(sc) * (isLive ? 1.25 : 1),
-            live: isLive ? rnd(LIVE.length) : undefined,
+            live: isLive ? Math.floor(draw() * LIVE.length) : undefined,
           };
           next = [...live, t];
         }
@@ -350,10 +423,40 @@ export function SweepRun() {
           </span>
         </div>
         <div className="sweep-stat">
-          <span className="sweep-stat-l">BEST</span>
-          <span className="sweep-stat-n">{best.toLocaleString()}</span>
+          <span className="sweep-stat-l">{mode === "daily" ? "STREAK" : "BEST"}</span>
+          <span className="sweep-stat-n">
+            {mode === "daily" ? `🔥 ${dayStreak}` : best.toLocaleString()}
+          </span>
         </div>
       </div>
+
+      {/* mode toggle — ENDLESS (leaderboard) vs DAILY (seeded + streak) */}
+      <div className="sweep-modes">
+        {(["endless", "daily"] as Mode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            className={`sweep-mode${mode === m ? " active" : ""}`}
+            onClick={() => {
+              if (status === "playing") return;
+              modeRef.current = m;
+              setMode(m);
+            }}
+            disabled={status === "playing"}
+          >
+            {m === "daily" ? "⬡ DAILY" : "∞ ENDLESS"}
+          </button>
+        ))}
+      </div>
+      {mode === "daily" && (
+        <div className="sweep-daily-strip">
+          <span>DAY {dayNum}</span>
+          <span style={{ color: dayStreak > 0 ? "var(--gold-bright)" : "var(--ink-fade)" }}>
+            🔥 STREAK {dayStreak}
+          </span>
+          <span>PAR {DAILY_PAR}</span>
+        </div>
+      )}
 
       {/* ── GRID ─────────────────────────────────────────────── */}
       <div className="sweep-grid" aria-label="sweep grid">
@@ -400,10 +503,55 @@ export function SweepRun() {
                 <p className="sweep-ov-body">
                   Tap the <strong className="ov-dead">corrupted ✕</strong> signals to sweep them.
                   Leave the <strong className="ov-live">living</strong> alone. Three misses and it&apos;s over.
+                  {mode === "daily" && (
+                    <>
+                      {" "}
+                      <strong className="ov-live">DAY {dayNum}</strong> — clear {DAILY_PAR} signal to bank your streak.
+                    </>
+                  )}
                 </p>
-                <button type="button" className="btn btn-primary" onClick={start}>
-                  START THE RUN →
-                </button>
+                {mode === "daily" && playedToday ? (
+                  <>
+                    <div className="sweep-ov-score">
+                      {dailyResult?.won ? "⬡ DAILY BANKED" : "STREAK LOST"}
+                    </div>
+                    <p className="sweep-ov-body">
+                      🔥 Streak {dayStreak} · come back tomorrow for a new board.
+                    </p>
+                    <button type="button" className="btn btn-primary" onClick={() => start("endless")}>
+                      PLAY ENDLESS →
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" className="btn btn-primary" onClick={() => start(mode)}>
+                    {mode === "daily" ? "START THE DAILY →" : "START THE RUN →"}
+                  </button>
+                )}
+              </>
+            ) : mode === "daily" ? (
+              <>
+                <div className="sweep-ov-title">
+                  {dailyResult?.won ? "⬡ DAILY BANKED" : "CITY WENT DARK"}
+                </div>
+                <div className="sweep-ov-score">{score.toLocaleString()} SIGNAL SWEPT</div>
+                <p className="sweep-ov-body">
+                  Day {dayNum} · {dailyResult?.won ? `cleared PAR ${DAILY_PAR}` : `PAR ${DAILY_PAR} — fell short`}
+                </p>
+                <div className="sweep-ov-streak">🔥 STREAK {dayStreak}</div>
+                <p className="sweep-ov-body">ONE BOARD A DAY — COME BACK TOMORROW</p>
+                <div className="sweep-ov-actions">
+                  <button type="button" className="btn btn-primary" onClick={() => start("endless")}>
+                    PLAY ENDLESS →
+                  </button>
+                  <button type="button" className="btn" onClick={share}>
+                    SHARE TO X →
+                  </button>
+                </div>
+                <div className="sweep-ov-funnel">
+                  <Link href="/play/proof">Daily puzzle</Link>
+                  <span>·</span>
+                  <Link href="/play">All games</Link>
+                </div>
               </>
             ) : (
               <>
@@ -413,7 +561,7 @@ export function SweepRun() {
                   Best streak ×{bestStreak} · all-time best {best.toLocaleString()}
                 </p>
                 <div className="sweep-ov-actions">
-                  <button type="button" className="btn btn-primary" onClick={start}>
+                  <button type="button" className="btn btn-primary" onClick={() => start("endless")}>
                     RUN AGAIN →
                   </button>
                   <button type="button" className="btn" onClick={share}>
@@ -500,6 +648,15 @@ export function SweepRun() {
         .sweep-lives { letter-spacing: 2px; }
         .sweep-lives .alive { color: var(--neon-cyan); }
         .sweep-lives .dead { color: var(--line); }
+
+        .sweep-modes { display: flex; justify-content: center; max-width: 480px; margin: 14px auto 0; }
+        .sweep-mode { padding: 7px 18px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; font-weight: 700; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink-fade); transition: all .15s; }
+        .sweep-mode:first-child { border-radius: 6px 0 0 6px; border-right: none; }
+        .sweep-mode:last-child { border-radius: 0 6px 6px 0; }
+        .sweep-mode.active { background: var(--gold-bright); color: #0a0e27; box-shadow: 0 0 14px var(--gold-bright); }
+        .sweep-mode:disabled { cursor: default; }
+        .sweep-daily-strip { display: flex; gap: 18px; justify-content: center; align-items: baseline; max-width: 480px; margin: 12px auto 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--ink-fade); }
+        .sweep-ov-streak { font-family: var(--mono); font-size: 18px; font-weight: 700; letter-spacing: 0.1em; color: var(--gold-bright); }
 
         .sweep-grid { position: relative; max-width: 480px; margin: 16px auto 0; display: grid; grid-template-columns: repeat(${COLS}, 1fr); gap: 10px; aspect-ratio: 1; }
         .sweep-cell { position: relative; display: flex; align-items: center; justify-content: center; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; padding: 0; touch-action: manipulation; transition: background .12s; overflow: hidden; }

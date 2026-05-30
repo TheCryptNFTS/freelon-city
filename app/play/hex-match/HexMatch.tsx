@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   SIZE,
   type Board,
+  type Rng,
   colorOf,
   isLine,
   isMega,
@@ -18,6 +19,13 @@ import {
 } from "@/lib/hex-match-engine";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import {
+  dayNumber,
+  dayKey,
+  dailyRng,
+  resolveStreak,
+  type StreakState,
+} from "@/lib/daily";
 
 /**
  * Hex Match — prototype #1 (the free hook).
@@ -70,6 +78,18 @@ const HIGH_SCORE_KEY = "freelon::play::hexmatch::hi::v1";
 const HANDLE_KEY = "freelon::play::hexmatch::handle::v1";
 const GAME = "hex-match";
 
+// ── Daily Challenge ───────────────────────────────────────────────────────
+// One deterministic board per UTC day (seeded so every player faces the
+// identical setup + refill stream), one attempt, and a streak you don't want
+// to break. Banking the daily = clearing your way to the goal level before
+// SIGNAL LOST. Daily runs are NOT logged to the global (endless) leaderboard
+// because a fixed board isn't comparable to endless runs.
+type Mode = "endless" | "daily";
+const DAILY_GOAL_LEVEL = 3; // reach level 3 (clear levels 1 & 2) to bank it
+const STREAK_KEY = "freelon::play::hexmatch::streak::v1";
+const DAILY_RESULT_KEY = "freelon::play::hexmatch::daily::v1";
+type DailyResult = { dayKey: string; won: boolean; level: number; score: number };
+
 type LbEntry = { id: string; handle: string; score: number; rank: number };
 
 export function HexMatch() {
@@ -96,6 +116,17 @@ export function HexMatch() {
   const levelRef = useRef(1);
   const targetRef = useRef(TARGET_BASE);
   const overRef = useRef(false);
+
+  // ── daily challenge: mode, the day's seeded RNG, streak + today's result ──
+  const [mode, setMode] = useState<Mode>("endless");
+  const modeRef = useRef<Mode>("endless");
+  const rngRef = useRef<Rng | undefined>(undefined);
+  const [dayNum, setDayNum] = useState(0);
+  const [today, setToday] = useState("");
+  const [streak, setStreak] = useState(0);
+  const streakRef = useRef<StreakState | null>(null);
+  const [dailyResult, setDailyResult] = useState<DailyResult | null>(null);
+  const playedToday = dailyResult != null && dailyResult.dayKey === today;
 
   // ── leaderboard: stamp a run under a handle or the connected wallet ───────
   const [lbTop, setLbTop] = useState<LbEntry[]>([]);
@@ -124,6 +155,23 @@ export function HexMatch() {
     const savedHandle = window.localStorage.getItem(HANDLE_KEY);
     if (savedHandle) setHandle(savedHandle);
     void loadTop();
+
+    // Daily: resolve the day client-side (avoids SSR/hydration time drift),
+    // then hydrate the persisted streak + whether today's run is already done.
+    setDayNum(dayNumber());
+    setToday(dayKey());
+    try {
+      const s = window.localStorage.getItem(STREAK_KEY);
+      if (s) {
+        const parsed = JSON.parse(s) as StreakState;
+        streakRef.current = parsed;
+        setStreak(parsed.streak || 0);
+      }
+      const d = window.localStorage.getItem(DAILY_RESULT_KEY);
+      if (d) setDailyResult(JSON.parse(d) as DailyResult);
+    } catch {
+      /* corrupt prefs are non-fatal — fall back to a clean daily */
+    }
     // Silently read an already-connected wallet (no popup) so the player can
     // stamp the run under their address instead of a typed handle.
     if (window.ethereum) {
@@ -157,6 +205,31 @@ export function HexMatch() {
     flashTimer.current = setTimeout(() => setFlash(null), 900);
   }, []);
 
+  // Bank today's daily result + resolve the streak. Called once per day (the
+  // one-attempt lock prevents a replay from double-counting). Won = the run
+  // reached the goal level before SIGNAL LOST.
+  const finishDaily = useCallback(() => {
+    const won = levelRef.current >= DAILY_GOAL_LEVEL;
+    popFlash(won ? "DAILY BANKED" : "STREAK LOST");
+    cue(won ? "win" : "lose");
+    const next = resolveStreak(streakRef.current, won);
+    streakRef.current = next;
+    setStreak(next.streak);
+    const result: DailyResult = {
+      dayKey: today,
+      won,
+      level: levelRef.current,
+      score: scoreRef.current,
+    };
+    setDailyResult(result);
+    try {
+      window.localStorage.setItem(STREAK_KEY, JSON.stringify(next));
+      window.localStorage.setItem(DAILY_RESULT_KEY, JSON.stringify(result));
+    } catch {
+      /* persistence is best-effort */
+    }
+  }, [popFlash, today]);
+
   // Resolve all cascades starting from `start`. `pivot` is the cell the player
   // swapped into place (it gets promoted to a special when it lands in a long
   // run). Returns the total points this swap earned so onTile can settle
@@ -170,7 +243,7 @@ export function HexMatch() {
         new Promise<void>((res) => setTimeout(res, ms));
 
       while (true) {
-        const step = resolveStep(current, chain === 0 ? pivot : undefined);
+        const step = resolveStep(current, chain === 0 ? pivot : undefined, rngRef.current);
         if (!step) break;
         chain++;
 
@@ -206,7 +279,7 @@ export function HexMatch() {
       if (!hasMove(current)) {
         popFlash("RESHUFFLE");
         await wait(500);
-        setBoard(playableBoard());
+        setBoard(playableBoard(rngRef.current));
       }
       return totalGained;
     },
@@ -274,15 +347,22 @@ export function HexMatch() {
       } else if (movesRef.current <= 0) {
         overRef.current = true;
         setOver(true);
-        popFlash("SIGNAL LOST");
-        cue("lose");
+        if (modeRef.current === "daily") {
+          finishDaily();
+        } else {
+          popFlash("SIGNAL LOST");
+          cue("lose");
+        }
       }
       setBusy(false);
     },
-    [board, busy, over, selected, popFlash, resolveCascades],
+    [board, busy, over, selected, popFlash, resolveCascades, finishDaily],
   );
 
-  const reset = useCallback(() => {
+  // Start a fresh run in the given mode. Daily seeds a deterministic RNG from
+  // the day number so the board + refill stream are identical for everyone;
+  // endless leaves rngRef undefined so the engine falls back to Math.random.
+  const begin = useCallback((m: Mode) => {
     if (busy) return;
     scoreRef.current = 0;
     levelScoreRef.current = 0;
@@ -290,7 +370,10 @@ export function HexMatch() {
     targetRef.current = TARGET_BASE;
     movesRef.current = MOVES_BASE;
     overRef.current = false;
-    setBoard(playableBoard());
+    modeRef.current = m;
+    rngRef.current = m === "daily" ? dailyRng(dayNumber(), "hex") : undefined;
+    setMode(m);
+    setBoard(playableBoard(rngRef.current));
     setScore(0);
     setLevelScore(0);
     setLevel(1);
@@ -301,6 +384,25 @@ export function HexMatch() {
     setSendState("idle");
     setMyRank(null);
   }, [busy]);
+
+  const reset = useCallback(() => begin(modeRef.current), [begin]);
+
+  // Switch modes from the top toggle. A daily already banked today is locked —
+  // we just surface the result overlay instead of starting a fresh attempt.
+  const switchMode = useCallback(
+    (m: Mode) => {
+      if (busy) return;
+      if (m === "daily" && playedToday) {
+        modeRef.current = "daily";
+        setMode("daily");
+        overRef.current = true;
+        setOver(true);
+        return;
+      }
+      begin(m);
+    },
+    [busy, playedToday, begin],
+  );
 
   const submitRun = useCallback(async () => {
     const h = handle.trim();
@@ -348,6 +450,67 @@ export function HexMatch() {
           Line up <em>the signal</em>.
         </h1>
       </section>
+
+      {/* mode toggle — ENDLESS (leaderboard) vs DAILY (seeded + streak) */}
+      <div
+        style={{
+          display: "flex",
+          gap: 0,
+          justifyContent: "center",
+          marginBottom: 14,
+          fontFamily: "var(--mono)",
+        }}
+      >
+        {(["endless", "daily"] as Mode[]).map((m, k) => {
+          const active = mode === m;
+          return (
+            <button
+              key={m}
+              onClick={() => switchMode(m)}
+              disabled={busy}
+              style={{
+                padding: "7px 18px",
+                fontSize: 11,
+                letterSpacing: "0.2em",
+                fontWeight: 700,
+                cursor: busy ? "default" : "pointer",
+                border: "1px solid var(--line)",
+                borderRight: k === 0 ? "none" : "1px solid var(--line)",
+                borderRadius: k === 0 ? "6px 0 0 6px" : "0 6px 6px 0",
+                background: active ? "var(--gold-bright)" : "transparent",
+                color: active ? "#0a0e27" : "var(--ink-fade)",
+                boxShadow: active ? "0 0 14px var(--gold-bright)" : "none",
+                transition: "all .15s",
+              }}
+            >
+              {m === "daily" ? "⬡ DAILY" : "∞ ENDLESS"}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* daily strip — day number + the streak you don't want to break */}
+      {mode === "daily" && (
+        <div
+          style={{
+            display: "flex",
+            gap: 18,
+            justifyContent: "center",
+            alignItems: "baseline",
+            marginBottom: 12,
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.16em",
+            color: "var(--ink-fade)",
+          }}
+        >
+          <span>DAY {dayNum}</span>
+          <span style={{ color: streak > 0 ? "var(--gold-bright)" : "var(--ink-fade)" }}>
+            🔥 STREAK {streak}
+          </span>
+          <span>GOAL: LEVEL {DAILY_GOAL_LEVEL}</span>
+        </div>
+      )}
 
       {/* scoreboard */}
       <div
@@ -522,116 +685,183 @@ export function HexMatch() {
             }}
           >
             <div style={{ textAlign: "center", padding: 18 }}>
-              <div
-                style={{
-                  fontFamily: "var(--mono)",
-                  fontSize: 11,
-                  letterSpacing: "0.26em",
-                  color: "var(--state-danger)",
-                  marginBottom: 10,
-                }}
-              >
-                ✕ SIGNAL LOST
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--display)",
-                  fontStyle: "italic",
-                  fontSize: "clamp(26px, 7vw, 40px)",
-                  color: "var(--ink)",
-                  lineHeight: 1.05,
-                  marginBottom: 6,
-                }}
-              >
-                LEVEL {level}
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--mono)",
-                  fontSize: 13,
-                  color: "var(--ink-dim)",
-                  marginBottom: 18,
-                }}
-              >
-                {score.toLocaleString()} POINTS
-                {score >= highScore && score > 0 ? " · NEW BEST" : ""}
-              </div>
-
-              {/* leaderboard entry — stamp this run under a handle or wallet */}
-              {sendState === "done" ? (
-                <div
-                  style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: 12,
-                    letterSpacing: "0.14em",
-                    color: "var(--gold-bright)",
-                    marginBottom: 16,
-                  }}
-                >
-                  ⬡ LOGGED · RANK #{myRank}
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                    alignItems: "center",
-                    marginBottom: 16,
-                  }}
-                >
-                  <input
-                    value={handle}
-                    onChange={(e) => setHandle(e.target.value.slice(0, 20))}
-                    placeholder={wallet ? "HANDLE (OPTIONAL)" : "ENTER A HANDLE"}
-                    maxLength={20}
+              {mode === "daily" ? (
+                <>
+                  {/* daily result — banked or busted, plus the streak */}
+                  <div
                     style={{
-                      width: 220,
-                      textAlign: "center",
-                      padding: "9px 10px",
-                      background: "var(--line-2)",
-                      border: "1px solid var(--line)",
-                      borderRadius: 6,
+                      fontFamily: "var(--mono)",
+                      fontSize: 11,
+                      letterSpacing: "0.26em",
+                      color: dailyResult?.won ? "var(--gold-bright)" : "var(--state-danger)",
+                      marginBottom: 10,
+                    }}
+                  >
+                    {dailyResult?.won ? "⬡ DAILY BANKED" : "✕ STREAK LOST"}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--display)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(26px, 7vw, 40px)",
                       color: "var(--ink)",
+                      lineHeight: 1.05,
+                      marginBottom: 6,
+                    }}
+                  >
+                    DAY {dayNum}
+                  </div>
+                  <div
+                    style={{
                       fontFamily: "var(--mono)",
                       fontSize: 13,
-                      letterSpacing: "0.14em",
+                      color: "var(--ink-dim)",
+                      marginBottom: 12,
                     }}
-                  />
-                  {wallet && (
+                  >
+                    LEVEL {dailyResult?.level ?? level} · {(dailyResult?.score ?? score).toLocaleString()} POINTS
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: 16,
+                      letterSpacing: "0.1em",
+                      color: streak > 0 ? "var(--gold-bright)" : "var(--ink-fade)",
+                      marginBottom: 18,
+                      fontWeight: 700,
+                    }}
+                  >
+                    🔥 STREAK {streak}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: 10,
+                      letterSpacing: "0.16em",
+                      color: "var(--ink-fade)",
+                      marginBottom: 16,
+                    }}
+                  >
+                    ONE BOARD A DAY — COME BACK TOMORROW
+                  </div>
+                  <button className="btn btn-secondary" onClick={() => begin("endless")}>
+                    <span className="ttl">PLAY ENDLESS →</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: 11,
+                      letterSpacing: "0.26em",
+                      color: "var(--state-danger)",
+                      marginBottom: 10,
+                    }}
+                  >
+                    ✕ SIGNAL LOST
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--display)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(26px, 7vw, 40px)",
+                      color: "var(--ink)",
+                      lineHeight: 1.05,
+                      marginBottom: 6,
+                    }}
+                  >
+                    LEVEL {level}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: 13,
+                      color: "var(--ink-dim)",
+                      marginBottom: 18,
+                    }}
+                  >
+                    {score.toLocaleString()} POINTS
+                    {score >= highScore && score > 0 ? " · NEW BEST" : ""}
+                  </div>
+
+                  {/* leaderboard entry — stamp this run under a handle or wallet */}
+                  {sendState === "done" ? (
                     <div
                       style={{
                         fontFamily: "var(--mono)",
-                        fontSize: 10,
-                        letterSpacing: "0.12em",
-                        color: "var(--ink-fade)",
+                        fontSize: 12,
+                        letterSpacing: "0.14em",
+                        color: "var(--gold-bright)",
+                        marginBottom: 16,
                       }}
                     >
-                      ⬡ WALLET {wallet.slice(0, 6)}…{wallet.slice(-4)}
+                      ⬡ LOGGED · RANK #{myRank}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                        alignItems: "center",
+                        marginBottom: 16,
+                      }}
+                    >
+                      <input
+                        value={handle}
+                        onChange={(e) => setHandle(e.target.value.slice(0, 20))}
+                        placeholder={wallet ? "HANDLE (OPTIONAL)" : "ENTER A HANDLE"}
+                        maxLength={20}
+                        style={{
+                          width: 220,
+                          textAlign: "center",
+                          padding: "9px 10px",
+                          background: "var(--line-2)",
+                          border: "1px solid var(--line)",
+                          borderRadius: 6,
+                          color: "var(--ink)",
+                          fontFamily: "var(--mono)",
+                          fontSize: 13,
+                          letterSpacing: "0.14em",
+                        }}
+                      />
+                      {wallet && (
+                        <div
+                          style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: 10,
+                            letterSpacing: "0.12em",
+                            color: "var(--ink-fade)",
+                          }}
+                        >
+                          ⬡ WALLET {wallet.slice(0, 6)}…{wallet.slice(-4)}
+                        </div>
+                      )}
+                      <button
+                        className="btn btn-primary"
+                        onClick={submitRun}
+                        disabled={
+                          sendState === "sending" || (!wallet && handle.trim().length < 2)
+                        }
+                        style={{ marginTop: 2 }}
+                      >
+                        <span className="ttl">
+                          {sendState === "sending"
+                            ? "LOGGING…"
+                            : sendState === "error"
+                              ? "RETRY ↻"
+                              : "LOG SCORE →"}
+                        </span>
+                      </button>
                     </div>
                   )}
-                  <button
-                    className="btn btn-primary"
-                    onClick={submitRun}
-                    disabled={
-                      sendState === "sending" || (!wallet && handle.trim().length < 2)
-                    }
-                    style={{ marginTop: 2 }}
-                  >
-                    <span className="ttl">
-                      {sendState === "sending"
-                        ? "LOGGING…"
-                        : sendState === "error"
-                          ? "RETRY ↻"
-                          : "LOG SCORE →"}
-                    </span>
-                  </button>
-                </div>
-              )}
 
-              <button className="btn btn-secondary" onClick={reset}>
-                <span className="ttl">RUN IT BACK ↻</span>
-              </button>
+                  <button className="btn btn-secondary" onClick={reset}>
+                    <span className="ttl">RUN IT BACK ↻</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -646,8 +876,20 @@ export function HexMatch() {
           flexWrap: "wrap",
         }}
       >
-        <button className="btn btn-secondary" onClick={reset}>
-          <span className="ttl">{over ? "RESTART ↻" : "NEW RUN ↻"}</span>
+        <button
+          className="btn btn-secondary"
+          onClick={reset}
+          disabled={busy || (mode === "daily" && playedToday)}
+        >
+          <span className="ttl">
+            {mode === "daily"
+              ? playedToday
+                ? "DAILY DONE ✓"
+                : "RESTART DAILY ↻"
+              : over
+                ? "RESTART ↻"
+                : "NEW RUN ↻"}
+          </span>
         </button>
         <Link className="btn btn-ghost" href="/play">
           <span className="ttl">← ARCADE</span>
