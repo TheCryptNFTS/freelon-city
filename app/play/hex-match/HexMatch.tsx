@@ -2,6 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  SIZE,
+  type Board,
+  colorOf,
+  isLine,
+  isMega,
+  isSpecial,
+  adjacent,
+  hasMatch,
+  hasMove,
+  seedBoard,
+  playableBoard,
+  resolveStep,
+} from "@/lib/hex-match-engine";
 
 /**
  * Hex Match — prototype #1 (the free hook).
@@ -10,13 +24,15 @@ import Link from "next/link";
  * the six signal-civilization colors. Tap a tile, tap an adjacent tile to
  * swap; a swap that forms a run of 3+ clears, gravity pulls tiles down, the
  * board refills from the top, and cascades chain into a combo multiplier.
+ * A run of 4 forges a LINE tile (clears a row+column when matched); a run of
+ * 5 forges a MEGA tile (clears its whole colour). Detonations chain.
+ *
+ * Board logic lives in lib/hex-match-engine.ts (pure + unit-tested); this
+ * component is the view + animation + run/level/leaderboard state.
  *
  * Self-contained: no wallet, no server, no economy mutation. High score is
  * persisted to localStorage so the prototype "remembers" between visits.
  */
-
-const SIZE = 7;
-const MIN_RUN = 3;
 
 // ── Difficulty: the board is no longer endless. Each level you must score
 // `target` points within a `moves` budget. Clear it → next level (higher
@@ -53,134 +69,6 @@ const HANDLE_KEY = "freelon::play::hexmatch::handle::v1";
 const GAME = "hex-match";
 
 type LbEntry = { id: string; handle: string; score: number; rank: number };
-
-type Cell = number; // tile id
-type Board = Cell[]; // length SIZE*SIZE
-
-const rnd = (n: number) => Math.floor(Math.random() * n);
-const idx = (r: number, c: number) => r * SIZE + c;
-
-function randomTile(): Cell {
-  return rnd(TILES.length);
-}
-
-// Find every cell that belongs to a horizontal or vertical run of MIN_RUN+.
-function findMatches(board: Board): Set<number> {
-  const matched = new Set<number>();
-  // rows
-  for (let r = 0; r < SIZE; r++) {
-    let run = 1;
-    for (let c = 1; c <= SIZE; c++) {
-      const same = c < SIZE && board[idx(r, c)] === board[idx(r, c - 1)];
-      if (same) {
-        run++;
-      } else {
-        if (run >= MIN_RUN) {
-          for (let k = c - run; k < c; k++) matched.add(idx(r, k));
-        }
-        run = 1;
-      }
-    }
-  }
-  // cols
-  for (let c = 0; c < SIZE; c++) {
-    let run = 1;
-    for (let r = 1; r <= SIZE; r++) {
-      const same = r < SIZE && board[idx(r, c)] === board[idx(r - 1, c)];
-      if (same) {
-        run++;
-      } else {
-        if (run >= MIN_RUN) {
-          for (let k = r - run; k < r; k++) matched.add(idx(k, c));
-        }
-        run = 1;
-      }
-    }
-  }
-  return matched;
-}
-
-// Build a starting board that has no pre-existing matches.
-function freshBoard(): Board {
-  let board: Board;
-  do {
-    board = Array.from({ length: SIZE * SIZE }, randomTile);
-  } while (findMatches(board).size > 0);
-  return board;
-}
-
-// Deterministic, match-free board used for the FIRST (server) render so SSR
-// and client hydrate identically. (r + 2c) % colors never repeats an
-// orthogonal neighbor, so it has zero runs. Replaced with a random board on
-// mount — see useEffect below.
-function seedBoard(): Board {
-  return Array.from({ length: SIZE * SIZE }, (_, i) => {
-    const r = Math.floor(i / SIZE);
-    const c = i % SIZE;
-    return (r + 2 * c) % TILES.length;
-  });
-}
-
-// Drop tiles into gaps (-1) and refill the top. Returns a new board.
-function collapse(board: Board): Board {
-  const next = board.slice();
-  for (let c = 0; c < SIZE; c++) {
-    let write = SIZE - 1;
-    for (let r = SIZE - 1; r >= 0; r--) {
-      const v = next[idx(r, c)];
-      if (v >= 0) {
-        next[idx(write, c)] = v;
-        write--;
-      }
-    }
-    for (let r = write; r >= 0; r--) {
-      next[idx(r, c)] = randomTile();
-    }
-  }
-  return next;
-}
-
-const adjacent = (a: number, b: number) => {
-  const ar = Math.floor(a / SIZE);
-  const ac = a % SIZE;
-  const br = Math.floor(b / SIZE);
-  const bc = b % SIZE;
-  return Math.abs(ar - br) + Math.abs(ac - bc) === 1;
-};
-
-// Is there at least one swap that produces a match? Tries every right/down
-// neighbor swap (covers all unique adjacent pairs) and checks for a run.
-// Used to detect a dead board so we can reshuffle instead of stranding the
-// player with no legal move.
-function hasMove(board: Board): boolean {
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      const i = idx(r, c);
-      // swap with right neighbor
-      if (c < SIZE - 1) {
-        const j = idx(r, c + 1);
-        const t = board.slice();
-        [t[i], t[j]] = [t[j], t[i]];
-        if (findMatches(t).size > 0) return true;
-      }
-      // swap with down neighbor
-      if (r < SIZE - 1) {
-        const j = idx(r + 1, c);
-        const t = board.slice();
-        [t[i], t[j]] = [t[j], t[i]];
-        if (findMatches(t).size > 0) return true;
-      }
-    }
-  }
-  return false;
-}
-
-// A fresh board guaranteed to have at least one legal move (and no pre-matches).
-function playableBoard(): Board {
-  let b = freshBoard();
-  while (!hasMove(b)) b = freshBoard();
-  return b;
-}
 
 export function HexMatch() {
   const [board, setBoard] = useState<Board>(seedBoard);
@@ -267,39 +155,37 @@ export function HexMatch() {
     flashTimer.current = setTimeout(() => setFlash(null), 900);
   }, []);
 
-  // Resolve all cascades starting from `start`. Returns the total points this
-  // swap earned (so onTile can settle moves/level/game-over against truth).
+  // Resolve all cascades starting from `start`. `pivot` is the cell the player
+  // swapped into place (it gets promoted to a special when it lands in a long
+  // run). Returns the total points this swap earned so onTile can settle
+  // moves/level/game-over against truth.
   const resolveCascades = useCallback(
-    async (start: Board): Promise<number> => {
+    async (start: Board, pivot: number): Promise<number> => {
       let current = start;
       let chain = 0;
       let totalGained = 0;
-      // step delay helper
       const wait = (ms: number) =>
         new Promise<void>((res) => setTimeout(res, ms));
 
       while (true) {
-        const matches = findMatches(current);
-        if (matches.size === 0) break;
+        const step = resolveStep(current, chain === 0 ? pivot : undefined);
+        if (!step) break;
         chain++;
 
-        // mark clearing for the animation
-        setClearing(new Set(matches));
-        const gained = matches.size * 10 * chain;
+        // highlight every cleared cell (matches + special detonations)
+        setClearing(new Set(step.clearedCells));
+        const gained = step.cleared * 10 * chain;
         totalGained += gained;
         scoreRef.current += gained;
         levelScoreRef.current += gained;
         setScore(scoreRef.current);
         setLevelScore(levelScoreRef.current);
-        if (chain > 1) popFlash(`COMBO ×${chain}  +${gained}`);
+        if (step.specials.some((s) => s.kind === "mega")) popFlash("MEGA FORGED");
+        else if (step.specials.some((s) => s.kind === "line")) popFlash("LINE FORGED");
+        else if (chain > 1) popFlash(`COMBO ×${chain}  +${gained}`);
         await wait(220);
 
-        // null out matched, collapse, refill
-        const gapped = current.slice();
-        matches.forEach((i) => {
-          gapped[i] = -1;
-        });
-        current = collapse(gapped);
+        current = step.board;
         setBoard(current);
         setClearing(new Set());
         await wait(140);
@@ -341,7 +227,7 @@ export function HexMatch() {
 
       await new Promise((r) => setTimeout(r, 120));
 
-      if (findMatches(swapped).size === 0) {
+      if (!hasMatch(swapped)) {
         // illegal — swap back
         const reverted = swapped.slice();
         [reverted[selected], reverted[i]] = [reverted[i], reverted[selected]];
@@ -352,7 +238,7 @@ export function HexMatch() {
         return;
       }
 
-      await resolveCascades(swapped);
+      await resolveCascades(swapped, i);
 
       // A committed (legal) swap spends one move. Settle the run: clearing the
       // level's target wins it (target first, so reaching it on your last move
@@ -527,23 +413,30 @@ export function HexMatch() {
           }}
         >
           {cells.map((t, i) => {
-            const tile = TILES[t] ?? TILES[0];
+            const tile = TILES[colorOf(t)] ?? TILES[0];
+            const line = isLine(t);
+            const mega = isMega(t);
+            const special = isSpecial(t);
             const isSel = selected === i;
             const isClearing = clearing.has(i);
             return (
               <button
                 key={i}
                 onClick={() => onTile(i)}
-                aria-label={`${tile.name} hex`}
+                aria-label={`${tile.name}${mega ? " mega" : line ? " line" : ""} hex`}
                 style={{
                   aspectRatio: "1 / 1",
                   clipPath: HEX_CLIP,
                   border: "none",
                   cursor: busy ? "default" : "pointer",
-                  background: `radial-gradient(circle at 50% 38%, ${tile.color} 0%, ${tile.color}cc 42%, ${tile.color}33 100%)`,
+                  background: mega
+                    ? `radial-gradient(circle at 50% 38%, #fff 0%, ${tile.color} 50%, ${tile.color}55 100%)`
+                    : `radial-gradient(circle at 50% 38%, ${tile.color} 0%, ${tile.color}cc 42%, ${tile.color}33 100%)`,
                   boxShadow: isSel
                     ? `0 0 0 2px var(--ink), 0 0 18px ${tile.color}`
-                    : `inset 0 0 14px ${tile.color}55`,
+                    : special
+                      ? `inset 0 0 0 2px rgba(255,255,255,.9), 0 0 16px ${tile.color}`
+                      : `inset 0 0 14px ${tile.color}55`,
                   transform: isClearing
                     ? "scale(0.2)"
                     : isSel
@@ -555,8 +448,8 @@ export function HexMatch() {
                   position: "relative",
                 }}
               >
-                {/* the hex-eye pupil — carries the civ glyph so tiles are
-                    distinguishable by shape, not color alone */}
+                {/* the hex-eye pupil — carries the civ glyph (or a special
+                    marker) so tiles are distinguishable by shape, not color */}
                 <span
                   aria-hidden
                   style={{
@@ -564,14 +457,14 @@ export function HexMatch() {
                     inset: 0,
                     display: "grid",
                     placeItems: "center",
-                    fontSize: "clamp(11px, 3.4vw, 20px)",
+                    fontSize: special ? "clamp(14px, 4.4vw, 26px)" : "clamp(11px, 3.4vw, 20px)",
                     lineHeight: 1,
-                    color: "rgba(10,14,39,.92)",
+                    color: special ? "#fff" : "rgba(10,14,39,.92)",
                     textShadow: `0 0 6px ${tile.color}`,
                     fontWeight: 700,
                   }}
                 >
-                  {tile.glyph}
+                  {mega ? "✸" : line ? "╋" : tile.glyph}
                 </span>
               </button>
             );
@@ -758,8 +651,9 @@ export function HexMatch() {
         }}
       >
         HIT THE TARGET SCORE BEFORE YOUR MOVES RUN OUT TO CLEAR THE LEVEL. EACH
-        LEVEL DEMANDS MORE AND GIVES YOU FEWER MOVES. CASCADES CHAIN INTO COMBOS
-        FOR BIG POINTS.
+        LEVEL DEMANDS MORE AND GIVES YOU FEWER MOVES. MATCH 4 TO FORGE A ╋ LINE
+        (CLEARS A ROW + COLUMN); MATCH 5 TO FORGE A ✸ MEGA (CLEARS A WHOLE
+        COLOUR). DETONATIONS CHAIN INTO COMBOS FOR BIG POINTS.
       </p>
 
       {/* high-score leaderboard */}

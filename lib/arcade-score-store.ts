@@ -16,7 +16,7 @@
 import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 /** Games allowed to post scores. Add a slug here to enable its board. */
-export const ARCADE_GAMES = ["hex-match"] as const;
+export const ARCADE_GAMES = ["hex-match", "sweep-run"] as const;
 export type ArcadeGame = (typeof ARCADE_GAMES)[number];
 
 export function isArcadeGame(g: string): g is ArcadeGame {

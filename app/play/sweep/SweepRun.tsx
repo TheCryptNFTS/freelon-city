@@ -26,6 +26,11 @@ const BEST_KEY = "freelon::play::sweep::best::v1";
 
 const HEX_CLIP = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 
+// Leaderboard: stamp a run under a handle or connected wallet (scores only).
+const GAME = "sweep-run";
+const HANDLE_KEY = "freelon::play::handle::v1";
+type LbEntry = { id: string; handle: string; score: number; rank: number };
+
 // Live-citizen decoys — civ colors + glyphs (must be SPARED, not swept).
 const LIVE = [
   { name: "Synthesis", color: "#00B8FF", glyph: "◇" },
@@ -70,6 +75,24 @@ export function SweepRun() {
   const [flash, setFlash] = useState<{ cell: number; kind: "sweep" | "miss" | "spare-hit" } | null>(null);
   const [newBest, setNewBest] = useState(false);
 
+  // ── leaderboard ──────────────────────────────────────────────────────────
+  const [lbTop, setLbTop] = useState<LbEntry[]>([]);
+  const [handle, setHandle] = useState("");
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [sendState, setSendState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [myRank, setMyRank] = useState<number | null>(null);
+
+  const loadTop = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/arcade/score?game=${GAME}&limit=10`);
+      if (!res.ok) return;
+      const j = (await res.json()) as { top: LbEntry[] };
+      setLbTop(j.top || []);
+    } catch {
+      /* best-effort; never block the game */
+    }
+  }, []);
+
   // Loop bookkeeping in refs so the interval closure always sees fresh values.
   const loopRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const nextSpawnRef = useRef(0);
@@ -86,7 +109,52 @@ export function SweepRun() {
   useEffect(() => {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(BEST_KEY) : null;
     if (raw) setBest(parseInt(raw, 10) || 0);
-  }, []);
+    const savedHandle = window.localStorage.getItem(HANDLE_KEY);
+    if (savedHandle) setHandle(savedHandle);
+    void loadTop();
+    if (window.ethereum) {
+      window.ethereum
+        .request({ method: "eth_accounts" })
+        .then((accs) => {
+          const list = accs as string[];
+          if (list && list[0]) setWallet(list[0].toLowerCase());
+        })
+        .catch(() => {});
+    }
+  }, [loadTop]);
+
+  const submitRun = useCallback(async () => {
+    const h = handle.trim();
+    if (!wallet && h.length < 2) return;
+    setSendState("sending");
+    try {
+      if (h) {
+        try {
+          window.localStorage.setItem(HANDLE_KEY, h);
+        } catch {}
+      }
+      const res = await fetch("/api/arcade/score", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          game: GAME,
+          score: scoreRef.current,
+          handle: h || undefined,
+          wallet: wallet || undefined,
+        }),
+      });
+      if (!res.ok) {
+        setSendState("error");
+        return;
+      }
+      const j = (await res.json()) as { rank: number; top: LbEntry[] };
+      setMyRank(j.rank);
+      setLbTop(j.top || []);
+      setSendState("done");
+    } catch {
+      setSendState("error");
+    }
+  }, [handle, wallet]);
 
   const mult = Math.min(5, 1 + Math.floor(streak / 5));
 
@@ -119,6 +187,8 @@ export function SweepRun() {
     setTargets([]);
     setFlash(null);
     setNewBest(false);
+    setSendState("idle");
+    setMyRank(null);
     scoreRef.current = 0;
     streakRef.current = 0;
     bestStreakRef.current = 0;
@@ -342,6 +412,36 @@ export function SweepRun() {
                     SHARE TO X →
                   </button>
                 </div>
+                {sendState === "done" ? (
+                  <div className="sweep-lb-done">⬡ LOGGED · RANK #{myRank}</div>
+                ) : (
+                  <div className="sweep-lb-entry">
+                    <input
+                      value={handle}
+                      onChange={(e) => setHandle(e.target.value.slice(0, 20))}
+                      placeholder={wallet ? "HANDLE (OPTIONAL)" : "ENTER A HANDLE"}
+                      maxLength={20}
+                      className="sweep-lb-input"
+                    />
+                    {wallet && (
+                      <span className="sweep-lb-wallet">
+                        ⬡ {wallet.slice(0, 6)}…{wallet.slice(-4)}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={submitRun}
+                      disabled={sendState === "sending" || (!wallet && handle.trim().length < 2)}
+                    >
+                      {sendState === "sending"
+                        ? "LOGGING…"
+                        : sendState === "error"
+                          ? "RETRY ↻"
+                          : "LOG SCORE →"}
+                    </button>
+                  </div>
+                )}
                 <div className="sweep-ov-funnel">
                   <Link href="/play/proof">Daily puzzle</Link>
                   <span>·</span>
@@ -352,6 +452,26 @@ export function SweepRun() {
               </>
             )}
           </div>
+        )}
+      </div>
+
+      {/* high-score leaderboard */}
+      <div className="sweep-lb">
+        <div className="sweep-lb-title">⬡ TOP SWEEPERS</div>
+        {lbTop.length === 0 ? (
+          <p className="sweep-lb-empty">NO RUNS LOGGED YET — BE THE FIRST.</p>
+        ) : (
+          <ol className="sweep-lb-list">
+            {lbTop.map((e) => (
+              <li key={e.id}>
+                <span className="sweep-lb-rank">
+                  {e.rank <= 3 ? ["🥇", "🥈", "🥉"][e.rank - 1] : `#${e.rank}`}
+                </span>
+                <span className="sweep-lb-handle">{e.handle}</span>
+                <span className="sweep-lb-score">{e.score.toLocaleString()}</span>
+              </li>
+            ))}
+          </ol>
         )}
       </div>
 
@@ -392,6 +512,19 @@ export function SweepRun() {
         .sweep-ov-funnel a { color: var(--ink-dim); }
 
         .sweep-foot { text-align: center; margin-top: 26px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-fade); }
+
+        .sweep-lb-entry { display: flex; flex-direction: column; align-items: center; gap: 7px; margin: 4px 0 2px; }
+        .sweep-lb-input { width: 220px; text-align: center; padding: 9px 10px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); font-family: var(--mono); font-size: 13px; letter-spacing: 0.14em; }
+        .sweep-lb-wallet { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; color: var(--ink-fade); }
+        .sweep-lb-done { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; color: var(--gold-bright); }
+        .sweep-lb { max-width: 480px; margin: 34px auto 0; }
+        .sweep-lb-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.26em; color: var(--gold); text-align: center; margin-bottom: 12px; }
+        .sweep-lb-empty { text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); }
+        .sweep-lb-list { list-style: none; margin: 0; padding: 0; }
+        .sweep-lb-list li { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 12px; font-family: var(--mono); font-size: 13px; border-top: 1px solid var(--line); }
+        .sweep-lb-rank { color: var(--ink-dim); width: 34px; }
+        .sweep-lb-handle { flex: 1; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.06em; padding: 0 8px; }
+        .sweep-lb-score { color: var(--gold-bright); font-weight: 700; }
       `}</style>
     </div>
   );
