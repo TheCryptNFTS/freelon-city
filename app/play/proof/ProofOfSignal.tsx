@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { CivGlyph } from "@/components/CivGlyph";
-import { tweetIntent, tweetProof } from "@/lib/share";
+import { tweetIntent, tweetProof, tweetProofPractice } from "@/lib/share";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import { ArcadeTutorial } from "@/components/ArcadeTutorial";
@@ -32,6 +32,28 @@ import {
 type Status = "playing" | "won" | "lost";
 type SaveV1 = { guesses: string[][]; status: Status };
 type Streak = { streak: number; lastDayKey: string };
+type Mode = "daily" | "practice";
+type Tier = "scout" | "signal" | "deep";
+
+/**
+ * Difficulty tiers — only the daily is the canonical, everyone-gets-the-same
+ * puzzle (always SIGNAL: 5 signals / 6 tries), so its shared share-card stays
+ * comparable. PRACTICE runs a fresh local frequency at the chosen tier; it
+ * never touches the daily save, streak, or comparability — pure off-day reps.
+ */
+const TIERS: Record<Tier, { len: number; tries: number; label: string; sub: string }> = {
+  scout: { len: 4, tries: 7, label: "SCOUT", sub: "4 signals · 7 tries" },
+  signal: { len: 5, tries: 6, label: "SIGNAL", sub: "5 signals · 6 tries" },
+  deep: { len: 6, tries: 6, label: "DEEP", sub: "6 signals · 6 tries" },
+};
+const DAILY_TIER: Tier = "signal";
+
+/** A fresh, non-deterministic frequency for a practice drill (local only). */
+function randomCode(len: number): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < len; i++) out.push(SIGNALS[Math.floor(Math.random() * SIGNALS.length)]);
+  return out;
+}
 
 const PEG_STYLE: Record<Peg, { bg: string; ring: string; label: string }> = {
   locked: { bg: "var(--gold-bright)", ring: "var(--gold-bright)", label: "LOCKED" },
@@ -45,6 +67,7 @@ function saveKey(dayKey: string) {
   return `freelon:proof:v2:${dayKey}`;
 }
 const STREAK_KEY = "freelon:proof:v1:streak";
+const BEST_KEY = "freelon:proof:v1:best";
 
 export function ProofOfSignal() {
   const [mounted, setMounted] = useState(false);
@@ -55,7 +78,17 @@ export function ProofOfSignal() {
   const [current, setCurrent] = useState<string[]>([]);
   const [status, setStatus] = useState<Status>("playing");
   const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
   const [copied, setCopied] = useState(false);
+
+  // Practice (off-day drills) — fully local, never persisted, never on the
+  // daily save/streak. The daily above stays canonical.
+  const [mode, setMode] = useState<Mode>("daily");
+  const [tier, setTier] = useState<Tier>("signal");
+  const [pCode, setPCode] = useState<string[]>([]);
+  const [pGuesses, setPGuesses] = useState<string[][]>([]);
+  const [pCurrent, setPCurrent] = useState<string[]>([]);
+  const [pStatus, setPStatus] = useState<Status>("playing");
 
   // ── mount: resolve today's puzzle + restore saved progress ───────────────
   useEffect(() => {
@@ -73,56 +106,73 @@ export function ProofOfSignal() {
       }
       const sr = localStorage.getItem(STREAK_KEY);
       if (sr) setStreak((JSON.parse(sr) as Streak).streak ?? 0);
+      const br = localStorage.getItem(BEST_KEY);
+      if (br) setBestStreak(parseInt(br, 10) || 0);
     } catch {
       /* corrupt/blocked storage — start fresh */
     }
     setMounted(true);
   }, []);
 
+  // ── active puzzle: daily vs practice ─────────────────────────────────────
+  const isDaily = mode === "daily";
+  const activeTier: Tier = isDaily ? DAILY_TIER : tier;
+  const codeLen = TIERS[activeTier].len;
+  const maxAttempts = TIERS[activeTier].tries;
+  const aCode = isDaily ? code : pCode;
+  const aGuesses = isDaily ? guesses : pGuesses;
+  const aCurrent = isDaily ? current : pCurrent;
+  const aStatus = isDaily ? status : pStatus;
+
   // ── derived scoring of completed rows ────────────────────────────────────
   const scored = useMemo(
-    () => guesses.map((g) => ({ guess: g, pegs: scoreGuess(g, code) })),
-    [guesses, code],
+    () => aGuesses.map((g) => ({ guess: g, pegs: scoreGuess(g, aCode) })),
+    [aGuesses, aCode],
   );
   const pegRows = scored.map((s) => s.pegs);
 
-  const remainingRows = PROOF_MAX_ATTEMPTS - guesses.length;
-  const canSubmit = status === "playing" && current.length === PROOF_CODE_LEN;
+  const remainingRows = maxAttempts - aGuesses.length;
+  const canSubmit = aStatus === "playing" && aCurrent.length === codeLen;
 
   // ── actions ──────────────────────────────────────────────────────────────
-  const pick = useCallback(
-    (slug: string) => {
-      if (status !== "playing") return;
-      setCurrent((c) => {
-        if (c.length >= PROOF_CODE_LEN) return c;
-        cue("tap");
-        return [...c, slug];
-      });
-    },
-    [status],
-  );
+  const pick = (slug: string) => {
+    if (aStatus !== "playing") return;
+    const set = isDaily ? setCurrent : setPCurrent;
+    set((c) => {
+      if (c.length >= codeLen) return c;
+      cue("tap");
+      return [...c, slug];
+    });
+  };
 
-  const backspace = useCallback(() => {
-    if (status !== "playing") return;
-    setCurrent((c) => c.slice(0, -1));
-  }, [status]);
+  const backspace = () => {
+    if (aStatus !== "playing") return;
+    (isDaily ? setCurrent : setPCurrent)((c) => c.slice(0, -1));
+  };
 
-  const submit = useCallback(() => {
-    if (current.length !== PROOF_CODE_LEN || status !== "playing") return;
-    const nextGuesses = [...guesses, current];
-    const pegs = scoreGuess(current, code);
+  const submit = () => {
+    if (aCurrent.length !== codeLen || aStatus !== "playing") return;
+    const pegs = scoreGuess(aCurrent, aCode);
     const solved = isSolved(pegs);
+    const nextGuesses = [...aGuesses, aCurrent];
     const nextStatus: Status = solved
       ? "won"
-      : nextGuesses.length >= PROOF_MAX_ATTEMPTS
+      : nextGuesses.length >= maxAttempts
         ? "lost"
         : "playing";
+    cue(solved ? "win" : nextStatus === "lost" ? "lose" : "clear");
+
+    if (!isDaily) {
+      // practice — ephemeral, no persistence, no streak
+      setPGuesses(nextGuesses);
+      setPCurrent([]);
+      setPStatus(nextStatus);
+      return;
+    }
 
     setGuesses(nextGuesses);
     setCurrent([]);
     setStatus(nextStatus);
-    cue(solved ? "win" : nextStatus === "lost" ? "lose" : "clear");
-
     try {
       localStorage.setItem(
         saveKey(dayKey),
@@ -145,41 +195,71 @@ export function ProofOfSignal() {
           JSON.stringify({ streak: next, lastDayKey: dayKey } satisfies Streak),
         );
         setStreak(next);
+        if (next > bestStreak) {
+          localStorage.setItem(BEST_KEY, String(next));
+          setBestStreak(next);
+        }
       }
     } catch {
       /* storage blocked — game still playable in-session */
     }
-  }, [current, guesses, code, status, dayKey]);
+  };
 
-  const share = useCallback(() => {
-    const text = tweetProof({
-      day,
-      attempts: guesses.length,
-      max: PROOF_MAX_ATTEMPTS,
-      solved: status === "won",
-      grid: shareGrid(pegRows),
-    });
+  // ── practice controls ────────────────────────────────────────────────────
+  const startPractice = (t: Tier) => {
+    setTier(t);
+    setMode("practice");
+    setPCode(randomCode(TIERS[t].len));
+    setPGuesses([]);
+    setPCurrent([]);
+    setPStatus("playing");
+    cue("tap");
+  };
+  const newPractice = () => {
+    setPCode(randomCode(codeLen));
+    setPGuesses([]);
+    setPCurrent([]);
+    setPStatus("playing");
+    cue("tap");
+  };
+  const goDaily = () => {
+    setMode("daily");
+    cue("tap");
+  };
+
+  const resultText = () =>
+    isDaily
+      ? tweetProof({
+          day,
+          attempts: aGuesses.length,
+          max: maxAttempts,
+          solved: aStatus === "won",
+          grid: shareGrid(pegRows),
+        })
+      : tweetProofPractice({
+          tier: TIERS[activeTier].label,
+          len: codeLen,
+          attempts: aGuesses.length,
+          max: maxAttempts,
+          solved: aStatus === "won",
+          grid: shareGrid(pegRows),
+        });
+
+  const share = () => {
     if (typeof window !== "undefined") {
-      window.open(tweetIntent(text), "_blank", "noopener");
+      window.open(tweetIntent(resultText()), "_blank", "noopener");
     }
-  }, [day, guesses.length, status, pegRows]);
+  };
 
-  const copyResult = useCallback(async () => {
-    const text = tweetProof({
-      day,
-      attempts: guesses.length,
-      max: PROOF_MAX_ATTEMPTS,
-      solved: status === "won",
-      grid: shareGrid(pegRows),
-    });
+  const copyResult = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(resultText());
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
       /* clipboard blocked — share button still works */
     }
-  }, [day, guesses.length, status, pegRows]);
+  };
 
   // ── render ────────────────────────────────────────────────────────────────
   if (!mounted) {
@@ -193,50 +273,92 @@ export function ProofOfSignal() {
     );
   }
 
-  const terminal = status !== "playing";
+  const terminal = aStatus !== "playing";
 
   return (
     <div className="manifesto" style={{ paddingBottom: 64 }}>
       <section className="manifesto-hero" style={{ paddingBottom: 8 }}>
-        <span className="kicker">⬡ PROOF OF SIGNAL · DAY {day}</span>
+        <span className="kicker">
+          ⬡ PROOF OF SIGNAL · {isDaily ? `DAY ${day}` : `${TIERS[activeTier].label} DRILL`}
+        </span>
         <h1>
           Can you still <em>receive</em>?
         </h1>
         <p className="lead">
-          The city broadcasts one frequency a day — {PROOF_CODE_LEN} signals,
-          in order, drawn from the ten doctrines. Tune to it in{" "}
-          {PROOF_MAX_ATTEMPTS} tries. Everyone gets the same transmission.
+          {isDaily
+            ? `The city broadcasts one frequency a day — ${PROOF_CODE_LEN} signals, in order, drawn from the ten doctrines. Tune to it in ${PROOF_MAX_ATTEMPTS} tries. Everyone gets the same transmission.`
+            : `Off-day reps — a fresh ${codeLen}-signal frequency at ${TIERS[activeTier].label} difficulty. Practice never touches your daily streak.`}
         </p>
       </section>
 
-      {/* streak line */}
-      <div
-        style={{
-          textAlign: "center",
-          fontFamily: "var(--mono)",
-          fontSize: 11,
-          letterSpacing: "0.2em",
-          color: streak > 0 ? "var(--gold-bright)" : "var(--ink-fade)",
-          marginBottom: 18,
-        }}
-      >
-        {streak > 0 ? `⬡ STREAK ${streak} DAY${streak === 1 ? "" : "S"}` : "NO STREAK YET"}
+      {/* mode switch — daily (canonical) vs practice (local drills) */}
+      <div className="proof-modes">
+        <button
+          type="button"
+          className={`proof-mode${isDaily ? " is-on" : ""}`}
+          onClick={goDaily}
+        >
+          DAILY
+        </button>
+        <button
+          type="button"
+          className={`proof-mode${!isDaily ? " is-on" : ""}`}
+          onClick={() => startPractice(tier)}
+        >
+          PRACTICE
+        </button>
       </div>
+
+      {/* difficulty tiers — only in practice */}
+      {!isDaily && (
+        <div className="proof-tiers">
+          {(Object.keys(TIERS) as Tier[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`proof-tier${tier === t ? " is-on" : ""}`}
+              onClick={() => startPractice(t)}
+            >
+              <span className="proof-tier__label">{TIERS[t].label}</span>
+              <span className="proof-tier__sub">{TIERS[t].sub}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* streak line (daily only — practice has no streak) */}
+      {isDaily && (
+        <div
+          style={{
+            textAlign: "center",
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.2em",
+            color: streak > 0 ? "var(--gold-bright)" : "var(--ink-fade)",
+            margin: "16px 0 18px",
+          }}
+        >
+          {streak > 0 ? `⬡ STREAK ${streak} DAY${streak === 1 ? "" : "S"}` : "NO STREAK YET"}
+          {bestStreak > 0 && (
+            <span style={{ color: "var(--ink-fade)" }}> · BEST {bestStreak}</span>
+          )}
+        </div>
+      )}
 
       {/* board: one row per attempt */}
       <div style={{ display: "grid", gap: 8, maxWidth: 420, margin: "0 auto" }}>
         {/* completed rows */}
         {scored.map((row, ri) => (
-          <Row key={`g${ri}`} signals={row.guess} pegs={row.pegs} />
+          <Row key={`g${ri}`} signals={row.guess} pegs={row.pegs} len={codeLen} />
         ))}
         {/* current editable row */}
         {!terminal && (
-          <Row signals={current} pegs={null} active />
+          <Row signals={aCurrent} pegs={null} active len={codeLen} />
         )}
         {/* empty remaining rows */}
         {!terminal &&
           Array.from({ length: Math.max(0, remainingRows - 1) }).map((_, i) => (
-            <Row key={`e${i}`} signals={[]} pegs={null} />
+            <Row key={`e${i}`} signals={[]} pegs={null} len={codeLen} />
           ))}
       </div>
 
@@ -246,13 +368,13 @@ export function ProofOfSignal() {
           style={{
             maxWidth: 420,
             margin: "20px auto 0",
-            border: `1px solid ${status === "won" ? "var(--gold-bright)" : "var(--line)"}`,
-            borderTop: `3px solid ${status === "won" ? "var(--gold-bright)" : "var(--neon-magenta)"}`,
+            border: `1px solid ${aStatus === "won" ? "var(--gold-bright)" : "var(--line)"}`,
+            borderTop: `3px solid ${aStatus === "won" ? "var(--gold-bright)" : "var(--neon-magenta)"}`,
             background: "var(--bg-2)",
             padding: "20px 18px",
             textAlign: "center",
             boxShadow:
-              status === "won" ? "0 0 32px rgba(200,167,93,0.22)" : "none",
+              aStatus === "won" ? "0 0 32px rgba(200,167,93,0.22)" : "none",
           }}
         >
           <div
@@ -260,11 +382,15 @@ export function ProofOfSignal() {
               fontFamily: "var(--mono)",
               fontSize: 11,
               letterSpacing: "0.24em",
-              color: status === "won" ? "var(--gold-bright)" : "var(--neon-magenta)",
+              color: aStatus === "won" ? "var(--gold-bright)" : "var(--neon-magenta)",
               marginBottom: 8,
             }}
           >
-            {status === "won" ? "⬡ SIGNAL LOCKED" : "✕ LOST IN THE NOISE"}
+            {aStatus === "won"
+              ? isDaily
+                ? "⬡ SIGNAL LOCKED"
+                : `⬡ ${TIERS[activeTier].label} FREQUENCY CRACKED`
+              : "✕ LOST IN THE NOISE"}
           </div>
           <div
             style={{
@@ -275,12 +401,12 @@ export function ProofOfSignal() {
               marginBottom: 6,
             }}
           >
-            {status === "won"
-              ? `${guesses.length}/${PROOF_MAX_ATTEMPTS}`
+            {aStatus === "won"
+              ? `${aGuesses.length}/${maxAttempts}`
               : "THE FREQUENCY ESCAPED"}
           </div>
           {/* on a loss, reveal the code so the day still teaches the ten */}
-          {status === "lost" && (
+          {aStatus === "lost" && (
             <div
               style={{
                 display: "flex",
@@ -289,7 +415,7 @@ export function ProofOfSignal() {
                 margin: "10px 0 4px",
               }}
             >
-              {code.map((slug, i) => (
+              {aCode.map((slug, i) => (
                 <Cell key={i} slug={slug} peg="locked" small />
               ))}
             </div>
@@ -303,12 +429,21 @@ export function ProofOfSignal() {
               maxWidth: 320,
             }}
           >
-            {status === "won"
-              ? "You received the transmission. Come back tomorrow for a new frequency."
-              : "The city went quiet. A new frequency broadcasts tomorrow."}
+            {isDaily
+              ? aStatus === "won"
+                ? "You received the transmission. Come back tomorrow for a new frequency."
+                : "The city went quiet. A new frequency broadcasts tomorrow."
+              : aStatus === "won"
+                ? "Clean reception. Run another drill or step up the difficulty."
+                : "Lost in the noise. Re-tune and run it again."}
           </p>
           <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={share} className="proof-btn proof-btn--gold">
+            {!isDaily && (
+              <button onClick={newPractice} className="proof-btn proof-btn--gold">
+                NEW PUZZLE →
+              </button>
+            )}
+            <button onClick={share} className={`proof-btn${isDaily ? " proof-btn--gold" : ""}`}>
               SHARE TO X →
             </button>
             <button onClick={copyResult} className="proof-btn">
@@ -334,7 +469,7 @@ export function ProofOfSignal() {
                 <button
                   key={slug}
                   onClick={() => pick(slug)}
-                  disabled={current.length >= PROOF_CODE_LEN}
+                  disabled={aCurrent.length >= codeLen}
                   title={`${c.name} · ${c.doctrine}`}
                   className="proof-sig"
                   style={{ "--civ": c.color } as React.CSSProperties}
@@ -450,9 +585,9 @@ export function ProofOfSignal() {
             title="Proof of Signal"
             accent="var(--gold-bright)"
             steps={[
-              { glyph: "◇", text: "One hidden frequency a day — four signals drawn from the ten doctrines. Guess it." },
-              { glyph: "✦", text: "After each guess, tiles show how close you are. You get eight tries to tune in." },
-              { glyph: "⬡", text: "Same puzzle for everyone, every day. Solve it and share your result to X." },
+              { glyph: "◇", text: "One hidden frequency a day — five signals drawn from the ten doctrines. Guess it." },
+              { glyph: "✦", text: "After each guess, tiles show how close you are. You get six tries to tune in." },
+              { glyph: "⬡", text: "Same daily for everyone — or hit PRACTICE for endless drills at three difficulties." },
             ]}
           />
         </div>
@@ -498,6 +633,19 @@ export function ProofOfSignal() {
           background: var(--surface-2);
         }
         .proof-btn--gold:hover:not(:disabled) { background: var(--tint-gold); }
+
+        .proof-modes { display: flex; gap: 0; justify-content: center; margin: 4px auto 0; max-width: 280px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+        .proof-mode { flex: 1; font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; padding: 9px 10px; background: var(--bg-2); color: var(--ink-fade); border: none; cursor: pointer; transition: background .12s, color .12s; }
+        .proof-mode + .proof-mode { border-left: 1px solid var(--line); }
+        .proof-mode:hover { color: var(--ink-dim); }
+        .proof-mode.is-on { background: var(--surface-2); color: var(--gold-bright); }
+        .proof-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 420px; margin: 12px auto 0; }
+        .proof-tier { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 4px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: border-color .12s, background .12s; }
+        .proof-tier:hover { border-color: var(--line-2); }
+        .proof-tier.is-on { border-color: var(--gold-bright); background: var(--surface-2); }
+        .proof-tier__label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ink); }
+        .proof-tier.is-on .proof-tier__label { color: var(--gold-bright); }
+        .proof-tier__sub { font-family: var(--mono2); font-size: 8px; letter-spacing: 0.06em; color: var(--ink-fade); }
       `}</style>
     </div>
   );
@@ -586,15 +734,17 @@ function Cell({
   );
 }
 
-/** One attempt row: PROOF_CODE_LEN cells, padded with empties. */
+/** One attempt row: `len` cells, padded with empties. */
 function Row({
   signals,
   pegs,
   active,
+  len = PROOF_CODE_LEN,
 }: {
   signals: string[];
   pegs: Peg[] | null;
   active?: boolean;
+  len?: number;
 }) {
   return (
     <div
@@ -607,7 +757,7 @@ function Row({
         borderRadius: 8,
       }}
     >
-      {Array.from({ length: PROOF_CODE_LEN }).map((_, i) => (
+      {Array.from({ length: len }).map((_, i) => (
         <Cell key={i} slug={signals[i] ?? null} peg={pegs ? pegs[i] : null} />
       ))}
     </div>

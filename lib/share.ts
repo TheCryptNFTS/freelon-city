@@ -239,6 +239,35 @@ export function tweetProof(input: {
 }
 
 /**
+ * Proof of Signal — PRACTICE drill share. The daily share (above) stays the
+ * canonical, comparable card; practice runs an off-day frequency at a chosen
+ * difficulty, so its card never claims a day number — it flexes the tier + the
+ * spoiler-free grid and funnels back to the daily. Same brand-glyph family.
+ */
+export function tweetProofPractice(input: {
+  tier: string; // tier label, e.g. "DEEP"
+  len: number; // signals in the frequency
+  attempts: number;
+  max: number;
+  solved: boolean;
+  grid: string;
+}): string {
+  const score = input.solved ? `${input.attempts}/${input.max}` : `X/${input.max}`;
+  const head = input.solved
+    ? `⬡ ${HANDLE} · ${input.tier} FREQUENCY CRACKED · Proof of Signal drill · ${score}`
+    : `⬡ ${HANDLE} · LOST IN THE NOISE · ${input.tier} drill · ${score}`;
+  return [
+    head,
+    ``,
+    input.grid,
+    ``,
+    `${input.len}-signal ${input.tier} drill. Can you tune to today's daily transmission?`,
+    `${HASHTAGS}`,
+    `${SITE}/play/proof`,
+  ].join("\n");
+}
+
+/**
  * The Cipher daily share — the multi-stage cryptogram result. Like Proof, the
  * spoiler-free brand-glyph grid is the hook (⬡ = decoded clean, ◇ = decoded
  * with a bought hint, ✕ = lost), the X/N is the flex, and /play/cipher is the
