@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cue } from "@/lib/arcade-feedback";
+import { tweetCipher, tweetIntent } from "@/lib/share";
 import { awardXp, getProgress, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import { ArcadeTutorial } from "@/components/ArcadeTutorial";
@@ -97,10 +98,27 @@ const EMPTY: Save = { solved: 0, tries: {} };
 // gets the same puzzle), a Wordle-style guess budget, and a streak. Decode the
 // line before you run out of tries to bank the day.
 type Mode = "story" | "daily";
-const DAILY_MAX_TRIES = 5;
+// Multi-stage daily: three escalating intercepts share ONE attempt budget.
+// Every wrong guess AND every bought hint spends one attempt — that shared
+// pool is the "hint economy": you can grind guesses or pay for the shift.
+const DAILY_STAGES = 3;
+const DAILY_BUDGET = 7;
 const STREAK_KEY = "freelon::play::cipher::streak::v1";
 const DAILY_RESULT_KEY = "freelon::play::cipher::daily::v1";
-type DailyResult = { dayKey: string; won: boolean; tries: number };
+type DailyStageResult = { solved: boolean; hint: boolean };
+type DailyResult = {
+  dayKey: string;
+  won: boolean;
+  tries: number;
+  // Per-stage outcome for the brand-glyph share grid (older v1 blobs omit it).
+  stages?: DailyStageResult[];
+};
+
+// Brand-glyph share grid: ⬡ decoded clean · ◇ decoded with a bought hint ·
+// ✕ never decoded. One glyph per stage, the recognisable spoiler-free hook.
+function cipherGrid(stages: DailyStageResult[]): string {
+  return stages.map((s) => (s.solved ? (s.hint ? "◇" : "⬡") : "✕")).join(" ");
+}
 
 // Short canonical lore lines — uppercase A–Z + spaces only so a Caesar shift
 // is clean and the decoded answer is recognisable. norm() ignores spacing on
@@ -157,19 +175,33 @@ export function Cipher() {
   const [dStreak, setDStreak] = useState(0);
   const streakRef = useRef<StreakState | null>(null);
   const [dResult, setDResult] = useState<DailyResult | null>(null);
-  const [dWrong, setDWrong] = useState(0); // wrong guesses used today
+  const [dWrong, setDWrong] = useState(0); // attempts spent today (guesses + hints)
+  const [dStage, setDStage] = useState(0); // current stage index 0..DAILY_STAGES-1
+  const [dStageDone, setDStageDone] = useState<DailyStageResult[]>([]); // solved stages
+  const [dHintShown, setDHintShown] = useState(false); // shift hint bought for THIS stage
   const [dInput, setDInput] = useState("");
   const [dShake, setDShake] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [themeAccent, setThemeAccent] = useState("var(--gold-bright)");
   const playedToday = dResult != null && dResult.dayKey === today;
 
-  // The day's puzzle: a seeded phrase + Caesar shift (deterministic per day).
+  // The day's puzzle: DAILY_STAGES distinct seeded phrases, each Caesar-shifted
+  // (deterministic per day; shifts grow so later stages bite harder).
   const daily = useMemo(() => {
     if (!dayNum) return null;
     const rng = dailyRng(dayNum, "cipher");
-    const phrase = PHRASES[Math.floor(rng() * PHRASES.length)];
-    const shift = 1 + Math.floor(rng() * 25);
-    return { phrase, shift, cipher: caesar(phrase, shift) };
+    const used = new Set<number>();
+    const stages: { phrase: string; shift: number; cipher: string }[] = [];
+    for (let s = 0; s < DAILY_STAGES; s++) {
+      let pi = Math.floor(rng() * PHRASES.length);
+      let guard = 0;
+      while (used.has(pi) && guard++ < PHRASES.length) pi = Math.floor(rng() * PHRASES.length);
+      used.add(pi);
+      const phrase = PHRASES[pi];
+      const shift = 1 + Math.floor(rng() * 25);
+      stages.push({ phrase, shift, cipher: caesar(phrase, shift) });
+    }
+    return { stages };
   }, [dayNum]);
 
   useEffect(() => {
@@ -250,14 +282,15 @@ export function Cipher() {
 
   const reset = useCallback(() => persist(EMPTY), [persist]);
 
-  // Bank the daily result + resolve the streak. Win = decoded before the guess
-  // budget runs out; loss = ran out of tries. One attempt-set per day.
+  // Bank the daily result + resolve the streak. Win = every stage decoded
+  // before the shared budget runs out; loss = ran out of attempts. One
+  // attempt-set per day; `stages` drives the brand-glyph share grid.
   const bankDaily = useCallback(
-    (won: boolean, wrongUsed: number) => {
+    (won: boolean, wrongUsed: number, stages: DailyStageResult[]) => {
       const next = resolveStreak(streakRef.current, won);
       streakRef.current = next;
       setDStreak(next.streak);
-      const result: DailyResult = { dayKey: today, won, tries: wrongUsed };
+      const result: DailyResult = { dayKey: today, won, tries: wrongUsed, stages };
       setDResult(result);
       try {
         window.localStorage.setItem(STREAK_KEY, JSON.stringify(next));
@@ -273,25 +306,43 @@ export function Cipher() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (!daily || playedToday) return;
+      const stage = daily.stages[dStage];
+      if (!stage) return;
       const guess = norm(dInput);
       if (guess.length === 0) return;
-      if (guess === norm(daily.phrase)) {
-        setDInput("");
-        // Lifetime arcade XP — more for a clean decode (fewer wrong guesses).
-        awardXp("cipher", 40 + (DAILY_MAX_TRIES - dWrong) * 5);
-        cue("win");
-        bankDaily(true, dWrong);
-        return;
-      }
-      const wrong = dWrong + 1;
-      setDWrong(wrong);
-      setDInput("");
       const reduce =
         typeof window !== "undefined" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (wrong >= DAILY_MAX_TRIES) {
+
+      if (guess === norm(stage.phrase)) {
+        // Stage decoded. Record whether a shift hint was bought for it.
+        const done = [...dStageDone, { solved: true, hint: dHintShown }];
+        setDStageDone(done);
+        setDInput("");
+        setDHintShown(false);
+        if (dStage + 1 >= DAILY_STAGES) {
+          // Final stage cleared → full decode. Clean stages (no hint) pay more.
+          const clean = done.filter((s) => !s.hint).length;
+          awardXp("cipher", 40 + clean * 15 + (DAILY_BUDGET - dWrong) * 5);
+          cue("win");
+          bankDaily(true, dWrong, done);
+        } else {
+          setDStage(dStage + 1);
+          cue("special");
+        }
+        return;
+      }
+
+      // Wrong guess spends one attempt.
+      const wrong = dWrong + 1;
+      setDWrong(wrong);
+      setDInput("");
+      if (wrong >= DAILY_BUDGET) {
+        // Budget gone — current + remaining stages count as lost.
+        const lost: DailyStageResult[] = [...dStageDone];
+        while (lost.length < DAILY_STAGES) lost.push({ solved: false, hint: false });
         cue("lose");
-        bankDaily(false, wrong);
+        bankDaily(false, wrong, lost);
       } else {
         cue("error");
         if (!reduce) {
@@ -300,12 +351,48 @@ export function Cipher() {
         }
       }
     },
-    [daily, playedToday, dInput, dWrong, bankDaily],
+    [daily, playedToday, dInput, dWrong, dStage, dStageDone, dHintShown, bankDaily],
   );
 
-  const dTriesLeft = Math.max(0, DAILY_MAX_TRIES - dWrong);
-  // Mercy hint: after burning more than half the budget, reveal the shift.
-  const dShowShift = dWrong >= 3 && !playedToday;
+  // Hint economy: buy this stage's shift for one attempt from the shared pool.
+  const buyHint = useCallback(() => {
+    if (!daily || playedToday || dHintShown) return;
+    const wrong = dWrong + 1;
+    setDWrong(wrong);
+    setDHintShown(true);
+    cue("tap");
+    if (wrong >= DAILY_BUDGET) {
+      // Spending the last attempt on a hint ends the day on the current stage.
+      const lost: DailyStageResult[] = [...dStageDone];
+      while (lost.length < DAILY_STAGES) lost.push({ solved: false, hint: false });
+      cue("lose");
+      bankDaily(false, wrong, lost);
+    }
+  }, [daily, playedToday, dHintShown, dWrong, dStageDone, bankDaily]);
+
+  const shareDaily = useCallback(() => {
+    if (!dResult || !dResult.stages) return;
+    const solved = dResult.stages.filter((s) => s.solved).length;
+    const text = tweetCipher({
+      day: dayNum,
+      solved,
+      stages: DAILY_STAGES,
+      won: dResult.won,
+      grid: cipherGrid(dResult.stages),
+    });
+    // Copy the grid to the clipboard (best-effort) AND open the X intent.
+    try {
+      void navigator.clipboard?.writeText(text);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 1600);
+    } catch {
+      /* clipboard optional */
+    }
+    window.open(tweetIntent(text), "_blank", "noopener");
+  }, [dResult, dayNum]);
+
+  const dTriesLeft = Math.max(0, DAILY_BUDGET - dWrong);
+  const dCurrentStage = daily?.stages[dStage] ?? null;
 
   const triesOnCurrent = current ? save.tries[current.n] ?? 0 : 0;
   const showHint = triesOnCurrent >= 2;
@@ -315,7 +402,7 @@ export function Cipher() {
       <section className="manifesto-hero" style={{ paddingBottom: 8 }}>
         <span className="kicker">
           {mode === "daily"
-            ? `⬡ DAILY CRYPTOGRAM · DAY ${dayNum}`
+            ? `⬡ DAILY CRYPTOGRAM · DAY ${dayNum}${playedToday ? "" : ` · STAGE ${Math.min(dStage + 1, DAILY_STAGES)}/${DAILY_STAGES}`}`
             : `⬡ ARG · THE CIPHER · ${save.solved}/5 DECODED`}
         </span>
         <h1>
@@ -377,7 +464,27 @@ export function Cipher() {
           <span style={{ color: dStreak > 0 ? "var(--gold-bright)" : "var(--ink-fade)" }}>
             ⬡ STREAK {dStreak}
           </span>
-          {!playedToday && <span>TRIES LEFT {dTriesLeft}</span>}
+          {!playedToday && <span>ATTEMPTS LEFT {dTriesLeft}</span>}
+          {/* stage progress pips — three intercepts to decode */}
+          <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+            {Array.from({ length: DAILY_STAGES }).map((_, i) => {
+              const r = dResult?.stages?.[i] ?? dStageDone[i];
+              const filled = playedToday ? r?.solved : i < dStage;
+              return (
+                <span
+                  key={i}
+                  aria-hidden
+                  style={{
+                    width: 9,
+                    height: 9,
+                    transform: "rotate(45deg)",
+                    background: filled ? "var(--gold-bright)" : i === dStage && !playedToday ? "var(--ink-dim)" : "var(--line-2)",
+                    boxShadow: filled ? "0 0 7px var(--gold-bright)" : "none",
+                  }}
+                />
+              );
+            })}
+          </span>
         </div>
       )}
 
@@ -624,37 +731,8 @@ export function Cipher() {
             animation: dShake ? "cipher-shake .4s" : undefined,
           }}
         >
-          <div
-            style={{
-              fontFamily: "var(--mono)",
-              fontSize: 10,
-              letterSpacing: "0.26em",
-              color: themeAccent,
-              marginBottom: 14,
-            }}
-          >
-            ⬡ INTERCEPTED TRANSMISSION · SHIFTED
-          </div>
-
-          {/* the ciphertext */}
-          <div
-            style={{
-              fontFamily: "var(--mono)",
-              fontSize: "clamp(15px, 4vw, 22px)",
-              letterSpacing: "0.16em",
-              color: themeAccent,
-              background: "var(--bg)",
-              border: "1px dashed var(--line-2)",
-              padding: "16px",
-              textAlign: "center",
-              margin: "0 0 18px",
-              wordBreak: "break-word",
-            }}
-          >
-            {daily.cipher}
-          </div>
-
           {playedToday ? (
+            // ── result: full decoded transmission + brand-glyph share grid ──
             <div style={{ textAlign: "center" }}>
               <div
                 style={{
@@ -662,21 +740,43 @@ export function Cipher() {
                   fontSize: 12,
                   letterSpacing: "0.18em",
                   color: dResult?.won ? "var(--success-bright)" : "var(--state-danger)",
-                  marginBottom: 10,
-                }}
-              >
-                {dResult?.won ? "✓ DECODED" : "✕ TRANSMISSION LOST"}
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--display)",
-                  fontStyle: "italic",
-                  fontSize: "clamp(16px, 3vw, 22px)",
-                  color: "var(--ink)",
                   marginBottom: 14,
                 }}
               >
-                “{daily.phrase}”
+                {dResult?.won
+                  ? "✓ TRANSMISSION DECODED"
+                  : `✕ SIGNAL LOST · ${dResult?.stages?.filter((s) => s.solved).length ?? 0}/${DAILY_STAGES}`}
+              </div>
+              {daily.stages.map((st, i) => {
+                const r = dResult?.stages?.[i];
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      fontFamily: "var(--display)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(14px, 2.6vw, 19px)",
+                      color: r?.solved ? "var(--ink)" : "var(--ink-fade)",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <span style={{ color: r?.solved ? (r.hint ? "var(--ink-dim)" : "var(--gold-bright)") : "var(--state-danger)", marginRight: 8 }}>
+                      {r?.solved ? (r.hint ? "◇" : "⬡") : "✕"}
+                    </span>
+                    {r?.solved ? `“${st.phrase}”` : "░░░░░ ░░░ ░░░░░░"}
+                  </div>
+                );
+              })}
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 18,
+                  letterSpacing: "0.3em",
+                  color: "var(--gold-bright)",
+                  margin: "16px 0 6px",
+                }}
+              >
+                {cipherGrid(dResult?.stages ?? [])}
               </div>
               <div
                 style={{
@@ -685,17 +785,21 @@ export function Cipher() {
                   fontWeight: 700,
                   letterSpacing: "0.1em",
                   color: dStreak > 0 ? "var(--gold-bright)" : "var(--ink-fade)",
-                  marginBottom: 8,
+                  marginBottom: 14,
                 }}
               >
                 ⬡ STREAK {dStreak}
               </div>
+              <button className="btn btn-primary" onClick={shareDaily}>
+                <span className="ttl">{shareCopied ? "COPIED ✓" : "SHARE GRID →"}</span>
+              </button>
               <div
                 style={{
                   fontFamily: "var(--mono)",
                   fontSize: 10,
                   letterSpacing: "0.16em",
                   color: "var(--ink-fade)",
+                  marginTop: 14,
                 }}
               >
                 ONE TRANSMISSION A DAY — COME BACK TOMORROW
@@ -703,6 +807,41 @@ export function Cipher() {
             </div>
           ) : (
             <>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.26em",
+                  color: themeAccent,
+                  marginBottom: 14,
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span>⬡ INTERCEPT {dStage + 1} OF {DAILY_STAGES} · SHIFTED</span>
+                {dStageDone.length > 0 && (
+                  <span style={{ color: "var(--ink-fade)" }}>{dStageDone.length} BANKED</span>
+                )}
+              </div>
+
+              {/* the current stage's ciphertext */}
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: "clamp(15px, 4vw, 22px)",
+                  letterSpacing: "0.16em",
+                  color: themeAccent,
+                  background: "var(--bg)",
+                  border: "1px dashed var(--line-2)",
+                  padding: "16px",
+                  textAlign: "center",
+                  margin: "0 0 18px",
+                  wordBreak: "break-word",
+                }}
+              >
+                {dCurrentStage?.cipher}
+              </div>
+
               <form onSubmit={submitDaily} style={{ display: "flex", gap: 10 }}>
                 <input
                   value={dInput}
@@ -726,19 +865,43 @@ export function Cipher() {
                   <span className="ttl">DECODE →</span>
                 </button>
               </form>
+
               <div
                 style={{
                   marginTop: 14,
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "center",
                   fontFamily: "var(--mono)",
                   fontSize: 12,
                   color: "var(--ink-dim)",
                   letterSpacing: "0.06em",
                 }}
               >
-                <span>TRIES LEFT · {dTriesLeft}</span>
-                {dShowShift && <span>HINT · SHIFTED BY {daily.shift}</span>}
+                <span>ATTEMPTS LEFT · {dTriesLeft}</span>
+                {dHintShown ? (
+                  <span style={{ color: themeAccent }}>SHIFTED BY {dCurrentStage?.shift}</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={buyHint}
+                    disabled={dTriesLeft <= 0}
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: 11,
+                      letterSpacing: "0.12em",
+                      color: themeAccent,
+                      background: "transparent",
+                      border: "1px solid var(--line-2)",
+                      borderRadius: 4,
+                      padding: "5px 10px",
+                      cursor: dTriesLeft > 0 ? "pointer" : "default",
+                      opacity: dTriesLeft > 0 ? 1 : 0.4,
+                    }}
+                  >
+                    REVEAL SHIFT · −1
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -768,7 +931,7 @@ export function Cipher() {
           steps={[
             { glyph: "✦", text: "Each stage poses a riddle grounded in FREELON CITY lore — read the clue, type your answer." },
             { glyph: "◇", text: "Solve a stage to reveal one fragment of a lost transmission. Wrong tries surface a hint." },
-            { glyph: "⬡", text: "Daily decode: crack the day's intercepted, shifted transmission. Same puzzle for everyone." },
+            { glyph: "⬡", text: "Daily decode: crack three shifted intercepts on one attempt budget. Spend an attempt to reveal a shift, or grind it out. Share your ⬡◇✕ grid." },
           ]}
         />
       </div>

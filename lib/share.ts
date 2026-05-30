@@ -239,6 +239,34 @@ export function tweetProof(input: {
 }
 
 /**
+ * The Cipher daily share — the multi-stage cryptogram result. Like Proof, the
+ * spoiler-free brand-glyph grid is the hook (⬡ = decoded clean, ◇ = decoded
+ * with a bought hint, ✕ = lost), the X/N is the flex, and /play/cipher is the
+ * recruitment funnel: any reader faces the same shifted transmission today.
+ */
+export function tweetCipher(input: {
+  day: number;
+  solved: number; // stages decoded
+  stages: number; // total stages
+  won: boolean; // all stages decoded
+  grid: string; // pre-built brand-glyph row
+}): string {
+  const score = `${input.solved}/${input.stages}`;
+  const head = input.won
+    ? `⬡ ${HANDLE} · TRANSMISSION DECODED · The Cipher #${input.day} · ${score}`
+    : `⬡ ${HANDLE} · SIGNAL LOST IN THE SHIFT · The Cipher #${input.day} · ${score}`;
+  return [
+    head,
+    ``,
+    input.grid,
+    ``,
+    `Can you decode today's intercepted transmission?`,
+    `${HASHTAGS}`,
+    `${SITE}/play/cipher`,
+  ].join("\n");
+}
+
+/**
  * The Reckoning share — the weekly civ-vs-civ tribute war. Two modes:
  *   - rally: "I just mustered for <civ>" after a tribute (recruitment for the
  *     side you back — the burn flexes commitment, the muster flexes holdings).
