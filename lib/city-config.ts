@@ -106,7 +106,9 @@ export type StructureKey =
   | "forge"
   | "bastion"
   | "core"
-  | "throne";
+  | "throne"
+  | "obelisk"
+  | "spire";
 
 export type Structure = {
   key: StructureKey;
@@ -199,6 +201,24 @@ export const STRUCTURES: Structure[] = [
     caste: "THE THRONE",
     baseCost: 90_000,
     rate: 2_000,
+    accent: "#FFD24A",
+  },
+  {
+    key: "obelisk",
+    name: "Synth Obelisk",
+    desc: "Synth Ascended fold whole districts into one carrier.",
+    caste: "SYNTH ASCENDED",
+    baseCost: 260_000,
+    rate: 5_200,
+    accent: "#C9D2DE",
+  },
+  {
+    key: "spire",
+    name: "Throne Spire",
+    desc: "The Throne's apex — a single spire answers a whole civilization.",
+    caste: "THE THRONE",
+    baseCost: 720_000,
+    rate: 16_000,
     accent: "#FFD24A",
   },
 ];

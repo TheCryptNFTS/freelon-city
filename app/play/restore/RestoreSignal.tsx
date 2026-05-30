@@ -87,6 +87,7 @@ const RESTORER_RANKS = [
   { at: 200_000, title: "Grid Warden", glyph: "✦" },
   { at: 2_500_000, title: "Architect of Light", glyph: "★" },
   { at: 30_000_000, title: "Beacon Sovereign", glyph: "★" },
+  { at: 100_000_000, title: "Eternal Beacon", glyph: "✺" },
 ] as const;
 
 function restorerRank(contributed: number) {

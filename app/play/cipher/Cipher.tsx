@@ -45,7 +45,11 @@ type Stage = {
 const norm = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-const STAGES: Stage[] = [
+const STAGES_PER_SEASON = 5;
+
+type Season = { n: number; codename: string; stages: Stage[] };
+
+const SEASON_ONE: Stage[] = [
   {
     n: 1,
     kicker: "FRAGMENT I · THE ERROR",
@@ -89,8 +93,60 @@ const STAGES: Stage[] = [
   },
 ];
 
-type Save = { solved: number; tries: Record<number, number> };
-const EMPTY: Save = { solved: 0, tries: {} };
+// Season 2 — a fresh 5-stage transmission. Every answer is grounded in lore
+// already live elsewhere in the city (castes, structures, the war sink, the
+// sweep creed) so it stays canon and solvable, not invented.
+const SEASON_TWO: Stage[] = [
+  {
+    n: 1,
+    kicker: "FRAGMENT I · THE CARRIER",
+    clue: "Dust Runners carry the signal across the outer city on one structure. Name the build.",
+    accept: ["dust relay", "dustrelay", "relay"],
+    hint: "Restore the Signal — the Dust Runner's structure.",
+    fragment: "THE GRID REMEMBERS —",
+  },
+  {
+    n: 2,
+    kicker: "FRAGMENT II · THE SHIFTED OATH",
+    clue: "A creed, shifted forward by five letters. Shift it back and read it.",
+    cipher: "MTQI YMJ QNSJ",
+    accept: ["hold the line", "holdtheline"],
+    hint: "Shift each letter back 5: M→H, T→O, Q→L …",
+    fragment: "EVERY HAND THAT HELD IT.",
+  },
+  {
+    n: 3,
+    kicker: "FRAGMENT III · THE COMPUTERS",
+    clue: "Which caste computes pure signal inside the Synth Core? Two words.",
+    accept: ["synth ascended", "synthascended"],
+    hint: "Only 66 exist; their structure is the Synth Core.",
+    fragment: "WE ARE THE SIGNAL NOW —",
+  },
+  {
+    n: 4,
+    kicker: "FRAGMENT IV · THE SINK",
+    clue: "Burning real hex toward a civilization in the weekly war is called a ______. One word.",
+    accept: ["tribute"],
+    hint: "The Reckoning — you pay one to muster a side.",
+    fragment: "NOT LOST,",
+  },
+  {
+    n: 5,
+    kicker: "FRAGMENT V · THE SWEEP CREED",
+    clue: "Complete the sweeper's one rule: \"Sweep the corrupted, spare the ______.\"",
+    accept: ["living", "theliving"],
+    hint: "Sweep Run's single law — never sweep these.",
+    fragment: "ONLY MOVED — AGAIN.",
+  },
+];
+
+const STORY_SEASONS: Season[] = [
+  { n: 1, codename: "THE FIRST TRANSMISSION", stages: SEASON_ONE },
+  { n: 2, codename: "THE SECOND TRANSMISSION", stages: SEASON_TWO },
+];
+
+type Save = { solved: number; tries: Record<number, number>; season: number };
+const EMPTY: Save = { solved: 0, tries: {}, season: 1 };
 
 // ── Daily Cryptogram ──────────────────────────────────────────────────────
 // The story above is a fixed 5-stage ARG; the daily is the replayable hook:
@@ -150,16 +206,20 @@ const caesar = (s: string, shift: number) =>
 // a real integer in [0, STAGES.length]; a non-number (e.g. "x") previously
 // rendered a broken "X/5" finale. `tries` falls back to an empty map.
 function sanitize(raw: unknown): Save {
-  if (!raw || typeof raw !== "object") return { solved: 0, tries: {} };
+  if (!raw || typeof raw !== "object") return { ...EMPTY };
   const o = raw as Record<string, unknown>;
   const n =
     typeof o.solved === "number" && Number.isFinite(o.solved) ? o.solved : 0;
-  const solved = Math.max(0, Math.min(STAGES.length, Math.floor(n)));
+  const solved = Math.max(0, Math.min(STAGES_PER_SEASON, Math.floor(n)));
   const tries =
     o.tries && typeof o.tries === "object"
       ? (o.tries as Record<number, number>)
       : {};
-  return { solved, tries };
+  // Older v1 blobs predate seasons → default to season 1.
+  const sv =
+    typeof o.season === "number" && Number.isFinite(o.season) ? Math.floor(o.season) : 1;
+  const season = Math.max(1, Math.min(STORY_SEASONS.length, sv));
+  return { solved, tries, season };
 }
 
 export function Cipher() {
@@ -243,8 +303,23 @@ export function Cipher() {
     }
   }, []);
 
+  // Active story season → its 5 stages. A local alias keeps the rest of the
+  // component (which reads `STAGES`) unchanged while the data is now seasonal.
+  const seasonIdx = Math.min(STORY_SEASONS.length - 1, Math.max(0, (save.season ?? 1) - 1));
+  const storySeason = STORY_SEASONS[seasonIdx];
+  const STAGES = storySeason.stages;
+  const hasNextSeason = (save.season ?? 1) < STORY_SEASONS.length;
+
   const current = STAGES[save.solved]; // undefined when all solved
   const done = save.solved >= STAGES.length;
+
+  // Advance to the next season's transmission — fresh stages, season bumped.
+  const beginNextSeason = useCallback(() => {
+    persist({ solved: 0, tries: {}, season: Math.min(STORY_SEASONS.length, (save.season ?? 1) + 1) });
+    setInput("");
+    cue("special");
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [persist, save.season]);
 
   const submit = useCallback(
     (e: React.FormEvent) => {
@@ -253,10 +328,7 @@ export function Cipher() {
       const guess = norm(input);
       if (current.accept.some((a) => norm(a) === guess) && guess.length > 0) {
         const nextSolved = save.solved + 1;
-        persist({
-          solved: nextSolved,
-          tries: save.tries,
-        });
+        persist({ ...save, solved: nextSolved });
         setInput("");
         setJustSolved(true);
         // Lifetime arcade XP (local-only, cosmetic) for recovering a fragment.
@@ -280,7 +352,10 @@ export function Cipher() {
     [current, input, persist, save],
   );
 
-  const reset = useCallback(() => persist(EMPTY), [persist]);
+  const reset = useCallback(
+    () => persist({ solved: 0, tries: {}, season: save.season ?? 1 }),
+    [persist, save.season],
+  );
 
   // Bank the daily result + resolve the streak. Win = every stage decoded
   // before the shared budget runs out; loss = ran out of attempts. One
@@ -403,7 +478,7 @@ export function Cipher() {
         <span className="kicker">
           {mode === "daily"
             ? `⬡ DAILY CRYPTOGRAM · DAY ${dayNum}${playedToday ? "" : ` · STAGE ${Math.min(dStage + 1, DAILY_STAGES)}/${DAILY_STAGES}`}`
-            : `⬡ ARG · THE CIPHER · ${save.solved}/5 DECODED`}
+            : `⬡ ARG · THE CIPHER · S${save.season ?? 1} · ${save.solved}/${STAGES.length} DECODED`}
         </span>
         <h1>
           A transmission <em>broke apart</em>.
@@ -690,7 +765,7 @@ export function Cipher() {
               marginBottom: 14,
             }}
           >
-            ⬡ SIGNAL RESTORED
+            ⬡ {storySeason.codename} · RESTORED
           </div>
           <p
             style={{
@@ -702,11 +777,19 @@ export function Cipher() {
           >
             You reassembled the transmission. The city was never gone — it
             moved. Now you carry it.
+            {hasNextSeason
+              ? " But the grid is still talking — another intercept just locked on."
+              : " Every known transmission is decoded — more are still incoming."}
           </p>
           <div
             style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}
           >
-            <Link className="btn btn-primary" href="/citizens">
+            {hasNextSeason && (
+              <button type="button" className="btn btn-primary" onClick={beginNextSeason}>
+                <span className="ttl">DECODE THE NEXT TRANSMISSION →</span>
+              </button>
+            )}
+            <Link className={hasNextSeason ? "btn btn-secondary" : "btn btn-primary"} href="/citizens">
               <span className="ttl">OWN A CITIZEN ↗</span>
             </Link>
             <Link className="btn btn-secondary" href="/lore">

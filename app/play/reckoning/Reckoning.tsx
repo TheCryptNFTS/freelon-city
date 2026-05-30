@@ -69,7 +69,13 @@ export function Reckoning() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastBurn, setLastBurn] = useState<{ civ: string; burned: number; rank: number | null } | null>(null);
+  // The war-front blast — a brief, civ-coloured shockwave + war-signal count
+  // that fires the instant a tribute lands, so the burn has a moment that
+  // matches its strategic weight. Pure view; clears itself on a timer.
+  const [burst, setBurst] = useState<{ civ: string; points: number } | null>(null);
+  const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [, force] = useState(0);
+  useEffect(() => () => { if (burstTimer.current) clearTimeout(burstTimer.current); }, []);
 
   // Live momentum: war-signal gained per civ since the previous refresh. Pure
   // client-side derivation from the server-authoritative board — we snapshot
@@ -241,6 +247,10 @@ export function Reckoning() {
       if (typeof j.burned === "number") setWalletHex((h) => (h !== null ? Math.max(0, h - j.burned) : h));
       await loadState();
       setLastBurn({ civ: selected, burned: j.burned, rank: rankOf(selected) });
+      // Fire the war-front blast with the server's awarded war points.
+      if (burstTimer.current) clearTimeout(burstTimer.current);
+      setBurst({ civ: selected, points: Number(j.points) || 0 });
+      burstTimer.current = setTimeout(() => setBurst(null), 1500);
       cue("special");
       window.dispatchEvent(new CustomEvent("freelon:hex-refresh"));
     } catch {
@@ -576,7 +586,38 @@ export function Reckoning() {
         PROTOTYPE · TRIBUTES BURN REAL HEX (A SINK · NEVER MINTED) · WINNER CROWNED WEEKLY · GLORY ONLY FOR NOW
       </p>
 
+      {burst && (
+        <div
+          className="reck-blast"
+          style={{ ["--civ" as string]: CIVS[burst.civ]?.color ?? "#888" }}
+          aria-hidden="true"
+        >
+          <span className="reck-blast-ring" />
+          <span className="reck-blast-core">
+            <CivGlyph slug={burst.civ} color={CIVS[burst.civ]?.color ?? "#888"} size={64} />
+            <span className="reck-blast-pts">+{fmt(burst.points)}</span>
+            <span className="reck-blast-l">WAR SIGNAL · {CIVS[burst.civ]?.name ?? burst.civ}</span>
+          </span>
+        </div>
+      )}
+
       <style>{`
+        .reck-blast { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        .reck-blast-ring { position: absolute; width: 120px; height: 120px; border-radius: 999px; border: 2px solid var(--civ); animation: reck-blast-ring 1.4s cubic-bezier(.2,.7,.3,1) forwards; }
+        .reck-blast-core { display: flex; flex-direction: column; align-items: center; gap: 6px; animation: reck-blast-core 1.5s ease-out forwards; }
+        .reck-blast-pts { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--civ); text-shadow: 0 0 24px var(--civ); }
+        .reck-blast-l { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--ink-dim); text-transform: uppercase; }
+        @keyframes reck-blast-ring {
+          0% { transform: scale(0.4); opacity: 0.9; }
+          100% { transform: scale(4.2); opacity: 0; }
+        }
+        @keyframes reck-blast-core {
+          0% { transform: scale(0.7); opacity: 0; }
+          18% { transform: scale(1.08); opacity: 1; }
+          70% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(1); opacity: 0; }
+        }
+
         .reck-meta { margin-top: 18px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--ink-dim); display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
         .reck-dot { color: var(--ink-fade); }
 
@@ -664,6 +705,9 @@ export function Reckoning() {
 
         @media (prefers-reduced-motion: reduce) {
           .reck-endgame.is-final, .reck-surge { animation: none; }
+          .reck-blast-ring { display: none; }
+          .reck-blast-core { animation: reck-blast-fade 1.5s ease-out forwards; }
+          @keyframes reck-blast-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
         }
 
         @media (max-width: 640px) {

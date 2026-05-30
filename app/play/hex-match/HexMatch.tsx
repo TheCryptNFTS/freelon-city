@@ -69,11 +69,17 @@ const targetForLevel = (l: number) =>
 // breather you earn by playing for the special, the combo, or the big sweep
 // rather than only the score bar. Deterministic by level (daily-safe).
 const BONUS_MOVES = 3;
-type Objective = { id: "special" | "combo" | "sweep"; label: string };
+type Objective = {
+  id: "special" | "combo" | "sweep" | "deepcombo" | "mega" | "pair";
+  label: string;
+};
 const OBJECTIVES: Objective[] = [
   { id: "special", label: "Forge a special tile" },
   { id: "combo", label: "Chain a ×3 combo" },
   { id: "sweep", label: "Clear 10+ in one blast" },
+  { id: "deepcombo", label: "Chain a ×5 combo" },
+  { id: "mega", label: "Forge a MEGA tile" },
+  { id: "pair", label: "Detonate two specials together" },
 ];
 const objectiveForLevel = (l: number) => OBJECTIVES[(l - 1) % OBJECTIVES.length];
 
@@ -317,11 +323,26 @@ export function HexMatch() {
   // Award the level's bonus objective the first time it's satisfied this
   // level: +3 moves, a flash, a chime. Idempotent per level via the ref.
   const tryBonus = useCallback(
-    (chain: number, cleared: number, forged: boolean) => {
+    (
+      chain: number,
+      cleared: number,
+      forged: boolean,
+      opts?: { mega?: boolean; pair?: boolean },
+    ) => {
       if (objectiveMetRef.current) return;
       const obj = objectiveForLevel(levelRef.current);
       const met =
-        obj.id === "special" ? forged : obj.id === "combo" ? chain >= 3 : cleared >= 10;
+        obj.id === "special"
+          ? forged
+          : obj.id === "combo"
+            ? chain >= 3
+            : obj.id === "sweep"
+              ? cleared >= 10
+              : obj.id === "deepcombo"
+                ? chain >= 5
+                : obj.id === "mega"
+                  ? !!opts?.mega
+                  : /* pair */ !!opts?.pair;
       if (!met) return;
       objectiveMetRef.current = true;
       setObjectiveMet(true);
@@ -369,7 +390,7 @@ export function HexMatch() {
           triggerShake(3);
           popFlash(`SPECIAL × SPECIAL  +${gained}`);
           cue("special");
-          tryBonus(chain, blast.cleared, false);
+          tryBonus(chain, blast.cleared, false, { pair: true });
           await wait(280);
           current = blast.board;
           setBoard(current);
@@ -414,7 +435,7 @@ export function HexMatch() {
         } else {
           cue("clear");
         }
-        tryBonus(chain, step.cleared, step.specials.length > 0);
+        tryBonus(chain, step.cleared, step.specials.length > 0, { mega: hasMega });
         await wait(220);
 
         current = step.board;
