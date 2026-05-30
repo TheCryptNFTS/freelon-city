@@ -78,6 +78,73 @@ export default function StartPage() {
         </p>
       </section>
 
+      {/* ── CONNECTING ──
+         2026-05-30: added after a wave of Discord reports — X login looping,
+         "can't have wallet + X connected at once", and mobile users unable to
+         connect at all. The code bugs are fixed; this section heads off the
+         remaining USER-side gotcha: on a phone you must use your wallet's
+         in-app browser, not Safari/Chrome. */}
+      <Section title="Connecting (and staying connected)">
+        <Box>
+          <P>
+            You connect <strong style={{ color: "var(--gold)" }}>two things</strong>, and they
+            work together — you don&apos;t have to choose:
+          </P>
+          <Ul>
+            <Li><strong>Your wallet</strong> — proves which citizens you hold.</Li>
+            <Li><strong>Your X account</strong> — so your posts earn hex.</Li>
+          </Ul>
+          <p style={{ marginTop: 12, fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.65 }}>
+            Connect both. They stay connected — wallet for 30 days, X for 7 — so
+            closing the tab or coming back later keeps you signed in.
+          </p>
+        </Box>
+
+        <Box>
+          <Strong color="var(--gold)">📱 On a phone — read this first.</Strong>
+          <P>
+            Don&apos;t open the site in Safari or Chrome — those can&apos;t talk to your
+            wallet, so connecting silently fails. Open it{" "}
+            <strong style={{ color: "var(--gold)" }}>inside your wallet&apos;s own browser</strong>:
+          </P>
+          <Ul>
+            <Li><strong>MetaMask:</strong> open the app → tap the ☰ menu → <strong>Browser</strong> → type <strong>www.freeloncity.com</strong>.</Li>
+            <Li><strong>Rainbow / Coinbase Wallet:</strong> use the in-app <strong>Browser</strong> / dApps tab the same way.</Li>
+          </Ul>
+        </Box>
+
+        <Box>
+          <Strong color="var(--gold)">💻 On a computer.</Strong>
+          <P>
+            Use Chrome, Brave, or Firefox with the <strong>MetaMask</strong> (or Rainbow)
+            extension installed, then connect normally.
+          </P>
+        </Box>
+
+        <Step
+          n="A"
+          title="Connect your wallet"
+          body="Click CONNECT WALLET (top-right, or on the Vault page) and approve in your wallet. Your citizens load — that's wallet connected."
+          cta={{ label: "OPEN SYNC →", href: "/sync" }}
+        />
+        <Step
+          n="B"
+          title="Sign in with X"
+          body="Then click SIGN IN WITH X and approve on X. You bounce back verified. Both stay connected at the same time — connecting one never logs you out of the other."
+          cta={{ label: "GO TO SYNC →", href: "/sync" }}
+        />
+
+        <Faq q="X keeps sending me back to the login screen — help?">
+          Always use the same address: <strong style={{ color: "var(--gold)" }}>www.freeloncity.com</strong> (not the bare freeloncity.com).
+          Make sure cookies aren&apos;t blocked for the site — &quot;block all cookies&quot; and some incognito modes break the X sign-in.
+          On a phone, use your wallet&apos;s in-app browser (above) and just retry once.
+        </Faq>
+        <Faq q="Do I have to pick between my wallet and my X account?">
+          No. You can — and should — have both connected at once. They&apos;re separate and don&apos;t interfere.
+          If X ever looks disconnected after you switch wallets, just reload — your X sign-in persists for 7 days on its own.
+        </Faq>
+      </Section>
+
       {/* ── 30-SECOND VERSION ── */}
       <Section title="The 30-second version">
         <P>
