@@ -65,7 +65,7 @@ const LIVE = [
 type Target = {
   id: number;
   cell: number;
-  kind: "dead" | "live";
+  kind: "dead" | "live" | "power";
   born: number; // ms timestamp
   ttl: number; // lifespan ms
   live?: number; // index into LIVE for decoys
@@ -83,6 +83,24 @@ function targetTtl(score: number): number {
 function liveChance(score: number): number {
   return Math.min(0.28, 0.12 + score / 8000); // decoys get more common
 }
+// Power signals (gold ⬡) — rare. Sweeping one detonates EVERY corrupted signal
+// on the board for a big combo; letting it expire is harmless.
+function powerChance(score: number): number {
+  return Math.min(0.07, 0.025 + score / 22000);
+}
+
+// ── Escalation surge ──────────────────────────────────────────────────────
+// Periodic tension spikes: after a lead-in, every SURGE_PERIOD a SURGE_WINDOW
+// opens where spawns come faster, decay quicker, and sweeps pay double. Timing
+// keys off elapsed run time, NOT the seeded draw stream — so a daily board's
+// spawn SEQUENCE stays identical for everyone; only the pacing tightens.
+const SURGE_LEADIN = 9000;
+const SURGE_PERIOD = 15000;
+const SURGE_WINDOW = 4500;
+function inSurge(elapsed: number): boolean {
+  if (elapsed < SURGE_LEADIN) return false;
+  return (elapsed - SURGE_LEADIN) % SURGE_PERIOD < SURGE_WINDOW;
+}
 
 export function SweepRun() {
   const [status, setStatus] = useState<Status>("idle");
@@ -92,8 +110,9 @@ export function SweepRun() {
   const [bestStreak, setBestStreak] = useState(0);
   const [best, setBest] = useState(0);
   const [targets, setTargets] = useState<Target[]>([]);
-  const [flash, setFlash] = useState<{ cell: number; kind: "sweep" | "miss" | "spare-hit" } | null>(null);
+  const [flash, setFlash] = useState<{ cell: number; kind: "sweep" | "miss" | "spare-hit" | "power" } | null>(null);
   const [newBest, setNewBest] = useState(false);
+  const [surge, setSurge] = useState(false);
 
   // ── leaderboard ──────────────────────────────────────────────────────────
   const [lbTop, setLbTop] = useState<LbEntry[]>([]);
@@ -139,6 +158,8 @@ export function SweepRun() {
   const bestStreakRef = useRef(0);
   const targetsRef = useRef<Target[]>([]);
   const statusRef = useRef<Status>("idle");
+  const runStartRef = useRef(0);
+  const surgeRef = useRef(false);
 
   useEffect(() => {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(BEST_KEY) : null;
@@ -271,6 +292,7 @@ export function SweepRun() {
     setTargets([]);
     setFlash(null);
     setNewBest(false);
+    setSurge(false);
     setSendState("idle");
     setMyRank(null);
     scoreRef.current = 0;
@@ -278,7 +300,10 @@ export function SweepRun() {
     bestStreakRef.current = 0;
     targetsRef.current = [];
     nextIdRef.current = 1;
-    nextSpawnRef.current = Date.now() + 500;
+    const t0 = Date.now();
+    runStartRef.current = t0;
+    surgeRef.current = false;
+    nextSpawnRef.current = t0 + 500;
     statusRef.current = "playing";
     setStatus("playing");
 
@@ -287,13 +312,22 @@ export function SweepRun() {
       const now = Date.now();
       const sc = scoreRef.current;
 
+      // Surge window? Toggle the banner only on edges to avoid churn.
+      const surging = inSurge(now - runStartRef.current);
+      if (surging !== surgeRef.current) {
+        surgeRef.current = surging;
+        setSurge(surging);
+        if (surging) cue("special");
+      }
+
       // Expire any timed-out targets. A dead signal fully corrupting = a MISS.
+      // Power signals expire harmlessly (like live decoys).
       const live: Target[] = [];
       let missed = false;
       for (const t of targetsRef.current) {
         if (now - t.born >= t.ttl) {
           if (t.kind === "dead") missed = true;
-          // live decoys expire harmlessly
+          // live decoys + power signals expire harmlessly
         } else {
           live.push(t);
         }
@@ -317,20 +351,32 @@ export function SweepRun() {
         for (let i = 0; i < CELLS; i++) if (!occupied.has(i)) free.push(i);
         if (free.length) {
           // Seeded in daily mode (deterministic stream), Math.random otherwise.
+          // Draw a FIXED count (cell + 3 rolls) every spawn so the seeded daily
+          // sequence stays stable regardless of which kind we land on.
           const draw = rngRef.current ?? Math.random;
           const cell = free[Math.floor(draw() * free.length)];
-          const isLive = draw() < liveChance(sc);
+          const rKind = draw();
+          const rLiveIdx = draw();
+          const _r3 = draw();
+          void _r3;
+          let kind: Target["kind"];
+          if (rKind < powerChance(sc)) kind = "power";
+          else if (rKind < powerChance(sc) + liveChance(sc)) kind = "live";
+          else kind = "dead";
+          // Surge shortens lifespans for extra pressure.
+          const ttlMul = (kind === "live" ? 1.25 : kind === "power" ? 0.9 : 1) * (surging ? 0.7 : 1);
           const t: Target = {
             id: nextIdRef.current++,
             cell,
-            kind: isLive ? "live" : "dead",
+            kind,
             born: now,
-            ttl: targetTtl(sc) * (isLive ? 1.25 : 1),
-            live: isLive ? Math.floor(draw() * LIVE.length) : undefined,
+            ttl: targetTtl(sc) * ttlMul,
+            live: kind === "live" ? Math.floor(rLiveIdx * LIVE.length) : undefined,
           };
           next = [...live, t];
         }
-        nextSpawnRef.current = now + spawnInterval(sc);
+        // Surge spawns come faster.
+        nextSpawnRef.current = now + spawnInterval(sc) * (surging ? 0.6 : 1);
       }
 
       targetsRef.current = next;
@@ -352,14 +398,35 @@ export function SweepRun() {
         targetsRef.current = next;
         setTargets(next);
       };
-      if (t.kind === "dead") {
+      const surgeMul = surgeRef.current ? 2 : 1;
+      if (t.kind === "power") {
+        // POWER SIGNAL — detonate every corrupted signal on the board at once.
+        const deads = targetsRef.current.filter((x) => x.kind === "dead");
+        const ns = streakRef.current + deads.length + 1;
+        streakRef.current = ns;
+        bestStreakRef.current = Math.max(bestStreakRef.current, ns);
+        const m = Math.min(5, 1 + Math.floor(ns / 5));
+        // Each cleared dead pays the sweep rate; the power tile itself pays a bonus.
+        scoreRef.current += (deads.length * 10 + 30) * m * surgeMul;
+        setStreak(ns);
+        setBestStreak(bestStreakRef.current);
+        setScore(scoreRef.current);
+        setFlash({ cell: t.cell, kind: "power" });
+        cue("special");
+        // Wipe the power tile + every dead signal it detonated.
+        const killed = new Set(deads.map((x) => x.id));
+        killed.add(t.id);
+        const nextT = targetsRef.current.filter((x) => !killed.has(x.id));
+        targetsRef.current = nextT;
+        setTargets(nextT);
+      } else if (t.kind === "dead") {
         // SWEEP — good. Update refs synchronously so endRun/persisted best
         // never lag behind the displayed score.
         const ns = streakRef.current + 1;
         streakRef.current = ns;
         bestStreakRef.current = Math.max(bestStreakRef.current, ns);
         const m = Math.min(5, 1 + Math.floor(ns / 5));
-        scoreRef.current += 10 * m;
+        scoreRef.current += 10 * m * surgeMul;
         setStreak(ns);
         setBestStreak(bestStreakRef.current);
         setScore(scoreRef.current);
@@ -467,8 +534,13 @@ export function SweepRun() {
         </div>
       )}
 
+      {/* surge banner — a brief tension spike where spawns accelerate + sweeps pay ×2 */}
+      {surge && status === "playing" && (
+        <div className="sweep-surge" role="status">⬡ SURGE · SWEEPS PAY ×2</div>
+      )}
+
       {/* ── GRID ─────────────────────────────────────────────── */}
-      <div className="sweep-grid" aria-label="sweep grid">
+      <div className={`sweep-grid${surge ? " surging" : ""}`} aria-label="sweep grid">
         {Array.from({ length: CELLS }).map((_, cell) => {
           const t = byCell.get(cell);
           const f = flash?.cell === cell ? flash.kind : null;
@@ -497,7 +569,7 @@ export function SweepRun() {
                       : {}),
                   }}
                 >
-                  <span className="sweep-glyph">{liveCiv ? liveCiv.glyph : "✕"}</span>
+                  <span className="sweep-glyph">{liveCiv ? liveCiv.glyph : t.kind === "power" ? "⬡" : "✕"}</span>
                 </span>
               )}
             </button>
@@ -649,7 +721,8 @@ export function SweepRun() {
           steps={[
             { glyph: "▲", text: "Tap the corrupted (red, glitching) signals to sweep them before they spread." },
             { glyph: "●", text: "Spare the living signals — hit one and you lose a life. Three lives, that's it." },
-            { glyph: "∞", text: "Speed climbs as you survive. Chain sweeps without a miss to build your multiplier." },
+            { glyph: "⬡", text: "Gold POWER signals detonate every corrupted tile at once — grab them fast." },
+            { glyph: "∞", text: "Speed climbs as you survive, and SURGE waves pay double. Chain sweeps to build your multiplier." },
           ]}
         />
       </div>
@@ -683,11 +756,21 @@ export function SweepRun() {
         .sweep-cell:disabled { cursor: default; }
         .sweep-cell.flash-sweep { background: rgba(0,184,255,0.18); }
         .sweep-cell.flash-spare-hit, .sweep-cell.flash-miss { background: rgba(255,58,45,0.22); }
+        .sweep-cell.flash-power { background: color-mix(in srgb, var(--gold-bright) 30%, transparent); }
 
         .sweep-node { width: 64%; height: 64%; display: flex; align-items: center; justify-content: center; transition: transform .05s linear; }
         .sweep-node.dead { background: #FF3A2D; box-shadow: 0 0 18px #FF3A2D; animation: sweep-glitch .35s steps(2) infinite; }
+        .sweep-node.power { background: var(--gold-bright); box-shadow: 0 0 22px var(--gold-bright); animation: sweep-power-pulse .7s ease-in-out infinite; }
         .sweep-glyph { font-family: var(--mono); font-size: 22px; font-weight: 700; color: rgba(0,0,0,0.72); line-height: 1; }
         @keyframes sweep-glitch { 0%{ filter: hue-rotate(0deg);} 50%{ filter: hue-rotate(-18deg) brightness(1.2);} 100%{ filter: hue-rotate(0deg);} }
+        @keyframes sweep-power-pulse { 0%,100%{ filter: brightness(1);} 50%{ filter: brightness(1.45);} }
+
+        .sweep-surge { max-width: 480px; margin: 12px auto 0; text-align: center; padding: 6px 0; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.22em; color: #0a0e27; background: var(--gold-bright); box-shadow: 0 0 16px var(--gold-bright); animation: sweep-surge-flash .9s ease-in-out infinite; }
+        @keyframes sweep-surge-flash { 0%,100%{ opacity: 1;} 50%{ opacity: 0.74;} }
+        .sweep-grid.surging { box-shadow: 0 0 0 1px var(--gold-bright), 0 0 22px color-mix(in srgb, var(--gold-bright) 40%, transparent); border-radius: 8px; }
+        @media (prefers-reduced-motion: reduce) {
+          .sweep-node.power, .sweep-surge { animation: none; }
+        }
 
         .sweep-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 22px; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(2px); border-radius: 8px; }
         .sweep-ov-title { font-family: var(--display); font-size: 26px; color: var(--ink); }
