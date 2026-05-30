@@ -7,6 +7,7 @@ import { CivGlyph } from "@/components/CivGlyph";
 import { tweetIntent, tweetProof } from "@/lib/share";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import { ArcadeTutorial } from "@/components/ArcadeTutorial";
 import {
   PROOF_CODE_LEN,
   PROOF_MAX_ATTEMPTS,
@@ -442,8 +443,18 @@ export function ProofOfSignal() {
             <span className="ttl">← ARCADE</span>
           </Link>
         </div>
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 16 }}>
           <ArcadeSoundToggle />
+          <ArcadeTutorial
+            game="proof"
+            title="Proof of Signal"
+            accent="var(--gold-bright)"
+            steps={[
+              { glyph: "◇", text: "One hidden frequency a day — four signals drawn from the ten doctrines. Guess it." },
+              { glyph: "✦", text: "After each guess, tiles show how close you are. You get eight tries to tune in." },
+              { glyph: "⬡", text: "Same puzzle for everyone, every day. Solve it and share your result to X." },
+            ]}
+          />
         </div>
       </div>
 

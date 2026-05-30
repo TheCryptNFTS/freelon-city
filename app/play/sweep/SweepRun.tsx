@@ -6,6 +6,7 @@ import { tweetSweep, tweetIntent } from "@/lib/share";
 import { cue } from "@/lib/arcade-feedback";
 import { awardXp, getProgress, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import { ArcadeTutorial } from "@/components/ArcadeTutorial";
 import {
   dayNumber,
   dayKey,
@@ -639,8 +640,18 @@ export function SweepRun() {
         )}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 22 }}>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 22 }}>
         <ArcadeSoundToggle />
+        <ArcadeTutorial
+          game="sweep"
+          title="Sweep Run"
+          accent="var(--sweep-accent, var(--neon-cyan))"
+          steps={[
+            { glyph: "▲", text: "Tap the corrupted (red, glitching) signals to sweep them before they spread." },
+            { glyph: "●", text: "Spare the living signals — hit one and you lose a life. Three lives, that's it." },
+            { glyph: "∞", text: "Speed climbs as you survive. Chain sweeps without a miss to build your multiplier." },
+          ]}
+        />
       </div>
 
       <p className="sweep-foot">

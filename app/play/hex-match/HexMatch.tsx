@@ -22,6 +22,7 @@ import {
 import { cue } from "@/lib/arcade-feedback";
 import { awardXp, getProgress, rankedUp, rankFor, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import { ArcadeTutorial } from "@/components/ArcadeTutorial";
 import {
   dayNumber,
   dayKey,
@@ -1015,6 +1016,16 @@ export function HexMatch() {
           <span className="ttl">← ARCADE</span>
         </Link>
         <ArcadeSoundToggle />
+        <ArcadeTutorial
+          game="hex-match"
+          title="Hex Match"
+          accent="var(--neon-cyan)"
+          steps={[
+            { glyph: "◇", text: "Swap two adjacent hex-eyes to line up three or more of one color." },
+            { glyph: "✦", text: "Match four or more to forge a special tile — chain it to clear whole lines and blocks." },
+            { glyph: "∞", text: "Endless: rack up the biggest combo before the timer dies. Daily: one seeded board, same for everyone." },
+          ]}
+        />
       </div>
 
       <p

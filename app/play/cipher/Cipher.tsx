@@ -5,6 +5,7 @@ import Link from "next/link";
 import { cue } from "@/lib/arcade-feedback";
 import { awardXp, getProgress, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import { ArcadeTutorial } from "@/components/ArcadeTutorial";
 import {
   dayNumber,
   dayKey,
@@ -760,6 +761,16 @@ export function Cipher() {
           <span className="ttl">RESET</span>
         </button>
         <ArcadeSoundToggle />
+        <ArcadeTutorial
+          game="cipher"
+          title="The Cipher"
+          accent={themeAccent}
+          steps={[
+            { glyph: "✦", text: "Each stage poses a riddle grounded in FREELON CITY lore — read the clue, type your answer." },
+            { glyph: "◇", text: "Solve a stage to reveal one fragment of a lost transmission. Wrong tries surface a hint." },
+            { glyph: "⬡", text: "Daily decode: crack the day's intercepted, shifted transmission. Same puzzle for everyone." },
+          ]}
+        />
       </div>
 
       <style>{`

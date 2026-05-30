@@ -8,6 +8,7 @@ import { tweetReckoning, tweetIntent } from "@/lib/share";
 import { useHolder } from "@/lib/useHolder";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import { ArcadeTutorial } from "@/components/ArcadeTutorial";
 
 type CivRow = { slug: string; score: number; rawHex: number; tributes: number };
 type General = { address: string; score: number; rawHex: number; topCiv: string | null };
@@ -407,8 +408,18 @@ export function Reckoning() {
         </div>
       </section>
 
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 28 }}>
         <ArcadeSoundToggle />
+        <ArcadeTutorial
+          game="reckoning"
+          title="The Reckoning"
+          accent="var(--neon-magenta)"
+          steps={[
+            { glyph: "⬡", text: "Ten civilizations fight for one crown each week. Pick the side you'll muster for." },
+            { glyph: "✦", text: "Burn hex to muster — your tribute amplifies your civ's signal on the board." },
+            { glyph: "★", text: "The leading civ when the week ends is crowned, and the city remembers it forever." },
+          ]}
+        />
       </div>
 
       <p className="reck-foot">
