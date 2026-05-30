@@ -59,16 +59,40 @@ export function CarrierClient() {
     }
   }, []);
 
-  // Confirm the verification with the server when we have a handle
+  // Confirm the verification with the server. CRITICAL: the start flow binds
+  // by WALLET when one is connected (see xVerifyHref / the "BIND TO 0x…" CTA),
+  // so a holder's verification is stored under the wallet key — NOT the handle
+  // key. Confirming by handle alone (the old behaviour) missed every
+  // wallet-bound holder, so on a return visit / in-app browser with no
+  // localStorage cache they read as unverified and got re-prompted to sign in
+  // = the "loops back to login for some" report. Confirm with the same bind
+  // precedence the start flow used (wallet first — which also lets /me's signed
+  // session fallback match), then fall back to the ?handle= path, which keys
+  // off HANDLE_KEY and resolves regardless of how the record was bound.
   useEffect(() => {
-    if (!state?.handle) return;
-    fetch(`/api/x/me?bind=${encodeURIComponent(state.handle)}`)
-      .then(r => r.json())
-      .then((j: { verification?: { xHandle?: string } | null }) => {
-        if (j.verification?.xHandle) setXVerified(j.verification.xHandle);
-      })
-      .catch(() => {});
-  }, [state?.handle]);
+    const wallet = viewer.addr || holder.address;
+    const handle = state?.handle;
+    if (!wallet && !handle) return;
+    let cancelled = false;
+    (async () => {
+      const tryFetch = async (qs: string): Promise<string | null> => {
+        try {
+          const r = await fetch(`/api/x/me?${qs}`);
+          const j = (await r.json()) as { verification?: { xHandle?: string } | null };
+          return j.verification?.xHandle ?? null;
+        } catch {
+          return null;
+        }
+      };
+      let found: string | null = null;
+      if (wallet) found = await tryFetch(`bind=${encodeURIComponent(wallet)}`);
+      if (!found && handle) found = await tryFetch(`handle=${encodeURIComponent(handle)}`);
+      if (!cancelled && found) setXVerified(found);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [state?.handle, viewer.addr, holder.address]);
 
   // Prefer the connected wallet as the X bind — that's what every
   // wallet-scoped endpoint (claim, tithe, watchlist, name) requires.
