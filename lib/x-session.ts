@@ -142,7 +142,24 @@ export function isSameOrigin(req: Request): boolean {
   return true;
 }
 
-export function sessionCookieOptions() {
+/**
+ * 2026-05-30 — the site serves on both freeloncity.com (apex) and
+ * www.freeloncity.com. Auth cookies were host-only, so a session set on one
+ * host wasn't sent on the other → users appeared logged out / OAuth looped.
+ * Scope auth cookies to the registrable domain so they span apex + www.
+ * Returns undefined off-prod (localhost, *.vercel.app) so those keep working
+ * with plain host-only cookies. Pass the request's Host header.
+ */
+export function authCookieDomain(req: Request): string | undefined {
+  const host = (req.headers.get("host") || "").split(":")[0].toLowerCase();
+  if (host === "freeloncity.com" || host.endsWith(".freeloncity.com")) {
+    return ".freeloncity.com";
+  }
+  return undefined;
+}
+
+export function sessionCookieOptions(req?: Request) {
+  const domain = req ? authCookieDomain(req) : undefined;
   return {
     httpOnly: true,
     // Always Secure. Localhost browsers will still accept the cookie over
@@ -152,5 +169,6 @@ export function sessionCookieOptions() {
     sameSite: "lax" as const,
     path: "/",
     maxAge: Math.floor(SESSION_TTL_MS / 1000),
+    ...(domain ? { domain } : {}),
   };
 }

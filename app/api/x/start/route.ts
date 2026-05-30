@@ -9,6 +9,7 @@ import {
   redirectUri,
   clientCredentials,
 } from "@/lib/x-oauth";
+import { authCookieDomain } from "@/lib/x-session";
 
 export const dynamic = "force-dynamic";
 
@@ -54,21 +55,25 @@ export async function GET(req: Request) {
   authUrl.searchParams.set("code_challenge_method", "S256");
 
   const res = NextResponse.redirect(authUrl.toString());
-  // 2026-05-29 fix — the X-connect "loops back to login" bug. These PKCE/
-  // state/bind cookies must survive the cross-site round-trip to x.com and
-  // back to /api/x/callback. With sameSite:"lax" they were getting dropped
-  // on the return navigation in in-app browsers (MetaMask's webview, iOS
-  // Safari) and some redirect chains — so the callback saw "missing_cookies"
-  // and bounced to /carrier, i.e. the loop. sameSite:"none" (valid only with
-  // secure:true, which we already set) is the standard, correct setting for
-  // OAuth flow cookies: it explicitly permits the cookie on the cross-site
-  // redirect. They're short-lived (10 min) and HttpOnly, so this is safe.
+  // 2026-05-30 — the real cause of the X-connect loop was a HOST SPLIT, not
+  // SameSite. The site serves on both freeloncity.com (apex, 308→www) and
+  // www.freeloncity.com; these flow cookies were HOST-ONLY (no Domain), so a
+  // cookie set on one host vanished when the OAuth callback landed on the
+  // other → "missing_cookies" → bounce to /carrier → the loop, for whichever
+  // users were on the non-canonical host.
+  //   Fix: scope the cookies to Domain=.freeloncity.com so they're sent on
+  //   apex AND www regardless of the redirect dance.
+  //   SameSite stays "lax" — for a TOP-LEVEL OAuth redirect (the browser URL
+  //   bar navigates to x.com and back) lax DOES send the cookie; "none" would
+  //   make it third-party and risk Safari/ITP/Brave blocking it outright. lax
+  //   is the correct, robust choice here.
   const cookieOpts = {
     httpOnly: true,
     secure: true,
-    sameSite: "none" as const,
+    sameSite: "lax" as const,
     path: "/",
     maxAge: 600, // 10 minutes
+    ...(authCookieDomain(req) ? { domain: authCookieDomain(req) } : {}),
   };
   res.cookies.set("x_pkce_verifier", verifier, cookieOpts);
   res.cookies.set("x_oauth_state", state, cookieOpts);

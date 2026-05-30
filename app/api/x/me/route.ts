@@ -6,12 +6,24 @@ import { getSessionFromRequest } from "@/lib/x-session";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/x/me?bind=<wallet|handle>
- * Returns the X verification record for a given bind key, or null.
- *
  * GET /api/x/me?handle=<xHandle>
- * Returns the verification record by X handle (for tribute pages to show a
- * "verified by holder" badge).
+ *   Third-party lookup — "is this handle verified by a holder?" (tribute
+ *   badges). Store-only; returns someone else's record.
+ *
+ * GET /api/x/me  (or ?bind=<wallet>)
+ *   "Is THIS browser signed in to X?" — display/identity probe.
+ *
+ * 2026-05-30 Bug A fix — "can't have X and wallet connected at the same time".
+ * Both cookies always physically coexist (wallet connect never touches the
+ * x_session cookie). The bug was that this endpoint resolved X-verification
+ * by the CURRENT wallet (`?bind=<addr>`), while the session's `bind` was
+ * frozen to whatever wallet existed at sign-in. Connect a different wallet
+ * (or verify X with no wallet, then connect one) and the lookup missed → the
+ * UI showed the user as logged out of X.
+ *   Fix: for the browser's own probe, the HMAC session cookie is the source
+ * of truth and is INDEPENDENT of which wallet is connected now. Claim-gating
+ * still enforces the wallet↔session bind separately in the mutation routes
+ * (requireSessionBound), so this display probe can safely ignore the wallet.
  */
 export async function GET(req: Request) {
   const rl = await limit(req, "x:me", { max: 60, windowSec: 60 });
@@ -19,26 +31,26 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const bind = url.searchParams.get("bind");
   const handle = url.searchParams.get("handle");
-  if (!bind && !handle) {
-    return NextResponse.json({ error: "missing_param" }, { status: 400 });
-  }
-  let v = bind ? await getXVerification(bind) : await getByHandle(handle!);
 
-  // 2026-05-29 persistence fix — the verified badge / "stay connected" state
-  // used to depend ENTIRELY on the Upstash store. If the store entry is
-  // missing (Upstash env not set in prod → per-lambda in-memory map that
-  // doesn't survive across serverless instances, or an evicted record), a
-  // user with a perfectly valid 7-day session cookie reads as unverified and
-  // gets bounced back to sign in. The HMAC session cookie is self-contained
-  // and tamper-proof, so trust it as a fallback source of truth: if the store
-  // has nothing but the request carries a valid session bound to this key,
-  // synthesize the verification from the session.
-  if (!v && bind) {
-    const s = getSessionFromRequest(req);
-    if (s && (s.bind || "").toLowerCase() === bind.toLowerCase()) {
-      v = { xId: s.xId, xHandle: s.xHandle, verifiedAt: 0, bind: bind.toLowerCase() } satisfies XVerification;
-    }
+  // Third-party badge lookup stays store-keyed by handle.
+  if (handle) {
+    return NextResponse.json({ verification: await getByHandle(handle) });
   }
 
-  return NextResponse.json({ verification: v });
+  // The current browser's own X session is authoritative for "am I verified",
+  // regardless of the connected wallet.
+  const s = getSessionFromRequest(req);
+  if (s) {
+    const boundWallet = (s.bind || "").toLowerCase();
+    const v: XVerification = { xId: s.xId, xHandle: s.xHandle, verifiedAt: 0, bind: boundWallet };
+    return NextResponse.json({ verification: v, boundWallet });
+  }
+
+  // No session cookie — fall back to the store by bind (older browsers, or
+  // resolving another key's record).
+  if (bind) {
+    return NextResponse.json({ verification: await getXVerification(bind) });
+  }
+
+  return NextResponse.json({ error: "missing_param" }, { status: 400 });
 }

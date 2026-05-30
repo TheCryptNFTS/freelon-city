@@ -7,7 +7,7 @@ import {
   clientCredentials,
 } from "@/lib/x-oauth";
 import { setXVerification } from "@/lib/x-store";
-import { signSession, X_SESSION_COOKIE, sessionCookieOptions } from "@/lib/x-session";
+import { signSession, X_SESSION_COOKIE, sessionCookieOptions, authCookieDomain } from "@/lib/x-session";
 import { setReferrer } from "@/lib/referral-store";
 import { normalizeHandle } from "@/lib/sync";
 
@@ -117,13 +117,19 @@ export async function GET(req: Request) {
   const res = NextResponse.redirect(
     new URL(`/carrier?x_verified=${encodeURIComponent(xHandle)}`, url.origin),
   );
-  // Issue a 7-day HMAC-signed session cookie binding this browser to xHandle
+  // Issue a 7-day HMAC-signed session cookie binding this browser to xHandle.
+  // Domain-scoped (.freeloncity.com) so it's readable on apex AND www — see
+  // authCookieDomain. Without this, a session set on the callback host wasn't
+  // sent on the other host → "logged out" / loop.
   const session = signSession({ xId, xHandle, bind });
-  res.cookies.set(X_SESSION_COOKIE, session, sessionCookieOptions());
-  // Clear flow cookies
-  res.cookies.delete("x_pkce_verifier");
-  res.cookies.delete("x_oauth_state");
-  res.cookies.delete("x_bind");
+  res.cookies.set(X_SESSION_COOKIE, session, sessionCookieOptions(req));
+  // Clear flow cookies. Must pass the same domain used when setting them, or
+  // the delete won't match the domain-scoped cookie.
+  const domain = authCookieDomain(req);
+  const clearOpts = domain ? { domain, path: "/" } : { path: "/" };
+  res.cookies.delete({ name: "x_pkce_verifier", ...clearOpts });
+  res.cookies.delete({ name: "x_oauth_state", ...clearOpts });
+  res.cookies.delete({ name: "x_bind", ...clearOpts });
   res.cookies.delete("freelon_ref");
   return res;
 }
