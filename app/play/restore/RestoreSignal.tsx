@@ -482,6 +482,43 @@ export function RestoreSignal() {
               RESTORER RANK {rank.idx + 1}/{RESTORER_RANKS.length}
             </span>
           </div>
+
+          {/* your mark on the shared city — every contributor is part of the
+             relight, however small, so non-whales never read as passengers */}
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              letterSpacing: "0.1em",
+              color: "var(--ink-dim)",
+              marginBottom: rank.next ? 8 : 0,
+            }}
+          >
+            {fmt(wallet?.contributed ?? 0)} ⬡ CONTRIBUTED · PART OF {litCount}/10 LIT
+            {total > 0 && (wallet?.contributed ?? 0) > 0 && (
+              <span style={{ color: "var(--ink-fade)" }}>
+                {" "}· {((wallet!.contributed / total) * 100).toFixed((wallet!.contributed / total) * 100 < 1 ? 2 : 1)}% OF THE CITY&apos;S SIGNAL
+              </span>
+            )}
+          </div>
+
+          {rank.idx === 0 && (
+            <div
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                letterSpacing: "0.08em",
+                color: "var(--gold)",
+                marginBottom: rank.next ? 8 : 0,
+                lineHeight: 1.5,
+              }}
+            >
+              {(wallet?.contributed ?? 0) > 0
+                ? "Keep going — earn your First Spark, a permanent mark on the relight."
+                : "Add your first signal to earn First Spark — every hand counts."}
+            </div>
+          )}
+
           {rank.next && (
             <>
               <div

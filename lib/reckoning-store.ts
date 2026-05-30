@@ -20,6 +20,7 @@ import {
   reckoningWeek,
   weekStartTs,
   weekEndTs,
+  warPointsMarginal,
 } from "@/lib/reckoning-config";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { upstash, hasUpstash } from "@/lib/upstash-client";
@@ -41,6 +42,7 @@ export type General = {
   score: number; // total war points contributed this week
   rawHex: number; // total hex burned this week
   byCiv: Record<string, number>; // war points per civ this week
+  rawByCiv?: Record<string, number>; // raw hex per civ this week (drives the anti-whale curve)
   updatedTs: number;
 };
 
@@ -123,6 +125,7 @@ export async function getGeneral(week: number, addr: string): Promise<General> {
       score: 0,
       rawHex: 0,
       byCiv: {},
+      rawByCiv: {},
       updatedTs: 0,
     }
   );
@@ -217,8 +220,11 @@ export async function getReckoning(): Promise<ReckoningView> {
 
 /**
  * Record one tribute into the current week. `rawHex` is what the route already
- * burned; `points` is the muster-amplified war score. Both the civ tally and
- * the per-wallet general record are bumped. Returns the live week + updated civ.
+ * burned; `heldOfCiv` is the burner's held citizens of the civ (for muster).
+ * War points are computed HERE via the anti-whale curve, keyed on the wallet's
+ * cumulative raw hex to this civ this week (so splitting a big burn can't dodge
+ * the damping). Both the civ tally and the per-wallet general record are bumped.
+ * Returns the live week, updated civ + general, and the points awarded.
  *
  * Read-modify-write (non-atomic, same as tithe/city stores) — acceptable at
  * this scale and consistent with the rest of the codebase.
@@ -227,28 +233,32 @@ export async function recordTribute(input: {
   address: string;
   civ: string;
   rawHex: number;
-  points: number;
-}): Promise<{ week: number; civ: CivWar; general: General }> {
+  heldOfCiv: number;
+}): Promise<{ week: number; civ: CivWar; general: General; points: number }> {
   const now = Date.now();
   const week = reckoningWeek(now);
   const slug = input.civ.toLowerCase();
   const addr = input.address.toLowerCase();
 
+  const gen = await getGeneral(week, addr);
+  const prevRawToCiv = (gen.rawByCiv?.[slug] ?? 0);
+  const points = warPointsMarginal(prevRawToCiv, input.rawHex, input.heldOfCiv);
+
   const civ = await getCivWar(week, slug);
-  civ.score += input.points;
+  civ.score += points;
   civ.rawHex += input.rawHex;
   civ.tributes += 1;
   civ.updatedTs = now;
   await setJSON(CIV_KEY(week, slug), civ);
 
-  const gen = await getGeneral(week, addr);
-  gen.score += input.points;
+  gen.score += points;
   gen.rawHex += input.rawHex;
-  gen.byCiv[slug] = (gen.byCiv[slug] || 0) + input.points;
+  gen.byCiv[slug] = (gen.byCiv[slug] || 0) + points;
+  gen.rawByCiv = { ...(gen.rawByCiv ?? {}), [slug]: prevRawToCiv + input.rawHex };
   gen.updatedTs = now;
   await setJSON(GEN_KEY(week, addr), gen);
 
-  return { week, civ, general: gen };
+  return { week, civ, general: gen, points };
 }
 
 // ── leaderboard: top generals this week ──────────────────────────────────────

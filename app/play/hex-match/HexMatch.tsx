@@ -1168,6 +1168,7 @@ export function HexMatch() {
           steps={[
             { glyph: "◇", text: "Swap two adjacent hex-eyes to line up three or more of one color." },
             { glyph: "✦", text: "Match four or more to forge a special tile — chain it to clear whole lines and blocks." },
+            { glyph: "✷", text: "Swap two special tiles into each other to detonate both at once — the biggest combo in the game." },
             { glyph: "∞", text: "Endless: rack up the biggest combo before the timer dies. Daily: one seeded board, same for everyone." },
           ]}
         />
@@ -1189,7 +1190,8 @@ export function HexMatch() {
         HIT THE TARGET SCORE BEFORE YOUR MOVES RUN OUT TO CLEAR THE LEVEL. EACH
         LEVEL DEMANDS MORE AND GIVES YOU FEWER MOVES. MATCH 4 TO FORGE A ╋ LINE
         (CLEARS A ROW + COLUMN); MATCH 5 TO FORGE A ✸ MEGA (CLEARS A WHOLE
-        COLOUR). DETONATIONS CHAIN INTO COMBOS FOR BIG POINTS.
+        COLOUR). SWAP TWO SPECIALS TOGETHER TO DETONATE BOTH AT ONCE — THE
+        BIGGEST COMBO IN THE GAME. DETONATIONS CHAIN INTO COMBOS FOR BIG POINTS.
       </p>
 
       {/* high-score leaderboard */}

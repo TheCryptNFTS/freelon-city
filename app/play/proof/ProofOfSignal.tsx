@@ -68,6 +68,10 @@ function saveKey(dayKey: string) {
 }
 const STREAK_KEY = "freelon:proof:v1:streak";
 const BEST_KEY = "freelon:proof:v1:best";
+// Practice personal-bests: fewest attempts to crack each tier. Local only,
+// like the rest of practice — gives off-day reps a goal to beat.
+const PRACTICE_BEST_KEY = "freelon:proof:v1:practice-best";
+type PracticeBest = Partial<Record<Tier, number>>;
 
 export function ProofOfSignal() {
   const [mounted, setMounted] = useState(false);
@@ -89,6 +93,11 @@ export function ProofOfSignal() {
   const [pGuesses, setPGuesses] = useState<string[][]>([]);
   const [pCurrent, setPCurrent] = useState<string[]>([]);
   const [pStatus, setPStatus] = useState<Status>("playing");
+  const [practiceBest, setPracticeBest] = useState<PracticeBest>({});
+  const [newBest, setNewBest] = useState(false);
+  // A lost code stays hidden until the player chooses to reveal it — so a
+  // loss invites another think instead of force-spoiling the answer.
+  const [revealed, setRevealed] = useState(false);
 
   // ── mount: resolve today's puzzle + restore saved progress ───────────────
   useEffect(() => {
@@ -108,6 +117,8 @@ export function ProofOfSignal() {
       if (sr) setStreak((JSON.parse(sr) as Streak).streak ?? 0);
       const br = localStorage.getItem(BEST_KEY);
       if (br) setBestStreak(parseInt(br, 10) || 0);
+      const pb = localStorage.getItem(PRACTICE_BEST_KEY);
+      if (pb) setPracticeBest(JSON.parse(pb) as PracticeBest);
     } catch {
       /* corrupt/blocked storage — start fresh */
     }
@@ -163,10 +174,25 @@ export function ProofOfSignal() {
     cue(solved ? "win" : nextStatus === "lost" ? "lose" : "clear");
 
     if (!isDaily) {
-      // practice — ephemeral, no persistence, no streak
+      // practice — ephemeral board, no streak, but we keep a per-tier
+      // personal-best (fewest attempts) so drills have something to chase.
       setPGuesses(nextGuesses);
       setPCurrent([]);
       setPStatus(nextStatus);
+      if (nextStatus === "won") {
+        const attempts = nextGuesses.length;
+        const prev = practiceBest[tier];
+        if (prev === undefined || attempts < prev) {
+          const updated = { ...practiceBest, [tier]: attempts };
+          setPracticeBest(updated);
+          setNewBest(true);
+          try {
+            localStorage.setItem(PRACTICE_BEST_KEY, JSON.stringify(updated));
+          } catch {
+            /* storage blocked — best still held in-session */
+          }
+        }
+      }
       return;
     }
 
@@ -213,6 +239,8 @@ export function ProofOfSignal() {
     setPGuesses([]);
     setPCurrent([]);
     setPStatus("playing");
+    setRevealed(false);
+    setNewBest(false);
     cue("tap");
   };
   const newPractice = () => {
@@ -220,10 +248,14 @@ export function ProofOfSignal() {
     setPGuesses([]);
     setPCurrent([]);
     setPStatus("playing");
+    setRevealed(false);
+    setNewBest(false);
     cue("tap");
   };
   const goDaily = () => {
     setMode("daily");
+    setRevealed(false);
+    setNewBest(false);
     cue("tap");
   };
 
@@ -345,6 +377,24 @@ export function ProofOfSignal() {
         </div>
       )}
 
+      {/* practice personal-best for the current tier */}
+      {!isDaily && (
+        <div
+          style={{
+            textAlign: "center",
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.2em",
+            color: practiceBest[tier] !== undefined ? "var(--gold-bright)" : "var(--ink-fade)",
+            margin: "16px 0 18px",
+          }}
+        >
+          {practiceBest[tier] !== undefined
+            ? `⬡ ${TIERS[tier].label} BEST · ${practiceBest[tier]} ${practiceBest[tier] === 1 ? "TRY" : "TRIES"}`
+            : `${TIERS[tier].label} · NO BEST YET`}
+        </div>
+      )}
+
       {/* board: one row per attempt */}
       <div style={{ display: "grid", gap: 8, maxWidth: 420, margin: "0 auto" }}>
         {/* completed rows */}
@@ -405,21 +455,47 @@ export function ProofOfSignal() {
               ? `${aGuesses.length}/${maxAttempts}`
               : "THE FREQUENCY ESCAPED"}
           </div>
-          {/* on a loss, reveal the code so the day still teaches the ten */}
-          {aStatus === "lost" && (
+          {!isDaily && aStatus === "won" && newBest && (
             <div
               style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "center",
-                margin: "10px 0 4px",
+                fontFamily: "var(--mono)",
+                fontSize: 11,
+                letterSpacing: "0.24em",
+                color: "var(--gold-bright)",
+                marginBottom: 6,
               }}
             >
-              {aCode.map((slug, i) => (
-                <Cell key={i} slug={slug} peg="locked" small />
-              ))}
+              ⬡ NEW {TIERS[activeTier].label} BEST
             </div>
           )}
+          {/* on a loss, the code stays hidden until the player asks for it —
+             a loss invites another think rather than force-spoiling the answer */}
+          {aStatus === "lost" &&
+            (revealed ? (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  justifyContent: "center",
+                  margin: "10px 0 4px",
+                }}
+              >
+                {aCode.map((slug, i) => (
+                  <Cell key={i} slug={slug} peg="locked" small />
+                ))}
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setRevealed(true);
+                  cue("tap");
+                }}
+                className="proof-btn"
+                style={{ margin: "10px auto 4px" }}
+              >
+                ⬡ REVEAL THE FREQUENCY
+              </button>
+            ))}
           <p
             style={{
               fontSize: 13,

@@ -546,6 +546,13 @@ export function SweepRun() {
           const f = flash?.cell === cell ? flash.kind : null;
           const decay = t ? 1 - Math.min(1, (Date.now() - t.born) / t.ttl) : 0;
           const liveCiv = t?.kind === "live" && t.live != null ? LIVE[t.live] : null;
+          // Urgency ring (corrupted tiles only): a depleting hex band that
+          // tells you how long you have before a miss. Cyan→amber→red as the
+          // window closes. Fixes the old "invisible decay" fairness gap where
+          // two identical threats could expire on wildly different timers.
+          const ringColor =
+            decay > 0.5 ? "#00B8FF" : decay > 0.25 ? "#FFB020" : "#FF3A2D";
+          const ringDeg = Math.round(decay * 360);
           return (
             <button
               key={cell}
@@ -558,6 +565,16 @@ export function SweepRun() {
               disabled={status !== "playing"}
               aria-label={t ? (t.kind === "dead" ? "corrupted signal" : "live citizen") : "empty"}
             >
+              {t?.kind === "dead" && (
+                <span
+                  className={`sweep-ring${decay <= 0.25 ? " critical" : ""}`}
+                  aria-hidden="true"
+                  style={{
+                    clipPath: HEX_CLIP,
+                    background: `conic-gradient(from 0deg, ${ringColor} ${ringDeg}deg, rgba(255,255,255,0.07) ${ringDeg}deg)`,
+                  }}
+                />
+              )}
               {t && (
                 <span
                   className={`sweep-node ${t.kind}`}
@@ -582,8 +599,9 @@ export function SweepRun() {
               <>
                 <div className="sweep-ov-title">SWEEP THE FLOOR</div>
                 <p className="sweep-ov-body">
-                  Tap the <strong className="ov-dead">corrupted ✕</strong> signals to sweep them.
-                  Leave the <strong className="ov-live">living</strong> alone. Three misses and it&apos;s over.
+                  Tap the <strong className="ov-dead">corrupted ✕</strong> signals to sweep them
+                  before their ring empties. Leave the <strong className="ov-live">living</strong> alone.
+                  Three misses and it&apos;s over.
                   {mode === "daily" && (
                     <>
                       {" "}
@@ -758,7 +776,10 @@ export function SweepRun() {
         .sweep-cell.flash-spare-hit, .sweep-cell.flash-miss { background: rgba(255,58,45,0.22); }
         .sweep-cell.flash-power { background: color-mix(in srgb, var(--gold-bright) 30%, transparent); }
 
-        .sweep-node { width: 64%; height: 64%; display: flex; align-items: center; justify-content: center; transition: transform .05s linear; }
+        .sweep-ring { position: absolute; inset: 0; margin: auto; width: 84%; height: 84%; z-index: 0; pointer-events: none; }
+        .sweep-ring.critical { animation: sweep-ring-warn .4s ease-in-out infinite; }
+        @keyframes sweep-ring-warn { 0%,100%{ opacity: 1;} 50%{ opacity: 0.45;} }
+        .sweep-node { position: relative; z-index: 1; width: 64%; height: 64%; display: flex; align-items: center; justify-content: center; transition: transform .05s linear; }
         .sweep-node.dead { background: #FF3A2D; box-shadow: 0 0 18px #FF3A2D; animation: sweep-glitch .35s steps(2) infinite; }
         .sweep-node.power { background: var(--gold-bright); box-shadow: 0 0 22px var(--gold-bright); animation: sweep-power-pulse .7s ease-in-out infinite; }
         .sweep-glyph { font-family: var(--mono); font-size: 22px; font-weight: 700; color: rgba(0,0,0,0.72); line-height: 1; }
@@ -769,7 +790,7 @@ export function SweepRun() {
         @keyframes sweep-surge-flash { 0%,100%{ opacity: 1;} 50%{ opacity: 0.74;} }
         .sweep-grid.surging { box-shadow: 0 0 0 1px var(--gold-bright), 0 0 22px color-mix(in srgb, var(--gold-bright) 40%, transparent); border-radius: 8px; }
         @media (prefers-reduced-motion: reduce) {
-          .sweep-node.power, .sweep-surge { animation: none; }
+          .sweep-node.power, .sweep-surge, .sweep-ring.critical { animation: none; }
         }
 
         .sweep-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 22px; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(2px); border-radius: 8px; }

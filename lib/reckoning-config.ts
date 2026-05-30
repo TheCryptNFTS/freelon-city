@@ -65,8 +65,41 @@ export function musterMultiplier(heldOfCiv: number): number {
   return 1 + Math.min(heldOfCiv * MUSTER_PER_CITIZEN, MUSTER_CAP);
 }
 
-/** Whole-hex muster-amplified war points for a raw burn. Integer so the
- *  ledger stays clean. */
-export function warPoints(rawHex: number, heldOfCiv: number): number {
-  return Math.floor(rawHex * musterMultiplier(heldOfCiv));
+/**
+ * Anti-whale war-score curve.
+ *
+ * War points are LINEAR in raw hex up to a per-wallet, per-civ soft cap; beyond
+ * it, additional hex from the SAME wallet to the SAME civ yields concave
+ * (sqrt-damped) points. This is what lets a coalition of many smaller backers
+ * out-score a lone whale, instead of the war being a pure wallet-size check.
+ *
+ * Crucially it keys on the wallet's CUMULATIVE raw hex to a civ this week — not
+ * on the size of a single tribute — so splitting one big burn into many small
+ * ones doesn't dodge the damping. The hex DEBIT is always the raw amount the
+ * player chose (handled in the route); this only scales the isolated war score,
+ * so it can never be an economic exploit.
+ */
+export const RECKONING_SOFTCAP = 500;
+
+/** Concave cumulative war points for a wallet's total raw hex to one civ.
+ *  Linear ≤ softcap, then sqrt-damped with slope continuous at the knee
+ *  (slope 1 exactly at the cap, decaying toward 0 as the total grows). */
+export function warCurve(rawCumulative: number): number {
+  const S = RECKONING_SOFTCAP;
+  if (rawCumulative <= S) return Math.max(0, rawCumulative);
+  return S + 2 * S * (Math.sqrt(1 + (rawCumulative - S) / S) - 1);
+}
+
+/**
+ * Muster-amplified war points earned by adding `addRaw` hex on top of a
+ * wallet's existing `prevRaw` cumulative to this civ. The marginal slice of the
+ * concave curve, then scaled by muster. Integer so the ledger stays clean.
+ */
+export function warPointsMarginal(
+  prevRaw: number,
+  addRaw: number,
+  heldOfCiv: number,
+): number {
+  const marginal = warCurve(prevRaw + addRaw) - warCurve(prevRaw);
+  return Math.max(0, Math.floor(marginal * musterMultiplier(heldOfCiv)));
 }

@@ -32,6 +32,7 @@ export async function GET(req: Request) {
         rawHex: number;
         heldByCiv: Record<string, number>;
         musterByCiv: Record<string, number>;
+        rawByCiv: Record<string, number>;
       }
     | null = null;
 
@@ -61,6 +62,7 @@ export async function GET(req: Request) {
       rawHex: gen.rawHex,
       heldByCiv,
       musterByCiv,
+      rawByCiv: gen.rawByCiv ?? {},
     };
   }
 

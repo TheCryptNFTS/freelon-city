@@ -5,7 +5,7 @@ import { getCitizen } from "@/lib/citizens";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { requireXSession } from "@/lib/require-x";
-import { RECKONING_MIN_TRIBUTE, warPoints, musterMultiplier } from "@/lib/reckoning-config";
+import { RECKONING_MIN_TRIBUTE, musterMultiplier } from "@/lib/reckoning-config";
 import { recordTribute } from "@/lib/reckoning-store";
 
 export const runtime = "nodejs";
@@ -102,8 +102,6 @@ export async function POST(req: Request) {
   } catch {
     /* treat as non-holder → 1x muster */
   }
-  const points = warPoints(effectiveBurn, heldOfCiv);
-
   // Burn (the sink), then record into the isolated war tally.
   try {
     await debitWalletHex(address, effectiveBurn, {
@@ -114,11 +112,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "burn_failed" }, { status: 500 });
   }
 
-  const { week, civ: civWar, general } = await recordTribute({
+  // War points are computed inside recordTribute via the anti-whale curve,
+  // keyed on this wallet's cumulative raw hex to the civ this week.
+  const { week, civ: civWar, general, points } = await recordTribute({
     address,
     civ,
     rawHex: effectiveBurn,
-    points,
+    heldOfCiv,
   });
 
   return NextResponse.json({

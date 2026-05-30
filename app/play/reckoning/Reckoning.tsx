@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CivGlyph } from "@/components/CivGlyph";
 import { CIVILIZATIONS } from "@/lib/constants";
-import { RECKONING_MIN_TRIBUTE } from "@/lib/reckoning-config";
+import { RECKONING_MIN_TRIBUTE, RECKONING_SOFTCAP, warPointsMarginal } from "@/lib/reckoning-config";
 import { tweetReckoning, tweetIntent } from "@/lib/share";
 import { useHolder } from "@/lib/useHolder";
 import { cue } from "@/lib/arcade-feedback";
@@ -26,6 +26,7 @@ type WalletView = {
   rawHex: number;
   heldByCiv: Record<string, number>;
   musterByCiv: Record<string, number>;
+  rawByCiv?: Record<string, number>;
 };
 type State = {
   week: number;
@@ -201,7 +202,15 @@ export function Reckoning() {
   const validAmount = Number.isFinite(amountN) && amountN >= RECKONING_MIN_TRIBUTE;
   const muster = state?.wallet?.musterByCiv?.[selected] ?? 1;
   const held = state?.wallet?.heldByCiv?.[selected] ?? 0;
-  const projectedPoints = validAmount ? Math.floor(amountN * muster) : 0;
+  // Project the real anti-whale curve: war points for this tribute depend on
+  // how much this wallet has already poured into this civ this week. Past the
+  // soft cap, each extra hex earns diminishing signal — so the projection
+  // matches what the server will actually award (no hidden nerf).
+  const rawSoFar = state?.wallet?.rawByCiv?.[selected] ?? 0;
+  const projectedPoints = validAmount
+    ? warPointsMarginal(rawSoFar, amountN, held)
+    : 0;
+  const damped = validAmount && projectedPoints < Math.floor(amountN * muster);
   const afterBurn = walletHex !== null && validAmount ? Math.max(0, walletHex - amountN) : null;
 
   const tribute = useCallback(async () => {
@@ -418,6 +427,14 @@ export function Reckoning() {
               </div>
             )}
 
+            {damped && (
+              <div className="reck-damp">
+                ⬡ DIMINISHING SIGNAL · you&apos;ve passed {fmt(RECKONING_SOFTCAP)} ⬡ to this
+                civ this week, so each extra hex now earns less. Rally more
+                citizens to your side — a coalition out-signals one lone whale.
+              </div>
+            )}
+
             {error && <div className="reck-err">{error}</div>}
 
             {lastBurn ? (
@@ -549,6 +566,7 @@ export function Reckoning() {
           steps={[
             { glyph: "⬡", text: "Ten civilizations fight for one crown each week. Pick the side you'll muster for." },
             { glyph: "✦", text: "Burn hex to muster — your tribute amplifies your civ's signal on the board." },
+            { glyph: "⚖", text: "Pour too much into one civ and your signal diminishes — many backers out-signal a lone whale, so rally allies, don't go solo." },
             { glyph: "★", text: "The leading civ when the week ends is crowned, and the city remembers it forever." },
           ]}
         />
@@ -599,6 +617,7 @@ export function Reckoning() {
         .reck-project { margin-top: 14px; font-family: var(--mono); font-size: 12px; color: var(--ink-dim); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .reck-arrow { color: var(--ink-fade); }
         .reck-balance { color: var(--ink-fade); }
+        .reck-damp { margin-top: 10px; padding: 9px 12px; border: 1px dashed color-mix(in srgb, var(--gold-bright) 45%, var(--line)); background: rgba(200,167,93,0.07); color: var(--ink-dim); font-family: var(--mono); font-size: 11px; line-height: 1.5; }
         .reck-err { margin-top: 12px; padding: 10px 12px; border: 1px solid #FF5A4D88; background: rgba(255,90,77,0.08); color: #FF5A4D; font-family: var(--mono); font-size: 12px; }
         .reck-burn { margin-top: 16px; width: 100%; font-family: var(--mono); letter-spacing: 0.06em; }
         .reck-ok { margin-top: 16px; font-family: var(--mono); font-size: 13px; color: var(--ink); line-height: 1.6; }
