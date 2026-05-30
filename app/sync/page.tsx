@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies, headers } from "next/headers";
 import { InlineSync } from "@/components/InlineSync";
-import { normalizeHandle } from "@/lib/sync";
-import { authCookieDomainForHost } from "@/lib/x-session";
 import { WalletScanner } from "./WalletScanner";
 import { SyncWalletAction } from "./SyncWalletAction";
 
@@ -30,34 +27,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SyncPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ r?: string }>;
-}) {
-  const sp = await searchParams;
-  if (sp.r) {
-    const ref = normalizeHandle(sp.r);
-    if (ref) {
-      try {
-        const c = await cookies();
-        // Scope to .freeloncity.com so a referral set on apex survives the
-        // OAuth callback that lands on www (or vice versa) — otherwise the
-        // referral binding is silently lost across the host hop.
-        const h = await headers();
-        const domain = authCookieDomainForHost(h.get("host"));
-        c.set("freelon_ref", ref, {
-          httpOnly: true,
-          sameSite: "lax",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 30,
-          ...(domain ? { domain } : {}),
-        });
-      } catch {
-        // best-effort
-      }
-    }
-  }
+// The ?r=<handle> referral capture now lives in middleware.ts — it sets the
+// freelon_ref cookie on the /sync response (cookie mutation isn't allowed in a
+// Server Component render under Next 15, which is why the old in-render set was
+// a silent no-op). This page is purely presentational.
+export default function SyncPage() {
 
   return (
     <div
