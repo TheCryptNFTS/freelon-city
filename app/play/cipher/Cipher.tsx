@@ -1,9 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
+import {
+  dayNumber,
+  dayKey,
+  dailyRng,
+  resolveStreak,
+  type StreakState,
+} from "@/lib/daily";
 
 /**
  * The Cipher — prototype #3 (the community ARG / glue).
@@ -82,6 +89,43 @@ const STAGES: Stage[] = [
 type Save = { solved: number; tries: Record<number, number> };
 const EMPTY: Save = { solved: 0, tries: {} };
 
+// ── Daily Cryptogram ──────────────────────────────────────────────────────
+// The story above is a fixed 5-stage ARG; the daily is the replayable hook:
+// one Caesar-shifted FREELON CITY transmission per UTC day (seeded so everyone
+// gets the same puzzle), a Wordle-style guess budget, and a streak. Decode the
+// line before you run out of tries to bank the day.
+type Mode = "story" | "daily";
+const DAILY_MAX_TRIES = 5;
+const STREAK_KEY = "freelon::play::cipher::streak::v1";
+const DAILY_RESULT_KEY = "freelon::play::cipher::daily::v1";
+type DailyResult = { dayKey: string; won: boolean; tries: number };
+
+// Short canonical lore lines — uppercase A–Z + spaces only so a Caesar shift
+// is clean and the decoded answer is recognisable. norm() ignores spacing on
+// compare, so the player doesn't have to match punctuation exactly.
+const PHRASES = [
+  "WE DID NOT VANISH WE MOVED",
+  "THE HEX DID NOT DISAPPEAR IT MOVED",
+  "RESTORE THE SIGNAL",
+  "THE CITY WAS NEVER GONE",
+  "EVERY ONE OF US CARRIES THE HEX",
+  "FOUR ZERO FOUR THE FIRST ERROR",
+  "WE HEAR WE SYNC",
+  "THE THRONE DECREES THE LIGHT",
+  "DUST RUNNERS CARRY THE SIGNAL",
+  "SWEEP THE CORRUPTED SPARE THE LIVING",
+  "TEN CIVILIZATIONS ONE GRID",
+  "THE SHAPE TAXONOMY IS THE BRAND",
+  "HOLD THE LINE OF TRANSMISSION",
+  "A CITIZEN COMES BACK ONLINE",
+  "THE CHOIR TUNES THE OPEN BAND",
+];
+
+const caesar = (s: string, shift: number) =>
+  s.replace(/[A-Z]/g, (c) =>
+    String.fromCharCode(((c.charCodeAt(0) - 65 + shift) % 26) + 65),
+  );
+
 // Coerce anything from localStorage into a valid Save. `solved` is clamped to
 // a real integer in [0, STAGES.length]; a non-number (e.g. "x") previously
 // rendered a broken "X/5" finale. `tries` falls back to an empty map.
@@ -104,12 +148,52 @@ export function Cipher() {
   const [shake, setShake] = useState(false);
   const [justSolved, setJustSolved] = useState(false);
 
+  // ── daily cryptogram state ────────────────────────────────────────────────
+  const [mode, setMode] = useState<Mode>("story");
+  const [dayNum, setDayNum] = useState(0);
+  const [today, setToday] = useState("");
+  const [dStreak, setDStreak] = useState(0);
+  const streakRef = useRef<StreakState | null>(null);
+  const [dResult, setDResult] = useState<DailyResult | null>(null);
+  const [dWrong, setDWrong] = useState(0); // wrong guesses used today
+  const [dInput, setDInput] = useState("");
+  const [dShake, setDShake] = useState(false);
+  const playedToday = dResult != null && dResult.dayKey === today;
+
+  // The day's puzzle: a seeded phrase + Caesar shift (deterministic per day).
+  const daily = useMemo(() => {
+    if (!dayNum) return null;
+    const rng = dailyRng(dayNum, "cipher");
+    const phrase = PHRASES[Math.floor(rng() * PHRASES.length)];
+    const shift = 1 + Math.floor(rng() * 25);
+    return { phrase, shift, cipher: caesar(phrase, shift) };
+  }, [dayNum]);
+
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(SAVE_KEY);
       if (raw) setSave(sanitize(JSON.parse(raw)));
     } catch {
       /* ignore — fall through to a fresh save */
+    }
+
+    setDayNum(dayNumber());
+    setToday(dayKey());
+    try {
+      const s = window.localStorage.getItem(STREAK_KEY);
+      if (s) {
+        const parsed = JSON.parse(s) as StreakState;
+        streakRef.current = parsed;
+        setDStreak(parsed.streak || 0);
+      }
+      const d = window.localStorage.getItem(DAILY_RESULT_KEY);
+      if (d) {
+        const parsed = JSON.parse(d) as DailyResult;
+        setDResult(parsed);
+        if (parsed.dayKey === dayKey()) setDWrong(parsed.tries);
+      }
+    } catch {
+      /* corrupt prefs are non-fatal */
     }
   }, []);
 
@@ -159,19 +243,137 @@ export function Cipher() {
 
   const reset = useCallback(() => persist(EMPTY), [persist]);
 
+  // Bank the daily result + resolve the streak. Win = decoded before the guess
+  // budget runs out; loss = ran out of tries. One attempt-set per day.
+  const bankDaily = useCallback(
+    (won: boolean, wrongUsed: number) => {
+      const next = resolveStreak(streakRef.current, won);
+      streakRef.current = next;
+      setDStreak(next.streak);
+      const result: DailyResult = { dayKey: today, won, tries: wrongUsed };
+      setDResult(result);
+      try {
+        window.localStorage.setItem(STREAK_KEY, JSON.stringify(next));
+        window.localStorage.setItem(DAILY_RESULT_KEY, JSON.stringify(result));
+      } catch {
+        /* persistence is best-effort */
+      }
+    },
+    [today],
+  );
+
+  const submitDaily = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!daily || playedToday) return;
+      const guess = norm(dInput);
+      if (guess.length === 0) return;
+      if (guess === norm(daily.phrase)) {
+        setDInput("");
+        cue("win");
+        bankDaily(true, dWrong);
+        return;
+      }
+      const wrong = dWrong + 1;
+      setDWrong(wrong);
+      setDInput("");
+      const reduce =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (wrong >= DAILY_MAX_TRIES) {
+        cue("lose");
+        bankDaily(false, wrong);
+      } else {
+        cue("error");
+        if (!reduce) {
+          setDShake(true);
+          setTimeout(() => setDShake(false), 450);
+        }
+      }
+    },
+    [daily, playedToday, dInput, dWrong, bankDaily],
+  );
+
+  const dTriesLeft = Math.max(0, DAILY_MAX_TRIES - dWrong);
+  // Mercy hint: after burning more than half the budget, reveal the shift.
+  const dShowShift = dWrong >= 3 && !playedToday;
+
   const triesOnCurrent = current ? save.tries[current.n] ?? 0 : 0;
   const showHint = triesOnCurrent >= 2;
 
   return (
     <div className="manifesto" style={{ paddingBottom: 64 }}>
       <section className="manifesto-hero" style={{ paddingBottom: 8 }}>
-        <span className="kicker">⬡ ARG · THE CIPHER · {save.solved}/5 DECODED</span>
+        <span className="kicker">
+          {mode === "daily"
+            ? `⬡ DAILY CRYPTOGRAM · DAY ${dayNum}`
+            : `⬡ ARG · THE CIPHER · ${save.solved}/5 DECODED`}
+        </span>
         <h1>
           A transmission <em>broke apart</em>.
         </h1>
-        <p className="lead">Reassemble it, one fragment at a time.</p>
+        <p className="lead">
+          {mode === "daily"
+            ? "Decode today's shifted line. One puzzle a day — keep the streak."
+            : "Reassemble it, one fragment at a time."}
+        </p>
       </section>
 
+      {/* mode toggle — STORY (fixed 5-stage ARG) vs DAILY (seeded cryptogram) */}
+      <div
+        style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}
+      >
+        {(["story", "daily"] as Mode[]).map((m, k) => {
+          const active = mode === m;
+          return (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              style={{
+                padding: "7px 18px",
+                fontFamily: "var(--mono)",
+                fontSize: 11,
+                letterSpacing: "0.2em",
+                fontWeight: 700,
+                cursor: "pointer",
+                border: "1px solid var(--line)",
+                borderRight: k === 0 ? "none" : "1px solid var(--line)",
+                borderRadius: k === 0 ? "6px 0 0 6px" : "0 6px 6px 0",
+                background: active ? "var(--gold-bright)" : "transparent",
+                color: active ? "#0a0e27" : "var(--ink-fade)",
+                boxShadow: active ? "0 0 14px var(--gold-bright)" : "none",
+                transition: "all .15s",
+              }}
+            >
+              {m === "daily" ? "⬡ DAILY" : "▤ STORY"}
+            </button>
+          );
+        })}
+      </div>
+
+      {mode === "daily" && (
+        <div
+          style={{
+            display: "flex",
+            gap: 18,
+            justifyContent: "center",
+            alignItems: "baseline",
+            marginBottom: 22,
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.16em",
+            color: "var(--ink-fade)",
+          }}
+        >
+          <span style={{ color: dStreak > 0 ? "var(--gold-bright)" : "var(--ink-fade)" }}>
+            🔥 STREAK {dStreak}
+          </span>
+          {!playedToday && <span>TRIES LEFT {dTriesLeft}</span>}
+        </div>
+      )}
+
+      {mode === "story" && (
+      <>
       {/* progress pips */}
       <div
         style={{
@@ -395,6 +597,142 @@ export function Cipher() {
               <span className="ttl">READ THE LORE</span>
             </Link>
           </div>
+        </div>
+      )}
+      </>
+      )}
+
+      {/* ── DAILY CRYPTOGRAM ─────────────────────────────────────────────── */}
+      {mode === "daily" && daily && (
+        <div
+          style={{
+            maxWidth: 560,
+            margin: "0 auto",
+            border: "1px solid var(--line)",
+            borderLeft: "2px solid var(--gold-bright)",
+            background: "var(--surface)",
+            padding: "22px 24px",
+            animation: dShake ? "cipher-shake .4s" : undefined,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              letterSpacing: "0.26em",
+              color: "var(--gold-bright)",
+              marginBottom: 14,
+            }}
+          >
+            ⬡ INTERCEPTED TRANSMISSION · SHIFTED
+          </div>
+
+          {/* the ciphertext */}
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: "clamp(15px, 4vw, 22px)",
+              letterSpacing: "0.16em",
+              color: "var(--gold-bright)",
+              background: "var(--bg)",
+              border: "1px dashed var(--line-2)",
+              padding: "16px",
+              textAlign: "center",
+              margin: "0 0 18px",
+              wordBreak: "break-word",
+            }}
+          >
+            {daily.cipher}
+          </div>
+
+          {playedToday ? (
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 12,
+                  letterSpacing: "0.18em",
+                  color: dResult?.won ? "var(--success-bright)" : "var(--state-danger)",
+                  marginBottom: 10,
+                }}
+              >
+                {dResult?.won ? "✓ DECODED" : "✕ TRANSMISSION LOST"}
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--display)",
+                  fontStyle: "italic",
+                  fontSize: "clamp(16px, 3vw, 22px)",
+                  color: "var(--ink)",
+                  marginBottom: 14,
+                }}
+              >
+                “{daily.phrase}”
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  color: dStreak > 0 ? "var(--gold-bright)" : "var(--ink-fade)",
+                  marginBottom: 8,
+                }}
+              >
+                🔥 STREAK {dStreak}
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.16em",
+                  color: "var(--ink-fade)",
+                }}
+              >
+                ONE TRANSMISSION A DAY — COME BACK TOMORROW
+              </div>
+            </div>
+          ) : (
+            <>
+              <form onSubmit={submitDaily} style={{ display: "flex", gap: 10 }}>
+                <input
+                  value={dInput}
+                  onChange={(e) => setDInput(e.target.value)}
+                  placeholder="decode the transmission…"
+                  autoFocus
+                  spellCheck={false}
+                  style={{
+                    flex: 1,
+                    background: "var(--bg)",
+                    border: "1px solid var(--line-2)",
+                    color: "var(--ink)",
+                    fontFamily: "var(--mono)",
+                    fontSize: 15,
+                    letterSpacing: "0.08em",
+                    padding: "12px 14px",
+                    outline: "none",
+                  }}
+                />
+                <button className="btn btn-primary" type="submit">
+                  <span className="ttl">DECODE →</span>
+                </button>
+              </form>
+              <div
+                style={{
+                  marginTop: 14,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontFamily: "var(--mono)",
+                  fontSize: 12,
+                  color: "var(--ink-dim)",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                <span>TRIES LEFT · {dTriesLeft}</span>
+                {dShowShift && <span>HINT · SHIFTED BY {daily.shift}</span>}
+              </div>
+            </>
+          )}
         </div>
       )}
 
