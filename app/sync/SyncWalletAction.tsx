@@ -20,12 +20,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-function stampViewerCookie(addr: string) {
-  if (typeof document === "undefined") return;
-  const maxAge = 60 * 60 * 24 * 30; // 30 days — matches header pattern
-  document.cookie = `freelon_addr=${encodeURIComponent(addr.toLowerCase())}; path=/; max-age=${maxAge}; samesite=lax`;
-}
+import { stampViewerAddr as stampViewerCookie } from "@/lib/viewer-cookie";
 
 type Status = "idle" | "connecting" | "connected" | "error";
 

@@ -4,23 +4,7 @@ import Link from "next/link";
 import { createPublicClient, http, fallback } from "viem";
 import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
-
-/**
- * Persist the connected wallet address in a non-HttpOnly cookie so client
- * islands across the site (MyRank on /leaderboard, MyCivStandings on
- * /civ-wars, WatchlistButton on /citizens/[id]) immediately recognise the
- * viewer. NOT used for auth — that's still the HMAC X session cookie.
- */
-function stampViewerCookie(addr: string) {
-  if (typeof document === "undefined") return;
-  const maxAge = 60 * 60 * 24 * 30; // 30 days
-  document.cookie = `freelon_addr=${encodeURIComponent(addr.toLowerCase())}; path=/; max-age=${maxAge}; samesite=lax`;
-}
-
-function clearViewerCookie() {
-  if (typeof document === "undefined") return;
-  document.cookie = `freelon_addr=; path=/; max-age=0; samesite=lax`;
-}
+import { stampViewerAddr, clearViewerAddr } from "@/lib/viewer-cookie";
 
 // Last-connected wallet from the persisted cookie. Used to re-hydrate the
 // connected UI on load when the injected provider isn't reporting an account
@@ -94,7 +78,7 @@ export function WalletConnect() {
     // Stamp the viewer cookie immediately so personal modules across the
     // site (MyRank, MyCivStandings, Watchlist) recognise this wallet
     // even before the balance resolves.
-    stampViewerCookie(address);
+    stampViewerAddr(address);
 
     // Source 1: RPC
     let rpcCount: number | null = null;
@@ -214,7 +198,7 @@ export function WalletConnect() {
     setCount(null);
     setStatus("idle");
     setErr(null);
-    clearViewerCookie();
+    clearViewerAddr();
   }
 
   function retry() {

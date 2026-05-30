@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { InlineSync } from "@/components/InlineSync";
 import { normalizeHandle } from "@/lib/sync";
+import { authCookieDomainForHost } from "@/lib/x-session";
 import { WalletScanner } from "./WalletScanner";
 import { SyncWalletAction } from "./SyncWalletAction";
 
@@ -40,11 +41,17 @@ export default async function SyncPage({
     if (ref) {
       try {
         const c = await cookies();
+        // Scope to .freeloncity.com so a referral set on apex survives the
+        // OAuth callback that lands on www (or vice versa) — otherwise the
+        // referral binding is silently lost across the host hop.
+        const h = await headers();
+        const domain = authCookieDomainForHost(h.get("host"));
         c.set("freelon_ref", ref, {
           httpOnly: true,
           sameSite: "lax",
           path: "/",
           maxAge: 60 * 60 * 24 * 30,
+          ...(domain ? { domain } : {}),
         });
       } catch {
         // best-effort

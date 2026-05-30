@@ -150,12 +150,16 @@ export function isSameOrigin(req: Request): boolean {
  * Returns undefined off-prod (localhost, *.vercel.app) so those keep working
  * with plain host-only cookies. Pass the request's Host header.
  */
-export function authCookieDomain(req: Request): string | undefined {
-  const host = (req.headers.get("host") || "").split(":")[0].toLowerCase();
-  if (host === "freeloncity.com" || host.endsWith(".freeloncity.com")) {
+export function authCookieDomainForHost(host: string | null | undefined): string | undefined {
+  const h = (host || "").split(":")[0].toLowerCase();
+  if (h === "freeloncity.com" || h.endsWith(".freeloncity.com")) {
     return ".freeloncity.com";
   }
   return undefined;
+}
+
+export function authCookieDomain(req: Request): string | undefined {
+  return authCookieDomainForHost(req.headers.get("host"));
 }
 
 export function sessionCookieOptions(req?: Request) {

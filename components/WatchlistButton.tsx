@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { CANON } from "@/lib/canon";
+import { stampViewerAddr } from "@/lib/viewer-cookie";
 
 type Props = { tokenId: number };
 
@@ -60,8 +61,7 @@ export function WatchlistButton({ tokenId }: Props) {
     setError(null);
     setAddr(trimmed);
     setEditingAddr(false);
-    const maxAge = 60 * 60 * 24 * 30;
-    document.cookie = `freelon_addr=${encodeURIComponent(trimmed)}; path=/; max-age=${maxAge}; samesite=lax`;
+    stampViewerAddr(trimmed);
   }
 
   async function toggle() {

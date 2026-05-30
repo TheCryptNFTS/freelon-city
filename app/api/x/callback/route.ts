@@ -130,6 +130,9 @@ export async function GET(req: Request) {
   res.cookies.delete({ name: "x_pkce_verifier", ...clearOpts });
   res.cookies.delete({ name: "x_oauth_state", ...clearOpts });
   res.cookies.delete({ name: "x_bind", ...clearOpts });
-  res.cookies.delete("freelon_ref");
+  // freelon_ref is now domain-scoped when set on prod (see /sync); clear it
+  // with the same domain, plus a host-only clear for any legacy cookie.
+  res.cookies.delete({ name: "freelon_ref", ...clearOpts });
+  if (domain) res.cookies.delete("freelon_ref");
   return res;
 }
