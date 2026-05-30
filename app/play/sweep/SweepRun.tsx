@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { tweetSweep, tweetIntent } from "@/lib/share";
 import { cue } from "@/lib/arcade-feedback";
+import { awardXp } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import {
   dayNumber,
@@ -211,6 +212,9 @@ export function SweepRun() {
     setStatus("over");
     setTargets([]);
     const finalScore = scoreRef.current;
+
+    // Bank lifetime arcade XP (local-only, cosmetic) for every run, both modes.
+    awardXp("sweep", Math.floor(finalScore / 40), finalScore);
 
     // Daily: bank the result + resolve the streak (one attempt per day, so the
     // one-shot lock prevents a replay from double-counting). No leaderboard —

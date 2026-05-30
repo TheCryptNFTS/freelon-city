@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cue } from "@/lib/arcade-feedback";
+import { awardXp } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import {
   dayNumber,
@@ -222,6 +223,8 @@ export function Cipher() {
         });
         setInput("");
         setJustSolved(true);
+        // Lifetime arcade XP (local-only, cosmetic) for recovering a fragment.
+        awardXp("cipher", 25);
         cue(nextSolved >= STAGES.length ? "win" : "special");
         setTimeout(() => setJustSolved(false), 1400);
       } else {
@@ -270,6 +273,8 @@ export function Cipher() {
       if (guess.length === 0) return;
       if (guess === norm(daily.phrase)) {
         setDInput("");
+        // Lifetime arcade XP — more for a clean decode (fewer wrong guesses).
+        awardXp("cipher", 40 + (DAILY_MAX_TRIES - dWrong) * 5);
         cue("win");
         bankDaily(true, dWrong);
         return;

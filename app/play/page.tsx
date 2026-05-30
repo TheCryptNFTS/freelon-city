@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArcadeProgress } from "@/components/ArcadeProgress";
 
 export const metadata: Metadata = {
   title: "Play · FREELON CITY Arcade",
@@ -161,6 +162,8 @@ export default function PlayHub() {
           </Link>
         ))}
       </section>
+
+      <ArcadeProgress />
 
       <p
         style={{

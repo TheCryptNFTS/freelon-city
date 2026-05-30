@@ -20,6 +20,7 @@ import {
   colIdxOf,
 } from "@/lib/hex-match-engine";
 import { cue } from "@/lib/arcade-feedback";
+import { awardXp, getProgress, rankedUp, rankFor } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import {
   dayNumber,
@@ -413,13 +414,19 @@ export function HexMatch() {
         popFlash(`LEVEL ${levelRef.current}`);
         cue("levelup");
       } else if (movesRef.current <= 0) {
+        // Bank lifetime arcade XP (local-only, cosmetic). Deeper runs +
+        // higher scores pay more. A rank-up headlines the endless game-over.
+        const beforeXp = getProgress().xp;
+        const earned = Math.floor(scoreRef.current / 50) + (levelRef.current - 1) * 20;
+        const after = awardXp("hex-match", earned, scoreRef.current);
+        const leveledRank = rankedUp(beforeXp, after.xp);
         overRef.current = true;
         setOver(true);
         if (modeRef.current === "daily") {
           finishDaily();
         } else {
-          popFlash("SIGNAL LOST");
-          cue("lose");
+          popFlash(leveledRank ? `RANK UP · ${rankFor(after.xp).name}` : "SIGNAL LOST");
+          cue(leveledRank ? "special" : "lose");
         }
       }
       setBusy(false);
