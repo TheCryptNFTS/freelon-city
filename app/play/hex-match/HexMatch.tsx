@@ -48,6 +48,11 @@ const TILES = [
 const HEX_CLIP =
   "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 const HIGH_SCORE_KEY = "freelon::play::hexmatch::hi::v1";
+// Persisted so a returning player's handle pre-fills the leaderboard entry.
+const HANDLE_KEY = "freelon::play::hexmatch::handle::v1";
+const GAME = "hex-match";
+
+type LbEntry = { id: string; handle: string; score: number; rank: number };
 
 type Cell = number; // tile id
 type Board = Cell[]; // length SIZE*SIZE
@@ -202,16 +207,48 @@ export function HexMatch() {
   const targetRef = useRef(TARGET_BASE);
   const overRef = useRef(false);
 
+  // ── leaderboard: stamp a run under a handle or the connected wallet ───────
+  const [lbTop, setLbTop] = useState<LbEntry[]>([]);
+  const [handle, setHandle] = useState("");
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [sendState, setSendState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [myRank, setMyRank] = useState<number | null>(null);
+
+  const loadTop = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/arcade/score?game=${GAME}&limit=10`);
+      if (!res.ok) return;
+      const j = (await res.json()) as { top: LbEntry[] };
+      setLbTop(j.top || []);
+    } catch {
+      /* leaderboard is best-effort; never block the game on it */
+    }
+  }, []);
+
   useEffect(() => {
     // Client-only randomization — avoids the SSR/hydration mismatch that a
     // Math.random() initial state would cause.
     setBoard(playableBoard());
     const raw = window.localStorage.getItem(HIGH_SCORE_KEY);
     if (raw) setHighScore(parseInt(raw, 10) || 0);
+    const savedHandle = window.localStorage.getItem(HANDLE_KEY);
+    if (savedHandle) setHandle(savedHandle);
+    void loadTop();
+    // Silently read an already-connected wallet (no popup) so the player can
+    // stamp the run under their address instead of a typed handle.
+    if (window.ethereum) {
+      window.ethereum
+        .request({ method: "eth_accounts" })
+        .then((accs) => {
+          const list = accs as string[];
+          if (list && list[0]) setWallet(list[0].toLowerCase());
+        })
+        .catch(() => {});
+    }
     return () => {
       if (flashTimer.current) clearTimeout(flashTimer.current);
     };
-  }, []);
+  }, [loadTop]);
 
   useEffect(() => {
     if (score > highScore) {
@@ -358,7 +395,45 @@ export function HexMatch() {
     setMoves(MOVES_BASE);
     setOver(false);
     setSelected(null);
+    setSendState("idle");
+    setMyRank(null);
   }, [busy]);
+
+  const submitRun = useCallback(async () => {
+    const h = handle.trim();
+    // Need at least one identity: a connected wallet or a valid handle.
+    if (!wallet && !(h.length >= 2)) return;
+    setSendState("sending");
+    try {
+      if (h) {
+        try {
+          window.localStorage.setItem(HANDLE_KEY, h);
+        } catch {
+          /* ignore */
+        }
+      }
+      const res = await fetch("/api/arcade/score", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          game: GAME,
+          score: scoreRef.current,
+          handle: h || undefined,
+          wallet: wallet || undefined,
+        }),
+      });
+      if (!res.ok) {
+        setSendState("error");
+        return;
+      }
+      const j = (await res.json()) as { rank: number; top: LbEntry[] };
+      setMyRank(j.rank);
+      setLbTop(j.top || []);
+      setSendState("done");
+    } catch {
+      setSendState("error");
+    }
+  }, [handle, wallet]);
 
   const cells = useMemo(() => board, [board]);
 
@@ -571,7 +646,80 @@ export function HexMatch() {
                 {score.toLocaleString()} POINTS
                 {score >= highScore && score > 0 ? " · NEW BEST" : ""}
               </div>
-              <button className="btn btn-primary" onClick={reset}>
+
+              {/* leaderboard entry — stamp this run under a handle or wallet */}
+              {sendState === "done" ? (
+                <div
+                  style={{
+                    fontFamily: "var(--mono)",
+                    fontSize: 12,
+                    letterSpacing: "0.14em",
+                    color: "var(--gold-bright)",
+                    marginBottom: 16,
+                  }}
+                >
+                  ⬡ LOGGED · RANK #{myRank}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                    alignItems: "center",
+                    marginBottom: 16,
+                  }}
+                >
+                  <input
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value.slice(0, 20))}
+                    placeholder={wallet ? "HANDLE (OPTIONAL)" : "ENTER A HANDLE"}
+                    maxLength={20}
+                    style={{
+                      width: 220,
+                      textAlign: "center",
+                      padding: "9px 10px",
+                      background: "var(--line-2)",
+                      border: "1px solid var(--line)",
+                      borderRadius: 6,
+                      color: "var(--ink)",
+                      fontFamily: "var(--mono)",
+                      fontSize: 13,
+                      letterSpacing: "0.14em",
+                    }}
+                  />
+                  {wallet && (
+                    <div
+                      style={{
+                        fontFamily: "var(--mono)",
+                        fontSize: 10,
+                        letterSpacing: "0.12em",
+                        color: "var(--ink-fade)",
+                      }}
+                    >
+                      ⬡ WALLET {wallet.slice(0, 6)}…{wallet.slice(-4)}
+                    </div>
+                  )}
+                  <button
+                    className="btn btn-primary"
+                    onClick={submitRun}
+                    disabled={
+                      sendState === "sending" || (!wallet && handle.trim().length < 2)
+                    }
+                    style={{ marginTop: 2 }}
+                  >
+                    <span className="ttl">
+                      {sendState === "sending"
+                        ? "LOGGING…"
+                        : sendState === "error"
+                          ? "RETRY ↻"
+                          : "LOG SCORE →"}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              <button className="btn btn-secondary" onClick={reset}>
                 <span className="ttl">RUN IT BACK ↻</span>
               </button>
             </div>
@@ -613,6 +761,76 @@ export function HexMatch() {
         LEVEL DEMANDS MORE AND GIVES YOU FEWER MOVES. CASCADES CHAIN INTO COMBOS
         FOR BIG POINTS.
       </p>
+
+      {/* high-score leaderboard */}
+      <div
+        style={{
+          width: "min(92vw, 460px)",
+          margin: "32px auto 0",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.26em",
+            color: "var(--gold)",
+            textAlign: "center",
+            marginBottom: 12,
+          }}
+        >
+          ⬡ TOP SIGNALS
+        </div>
+        {lbTop.length === 0 ? (
+          <p
+            style={{
+              textAlign: "center",
+              fontFamily: "var(--mono)",
+              fontSize: 11,
+              letterSpacing: "0.14em",
+              color: "var(--ink-fade)",
+            }}
+          >
+            NO RUNS LOGGED YET — BE THE FIRST.
+          </p>
+        ) : (
+          <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {lbTop.map((e) => (
+              <li
+                key={e.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  padding: "8px 12px",
+                  fontFamily: "var(--mono)",
+                  fontSize: 13,
+                  borderTop: "1px solid var(--line-2)",
+                }}
+              >
+                <span style={{ color: "var(--ink-dim)", width: 34 }}>
+                  {e.rank <= 3 ? ["🥇", "🥈", "🥉"][e.rank - 1] : `#${e.rank}`}
+                </span>
+                <span
+                  style={{
+                    flex: 1,
+                    color: "var(--ink)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {e.handle}
+                </span>
+                <span style={{ color: "var(--gold-bright)", fontWeight: 700 }}>
+                  {e.score.toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </div>
   );
 }
