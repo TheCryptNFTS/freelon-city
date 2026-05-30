@@ -94,6 +94,11 @@ type DailyResult = { dayKey: string; won: boolean; level: number; score: number 
 
 type LbEntry = { id: string; handle: string; score: number; rank: number };
 
+// A short-lived shard flung from a cleared cell. Position is a percentage of
+// the board (grid-cell center); dx/dy are the outward fling in px. Rendered in
+// an overlay and removed once its CSS animation finishes.
+type Particle = { id: number; x: number; y: number; color: string; dx: number; dy: number };
+
 export function HexMatch() {
   const [board, setBoard] = useState<Board>(seedBoard);
   const [selected, setSelected] = useState<number | null>(null);
@@ -103,6 +108,17 @@ export function HexMatch() {
   const [highScore, setHighScore] = useState(0);
   const [flash, setFlash] = useState<string | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── juice: screen-shake, particle bursts, cascade crescendo ───────────────
+  // shake is an intensity tier (0 = still, 1..3 escalating); chainPulse drives
+  // the board's glow + scale crescendo as a cascade chains. All gated by the
+  // reduced-motion preference (vestibular safety) read once on mount.
+  const [shake, setShake] = useState(0);
+  const [chainPulse, setChainPulse] = useState(0);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const reduceRef = useRef(false);
+  const particleId = useRef(0);
+  const shakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── run state: level / move budget / per-level progress / fail flag ───────
   const [level, setLevel] = useState(1);
@@ -151,6 +167,7 @@ export function HexMatch() {
   useEffect(() => {
     // Client-only randomization — avoids the SSR/hydration mismatch that a
     // Math.random() initial state would cause.
+    reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setBoard(playableBoard());
     const raw = window.localStorage.getItem(HIGH_SCORE_KEY);
     if (raw) setHighScore(parseInt(raw, 10) || 0);
@@ -187,6 +204,7 @@ export function HexMatch() {
     }
     return () => {
       if (flashTimer.current) clearTimeout(flashTimer.current);
+      if (shakeTimer.current) clearTimeout(shakeTimer.current);
     };
   }, [loadTop]);
 
@@ -205,6 +223,44 @@ export function HexMatch() {
     setFlash(msg);
     if (flashTimer.current) clearTimeout(flashTimer.current);
     flashTimer.current = setTimeout(() => setFlash(null), 900);
+  }, []);
+
+  // Kick the board with a shake of the given intensity tier (1..3). Restarts
+  // the CSS animation cleanly on overlapping cascades by zeroing first.
+  const triggerShake = useCallback((intensity: number) => {
+    if (reduceRef.current) return;
+    if (shakeTimer.current) clearTimeout(shakeTimer.current);
+    setShake(0);
+    requestAnimationFrame(() => setShake(intensity));
+    shakeTimer.current = setTimeout(() => setShake(0), 360);
+  }, []);
+
+  // Fling a shard from each cleared cell, colored by the tile that was there
+  // (read from the pre-clear board). Bigger chains throw more, harder. Capped
+  // so a mega detonation can't spawn hundreds of nodes.
+  const spawnBurst = useCallback((cells: number[], src: Board, chain: number) => {
+    if (reduceRef.current || cells.length === 0) return;
+    const per = chain >= 3 ? 3 : chain === 2 ? 2 : 1;
+    const reach = 22 + chain * 10;
+    const batch: Particle[] = [];
+    const ids: number[] = [];
+    for (const ci of cells.slice(0, 28)) {
+      const r = rowOf(ci);
+      const c = colIdxOf(ci);
+      const color = (TILES[colorOf(src[ci] ?? 0)] ?? TILES[0]).color;
+      const x = ((c + 0.5) / SIZE) * 100;
+      const y = ((r + 0.5) / SIZE) * 100;
+      for (let k = 0; k < per; k++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = reach * (0.5 + Math.random());
+        const id = ++particleId.current;
+        ids.push(id);
+        batch.push({ id, x, y, color, dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist });
+      }
+    }
+    setParticles((prev) => [...prev, ...batch]);
+    const idSet = new Set(ids);
+    setTimeout(() => setParticles((prev) => prev.filter((p) => !idSet.has(p.id))), 620);
   }, []);
 
   // Bank today's daily result + resolve the streak. Called once per day (the
@@ -257,10 +313,18 @@ export function HexMatch() {
         levelScoreRef.current += gained;
         setScore(scoreRef.current);
         setLevelScore(levelScoreRef.current);
-        if (step.specials.some((s) => s.kind === "mega")) {
+        // Juice: fling shards from the cells about to clear (colours read from
+        // the pre-collapse board), pulse the board's crescendo glow, and shake
+        // — harder for specials and deeper chains.
+        const hasMega = step.specials.some((s) => s.kind === "mega");
+        const hasLine = step.specials.some((s) => s.kind === "line");
+        spawnBurst(step.clearedCells, current, chain);
+        setChainPulse(chain);
+        triggerShake(hasMega ? 3 : hasLine ? 2 : Math.min(3, chain));
+        if (hasMega) {
           popFlash("MEGA FORGED");
           cue("special");
-        } else if (step.specials.some((s) => s.kind === "line")) {
+        } else if (hasLine) {
           popFlash("LINE FORGED");
           cue("special");
         } else if (chain > 1) {
@@ -277,6 +341,8 @@ export function HexMatch() {
         await wait(140);
       }
 
+      setChainPulse(0);
+
       // No legal swap left → reshuffle rather than strand the player.
       if (!hasMove(current)) {
         popFlash("RESHUFFLE");
@@ -285,7 +351,7 @@ export function HexMatch() {
       }
       return totalGained;
     },
-    [popFlash],
+    [popFlash, spawnBurst, triggerShake],
   );
 
   const onTile = useCallback(
@@ -585,6 +651,7 @@ export function HexMatch() {
           position: "relative",
           width: "min(92vw, 460px)",
           margin: "0 auto",
+          animation: shake ? `hex-shake-${shake} .34s ease-in-out` : undefined,
         }}
       >
         <div
@@ -592,6 +659,15 @@ export function HexMatch() {
             display: "grid",
             gridTemplateColumns: `repeat(${SIZE}, 1fr)`,
             gap: 5,
+            // cascade crescendo — the board swells and glows brighter as a
+            // chain stacks, then settles back when it resolves.
+            transform: `scale(${1 + Math.min(chainPulse, 4) * 0.012})`,
+            boxShadow:
+              chainPulse > 1
+                ? `0 0 ${Math.min(chainPulse, 5) * 14}px rgba(255,210,74,${Math.min(0.12 + chainPulse * 0.06, 0.4)})`
+                : "none",
+            borderRadius: 10,
+            transition: "transform .16s ease, box-shadow .2s ease",
           }}
         >
           {cells.map((t, i) => {
@@ -652,6 +728,34 @@ export function HexMatch() {
             );
           })}
         </div>
+
+        {/* particle bursts — shards flung from cleared cells */}
+        {particles.length > 0 && (
+          <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+            {particles.map((p) => (
+              <span
+                key={p.id}
+                style={
+                  {
+                    position: "absolute",
+                    left: `${p.x}%`,
+                    top: `${p.y}%`,
+                    width: 7,
+                    height: 7,
+                    marginLeft: -3.5,
+                    marginTop: -3.5,
+                    clipPath: HEX_CLIP,
+                    background: p.color,
+                    boxShadow: `0 0 7px ${p.color}`,
+                    ["--dx" as string]: `${p.dx}px`,
+                    ["--dy" as string]: `${p.dy}px`,
+                    animation: "hex-burst .6s ease-out forwards",
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </div>
+        )}
 
         {/* combo flash */}
         {flash && (
@@ -987,6 +1091,31 @@ export function HexMatch() {
           </ol>
         )}
       </div>
+
+      <style>{`
+        @keyframes hex-shake-1 {
+          0%,100% { transform: translate(0,0); }
+          25% { transform: translate(-2px,1px); }
+          75% { transform: translate(2px,-1px); }
+        }
+        @keyframes hex-shake-2 {
+          0%,100% { transform: translate(0,0); }
+          20% { transform: translate(-4px,2px); }
+          50% { transform: translate(4px,-2px); }
+          80% { transform: translate(-3px,1px); }
+        }
+        @keyframes hex-shake-3 {
+          0%,100% { transform: translate(0,0); }
+          15% { transform: translate(-7px,3px) rotate(-.4deg); }
+          40% { transform: translate(7px,-3px) rotate(.4deg); }
+          65% { transform: translate(-5px,2px); }
+          85% { transform: translate(4px,-2px); }
+        }
+        @keyframes hex-burst {
+          0% { transform: translate(0,0) scale(1); opacity: 1; }
+          100% { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
