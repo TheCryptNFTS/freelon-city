@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { tweetSweep, tweetIntent } from "@/lib/share";
 import { cue } from "@/lib/arcade-feedback";
-import { awardXp } from "@/lib/arcade-progress";
+import { awardXp, getProgress, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import {
   dayNumber,
@@ -112,6 +112,9 @@ export function SweepRun() {
   const [dailyResult, setDailyResult] = useState<DailyResult | null>(null);
   const playedToday = dailyResult != null && dailyResult.dayKey === today;
 
+  // Equipped board theme — tints the live-tile glow + accents (default cyan).
+  const [themeAccent, setThemeAccent] = useState("var(--neon-cyan)");
+
   const loadTop = useCallback(async () => {
     try {
       const res = await fetch(`/api/arcade/score?game=${GAME}&limit=10`);
@@ -139,6 +142,7 @@ export function SweepRun() {
   useEffect(() => {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(BEST_KEY) : null;
     if (raw) setBest(parseInt(raw, 10) || 0);
+    setThemeAccent(equippedCosmetic(getProgress(), "sweepTheme").accent);
     const savedHandle = window.localStorage.getItem(HANDLE_KEY);
     if (savedHandle) setHandle(savedHandle);
     void loadTop();
@@ -392,7 +396,7 @@ export function SweepRun() {
   for (const t of targets) byCell.set(t.cell, t);
 
   return (
-    <div className="manifesto">
+    <div className="manifesto" style={{ ["--sweep-accent" as string]: themeAccent }}>
       <section className="manifesto-hero">
         <span className="kicker">⬡ FREELON CITY · ARCADE · PROTOTYPE</span>
         <h1>
@@ -650,7 +654,7 @@ export function SweepRun() {
         .sweep-stat-n { font-family: var(--mono); font-size: 18px; color: var(--ink); }
         .sweep-streak-raw { font-size: 11px; color: var(--ink-fade); }
         .sweep-lives { letter-spacing: 2px; }
-        .sweep-lives .alive { color: var(--neon-cyan); }
+        .sweep-lives .alive { color: var(--sweep-accent, var(--neon-cyan)); }
         .sweep-lives .dead { color: var(--line); }
 
         .sweep-modes { display: flex; justify-content: center; max-width: 480px; margin: 14px auto 0; }
@@ -676,10 +680,10 @@ export function SweepRun() {
 
         .sweep-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 22px; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(2px); border-radius: 8px; }
         .sweep-ov-title { font-family: var(--display); font-size: 26px; color: var(--ink); }
-        .sweep-ov-score { font-family: var(--mono); font-size: 18px; color: var(--neon-cyan); }
+        .sweep-ov-score { font-family: var(--mono); font-size: 18px; color: var(--sweep-accent, var(--neon-cyan)); }
         .sweep-ov-body { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); line-height: 1.6; max-width: 320px; margin: 0; }
         .ov-dead { color: #FF3A2D; }
-        .ov-live { color: var(--neon-cyan); }
+        .ov-live { color: var(--sweep-accent, var(--neon-cyan)); }
         .sweep-ov-actions { display: flex; gap: 10px; }
         .sweep-ov-funnel { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--ink-fade); margin-top: 4px; }
         .sweep-ov-funnel a { color: var(--ink-dim); }

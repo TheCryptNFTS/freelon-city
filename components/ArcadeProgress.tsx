@@ -9,8 +9,18 @@ import {
   rankProgress,
   unlockedTitles,
   equipTitle,
+  cosmeticsForSlot,
+  isCosmeticUnlocked,
+  equipCosmetic,
   type ProgressState,
+  type CosmeticSlot,
 } from "@/lib/arcade-progress";
+
+const COSMETIC_SLOTS: { slot: CosmeticSlot; label: string }[] = [
+  { slot: "hexSkin", label: "Hex Match · Tile Skin" },
+  { slot: "sweepTheme", label: "Sweep Run · Board Theme" },
+  { slot: "cipherTheme", label: "Cipher · Terminal Colorway" },
+];
 
 /**
  * Signal Rank card for the arcade hub. Reads the local-only meta-progression
@@ -35,6 +45,10 @@ export function ArcadeProgress() {
 
   const equip = useCallback((title: string | null) => {
     setState(equipTitle(title));
+  }, []);
+
+  const equipSkin = useCallback((slot: CosmeticSlot, id: string) => {
+    setState(equipCosmetic(slot, id));
   }, []);
 
   // Stable pre-mount shell avoids an SSR/hydration mismatch (xp is client-only).
@@ -192,6 +206,87 @@ export function ArcadeProgress() {
             >
               {t}
             </button>
+          );
+        })}
+      </div>
+
+      {/* cosmetics — purely-visual skins gated by lifetime XP, equip per game */}
+      <div
+        style={{
+          fontFamily: "var(--mono)",
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          color: "var(--ink-fade)",
+          margin: "22px 0 12px",
+          textTransform: "uppercase",
+        }}
+      >
+        Cosmetics
+      </div>
+      <div style={{ display: "grid", gap: 16 }}>
+        {COSMETIC_SLOTS.map(({ slot, label }) => {
+          const equippedId = state.equipped[slot] ?? cosmeticsForSlot(slot)[0]?.id;
+          return (
+            <div key={slot}>
+              <div
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.14em",
+                  color: "var(--ink-dim)",
+                  marginBottom: 8,
+                }}
+              >
+                {label}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {cosmeticsForSlot(slot).map((c) => {
+                  const unlocked = isCosmeticUnlocked(c, state.xp);
+                  const active = equippedId === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => unlocked && equipSkin(slot, c.id)}
+                      disabled={!unlocked}
+                      title={
+                        unlocked
+                          ? c.name
+                          : `Locked · ${c.minXp.toLocaleString()} XP`
+                      }
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontFamily: "var(--mono)",
+                        fontSize: 11,
+                        letterSpacing: "0.08em",
+                        padding: "6px 11px",
+                        cursor: unlocked ? "pointer" : "not-allowed",
+                        borderRadius: 6,
+                        border: `1px solid ${active ? c.accent : "var(--line)"}`,
+                        background: active ? "var(--bg)" : "transparent",
+                        color: unlocked ? "var(--ink-dim)" : "var(--ink-fade)",
+                        opacity: unlocked ? 1 : 0.55,
+                        transition: "all .15s",
+                      }}
+                    >
+                      <span
+                        aria-hidden
+                        style={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: "50%",
+                          background: c.accent,
+                          boxShadow: active ? `0 0 8px ${c.accent}` : "none",
+                          flex: "none",
+                        }}
+                      />
+                      {unlocked ? c.name : `× ${c.minXp.toLocaleString()} XP`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </div>

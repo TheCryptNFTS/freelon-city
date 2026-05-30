@@ -20,7 +20,7 @@ import {
   colIdxOf,
 } from "@/lib/hex-match-engine";
 import { cue } from "@/lib/arcade-feedback";
-import { awardXp, getProgress, rankedUp, rankFor } from "@/lib/arcade-progress";
+import { awardXp, getProgress, rankedUp, rankFor, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import {
   dayNumber,
@@ -117,6 +117,9 @@ export function HexMatch() {
   const [shake, setShake] = useState(0);
   const [chainPulse, setChainPulse] = useState(0);
   const [particles, setParticles] = useState<Particle[]>([]);
+  // Equipped tile skin (a 6-colour palette). Defaults to the canonical civ
+  // hues; glyphs never change so the board stays colorblind-readable.
+  const [palette, setPalette] = useState<string[]>(() => TILES.map((t) => t.color));
   const reduceRef = useRef(false);
   const particleId = useRef(0);
   const shakeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -169,6 +172,8 @@ export function HexMatch() {
     // Client-only randomization — avoids the SSR/hydration mismatch that a
     // Math.random() initial state would cause.
     reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const skin = equippedCosmetic(getProgress(), "hexSkin");
+    if (skin.palette) setPalette(skin.palette);
     setBoard(playableBoard());
     const raw = window.localStorage.getItem(HIGH_SCORE_KEY);
     if (raw) setHighScore(parseInt(raw, 10) || 0);
@@ -248,7 +253,8 @@ export function HexMatch() {
     for (const ci of cells.slice(0, 28)) {
       const r = rowOf(ci);
       const c = colIdxOf(ci);
-      const color = (TILES[colorOf(src[ci] ?? 0)] ?? TILES[0]).color;
+      const co = colorOf(src[ci] ?? 0);
+      const color = palette[co] ?? (TILES[co] ?? TILES[0]).color;
       const x = ((c + 0.5) / SIZE) * 100;
       const y = ((r + 0.5) / SIZE) * 100;
       for (let k = 0; k < per; k++) {
@@ -262,7 +268,7 @@ export function HexMatch() {
     setParticles((prev) => [...prev, ...batch]);
     const idSet = new Set(ids);
     setTimeout(() => setParticles((prev) => prev.filter((p) => !idSet.has(p.id))), 620);
-  }, []);
+  }, [palette]);
 
   // Bank today's daily result + resolve the streak. Called once per day (the
   // one-attempt lock prevents a replay from double-counting). Won = the run
@@ -679,6 +685,7 @@ export function HexMatch() {
         >
           {cells.map((t, i) => {
             const tile = TILES[colorOf(t)] ?? TILES[0];
+            const color = palette[colorOf(t)] ?? tile.color;
             const line = isLine(t);
             const mega = isMega(t);
             const special = isSpecial(t);
@@ -695,13 +702,13 @@ export function HexMatch() {
                   border: "none",
                   cursor: busy ? "default" : "pointer",
                   background: mega
-                    ? `radial-gradient(circle at 50% 38%, #fff 0%, ${tile.color} 50%, ${tile.color}55 100%)`
-                    : `radial-gradient(circle at 50% 38%, ${tile.color} 0%, ${tile.color}cc 42%, ${tile.color}33 100%)`,
+                    ? `radial-gradient(circle at 50% 38%, #fff 0%, ${color} 50%, ${color}55 100%)`
+                    : `radial-gradient(circle at 50% 38%, ${color} 0%, ${color}cc 42%, ${color}33 100%)`,
                   boxShadow: isSel
-                    ? `0 0 0 2px var(--ink), 0 0 18px ${tile.color}`
+                    ? `0 0 0 2px var(--ink), 0 0 18px ${color}`
                     : special
-                      ? `inset 0 0 0 2px rgba(255,255,255,.9), 0 0 16px ${tile.color}`
-                      : `inset 0 0 14px ${tile.color}55`,
+                      ? `inset 0 0 0 2px rgba(255,255,255,.9), 0 0 16px ${color}`
+                      : `inset 0 0 14px ${color}55`,
                   transform: isClearing
                     ? "scale(0.2)"
                     : isSel
@@ -725,7 +732,7 @@ export function HexMatch() {
                     fontSize: special ? "clamp(14px, 4.4vw, 26px)" : "clamp(11px, 3.4vw, 20px)",
                     lineHeight: 1,
                     color: special ? "#fff" : "rgba(10,14,39,.92)",
-                    textShadow: `0 0 6px ${tile.color}`,
+                    textShadow: `0 0 6px ${color}`,
                     fontWeight: 700,
                   }}
                 >

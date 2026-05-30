@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cue } from "@/lib/arcade-feedback";
-import { awardXp } from "@/lib/arcade-progress";
+import { awardXp, getProgress, equippedCosmetic } from "@/lib/arcade-progress";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import {
   dayNumber,
@@ -159,6 +159,7 @@ export function Cipher() {
   const [dWrong, setDWrong] = useState(0); // wrong guesses used today
   const [dInput, setDInput] = useState("");
   const [dShake, setDShake] = useState(false);
+  const [themeAccent, setThemeAccent] = useState("var(--gold-bright)");
   const playedToday = dResult != null && dResult.dayKey === today;
 
   // The day's puzzle: a seeded phrase + Caesar shift (deterministic per day).
@@ -196,6 +197,8 @@ export function Cipher() {
     } catch {
       /* corrupt prefs are non-fatal */
     }
+
+    setThemeAccent(equippedCosmetic(getProgress(), "cipherTheme").accent);
   }, []);
 
   const persist = useCallback((s: Save) => {
@@ -614,7 +617,7 @@ export function Cipher() {
             maxWidth: 560,
             margin: "0 auto",
             border: "1px solid var(--line)",
-            borderLeft: "2px solid var(--gold-bright)",
+            borderLeft: `2px solid ${themeAccent}`,
             background: "var(--surface)",
             padding: "22px 24px",
             animation: dShake ? "cipher-shake .4s" : undefined,
@@ -625,7 +628,7 @@ export function Cipher() {
               fontFamily: "var(--mono)",
               fontSize: 10,
               letterSpacing: "0.26em",
-              color: "var(--gold-bright)",
+              color: themeAccent,
               marginBottom: 14,
             }}
           >
@@ -638,7 +641,7 @@ export function Cipher() {
               fontFamily: "var(--mono)",
               fontSize: "clamp(15px, 4vw, 22px)",
               letterSpacing: "0.16em",
-              color: "var(--gold-bright)",
+              color: themeAccent,
               background: "var(--bg)",
               border: "1px dashed var(--line-2)",
               padding: "16px",

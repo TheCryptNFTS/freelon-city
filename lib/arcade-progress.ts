@@ -25,12 +25,17 @@ export type ArcadeGame =
 
 export type GameStat = { plays: number; xp: number; best: number };
 
+/** Cosmetic equip slots — one visual override per game family. */
+export type CosmeticSlot = "hexSkin" | "sweepTheme" | "cipherTheme";
+
 export type ProgressState = {
   xp: number;
   plays: number;
   games: Partial<Record<ArcadeGame, GameStat>>;
   /** A title the player has equipped (must be one they've unlocked). */
   title: string | null;
+  /** Equipped cosmetic id per slot (null = the game's default look). */
+  equipped: Partial<Record<CosmeticSlot, string>>;
 };
 
 export type Rank = {
@@ -59,12 +64,52 @@ export const RANKS: Rank[] = [
   { index: 7, name: "SOVEREIGN", minXp: 12000, accent: "var(--gold-bright)", title: "Sovereign Signal" },
 ];
 
+// ── Cosmetic catalog ───────────────────────────────────────────────────────
+// Unlockable, purely-visual rewards gated by lifetime XP. Each game family
+// reads its equipped cosmetic and recolors itself; the gameplay is untouched
+// (e.g. hex skins only swap the six tile HUES — the distinguishing glyphs stay
+// constant so colorblind players keep their shape cues).
+export type Cosmetic = {
+  id: string;
+  slot: CosmeticSlot;
+  name: string;
+  minXp: number;
+  /** Swatch shown in the picker. */
+  accent: string;
+  /** hexSkin only: the six tile colours, indexed by civ id. */
+  palette?: string[];
+};
+
+// Default tile hues (must match the canonical TILES in the Hex Match view).
+const HEX_DEFAULT = ["#00B8FF", "#FF3A2D", "#4CFF7A", "#B85CFF", "#FF5CB4", "#FFD24A"];
+
+export const COSMETICS: Cosmetic[] = [
+  // Hex Match tile skins
+  { id: "hex-signal", slot: "hexSkin", name: "Signal (default)", minXp: 0, accent: "#00B8FF", palette: HEX_DEFAULT },
+  { id: "hex-ember", slot: "hexSkin", name: "Ember", minXp: 100, accent: "#FF7A3A",
+    palette: ["#FF7A3A", "#FF3A2D", "#FFC04A", "#FF5CB4", "#FF9E2D", "#FFD24A"] },
+  { id: "hex-frost", slot: "hexSkin", name: "Frost", minXp: 700, accent: "#7FE9FF",
+    palette: ["#00B8FF", "#7FE9FF", "#4C9CFF", "#B85CFF", "#5CFFE0", "#CFE8FF"] },
+  { id: "hex-gold", slot: "hexSkin", name: "Bullion", minXp: 3000, accent: "#FFD24A",
+    palette: ["#FFD24A", "#FF9E2D", "#FFE89A", "#B89030", "#FFC04A", "#FFF3C4"] },
+  { id: "hex-void", slot: "hexSkin", name: "Void", minXp: 12000, accent: "#B85CFF",
+    palette: ["#B85CFF", "#8A6BFF", "#FF5CB4", "#6B3AFF", "#D08AFF", "#E0C4FF"] },
+  // Sweep Run board themes (accent = the live-tile glow / grid tint)
+  { id: "sweep-cyan", slot: "sweepTheme", name: "Cyan (default)", minXp: 0, accent: "#00B8FF" },
+  { id: "sweep-magenta", slot: "sweepTheme", name: "Magenta", minXp: 300, accent: "#FF5CB4" },
+  { id: "sweep-gold", slot: "sweepTheme", name: "Gold", minXp: 3000, accent: "#FFD24A" },
+  // Cipher terminal colorways (accent = the decoded-text + cursor colour)
+  { id: "cipher-gold", slot: "cipherTheme", name: "Gold (default)", minXp: 0, accent: "#FFD24A" },
+  { id: "cipher-green", slot: "cipherTheme", name: "Phosphor", minXp: 300, accent: "#4CFF7A" },
+  { id: "cipher-violet", slot: "cipherTheme", name: "Oracle", minXp: 6000, accent: "#B85CFF" },
+];
+
 function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
 function emptyState(): ProgressState {
-  return { xp: 0, plays: 0, games: {}, title: null };
+  return { xp: 0, plays: 0, games: {}, title: null, equipped: {} };
 }
 
 /** Read the persisted blob, tolerating corruption / a blocked store. */
@@ -79,6 +124,7 @@ export function getProgress(): ProgressState {
       plays: Math.max(0, Math.floor(parsed.plays ?? 0)),
       games: parsed.games ?? {},
       title: parsed.title ?? null,
+      equipped: parsed.equipped ?? {},
     };
   } catch {
     return emptyState();
@@ -123,6 +169,7 @@ export function awardXp(
     plays: state.plays + 1,
     games: { ...state.games, [game]: g },
     title: state.title,
+    equipped: state.equipped,
   };
   persist(next);
 
@@ -175,6 +222,33 @@ export function equipTitle(title: string | null): ProgressState {
   const state = getProgress();
   if (title !== null && !unlockedTitles(state.xp).includes(title)) return state;
   const next = { ...state, title };
+  persist(next);
+  return next;
+}
+
+// ── Cosmetics ────────────────────────────────────────────────────────────
+export function cosmeticsForSlot(slot: CosmeticSlot): Cosmetic[] {
+  return COSMETICS.filter((c) => c.slot === slot);
+}
+
+export function isCosmeticUnlocked(c: Cosmetic, xp: number): boolean {
+  return xp >= c.minXp;
+}
+
+/** The cosmetic equipped in a slot, falling back to that slot's default
+ *  (first catalog entry) when nothing is equipped or the pick is unknown. */
+export function equippedCosmetic(state: ProgressState, slot: CosmeticSlot): Cosmetic {
+  const list = cosmeticsForSlot(slot);
+  const id = state.equipped[slot];
+  return list.find((c) => c.id === id) ?? list[0];
+}
+
+/** Equip a cosmetic by id (no-op if locked or unknown). Returns new state. */
+export function equipCosmetic(slot: CosmeticSlot, id: string): ProgressState {
+  const state = getProgress();
+  const c = cosmeticsForSlot(slot).find((x) => x.id === id);
+  if (!c || !isCosmeticUnlocked(c, state.xp)) return state;
+  const next: ProgressState = { ...state, equipped: { ...state.equipped, [slot]: id } };
   persist(next);
   return next;
 }
