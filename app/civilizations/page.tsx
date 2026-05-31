@@ -1,7 +1,34 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CIVILIZATIONS } from "@/lib/constants";
+import { CIVILIZATIONS, imageUrl, type CivilizationSlug } from "@/lib/constants";
+import { getByCivilization } from "@/lib/citizens";
 import { CivGlyph } from "@/components/CivGlyph";
+
+// A real citizen face for every civilization. The cards used to point at
+// /civs/{slug}.webp plates that don't exist (404 → plain text + colour
+// border). An NFT universe should SHOW its citizens, so each card now
+// leads with an actual Freelon belonging to that civ — the highest-tier
+// member (most exotic silhouette per the shape taxonomy), lowest id as a
+// stable tie-break. 1/1s and honoraries are excluded so the face reads as
+// a representative citizen, not a celebrity cameo.
+const TIER_RANK: Record<string, number> = {
+  Legendary: 5,
+  Epic: 4,
+  Rare: 3,
+  Uncommon: 2,
+  Common: 1,
+};
+function repFace(slug: string): number {
+  const members = getByCivilization(slug as CivilizationSlug).filter(
+    (c) => c.tier !== "One of One" && c.tier !== "Honorary",
+  );
+  if (!members.length) return 1;
+  members.sort(
+    (a, b) =>
+      (TIER_RANK[b.tier] ?? 0) - (TIER_RANK[a.tier] ?? 0) || a.id - b.id,
+  );
+  return members[0].id;
+}
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (civilizations.jpg).
 const PAGE_DESC =
@@ -44,17 +71,25 @@ export default function Page() {
         </p>
       </section>
       <section className="civs-list">
-        {Object.entries(CIVILIZATIONS).map(([slug, c]) => (
+        {Object.entries(CIVILIZATIONS).map(([slug, c]) => {
+          const faceId = repFace(slug);
+          const face = imageUrl(faceId);
+          return (
           <Link
             key={slug}
             href={`/civilizations/${slug}`}
             className="civ-card reveal has-plate relic-card scan-card"
             style={{
               "--civ": c.color,
-              "--plate": `url(/civs/${slug}.webp)`,
+              "--plate": `url(${face})`,
             } as React.CSSProperties}
           >
             <header>
+              {/* Real citizen of this civ — the face the card represents. */}
+              <span className="civ-face" aria-hidden>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={face} alt="" loading="lazy" />
+              </span>
               <div className="left">
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                   <CivGlyph slug={slug} color={c.color} size={24} title={c.name} />
@@ -71,7 +106,8 @@ export default function Page() {
               <span className="chant">⬡ {c.chant}</span>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </section>
 
       <section style={{ marginTop: "var(--s-6)" }}>
