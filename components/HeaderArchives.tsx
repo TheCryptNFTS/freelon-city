@@ -38,11 +38,16 @@ const GROUPS: Group[] = [
     // 2026-05-31 — Civilizations / Archive / Your Signal demoted from top
     // nav into this Explore group (ruthless newcomer-surface cut). Pages
     // untouched; only nav placement moved.
+    // 2026-05-31 plain-English nav pass (comprehension benchmark vs LoL /
+    // Hearthstone / Pokémon — game navs name the THING, not the lore
+    // concept). Nav labels now say what the destination DOES; the invented
+    // terms (signal/carrier/pulse/relay/transmission) still live as flavor
+    // INSIDE each page. Routes + page content untouched — label text only.
     heading: "Explore",
     items: [
       { href: "/civilizations", label: "Civilizations" },
       { href: "/archive",       label: "Archive" },
-      { href: "/signal",        label: "Your Signal" },
+      { href: "/signal",        label: "Your wallet" },     // was "Your Signal" — it's a cross-collection NFT inventory
     ],
   },
   {
@@ -52,7 +57,7 @@ const GROUPS: Group[] = [
       { href: "/vault",         label: "⬡ Vault", gold: true },
       { href: "/earn",          label: "Earn" },
       { href: "/leaderboard",   label: "Leaderboard" },
-      { href: "/carrier",       label: "Carrier" },
+      { href: "/carrier",       label: "Ranks" },           // was "Carrier" — the engagement ranking system
     ],
   },
   {
@@ -60,16 +65,16 @@ const GROUPS: Group[] = [
     items: [
       { href: "/combat-archives", label: "Combat Archives" },
       { href: "/shop",            label: "Shop" },
-      { href: "/transmissions",   label: "Transmissions" },
-      { href: "/relay",           label: "Relay" },
-      { href: "/numbers",         label: "Pulse" },
+      { href: "/transmissions",   label: "Community" },     // was "Transmissions" — community posting wall
+      { href: "/relay",           label: "Share to earn" }, // was "Relay" — X post templates + rewards
+      { href: "/numbers",         label: "Stats" },         // was "Pulse" — live stats/analytics
     ],
   },
   {
     heading: "Lore",
     items: [
       { href: "/canon",         label: "Canon" },
-      { href: "/tribute",       label: "Tribute" },
+      { href: "/tribute",       label: "Honorees" },        // was "Tribute" — citizens named after real people
       { href: "/secrets",       label: "Secrets" },
     ],
   },

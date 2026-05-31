@@ -46,11 +46,14 @@ const GROUPS: NavGroup[] = [
   {
     // 2026-05-31 — Civilizations / Archive / Your Signal demoted from the
     // top parity block into Explore (mirrors desktop More dropdown).
+    // 2026-05-31 plain-English nav pass — labels mirror HeaderArchives.tsx
+    // (one source of truth in spirit). Nav names what the page DOES; lore
+    // terms stay as flavor inside the pages. Edit both files together.
     heading: "EXPLORE",
     links: [
       { href: "/civilizations", label: "Civilizations" },
       { href: "/archive",       label: "Archive" },
-      { href: "/signal",        label: "Your Signal" },
+      { href: "/signal",        label: "Your wallet" },
     ],
   },
   {
@@ -60,7 +63,7 @@ const GROUPS: NavGroup[] = [
       { href: "/vault",         label: "⬡ Vault", gold: true },
       { href: "/earn",          label: "Earn" },
       { href: "/leaderboard",   label: "Leaderboard" },
-      { href: "/carrier",       label: "Carrier" },
+      { href: "/carrier",       label: "Ranks" },
     ],
   },
   {
@@ -68,16 +71,16 @@ const GROUPS: NavGroup[] = [
     links: [
       { href: "/combat-archives", label: "Combat Archives" },
       { href: "/shop",            label: "Shop" },
-      { href: "/transmissions",   label: "Transmissions" },
-      { href: "/relay",           label: "Relay" },
-      { href: "/numbers",         label: "Pulse" },
+      { href: "/transmissions",   label: "Community" },
+      { href: "/relay",           label: "Share to earn" },
+      { href: "/numbers",         label: "Stats" },
     ],
   },
   {
     heading: "LORE",
     links: [
       { href: "/canon",         label: "Canon" },
-      { href: "/tribute",       label: "Tribute" },
+      { href: "/tribute",       label: "Honorees" },
       { href: "/secrets",       label: "Secrets" },
     ],
   },

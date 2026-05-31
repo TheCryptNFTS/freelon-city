@@ -56,6 +56,13 @@ export default function SyncPage() {
           Connect to read the signal already in your wallet — your civilization,
           your alignment, what you carry.
         </p>
+        {/* 2026-05-31 — added a plain "which path is for me" line. The page
+            shows two ways in (connect a wallet / enter a handle) with no
+            guidance on which to pick; the poetic lede above never says it. */}
+        <p style={{ color: "var(--ink-2)", fontSize: 14, marginTop: "var(--s-2)" }}>
+          Own a Freelon? Connect your wallet to see what you hold. Just exploring?
+          Enter your X handle below — no wallet needed.
+        </p>
       </section>
 
       {/* Primary path: connect wallet (eth_requestAccounts). */}

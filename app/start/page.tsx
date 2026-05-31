@@ -124,6 +124,36 @@ export default function StartPage() {
         </Link>
       </section>
 
+      {/* ── 30-SECOND VERSION ──
+         2026-05-31: moved ABOVE the "Connecting" section. A newcomer must
+         learn WHAT the city is before being handed wallet/MetaMask steps.
+         Added the universe paragraph so /start delivers on the homepage
+         one-liner's promise (six collections + a card game + an arcade) —
+         previously never mentioned anywhere in this guide. */}
+      <Section title="The 30-second version">
+        <P>
+          FREELON CITY is a sci-fi city. It has {TOTAL.toLocaleString()} citizens
+          (NFTs on Ethereum). Each citizen belongs to one of 10 civilizations.
+        </P>
+        <P>
+          The city pays people in <strong style={{ color: "var(--gold)" }}>hex (⬡)</strong> —
+          city credits you earn by being active. You spend hex to name your citizen,
+          change civilization, post on the city wall, and unlock things.
+        </P>
+        <P>
+          Freelons is the main collection, but it&apos;s one part of a wider universe:{" "}
+          <strong>six collections in all</strong> (Freelons, The Crypt, Combat Archives,
+          OOGIES, Emile, SMILES Collapse), a <strong>trading-card game</strong> built on
+          Combat Archives, and a free <strong>arcade</strong> of mini-games. One city ties
+          them together.
+        </P>
+        <P>
+          <strong>You do NOT have to buy a citizen to play.</strong> You can earn hex,
+          pick a civilization, and use most of the site without owning anything.
+          Owning a citizen unlocks more.
+        </P>
+      </Section>
+
       {/* ── CONNECTING ──
          2026-05-30: added after a wave of Discord reports — X login looping,
          "can't have wallet + X connected at once", and mobile users unable to
@@ -189,24 +219,6 @@ export default function StartPage() {
           No. You can — and should — have both connected at once. They&apos;re separate and don&apos;t interfere.
           If X ever looks disconnected after you switch wallets, just reload — your X sign-in persists for 7 days on its own.
         </Faq>
-      </Section>
-
-      {/* ── 30-SECOND VERSION ── */}
-      <Section title="The 30-second version">
-        <P>
-          FREELON CITY is a sci-fi city. It has {TOTAL.toLocaleString()} citizens
-          (NFTs on Ethereum). Each citizen belongs to one of 10 civilizations.
-        </P>
-        <P>
-          The city pays people in <strong style={{ color: "var(--gold)" }}>hex (⬡)</strong> —
-          city credits you earn by being active. You spend hex to name your citizen,
-          change civilization, post on the city wall, and unlock things.
-        </P>
-        <P>
-          <strong>You do NOT have to buy a citizen to play.</strong> You can earn hex,
-          pick a civilization, and use most of the site without owning anything.
-          Owning a citizen unlocks more.
-        </P>
       </Section>
 
       {/* ── DO I NEED TO BUY? ── */}

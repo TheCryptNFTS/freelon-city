@@ -78,6 +78,13 @@ export default function Citizens() {
       <section className="citizens-hero">
         <span className="kicker">⬡ CITIZENS · 4040 TOTAL</span>
         <h1>Find your <em>citizen</em></h1>
+        {/* 2026-05-31 — added a plain "what is this" line. The page used to
+            open straight into "enter a token number", assuming the visitor
+            knew what a citizen was or why they'd look. */}
+        <p className="lead">
+          Each citizen is one of the 4040 Freelon NFTs — a character with its own
+          civilization, caste and shape. Browsing is free; owning one is optional.
+        </p>
         <p className="lead">Enter a token number 1—4040. The city returns the file.</p>
         <div className="finder">
           <FindCitizen />

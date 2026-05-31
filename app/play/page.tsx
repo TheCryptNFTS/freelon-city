@@ -36,9 +36,7 @@ const GAMES = [
     genre: "Like Bejeweled / Candy Crush",
     blurb:
       "Swap glowing hex-eyes, line up three or more, chain combos. Hit the target score before your moves run out. A 60-second skill hit — anyone can play.",
-    accent: "var(--neon-cyan)",
-    tag: "ACQUISITION",
-  },
+    accent: "var(--neon-cyan)",  },
   {
     href: "/play/restore",
     kicker: "IDLE · HOLDER-AWARE",
@@ -46,9 +44,7 @@ const GAMES = [
     genre: "Like Cookie Clicker (idle game)",
     blurb:
       "The city went dark at 404. Bring nodes online, generate signal, watch the ten civilizations light back up. Holders compound.",
-    accent: "var(--neon-magenta)",
-    tag: "RETENTION",
-  },
+    accent: "var(--neon-magenta)",  },
   {
     href: "/play/proof",
     kicker: "DAILY · NO WALLET",
@@ -56,9 +52,7 @@ const GAMES = [
     genre: "Like Wordle (daily deduction)",
     blurb:
       "One hidden code a day. Guess it; the dots tell you how close you are. Crack it within your tries. No clues to unlock — pure deduction, same puzzle for everyone, shareable on X.",
-    accent: "var(--gold-bright)",
-    tag: "ACQUISITION",
-  },
+    accent: "var(--gold-bright)",  },
   {
     href: "/play/sweep",
     kicker: "ARCADE · NO WALLET",
@@ -66,9 +60,7 @@ const GAMES = [
     genre: "Reflex arcade — tap fast",
     blurb:
       "The floor is corrupting. Sweep the dead signals before they take the grid — but spare the living. A pure reflex hit. Beat your best, share the score.",
-    accent: "var(--neon-cyan)",
-    tag: "ACQUISITION",
-  },
+    accent: "var(--neon-cyan)",  },
   {
     href: "/play/reckoning",
     kicker: "WEEKLY · HOLDER WAR",
@@ -76,9 +68,7 @@ const GAMES = [
     genre: "Weekly team war (king-of-the-hill)",
     blurb:
       "Ten civilizations, one crown a week. Burn hex to muster for your side — your citizens amplify the signal. The leading civ when the week ends is crowned, and the city remembers.",
-    accent: "var(--neon-magenta)",
-    tag: "FURNACE",
-  },
+    accent: "var(--neon-magenta)",  },
   {
     href: "/play/cipher",
     kicker: "ARG · LORE",
@@ -86,9 +76,7 @@ const GAMES = [
     genre: "Puzzle hunt / ARG",
     blurb:
       "Five fragments of a lost transmission, scattered across the lore. Decode each to reassemble what the city was trying to say.",
-    accent: "var(--gold-bright)",
-    tag: "COMMUNITY",
-  },
+    accent: "var(--gold-bright)",  },
 ];
 
 export default function PlayHub() {
@@ -189,7 +177,7 @@ export default function PlayHub() {
                 textTransform: "uppercase",
               }}
             >
-              {g.tag} · PLAY →
+              PLAY →
             </div>
           </Link>
         ))}

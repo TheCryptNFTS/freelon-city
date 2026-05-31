@@ -72,7 +72,13 @@ export default function Home() {
               handle, citizen count, hex balance). */}
           <IdentityGreeting />
 
-          <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
+          {/* 2026-05-31 — was "404 HEX NOT FOUND", which mimics an HTTP 404
+              error string and read as a broken page to first-time visitors
+              (the single first line of text on the site). Reframed to a
+              status badge that pairs with the one-liner directly below
+              ("When the HEX vanished…"). Keeps the 0404 brand number; drops
+              the "NOT FOUND" error mimicry. */}
+          <span className="term-badge flicker"><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
 
           {/* 2026-05-31 — the one-liner now sells the UNIVERSE, not just the
               4040 PFPs (founder: "we dont just have freelons as a collection").
