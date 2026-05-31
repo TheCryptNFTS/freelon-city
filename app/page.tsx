@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
+import { CitizenShowcase } from "@/components/CitizenShowcase";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
@@ -154,6 +155,12 @@ export default function Home() {
           <HeroMarketStat />
         </div>
       </section>
+
+      {/* CITIZEN SHOWCASE — the homepage finally shows the product. A
+          4040-PFP project that displayed zero Freelons couldn't "show, not
+          tell"; this slow band of real portraits (1/1s + honoraries) fixes
+          that the moment a visitor scrolls past the hero. */}
+      <CitizenShowcase />
 
       {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
       <OtherSignalsStrip />
