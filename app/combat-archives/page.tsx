@@ -184,6 +184,7 @@ export default async function CombatArchivesPage() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gridAutoRows: "1fr",
           gap: "var(--s-3)",
           marginBottom: "var(--s-6)",
         }}
@@ -199,6 +200,7 @@ export default async function CombatArchivesPage() {
               display: "flex",
               flexDirection: "column",
               gap: 10,
+              height: "100%",
               minHeight: 180,
             }}
           >
@@ -294,6 +296,7 @@ export default async function CombatArchivesPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gridAutoRows: "1fr",
             gap: "var(--s-3)",
           }}
         >
@@ -308,6 +311,7 @@ export default async function CombatArchivesPage() {
                 rel="noreferrer"
                 style={{
                   display: "block",
+                  height: "100%",
                   padding: "var(--s-4)",
                   border: `1px solid ${color}55`,
                   background: `linear-gradient(135deg, ${color}10, rgba(0,0,0,0.4))`,

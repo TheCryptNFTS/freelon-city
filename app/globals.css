@@ -5383,6 +5383,10 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .ui-auto-fit-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(var(--min-w, 280px), 1fr));
+  /* Equal-height rows so cards with longer copy don't render taller than
+     their row-mates (founder: "boxes are different sizes"). Direct grid
+     children stretch (default align-items) to fill the track. */
+  grid-auto-rows: 1fr;
   gap: var(--s-3);
 }
 @media (max-width: 540px) {

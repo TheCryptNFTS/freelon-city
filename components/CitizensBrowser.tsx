@@ -46,6 +46,11 @@ export function CitizensBrowser({
   const [aura, setAura] = useState<string>("");
   const [onlyUnique, setOnlyUnique] = useState(false);
   const [shown, setShown] = useState(60);
+  // Filter panel starts COLLAPSED. Previously all 7 trait rows (~120 pills)
+  // were always open and filled the whole viewport, burying the citizen
+  // grid (founder: "this dropbox is permanently dropped"). Search + the
+  // match count stay visible; the chip rows expand on demand.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const shapes = useMemo(() => Array.from(new Set(all.map((x) => x.shape))).sort(), [all]);
   const castes = useMemo(() => Array.from(new Set(all.map((x) => x.caste).filter(Boolean))).sort(), [all]);
@@ -72,6 +77,8 @@ export function CitizensBrowser({
 
   const showing = filtered.slice(0, shown);
   const hasFilters = !!(q || civ || tier || shape || caste || subArch || aura || onlyUnique);
+  // Count of active trait filters (search excluded — it has its own input).
+  const activeCount = [civ, tier, shape, caste, subArch, aura].filter(Boolean).length + (onlyUnique ? 1 : 0);
 
   function reset() {
     setQ(""); setCiv(""); setTier(""); setShape(""); setCaste(""); setSubArch(""); setAura(""); setOnlyUnique(false); setShown(60);
@@ -91,6 +98,35 @@ export function CitizensBrowser({
             className="citizens-search"
           />
 
+          {/* Filters toggle — collapsed by default so the grid is the hero. */}
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              alignSelf: "flex-start",
+              marginTop: 8,
+              background: "transparent",
+              border: "1px solid var(--line-2)",
+              color: activeCount ? "var(--gold)" : "var(--ink-2)",
+              borderColor: activeCount ? "var(--gold)" : "var(--line-2)",
+              padding: "6px 12px",
+              borderRadius: 999,
+              fontFamily: "var(--mono2)",
+              fontSize: 11,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            <span>Filters{activeCount ? ` · ${activeCount}` : ""}</span>
+            <span aria-hidden style={{ transform: filtersOpen ? "rotate(180deg)" : "none", transition: "transform 120ms ease" }}>▾</span>
+          </button>
+
+          {filtersOpen && (<>
           {/* Civ chips */}
           <ChipRow label="CIV">
             <Chip label="All" active={!civ} onClick={() => { setCiv(""); setShown(60); }} />
@@ -183,8 +219,9 @@ export function CitizensBrowser({
               </span>
             </ChipRow>
           )}
+          </>)}
 
-          {/* Meta row — count + clear */}
+          {/* Meta row — count + clear (always visible, even when collapsed) */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6, fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.18em", color: "var(--ink-dim)" }}>
             <span>
               {filtered.length.toLocaleString()} of {all.length.toLocaleString()} match

@@ -115,6 +115,7 @@ export default function PlayHub() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gridAutoRows: "1fr",
           gap: 16,
           maxWidth: 1000,
           margin: "32px auto 0",
@@ -126,6 +127,7 @@ export default function PlayHub() {
             href={g.href}
             style={{
               display: "block",
+              height: "100%",
               textDecoration: "none",
               border: "1px solid var(--line)",
               borderTop: `2px solid ${g.accent}`,

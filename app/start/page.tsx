@@ -191,6 +191,7 @@ export default function StartPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(92px, 1fr))",
+            gridAutoRows: "1fr",
             gap: 10,
             margin: "4px 0 4px",
           }}

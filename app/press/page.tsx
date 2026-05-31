@@ -53,7 +53,7 @@ export default function PressPage() {
 
       {/* ── LOGO + BANNER ── */}
       <Section title="Logos & banner">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--s-3)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gridAutoRows: "1fr", gap: "var(--s-3)" }}>
           <Asset
             label="Logo · square 1024"
             href="/social/pfp-1024.png"
@@ -81,7 +81,7 @@ export default function PressPage() {
           Auto-generated 1200×630 cards for every citizen, civilization, dashboard,
           and wallet. Just append the path. Examples:
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--s-3)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gridAutoRows: "1fr", gap: "var(--s-3)" }}>
           <OgExample label="Citizen #0001"   path="/api/og/1" />
           <OgExample label="Daily signal"    path="/api/og/daily" />
           <OgExample label="Hex index"       path="/api/og/hex-index" />

@@ -168,6 +168,11 @@ export async function OtherSignalsStrip() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          // Equal-height rows: every card stretches to the tallest in its
+          // row regardless of body-copy length, so the strip reads as a
+          // uniform set instead of ragged boxes (founder: "the 5 boxes are
+          // different sizes").
+          gridAutoRows: "1fr",
           gap: "var(--s-3)",
         }}
       >
@@ -178,7 +183,7 @@ export async function OtherSignalsStrip() {
               key={c.title}
               href={c.href}
               {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
-              style={{ display: "block", textDecoration: "none", color: "inherit" }}
+              style={{ display: "block", height: "100%", textDecoration: "none", color: "inherit" }}
             >
             <article
               style={{
@@ -189,7 +194,7 @@ export async function OtherSignalsStrip() {
                 display: "flex",
                 flexDirection: "column",
                 gap: 10,
-                minHeight: 160,
+                height: "100%",
                 transition: "border-color 120ms ease, transform 120ms ease",
               }}
             >

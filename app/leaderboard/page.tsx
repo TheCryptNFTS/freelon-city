@@ -86,7 +86,7 @@ export default async function LeaderboardPage() {
 
       <MyRank />
 
-      <div className="lb-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--s-4)" }}>
+      <div className="lb-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gridAutoRows: "1fr", gap: "var(--s-4)" }}>
         <section>
           <h2 className="kicker" style={{ color: "var(--gold)" }}>⬡ ACTIVE · 7 DAYS</h2>
           <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", letterSpacing: "0.18em", marginTop: 4, marginBottom: 12 }}>

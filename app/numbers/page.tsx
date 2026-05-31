@@ -349,6 +349,7 @@ function Grid({ children, style }: { children: React.ReactNode; style?: React.CS
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gridAutoRows: "1fr",
         gap: "var(--s-3)",
         ...style,
       }}
