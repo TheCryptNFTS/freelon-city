@@ -104,18 +104,27 @@ export default function Home() {
               universe instead of just reading its parts. Still low-contrast so
               they don't compete with the OWN button. */}
           <div className="hero-landing__scope" aria-label="Explore the universe" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", marginTop: "var(--s-4)" }}>
+            {/* 2026-05-31 — each chip now routes to a DISTINCT destination.
+                Previously Crypt/OOGIES/Emile/SMILES all pointed at /archive,
+                so clicking any of them landed on the same page showing the
+                same info (founder: "everything you click into is the same
+                information on EVERY page"). The four legacy collections now
+                deep-link straight to their own OpenSea collection — the real,
+                distinct content for each — while the live universe pieces stay
+                on-site. */}
             {[
-              { name: "Freelons", href: "/citizens" },
-              { name: "The Crypt", href: "/archive" },
-              { name: "Combat Archives", href: "/combat-archives" },
-              { name: "OOGIES", href: "/archive" },
-              { name: "Emile", href: "/archive" },
-              { name: "SMILES Collapse", href: "/archive" },
-              { name: "Arcade", href: "/play" },
+              { name: "Freelons", href: "/citizens", ext: false },
+              { name: "The Crypt", href: "https://opensea.io/collection/the-crypt-official", ext: true },
+              { name: "Combat Archives", href: "/combat-archives", ext: false },
+              { name: "OOGIES", href: "https://opensea.io/collection/oogies", ext: true },
+              { name: "Emile", href: "https://opensea.io/collection/emile0x1908", ext: true },
+              { name: "SMILES Collapse", href: "https://opensea.io/collection/smiles-genesis", ext: true },
+              { name: "Arcade", href: "/play", ext: false },
             ].map((c) => (
               <Link
                 key={c.name}
                 href={c.href}
+                {...(c.ext ? { target: "_blank", rel: "noreferrer" } : {})}
                 className="universe-chip"
                 style={{
                   fontFamily: "var(--mono2)",

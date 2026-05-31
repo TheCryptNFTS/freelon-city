@@ -133,9 +133,10 @@ const ENTRIES: ArchiveEntry[] = [
     openseaUrl: "https://opensea.io/collection/emile0x1908",
     artifactClass: "memory archive · emotional preservation",
     slug: "emile0x1908",
-    // Collection cover — Emile is video-only on-chain, so no still 1/1.
-    image:
-      "https://i2c.seadn.io/ethereum/15e47d237d674ec68ab5d400ee3def70/98c0f0a7a4060344823b2c9de57749/1298c0f0a7a4060344823b2c9de57749.jpeg",
+    // Emile is video-only on-chain; the collection cover read as a
+    // near-duplicate of the SMILES gold art, so we serve Emile's distinct
+    // gilded glass figure from a local mirror instead.
+    image: "/heroes/emile.jpg",
   },
   {
     sequence: "TRANSMISSION 0991",

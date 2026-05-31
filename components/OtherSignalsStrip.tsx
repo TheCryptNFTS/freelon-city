@@ -20,6 +20,13 @@ type Card = {
   /** OpenSea slug — used to look up the live floor price. */
   slug: string;
   /**
+   * Where this card links. Each collection points to a DISTINCT destination
+   * (its own OpenSea collection, or its on-site page) — previously the whole
+   * grid was wrapped in one /archive link, so every card landed on the same
+   * page showing the same info (founder: "same information on EVERY page").
+   */
+  href: string;
+  /**
    * Real on-chain art (one representative token / cover) per collection,
    * off OpenSea's seadn.io CDN. Resolved once via the OpenSea API and
    * hardcoded so the homepage stays static (no runtime fetch). Lets the
@@ -35,6 +42,7 @@ const CARDS: Card[] = [
     status: "RECOVERED",
     statusColor: "var(--state-active)",
     slug: "the-crypt-official",
+    href: "https://opensea.io/collection/the-crypt-official",
     body: "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
     // "Walter" (#1907) — a One of One skull record.
     image:
@@ -45,6 +53,7 @@ const CARDS: Card[] = [
     status: "RECONSTRUCTING",
     statusColor: "var(--state-surge)",
     slug: "crypttradingcards",
+    href: "/combat-archives",
     body: "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
     // Anubis (#1519) — the recovered god relic; same art shown on /combat-archives.
     image:
@@ -55,6 +64,7 @@ const CARDS: Card[] = [
     status: "FRAGMENT",
     statusColor: "var(--state-unstable)",
     slug: "oogies",
+    href: "https://opensea.io/collection/oogies",
     body: "Ancient signal species. They heard the HEX before the city existed.",
     // "Horse Relic" (#2575) — the rarest OOGIES tier ("Relics"); on-theme
     // as a recovered relic. OOGIES has no designated 1/1.
@@ -66,15 +76,19 @@ const CARDS: Card[] = [
     status: "DECAYING",
     statusColor: "var(--state-surge)",
     slug: "emile0x1908",
+    href: "https://opensea.io/collection/emile0x1908",
     body: "Memory fragments preserved before the signal collapse.",
-    image:
-      "https://i2c.seadn.io/ethereum/15e47d237d674ec68ab5d400ee3def70/98c0f0a7a4060344823b2c9de57749/1298c0f0a7a4060344823b2c9de57749.jpeg",
+    // Emile's signature gilded glass figure (local mirror) — the OpenSea
+    // collection cover read as a near-duplicate of the SMILES gold art, so
+    // we serve the distinct hero still instead.
+    image: "/heroes/emile.jpg",
   },
   {
     title: "SMILES Collapse",
     status: "SEALED",
     statusColor: "var(--state-warning)",
     slug: "smiles-genesis",
+    href: "https://opensea.io/collection/smiles-genesis",
     body: "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
     // "Gilded Emissary" (#74) — a One of One (Series: One of One).
     image:
@@ -150,20 +164,23 @@ export async function OtherSignalsStrip() {
         Recovered through the signal as the city remembers.
       </p>
 
-      <Link
-        href="/archive"
-        style={{ display: "block", textDecoration: "none", color: "inherit" }}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: "var(--s-3)",
+        }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: "var(--s-3)",
-          }}
-        >
-          {CARDS.map((c) => (
-            <article
+        {CARDS.map((c) => {
+          const external = c.href.startsWith("http");
+          return (
+            <Link
               key={c.title}
+              href={c.href}
+              {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
+              style={{ display: "block", textDecoration: "none", color: "inherit" }}
+            >
+            <article
               style={{
                 padding: "var(--s-4)",
                 border: `1px solid ${c.statusColor}33`,
@@ -255,9 +272,10 @@ export async function OtherSignalsStrip() {
                 {c.body}
               </p>
             </article>
-          ))}
-        </div>
-      </Link>
+            </Link>
+          );
+        })}
+      </div>
     </section>
   );
 }
