@@ -53,6 +53,7 @@ const GROUPS: NavGroup[] = [
   {
     heading: "EXPLORE",
     links: [
+      { href: "/collections",   label: "Collections" },
       { href: "/civilizations", label: "Civilizations" },
       { href: "/archive",       label: "Archive" },
       { href: "/sync",          label: "Your wallet" },

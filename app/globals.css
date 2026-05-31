@@ -5484,6 +5484,23 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   min-width: 38px;
 }
 .citizens-chip-row__chips { flex: 1; min-width: 0; }
+/* High-cardinality trait filter (CollectionBrowser) — a compact dropdown
+   instead of a flood of chips when a trait has many values. */
+.collection-select {
+  flex: 1;
+  min-width: 0;
+  max-width: 320px;
+  padding: 8px 12px;
+  font-family: var(--mono2);
+  font-size: var(--t-mono-sm);
+  letter-spacing: var(--tr-loose);
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  min-height: var(--tap-min);
+}
 @media (max-width: 540px) {
   .citizens-chip-row {
     flex-direction: column;
@@ -5492,6 +5509,7 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   }
   .citizens-chip-row__label { margin-bottom: 2px; }
   .citizens-chip-row__chips { width: 100%; }
+  .collection-select { max-width: none; width: 100%; }
 }
 
 /* =============================================================== */

@@ -44,6 +44,7 @@ const GROUPS: Group[] = [
   {
     heading: "Explore",
     items: [
+      { href: "/collections",   label: "Collections" },     // on-site explorers for every collection
       { href: "/civilizations", label: "Civilizations" },
       { href: "/archive",       label: "Archive" },
       { href: "/sync",          label: "Your wallet" },     // /signal etc. folded into the /sync hub

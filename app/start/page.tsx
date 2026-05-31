@@ -23,7 +23,7 @@ const UNIVERSE_THUMBS: { name: string; href: string; image: string }[] = [
   { name: "Freelons", href: "/citizens", image: heroImageUrl(1) },
   {
     name: "The Crypt",
-    href: "https://opensea.io/collection/the-crypt-official",
+    href: "/collections/the-crypt-official",
     image:
       "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/62731ec9b5f6ba2d2476c16b566881/a362731ec9b5f6ba2d2476c16b566881.png",
   },
@@ -35,18 +35,18 @@ const UNIVERSE_THUMBS: { name: string; href: string; image: string }[] = [
   },
   {
     name: "OOGIES",
-    href: "https://opensea.io/collection/oogies",
+    href: "/collections/oogies",
     image:
       "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/2c469337fc98d8e6fc65ddaf2d9493/4f2c469337fc98d8e6fc65ddaf2d9493.png",
   },
   {
     name: "Emile",
-    href: "https://opensea.io/collection/emile0x1908",
+    href: "/collections/emile0x1908",
     image: "/heroes/emile.jpg",
   },
   {
     name: "SMILES",
-    href: "https://opensea.io/collection/smiles-genesis",
+    href: "/collections/smiles-genesis",
     image:
       "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/93f22023c68dad315e737fddb3d4b7/7693f22023c68dad315e737fddb3d4b7.png",
   },

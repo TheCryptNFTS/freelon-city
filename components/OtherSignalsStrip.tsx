@@ -42,7 +42,7 @@ const CARDS: Card[] = [
     status: "RECOVERED",
     statusColor: "var(--state-active)",
     slug: "the-crypt-official",
-    href: "https://opensea.io/collection/the-crypt-official",
+    href: "/collections/the-crypt-official",
     body: "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
     // "Walter" (#1907) — a One of One skull record.
     image:
@@ -64,7 +64,7 @@ const CARDS: Card[] = [
     status: "FRAGMENT",
     statusColor: "var(--state-unstable)",
     slug: "oogies",
-    href: "https://opensea.io/collection/oogies",
+    href: "/collections/oogies",
     body: "Ancient signal species. They heard the HEX before the city existed.",
     // "Horse Relic" (#2575) — the rarest OOGIES tier ("Relics"); on-theme
     // as a recovered relic. OOGIES has no designated 1/1.
@@ -76,7 +76,7 @@ const CARDS: Card[] = [
     status: "DECAYING",
     statusColor: "var(--state-surge)",
     slug: "emile0x1908",
-    href: "https://opensea.io/collection/emile0x1908",
+    href: "/collections/emile0x1908",
     body: "Memory fragments preserved before the signal collapse.",
     // Emile's signature gilded glass figure (local mirror) — the OpenSea
     // collection cover read as a near-duplicate of the SMILES gold art, so
@@ -88,7 +88,7 @@ const CARDS: Card[] = [
     status: "SEALED",
     statusColor: "var(--state-warning)",
     slug: "smiles-genesis",
-    href: "https://opensea.io/collection/smiles-genesis",
+    href: "/collections/smiles-genesis",
     body: "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
     // "Gilded Emissary" (#74) — a One of One (Series: One of One).
     image:

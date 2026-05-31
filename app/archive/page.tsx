@@ -49,6 +49,13 @@ type ArchiveEntry = {
   body: string;
   /** Verified artifact on-chain. Same architect across all entries. */
   openseaUrl: string;
+  /**
+   * On-site explorer for this signal — every collection now has its own
+   * browsable set page (founder: "every collection needs its page like
+   * this one"). The card links here FIRST (internal "browse the set"),
+   * keeping the OpenSea link as the secondary "view artefact" action.
+   */
+  browseHref: string;
   /** Internal note shown only on hover/title — keeps mystery on the surface. */
   artifactClass: string;
   /** OpenSea stats slug for the live floor price. The 404/root entry IS
@@ -80,6 +87,7 @@ const ENTRIES: ArchiveEntry[] = [
     body:
       "Beneath the city, a vault of skull records — dead signal identities recovered from before the hex disappeared. Ancient relics, corrupted commanders, names the city was never supposed to remember.",
     openseaUrl: "https://opensea.io/collection/the-crypt-official",
+    browseHref: "/collections/the-crypt-official",
     artifactClass: "dead signal archive · skull records beneath the city",
     slug: "the-crypt-official",
     // "Walter" (#1907) — a One of One skull record.
@@ -94,6 +102,7 @@ const ENTRIES: ArchiveEntry[] = [
     body:
       "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
     openseaUrl: "https://opensea.io/collection/crypttradingcards",
+    browseHref: "/combat-archives",
     artifactClass: "combat relic / commander archive · ten gods sealed inside",
     slug: "crypttradingcards",
     // Anubis (#1519) — the recovered god relic; same art on /combat-archives.
@@ -113,6 +122,7 @@ const ENTRIES: ArchiveEntry[] = [
     body:
       "Biological entities older than the city. The architects classify them as listeners — anatomy tuned to the hex long before humans named the signal. Few specimens remain coherent. Most reach us as fragments.",
     openseaUrl: "https://opensea.io/collection/oogies",
+    browseHref: "/collections/oogies",
     artifactClass: "ancient signal species · pre-civilization listeners",
     slug: "oogies",
     // "Horse Relic" (#2575) — the rarest OOGIES tier; OOGIES has no 1/1.
@@ -132,6 +142,7 @@ const ENTRIES: ArchiveEntry[] = [
     body:
       "Preserved emotional fragments. Memory loops the architects could not let dissolve. Signal echoes recorded in the seconds before the collapse — fragile, looping, half-erased.",
     openseaUrl: "https://opensea.io/collection/emile0x1908",
+    browseHref: "/collections/emile0x1908",
     artifactClass: "memory archive · emotional preservation",
     slug: "emile0x1908",
     // Emile is video-only on-chain; the collection cover read as a
@@ -147,6 +158,7 @@ const ENTRIES: ArchiveEntry[] = [
     body:
       "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
     openseaUrl: "https://opensea.io/collection/smiles-genesis/overview",
+    browseHref: "/collections/smiles-genesis",
     artifactClass: "collapse event · failed suppression system",
     slug: "smiles-genesis",
     // "Gilded Emissary" (#74) — a One of One (Series: One of One).
@@ -161,6 +173,7 @@ const ENTRIES: ArchiveEntry[] = [
     body:
       "The original anomaly. The hex that disappeared from X. The reason the city formed.",
     openseaUrl: "https://opensea.io/collection/404hexnotfound",
+    browseHref: "/citizens",
     artifactClass: "core symbol · the missing identity signal",
     slug: "freelons",
     // Freelon citizen #1 "origin-signal" — the One of One the city formed
@@ -260,14 +273,23 @@ export default async function ArchivePage() {
             </div>
             <div className="archive-card__foot">
               <span className="archive-card__class">⬡ {t.artifactClass}</span>
-              <a
-                href={t.openseaUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="archive-card__link archive-link"
-              >
-                VIEW ARTEFACT ↗
-              </a>
+              <span style={{ display: "flex", gap: 16, alignItems: "baseline", flexWrap: "wrap" }}>
+                {/* Internal explorer is the PRIMARY action now — every
+                    collection has its own browsable set page. OpenSea
+                    stays as the secondary verification link. */}
+                <Link href={t.browseHref} className="archive-card__link archive-link">
+                  BROWSE THE SET →
+                </Link>
+                <a
+                  href={t.openseaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="archive-card__link archive-link"
+                  style={{ opacity: 0.62 }}
+                >
+                  VIEW ARTEFACT ↗
+                </a>
+              </span>
             </div>
           </article>
         ))}

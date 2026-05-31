@@ -104,21 +104,20 @@ export default function Home() {
               universe instead of just reading its parts. Still low-contrast so
               they don't compete with the OWN button. */}
           <div className="hero-landing__scope" aria-label="Explore the universe" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", marginTop: "var(--s-4)" }}>
-            {/* 2026-05-31 — each chip now routes to a DISTINCT destination.
-                Previously Crypt/OOGIES/Emile/SMILES all pointed at /archive,
-                so clicking any of them landed on the same page showing the
-                same info (founder: "everything you click into is the same
-                information on EVERY page"). The four legacy collections now
-                deep-link straight to their own OpenSea collection — the real,
-                distinct content for each — while the live universe pieces stay
-                on-site. */}
+            {/* 2026-05-31 — each chip routes to a DISTINCT destination.
+                Originally all of Crypt/OOGIES/Emile/SMILES pointed at /archive
+                (founder: "everything you click into is the same information on
+                EVERY page"); they briefly deep-linked to OpenSea. They now land
+                on their own on-site explorer (/collections/<slug>) — a full
+                trait browser like the Freelons one — so the whole universe is
+                browsable in-city. */}
             {[
               { name: "Freelons", href: "/citizens", ext: false },
-              { name: "The Crypt", href: "https://opensea.io/collection/the-crypt-official", ext: true },
+              { name: "The Crypt", href: "/collections/the-crypt-official", ext: false },
               { name: "Combat Archives", href: "/combat-archives", ext: false },
-              { name: "OOGIES", href: "https://opensea.io/collection/oogies", ext: true },
-              { name: "Emile", href: "https://opensea.io/collection/emile0x1908", ext: true },
-              { name: "SMILES Collapse", href: "https://opensea.io/collection/smiles-genesis", ext: true },
+              { name: "OOGIES", href: "/collections/oogies", ext: false },
+              { name: "Emile", href: "/collections/emile0x1908", ext: false },
+              { name: "SMILES Collapse", href: "/collections/smiles-genesis", ext: false },
               { name: "Arcade", href: "/play", ext: false },
             ].map((c) => (
               <Link
