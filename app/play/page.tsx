@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArcadeProgress } from "@/components/ArcadeProgress";
 import { DailyHub } from "@/components/DailyHub";
+import { GamePreview, type GameKind } from "@/components/GamePreview";
 
 export const metadata: Metadata = {
   title: "Play · FREELON CITY Arcade",
@@ -125,6 +126,20 @@ export default function PlayHub() {
               transition: "border-color .18s, transform .18s",
             }}
           >
+            {/* Game-specific SVG poster — mirrors the actual mechanic so
+                each box SHOWS its game instead of being a plain panel. */}
+            <div
+              style={{
+                margin: "-24px -22px 18px",
+                borderBottom: `1px solid var(--line)`,
+                overflow: "hidden",
+              }}
+            >
+              <GamePreview
+                kind={g.href.replace("/play/", "") as GameKind}
+                accent={g.accent}
+              />
+            </div>
             <div
               style={{
                 fontFamily: "var(--mono)",
