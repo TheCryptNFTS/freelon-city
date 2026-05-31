@@ -16,6 +16,14 @@ type Card = {
   body: string;
   status: string;
   statusColor: string;
+  /**
+   * Real on-chain art (one representative token / cover) per collection,
+   * off OpenSea's seadn.io CDN. Resolved once via the OpenSea API and
+   * hardcoded so the homepage stays static (no runtime fetch). Lets the
+   * archive strip SHOW each collection instead of describing it. CSP
+   * img-src allows *.seadn.io (next.config.ts).
+   */
+  image: string;
 };
 
 const CARDS: Card[] = [
@@ -24,30 +32,41 @@ const CARDS: Card[] = [
     status: "RECOVERED",
     statusColor: "var(--state-active)",
     body: "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
+    image:
+      "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/34245db092583f9a0345f2efce31a8/4a34245db092583f9a0345f2efce31a8.png",
   },
   {
     title: "Combat Archives",
     status: "RECONSTRUCTING",
     statusColor: "var(--state-surge)",
     body: "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
+    // Anubis (#1519) — the recovered god relic; same art shown on /combat-archives.
+    image:
+      "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/7b5c6c2b8cdeda3ae4238574005ea0/867b5c6c2b8cdeda3ae4238574005ea0.jpeg",
   },
   {
     title: "OOGIES",
     status: "FRAGMENT",
     statusColor: "var(--state-unstable)",
     body: "Ancient signal species. They heard the HEX before the city existed.",
+    image:
+      "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/bd8e33bba115f8d1900af129630eac/4bbd8e33bba115f8d1900af129630eac.png",
   },
   {
     title: "Emile",
     status: "DECAYING",
     statusColor: "var(--state-surge)",
     body: "Memory fragments preserved before the signal collapse.",
+    image:
+      "https://i2c.seadn.io/ethereum/15e47d237d674ec68ab5d400ee3def70/98c0f0a7a4060344823b2c9de57749/1298c0f0a7a4060344823b2c9de57749.jpeg",
   },
   {
     title: "SMILES Collapse",
     status: "SEALED",
     statusColor: "var(--state-warning)",
     body: "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
+    image:
+      "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/80bc4aebb8ad22ef11ec89f3afc823/6780bc4aebb8ad22ef11ec89f3afc823.gif",
   },
 ];
 
@@ -141,6 +160,41 @@ export function OtherSignalsStrip() {
                 transition: "border-color 120ms ease, transform 120ms ease",
               }}
             >
+              {/* Real on-chain art (seadn.io CDN). Dark gradient + slight
+                  desaturation so it reads as a recovered archive record,
+                  consistent with the god cards on /combat-archives. */}
+              <div
+                style={{
+                  position: "relative",
+                  aspectRatio: "16 / 10",
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  border: `1px solid ${c.statusColor}33`,
+                  background: "rgba(0,0,0,0.5)",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={c.image}
+                  alt={`${c.title} — recovered archive record`}
+                  loading="lazy"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                    filter: "saturate(0.85) contrast(1.02)",
+                  }}
+                />
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: `linear-gradient(180deg, transparent 50%, ${c.statusColor}14 82%, rgba(0,0,0,0.55) 100%)`,
+                  }}
+                />
+              </div>
               <header
                 style={{
                   display: "flex",
