@@ -18,16 +18,19 @@ export const metadata: Metadata = {
   title: { absolute: "404 — FREELON CITY · Bring identity back." },
   description: HOME_DESC,
   openGraph: {
+    // 2026-05-31 — dynamic universe card (names the six collections + arcade
+    // up front) replaces the single-PFP /og/home.jpg, so the very first thing
+    // a shared link previews is the SCOPE, not "another Freelons drop".
     title: "404 — FREELON CITY",
     description: HOME_DESC,
-    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    images: [{ url: "/api/og/universe", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "404 — FREELON CITY",
     description: HOME_DESC,
-    images: ["/og/home.jpg"],
+    images: ["/api/og/universe"],
   },
 };
 
