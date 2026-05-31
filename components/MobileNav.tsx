@@ -43,27 +43,26 @@ const GROUPS: NavGroup[] = [
       { href: "/sync",          label: "Enter the city" },
     ],
   },
+  // 2026-05-31 GREAT CONSOLIDATION — mirrors the trimmed HeaderArchives
+  // dropdown. ~28 thin pages were folded into tabbed hubs and 308-redirected,
+  // so the former Vault/Ranks/Leaderboard/Share-to-earn/Stats/Secrets entries
+  // were removed — they're now #anchor sections inside hubs already listed
+  // here (signal/vault/carrier → /sync; leaderboard/numbers → /dashboard;
+  // relay → /earn; secrets → /canon). "Your wallet" now points at /sync.
+  // Keep this in sync with HeaderArchives.tsx.
   {
-    // 2026-05-31 — Civilizations / Archive / Your Signal demoted from the
-    // top parity block into Explore (mirrors desktop More dropdown).
-    // 2026-05-31 plain-English nav pass — labels mirror HeaderArchives.tsx
-    // (one source of truth in spirit). Nav names what the page DOES; lore
-    // terms stay as flavor inside the pages. Edit both files together.
     heading: "EXPLORE",
     links: [
       { href: "/civilizations", label: "Civilizations" },
       { href: "/archive",       label: "Archive" },
-      { href: "/signal",        label: "Your wallet" },
+      { href: "/sync",          label: "Your wallet" },
     ],
   },
   {
     heading: "HOLDER",
     links: [
       { href: "/dashboard",     label: "Dashboard" },
-      { href: "/vault",         label: "⬡ Vault", gold: true },
       { href: "/earn",          label: "Earn" },
-      { href: "/leaderboard",   label: "Leaderboard" },
-      { href: "/carrier",       label: "Ranks" },
     ],
   },
   {
@@ -72,8 +71,6 @@ const GROUPS: NavGroup[] = [
       { href: "/combat-archives", label: "Combat Archives" },
       { href: "/shop",            label: "Shop" },
       { href: "/transmissions",   label: "Community" },
-      { href: "/relay",           label: "Share to earn" },
-      { href: "/numbers",         label: "Stats" },
     ],
   },
   {
@@ -81,7 +78,6 @@ const GROUPS: NavGroup[] = [
     links: [
       { href: "/canon",         label: "Canon" },
       { href: "/tribute",       label: "Honorees" },
-      { href: "/secrets",       label: "Secrets" },
     ],
   },
 ];

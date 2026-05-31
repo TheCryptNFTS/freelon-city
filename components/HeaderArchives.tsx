@@ -34,30 +34,26 @@ type Group = { heading: string; items: Item[] };
 // tail now grouped Holder / City / Lore. The /combat-archives page
 // itself is untouched — only its nav placement changed.
 const GROUPS: Group[] = [
+  // 2026-05-31 GREAT CONSOLIDATION — the dropdown now lists ONLY the
+  // surviving hubs. ~28 thin pages were folded into a handful of tabbed
+  // hubs (e.g. signal/vault/carrier → /sync; leaderboard/numbers → /dashboard;
+  // relay → /earn; secrets → /canon) and 308-redirected (next.config.ts), so
+  // the former dropdown entries for those routes were removed — they're now
+  // sections (#anchors) inside hubs already listed here. "Your wallet" now
+  // points at the /sync hub. Top nav (Start/Play/Citizens + Own) unchanged.
   {
-    // 2026-05-31 — Civilizations / Archive / Your Signal demoted from top
-    // nav into this Explore group (ruthless newcomer-surface cut). Pages
-    // untouched; only nav placement moved.
-    // 2026-05-31 plain-English nav pass (comprehension benchmark vs LoL /
-    // Hearthstone / Pokémon — game navs name the THING, not the lore
-    // concept). Nav labels now say what the destination DOES; the invented
-    // terms (signal/carrier/pulse/relay/transmission) still live as flavor
-    // INSIDE each page. Routes + page content untouched — label text only.
     heading: "Explore",
     items: [
       { href: "/civilizations", label: "Civilizations" },
       { href: "/archive",       label: "Archive" },
-      { href: "/signal",        label: "Your wallet" },     // was "Your Signal" — it's a cross-collection NFT inventory
+      { href: "/sync",          label: "Your wallet" },     // /signal etc. folded into the /sync hub
     ],
   },
   {
     heading: "Holder",
     items: [
-      { href: "/dashboard",     label: "Dashboard" },
-      { href: "/vault",         label: "⬡ Vault", gold: true },
-      { href: "/earn",          label: "Earn" },
-      { href: "/leaderboard",   label: "Leaderboard" },
-      { href: "/carrier",       label: "Ranks" },           // was "Carrier" — the engagement ranking system
+      { href: "/dashboard",     label: "Dashboard" },       // absorbs stats / leaderboard / heat / snipes / civ-wars
+      { href: "/earn",          label: "Earn" },            // absorbs share-to-earn + the bid-wall mission
     ],
   },
   {
@@ -65,17 +61,14 @@ const GROUPS: Group[] = [
     items: [
       { href: "/combat-archives", label: "Combat Archives" },
       { href: "/shop",            label: "Shop" },
-      { href: "/transmissions",   label: "Community" },     // was "Transmissions" — community posting wall
-      { href: "/relay",           label: "Share to earn" }, // was "Relay" — X post templates + rewards
-      { href: "/numbers",         label: "Stats" },         // was "Pulse" — live stats/analytics
+      { href: "/transmissions",   label: "Community" },     // community posting wall
     ],
   },
   {
     heading: "Lore",
     items: [
-      { href: "/canon",         label: "Canon" },
-      { href: "/tribute",       label: "Honorees" },        // was "Tribute" — citizens named after real people
-      { href: "/secrets",       label: "Secrets" },
+      { href: "/canon",         label: "Canon" },           // absorbs lexicon / names / secrets / roadmap
+      { href: "/tribute",       label: "Honorees" },        // absorbs patrons + the architect bio
     ],
   },
 ];

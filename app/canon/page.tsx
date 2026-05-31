@@ -13,6 +13,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CITY_LORE, CIVILIZATION_LORE } from "@/lib/worldbuilding";
 import { CIVILIZATIONS } from "@/lib/constants";
+import { CanonLexicon } from "@/components/canon/CanonLexicon";
+import { CanonNames } from "@/components/canon/CanonNames";
+import { CanonSecrets } from "@/components/canon/CanonSecrets";
+import { CanonRoadmap } from "@/components/canon/CanonRoadmap";
 
 // Phase 1 metadata 2026-05-26 — route-specific text, reuses
 // /og/home.jpg.
@@ -50,8 +54,12 @@ type Tab = {
   summary: string[];
   quote?: string;
   /** Optional extended view rendered inside the <details> after the
-   *  summary + quote. Used for the merged /lore content (2026-05-27). */
-  extended?: "origin" | "civilizations";
+   *  summary + quote. Used for the merged /lore content (2026-05-27) and
+   *  the merged /lexicon /names /secrets /roadmap content (2026-05-31). */
+  extended?: "origin" | "civilizations" | "lexicon" | "names" | "secrets" | "roadmap";
+  /** When set, the deep-link button is omitted — the full content lives
+   *  inside this section now, so there is no separate page to link to. */
+  noHref?: boolean;
 };
 
 const TABS: Tab[] = [
@@ -118,6 +126,9 @@ const TABS: Tab[] = [
       "Every cult onboards through vocabulary. The lexicon is the working glossary — Citizen, Carrier, Hex, Signal, Transmission, Relay, Sync, Doctrine, Stamp, District — every term needed to read the lore, hold the signal, and recognise a citizen by their stamp alone.",
       "Organised in five passes: Identity, Structure, The Signal, The Four, Inventory. The counts are locked: 4040 citizens, 10 civilizations, 7 castes, 16 shapes, 35 honoraries, 4 one-of-ones.",
     ],
+    // 2026-05-31 prune: the full 40+ term glossary now lives here, folded
+    // in from the /lexicon page so /canon is the single reference.
+    extended: "lexicon",
   },
   {
     id: "manifesto",
@@ -141,6 +152,42 @@ const TABS: Tab[] = [
       "The art is a generative system over 16 sacred shapes, 10 civilizations, 7 castes, and a single immutable contract. Each citizen is composed from layered SVG components driven by on-chain traits. Same traits, same image, every time, forever.",
       "The contract is a closed loop: 4040 tokens, no mint function, no metadata update, no admin key. The 35 honoraries carry hand-detailed art. The four 1-of-1 transmissions are unique. What the site renders is a faithful read of what is already on-chain.",
     ],
+  },
+  {
+    id: "names",
+    kicker: "VIII · NAMES",
+    title: "Carved into the ledger. Permanent.",
+    href: "/citizens",
+    hrefLabel: "NAME YOUR CITIZEN →",
+    summary: [
+      "Carriers burn 100 ⬡ to name a citizen. The name is carved into the ledger and surfaces across the city — on /tribute, on /citizens, and here in the Name Hall of Fame. Permanent, attributed to the wallet that paid.",
+      "Naming is the cheapest way to leave a mark on the city that everyone can see. The hall below is live — it reads the ledger directly.",
+    ],
+    extended: "names",
+  },
+  {
+    id: "secrets",
+    kicker: "IX · SECRETS",
+    title: "Five hidden signals.",
+    href: "/earn",
+    hrefLabel: "THE LEDGER →",
+    summary: [
+      "The city hides five signals. Some unlock from a code, some from where you go, some from when you arrive. Discovering them feeds the hex-hunter quest. Hints, not solutions — find them yourself.",
+      "Discoveries live in your browser. Clearing storage forgets the city.",
+    ],
+    extended: "secrets",
+  },
+  {
+    id: "roadmap",
+    kicker: "X · ROADMAP",
+    title: "What ships, and what's next.",
+    href: "/numbers",
+    hrefLabel: "SEE THE PULSE →",
+    summary: [
+      "No dated promises. Work moves through four buckets — SHIPPED, NOW, NEXT, LATER — as the city is built. The page is itself the receipt: it updates when work moves.",
+      "The architect is one person, ships independently, and refuses dated promises that incentivize the wrong work.",
+    ],
+    extended: "roadmap",
   },
 ];
 
@@ -171,10 +218,11 @@ export default function CanonPage() {
             maxWidth: 640,
           }}
         >
-          Seven sections, each a short read with a link to the full record.
+          Ten sections, each a short read with the full record folded in.
           Open any section by tapping its header. Deep-link any section with
           its anchor — <code style={{ color: "var(--gold)" }}>/canon#origin</code>,{" "}
-          <code style={{ color: "var(--gold)" }}>/canon#shapes</code>, and so on.
+          <code style={{ color: "var(--gold)" }}>/canon#lexicon</code>,{" "}
+          <code style={{ color: "var(--gold)" }}>/canon#roadmap</code>, and so on.
         </p>
       </section>
 
@@ -359,6 +407,10 @@ function TabBlock({ t, defaultOpen = false }: { t: Tab; defaultOpen?: boolean })
 
         {t.extended === "origin" && <ExtendedOrigin />}
         {t.extended === "civilizations" && <ExtendedCivilizations />}
+        {t.extended === "lexicon" && <CanonLexicon />}
+        {t.extended === "names" && <CanonNames />}
+        {t.extended === "secrets" && <CanonSecrets />}
+        {t.extended === "roadmap" && <CanonRoadmap />}
 
         <Link
           href={t.href}

@@ -16,6 +16,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
+import { GraveyardSection } from "@/components/archive/GraveyardSection";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
 import { heroImageUrl } from "@/lib/constants";
 
@@ -195,6 +196,16 @@ export default async function ArchivePage() {
           fragments, collapse events. Not lost. Not abandoned. Reconnecting
           through the signal as the city remembers.
         </p>
+        {/* Jump link to the folded graveyard section (2026-05-31). */}
+        <p style={{ marginTop: "var(--s-3)" }}>
+          <a
+            href="#graveyard"
+            className="archive-link"
+            style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", textDecoration: "none" }}
+          >
+            ⬡ THE GRAVEYARD · ABANDONED CITIZENS ↓
+          </a>
+        </p>
       </section>
 
       {/* CHECK YOUR SIGNAL — wallet-powered ownership terminal across
@@ -291,6 +302,9 @@ export default async function ArchivePage() {
           ⬡ 404 HEX NOT FOUND · BRING IDENTITY BACK
         </p>
       </section>
+
+      {/* ── FOLDED: THE GRAVEYARD (former /graveyard) ── */}
+      <GraveyardSection />
 
       {/* NEXT */}
       <section className="archive-page__next">

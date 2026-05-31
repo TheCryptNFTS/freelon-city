@@ -27,19 +27,69 @@ const config: NextConfig = {
     return [
       { source: "/flex",         destination: "/tribute", permanent: true },
       { source: "/doppelganger", destination: "/sync",    permanent: true },
-      { source: "/regret",       destination: "/numbers", permanent: true },
+      // /regret previously pointed at /numbers; /numbers now folds into
+      // /dashboard (see the 2026-05-31 consolidation below), so retarget
+      // it to avoid a redirect chain.
+      { source: "/regret",       destination: "/dashboard", permanent: true },
       { source: "/rebuild",      destination: "/canon",   permanent: true },
       // 2026-05-27 — /hold-the-line renamed to /synthesis to drop
-      // crypto-degen war framing in favor of the Synthesis doctrine
-      // (Blue Synthesis: tech monks · network civilization). The mechanic
-      // is unchanged; only the route name + page copy were updated.
-      { source: "/hold-the-line", destination: "/synthesis", permanent: true },
+      // crypto-degen war framing in favor of the Synthesis doctrine.
+      // 2026-05-31 — /synthesis itself folded into /earn#synthesis (all
+      // hex-earning paths live on one page), so /hold-the-line now points
+      // straight at the final home to avoid a double hop. Mechanic unchanged.
+      { source: "/hold-the-line", destination: "/earn#synthesis", permanent: true },
       // 2026-05-27 — /lore pruned. Its unique IP (founding/geography +
       // per-civ history/ritual prose) was merged into /canon's expanded
       // origin + civilizations tabs. Anchor sends visitors directly to
       // the merged section. The orphan-from-nav page is gone; the
       // content survives in the canonical reference library.
       { source: "/lore", destination: "/canon#civilizations", permanent: true },
+
+      // ── 2026-05-31 GREAT CONSOLIDATION ──────────────────────────────
+      // Founder brief: the site had 52 static pages (~7-10x a comparable
+      // NFT-game brand) and felt "too complex". No true duplicates — just
+      // feature sprawl. Solution: fold ~28 distinct-but-thin pages into a
+      // handful of tabbed hubs (sections with #anchors), then redirect each
+      // old route to its new section. Content is preserved (it moved into
+      // the hub); the source page.tsx files are left on disk as revert
+      // switches, but these redirects own the URLs going forward. Target:
+      // ~16 surfaces. 308 (treated as 301 by search engines), no 404s.
+
+      // Holder / wallet cluster → /sync (connect · signal · passport · vault · carrier)
+      { source: "/signal",   destination: "/sync#signal",   permanent: true },
+      { source: "/passport", destination: "/sync#passport", permanent: true },
+      { source: "/vault",    destination: "/sync#vault",    permanent: true },
+      { source: "/carrier",  destination: "/sync#carrier",  permanent: true },
+
+      // Stats / market cluster → /dashboard (overview · heat · snipes · civ-war · earners)
+      { source: "/numbers",     destination: "/dashboard",          permanent: true },
+      { source: "/heat",        destination: "/dashboard#heat",     permanent: true },
+      { source: "/undervalued", destination: "/dashboard#snipes",   permanent: true },
+      { source: "/civ-wars",    destination: "/dashboard#civ-war",  permanent: true },
+      { source: "/leaderboard", destination: "/dashboard#earners",  permanent: true },
+
+      // Lore / reference cluster → /canon (lexicon · names · secrets · roadmap).
+      // /the-fifth-bracket intentionally NOT redirected — it stays a hidden
+      // easter-egg URL (not in nav, so it costs no newcomer surface).
+      { source: "/lexicon", destination: "/canon#lexicon", permanent: true },
+      { source: "/names",   destination: "/canon#names",   permanent: true },
+      { source: "/secrets", destination: "/canon#secrets", permanent: true },
+      { source: "/roadmap", destination: "/canon#roadmap", permanent: true },
+
+      // Visual-taxonomy cluster → /civilizations (civilizations · castes · shapes)
+      { source: "/castes", destination: "/civilizations#castes", permanent: true },
+      { source: "/shapes", destination: "/civilizations#shapes", permanent: true },
+
+      // Earning cluster → /earn (ledger · relay · synthesis)
+      { source: "/relay",     destination: "/earn#relay",     permanent: true },
+      { source: "/synthesis", destination: "/earn#synthesis", permanent: true },
+
+      // Social / archive / product folds
+      { source: "/patrons",   destination: "/tribute#patrons",   permanent: true },
+      { source: "/architect", destination: "/tribute#architect", permanent: true },
+      { source: "/graveyard", destination: "/archive#graveyard", permanent: true },
+      { source: "/pfp",       destination: "/citizens#pfp",      permanent: true },
+      { source: "/daily",     destination: "/play#daily",        permanent: true },
     ];
   },
   async headers() {

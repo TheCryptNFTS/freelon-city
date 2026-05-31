@@ -4,6 +4,8 @@ import { CIVILIZATIONS, imageUrl, type CivilizationSlug } from "@/lib/constants"
 import { getByCivilization } from "@/lib/citizens";
 import { CivGlyph } from "@/components/CivGlyph";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
+import { CastesSection } from "@/components/civilizations/CastesSection";
+import { ShapesSection } from "@/components/civilizations/ShapesSection";
 
 // A real citizen face for every civilization. The cards used to point at
 // /civs/{slug}.webp plates that don't exist (404 → plain text + colour
@@ -33,7 +35,7 @@ function repFace(slug: string): number {
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (civilizations.jpg).
 const PAGE_DESC =
-  "Ten signal doctrines. Every citizen belongs to one civilization inside FREELON CITY.";
+  "The full identity system of FREELON CITY: ten civilizations, seven castes, sixteen sacred shapes. Every citizen belongs to one of each.";
 export const metadata: Metadata = {
   title: "Ten Civilizations",
   description: PAGE_DESC,
@@ -72,7 +74,17 @@ export default function Page() {
           when the city splits. Below: the ten, in order of population.
         </p>
       </section>
-      <section className="civs-list">
+
+      {/* Sticky in-page sub-nav (2026-05-31): /castes and /shapes were folded
+         into this page. Pure anchor links — SSR-friendly, no client tab state.
+         Redirects from the old routes target the #castes / #shapes ids. */}
+      <nav className="civ-subnav" aria-label="Identity system sections">
+        <a href="#civilizations">Civilizations</a>
+        <a href="#castes">Castes</a>
+        <a href="#shapes">Shapes</a>
+      </nav>
+
+      <section id="civilizations" className="civs-list">
         {Object.entries(CIVILIZATIONS).map(([slug, c]) => {
           const faceId = repFace(slug);
           const face = imageUrl(faceId);
@@ -111,6 +123,10 @@ export default function Page() {
           );
         })}
       </section>
+
+      <CastesSection />
+
+      <ShapesSection />
 
       <section style={{ marginTop: "var(--s-6)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>

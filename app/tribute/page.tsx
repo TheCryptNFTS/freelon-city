@@ -2,6 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getHonoraries } from "@/lib/citizens";
 import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
+import { PatronsSection } from "@/components/tribute/PatronsSection";
+import { ArchitectSection } from "@/components/tribute/ArchitectSection";
+
+// Patrons wall reads live tithes; revalidate inherited from the folded
+// /patrons page (2026-05-31).
+export const revalidate = 60;
 
 // Phase 1 metadata 2026-05-26 — route-specific text, reuses
 // /og/home.jpg.
@@ -24,7 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TributeIndex() {
+export default async function TributeIndex() {
   const hs = getHonoraries();
   return (
     /* Archival visual pass 2026-05-26: .home-page wrapper triggers
@@ -41,7 +47,35 @@ export default function TributeIndex() {
           signal. Each is permanent in the record.
         </p>
       </section>
-      <section className="tribute-grid-wrap">
+
+      {/* Sticky in-page sub-nav — folds patrons + architect into this hub
+          (2026-05-31). Uses existing tokens only. */}
+      <nav
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 5,
+          display: "flex",
+          gap: "var(--s-3)",
+          flexWrap: "wrap",
+          maxWidth: "var(--maxw)",
+          margin: "0 auto",
+          padding: "12px var(--pad)",
+          borderBottom: "1px solid var(--line)",
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(8px)",
+          fontFamily: "var(--mono2)",
+          fontSize: 11,
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+        }}
+      >
+        <a href="#honorees" style={{ color: "var(--gold)", textDecoration: "none" }}>⬡ Honorees</a>
+        <a href="#patrons" style={{ color: "var(--ink-2)", textDecoration: "none" }}>Patrons</a>
+        <a href="#architect" style={{ color: "var(--ink-2)", textDecoration: "none" }}>Architect</a>
+      </nav>
+
+      <section id="honorees" className="tribute-grid-wrap" style={{ scrollMarginTop: 96 }}>
         <div className="tribute-grid">
           {hs.map((h) => {
             const handle = (h.honoree_handle || "").replace(/^@/, "");
@@ -66,6 +100,12 @@ export default function TributeIndex() {
           })}
         </div>
       </section>
+
+      {/* ── FOLDED: PATRONS WALL (former /patrons) ── */}
+      <PatronsSection />
+
+      {/* ── FOLDED: THE ARCHITECT (former /architect) ── */}
+      <ArchitectSection />
 
       <section style={{ marginTop: "var(--s-6)", maxWidth: "var(--maxw)", margin: "var(--s-6) auto 0", padding: "0 var(--pad)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>

@@ -10,11 +10,22 @@ import { LiveHeatGrid } from "@/components/LiveHeatGrid";
 import { HolderDistributionChart } from "@/components/HolderDistributionChart";
 import { CityFeedTicker } from "@/components/CityFeedTicker";
 import { TopCitizensByValue } from "@/components/TopCitizensByValue";
+import { HeatSection } from "@/components/dashboard/HeatSection";
+import { SnipesSection } from "@/components/dashboard/SnipesSection";
+import { CivWarSection } from "@/components/dashboard/CivWarSection";
+import { EarnersSection } from "@/components/dashboard/EarnersSection";
+import { CONTRACT, TOTAL } from "@/lib/constants";
+import { listWalletHexRecords } from "@/lib/wallet-hex-store";
+
+// Folded /numbers, /heat, /undervalued, /civ-wars, /leaderboard into this
+// hub (2026-05-31). Sections refetch at their own cadence; keep the page
+// fresh on a 2-min window — the tightest of the folded pages.
+export const revalidate = 120;
 
 export const metadata: Metadata = {
   title: "Dashboard · Pulse",
   description:
-    "Live city economy. Hex Index, floor by civilization, holder distribution, sales feed, your net worth.",
+    "Live city economy in one place. Hex Index, floor by civilization, holder distribution, trait heat, snipe board, civ wars, top earners.",
   openGraph: { images: [{ url: "/api/og/hex-index", width: 1200, height: 630 }] },
   twitter: { card: "summary_large_image", images: ["/api/og/hex-index"] },
 };
@@ -25,7 +36,30 @@ const tweetUrl = (text: string) =>
     `${text}\n\n${SITE}/dashboard\n\n#FreelonCity #404HEXNOTFOUND`,
   )}`;
 
-export default function Dashboard() {
+function fmtInt(n: number | null | undefined): string {
+  if (n == null || !isFinite(n)) return "—";
+  return Math.round(n).toLocaleString();
+}
+
+const SUBNAV: Array<{ id: string; label: string }> = [
+  { id: "overview", label: "Overview" },
+  { id: "heat", label: "Heat" },
+  { id: "snipes", label: "Snipes" },
+  { id: "civ-war", label: "Civ War" },
+  { id: "earners", label: "Earners" },
+];
+
+export default async function Dashboard() {
+  // Hex receipts folded from /numbers — surfaced inside the overview so the
+  // dashboard answers "how much hex is live / burned across all wallets".
+  const hexRecords = await listWalletHexRecords(500).catch(() => []);
+  const hexBalanceTotal = hexRecords.reduce((a, r) => a + (r.balance || 0), 0);
+  const hexLifetimeTotal = hexRecords.reduce((a, r) => a + (r.lifetimeEarned || 0), 0);
+  const hexBurnedTotal = Math.max(0, hexLifetimeTotal - hexBalanceTotal);
+  const trackedWallets = hexRecords.length;
+  const activeWallets = hexRecords.filter((r) => (r.balance || 0) > 0).length;
+  const carriersWithClaimStreak = hexRecords.filter((r) => (r.claimStreak ?? 0) > 0).length;
+
   return (
     <div className="dashboard-page">
       <CityFeedTicker />
@@ -33,46 +67,85 @@ export default function Dashboard() {
         <span className="kicker">⬡ PULSE · LIVE FROM THE CITY</span>
         <h1>The <em>numbers</em></h1>
         <p className="lead">
-          The city, in numbers. Floor by civilization, hex accrued, the holder map. Live.
+          The whole market in one place — floor, holders, hex flow, trait heat,
+          snipes, civ wars, top earners. Live.
         </p>
       </section>
 
-      {/* Row 1 — HOLDER NUMBERS FIRST (Phase 3 directive).
-          Investor question #1 is "who owns this collection?". Lead
-          with the holder map + per-civ value cap before any generic
-          floor / index stats. */}
-      <div className="dash-grid dash-grid-2">
-        <HolderDistributionChart />
-        <CivValueChart />
-      </div>
+      {/* Sticky in-page sub-nav — pure anchor links, SSR-friendly. */}
+      <nav className="dash-subnav" aria-label="Dashboard sections">
+        {SUBNAV.map((s) => (
+          <a key={s.id} href={`#${s.id}`} className="dash-subnav__link">
+            {s.label}
+          </a>
+        ))}
+      </nav>
 
-      {/* Row 2 — Your wallet stake in the city (when present). */}
-      <div className="dash-grid">
-        <HexNetWorth />
-      </div>
+      {/* ── OVERVIEW (existing live economy dashboard + folded /numbers receipts) ── */}
+      <section id="overview" style={{ scrollMarginTop: 96 }}>
+        {/* Row 1 — HOLDER NUMBERS FIRST (Phase 3 directive).
+            Investor question #1 is "who owns this collection?". Lead
+            with the holder map + per-civ value cap before any generic
+            floor / index stats. */}
+        <div className="dash-grid dash-grid-2">
+          <HolderDistributionChart />
+          <CivValueChart />
+        </div>
 
-      {/* Row 3 — generic city stats below the holder + civ context. */}
-      <div className="dash-grid dash-grid-2">
-        <CityStats />
-        <HexIndex />
-      </div>
+        {/* Row 2 — Your wallet stake in the city (when present). */}
+        <div className="dash-grid">
+          <HexNetWorth />
+        </div>
 
-      {/* Per-citizen value ranking. New 2026-05-25 — accumulated hex +
-          rarity + sale + hold time → composite score, top 10. Belongs
-          here so the dashboard answers "which citizens are the city's
-          most valuable" alongside holder + civ-value charts. */}
-      <TopCitizensByValue />
+        {/* Row 3 — generic city stats below the holder + civ context. */}
+        <div className="dash-grid dash-grid-2">
+          <CityStats />
+          <HexIndex />
+        </div>
 
-      {/* Red Signals — undervalued listings worth sniping for hex bounties */}
-      <RedSignalsFeed />
+        {/* City receipts — hex aggregates folded from /numbers. */}
+        <div className="dash-receipts">
+          <span className="kicker">⬡ CITY RECEIPTS · HEX ECONOMY</span>
+          <div className="dash-receipts__grid">
+            <Stat label="Hex in circulation" value={`${fmtInt(hexBalanceTotal)} ⬡`} sub="sum of all wallet balances" />
+            <Stat label="Hex burned (lifetime)" value={`${fmtInt(hexBurnedTotal)} ⬡`} sub="all sinks · tithes, names, realigns, transmissions, boosts" />
+            <Stat label="Tracked wallets" value={fmtInt(trackedWallets)} sub={`${fmtInt(activeWallets)} active · hex > 0`} />
+            <Stat label="Daily-claim streakers" value={fmtInt(carriersWithClaimStreak)} sub="wallets with an unbroken claim streak" />
+            <Stat label="Supply" value={`${TOTAL.toLocaleString()} citizens`} sub="hard-capped · no mint left" />
+            <Stat
+              label="Contract"
+              value={<code style={{ fontSize: 12, wordBreak: "break-all", overflowWrap: "anywhere", display: "block", lineHeight: 1.4 }}>{CONTRACT}</code>}
+              sub="Ethereum mainnet · ERC-721"
+            />
+          </div>
+        </div>
 
-      {/* Live Heat Grid — per-civ activity pulse */}
-      <LiveHeatGrid />
+        {/* Per-citizen value ranking. */}
+        <TopCitizensByValue />
 
-      {/* Live sales feed */}
-      <div className="dash-grid">
-        <LiveSalesFeed />
-      </div>
+        {/* Red Signals — undervalued listings worth sniping for hex bounties */}
+        <RedSignalsFeed />
+
+        {/* Live Heat Grid — per-civ activity pulse */}
+        <LiveHeatGrid />
+
+        {/* Live sales feed */}
+        <div className="dash-grid">
+          <LiveSalesFeed />
+        </div>
+      </section>
+
+      {/* ── HEAT ← app/heat ── */}
+      <HeatSection />
+
+      {/* ── SNIPES ← app/undervalued ── */}
+      <SnipesSection />
+
+      {/* ── CIV WAR ← app/civ-wars ── */}
+      <CivWarSection />
+
+      {/* ── EARNERS ← app/leaderboard ── */}
+      <EarnersSection />
 
       <section className="dash-share">
         <span className="kicker">⬡ SHARE THE CITY</span>
@@ -103,11 +176,50 @@ export default function Dashboard() {
           <Link className="btn btn-secondary" href="/earn">
             <span className="ttl">THE LEDGER →</span>
           </Link>
-          <Link className="btn btn-secondary" href="/leaderboard">
-            <span className="ttl">THE LEADERBOARD →</span>
+          <Link className="btn btn-secondary" href="/civilizations">
+            <span className="ttl">PICK YOUR CIV →</span>
           </Link>
         </div>
       </section>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Local components (Stat card — mirrors the /numbers receipt cards)
+// ─────────────────────────────────────────────────────────────────────
+
+function Stat({
+  label, value, sub,
+}: {
+  label: string;
+  value: React.ReactNode;
+  sub?: string;
+}) {
+  return (
+    <div
+      style={{
+        padding: "var(--s-3) var(--s-4)",
+        border: "1px solid var(--line)",
+        background: "rgba(255,255,255,0.02)",
+        borderRadius: 12,
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+        minHeight: 96,
+      }}
+    >
+      <div style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-dim)", textTransform: "uppercase" }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: "var(--display)", fontSize: "clamp(22px, 2.5vw, 30px)", lineHeight: 1.1, color: "var(--ink)", letterSpacing: "-0.005em" }}>
+        {value}
+      </div>
+      {sub && (
+        <div style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-2)", lineHeight: 1.4 }}>
+          {sub}
+        </div>
+      )}
     </div>
   );
 }

@@ -1844,6 +1844,36 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   color: var(--ink-2); line-height: 1.55; max-width: 64ch;
 }
 
+/* ----- /civilizations folded sub-nav + sections (2026-05-31) -----
+   /castes + /shapes were folded into the civilizations index. The sticky
+   anchor nav lets a newcomer jump across the identity system in one page. */
+.civ-subnav {
+  position: sticky; top: 96px; z-index: 5;
+  display: flex; gap: var(--s-2); flex-wrap: wrap;
+  margin: var(--s-5) 0 var(--s-7);
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+.civ-subnav a {
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--ink-dim);
+  padding: 7px 14px; border: 1px solid var(--line); border-radius: 2px;
+  text-decoration: none; transition: color 160ms ease, border-color 160ms ease;
+}
+.civ-subnav a:hover { color: var(--gold-bright); border-color: var(--gold); }
+
+/* Folded sections + the civ-list need a scroll offset so the sticky header
+   (96px) + sub-nav don't cover the anchored heading on jump. */
+#civilizations, #castes, #shapes { scroll-margin-top: 160px; }
+.civ-fold { margin-top: var(--s-9); }
+.civ-fold__h {
+  font-family: var(--display); font-size: var(--t-h2, clamp(32px, 5vw, 56px));
+  line-height: 0.94; letter-spacing: -0.02em;
+  margin: var(--s-3) 0 0; text-transform: uppercase;
+}
+.civ-fold__h em { color: var(--gold); font-style: normal; }
+
 /* ----- /shapes ----- */
 .shapes-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-4);
@@ -4483,6 +4513,36 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 
 .dash-share, .dash-next { margin-top: var(--s-6); padding-top: var(--s-4); border-top: 1px solid var(--line); }
 .dash-share-row, .dash-next-row { display: flex; gap: var(--s-3); flex-wrap: wrap; margin-top: var(--s-3); }
+
+/* Dashboard in-page sub-nav — sticky anchor links to folded sections
+   (overview / heat / snipes / civ-war / earners). Pure anchors, SSR. */
+.dash-subnav {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; gap: var(--s-2); flex-wrap: wrap;
+  margin: 0 0 var(--s-5);
+  padding: var(--s-3) 0;
+  background: rgba(5,5,5,0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.dash-subnav__link {
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-dim);
+  text-decoration: none; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line); transition: color 160ms ease, border-color 160ms ease;
+}
+.dash-subnav__link:hover { color: var(--gold-bright); border-color: var(--gold); }
+
+/* City receipts block — hex aggregates folded from /numbers. */
+.dash-receipts { margin: var(--s-5) 0 var(--s-4); }
+.dash-receipts__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-3); margin-top: var(--s-3);
+}
+
+/* Spacing between the stacked folded sections in the hub. */
+.dashboard-page > section[id] { margin-bottom: var(--s-8); }
 
 
 /* ============================ HOLDER DISTRIBUTION (REBUILD) ============================ */

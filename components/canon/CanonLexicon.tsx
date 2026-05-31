@@ -1,0 +1,131 @@
+/**
+ * CanonLexicon — full city glossary, folded into /canon#lexicon.
+ *
+ * Migrated verbatim from the (now-superseded) /lexicon page (2026-05-31)
+ * so /canon is the single browsable reference. The five-pass structure
+ * (Identity / Structure / The Signal / The Four / Inventory) is preserved.
+ * Server component — pure static markup, no client JS.
+ */
+
+type Term = { word: string; defn: string };
+
+const SECTIONS: Array<{ kicker: string; title: string; terms: Term[] }> = [
+  {
+    kicker: "I · IDENTITY",
+    title: "What we call each other.",
+    terms: [
+      { word: "Citizen", defn: "One of the 4040 figures sealed on contract 0xa79e…b504. Owns or is owned. Either way, present." },
+      { word: "Holder", defn: "A citizen's current keeper. The chain is the record." },
+      { word: "Carrier", defn: "A non-holder who relays the signal. Rank decays daily without transmission." },
+      { word: "Honorary", defn: "One of 35 citizens that carries the name of a real-world signal-carrier." },
+      { word: "Bearer", defn: "Carrier-rank tier above 80. Moves the signal without being asked." },
+      { word: "Echo", defn: "Carrier-rank tier below 30. Heard recently, but not present." },
+      { word: "Dark", defn: "Carrier whose signal has decayed to zero. Re-enter to return." },
+    ],
+  },
+  {
+    kicker: "II · STRUCTURE",
+    title: "How the city is built.",
+    terms: [
+      { word: "Civilization", defn: "One of the 10 Signal Doctrines. Every citizen belongs to exactly one. Population is fixed." },
+      { word: "Doctrine", defn: "The teaching of a civilization. Synthesis, Corruption, Growth, Oracle, Transmission, Luxury, Fracture, Sovereignty, Void, Machine." },
+      { word: "Caste", defn: "One of 7 roles a citizen holds. Signal Born is the most numerous. The Throne the rarest." },
+      { word: "Shape", defn: "One of 16 sacred geometries that determine silhouette. Shape is the first read." },
+      { word: "Stamp", defn: "A civilization's three-letter code + population. BLU.700, RED.700, SIL.080." },
+      { word: "District", defn: "Where a civilization lives in FREELON CITY. Synthesis Cathedral, Growth Domes, Fracture Shadow Grid." },
+    ],
+  },
+  {
+    kicker: "III · THE SIGNAL",
+    title: "What we listen for.",
+    terms: [
+      { word: "Signal", defn: "The original transmission. Origin unknown. Possibly Earth. Possibly older. Reshapes citizens biologically, spiritually, technologically." },
+      { word: "Hex", defn: "The six-sided mark X removed. Present in the signal's mathematics. Cut into every citizen's porcelain. Not decoration. Anatomy." },
+      { word: "Transmission", defn: "Any act of carrying the signal further. A post. A tribute. A sync. A relay." },
+      { word: "Relay", defn: "To pass the signal on. The verb. Increases carrier rank by 12." },
+      { word: "Sync", defn: "To receive the signal for the first time. Deterministic hash of your handle to one civilization. No re-rolls." },
+      { word: "Cipher", defn: "The encoded fragment that accompanies each Daily Signal. Decoration of meaning, not concealment of it." },
+      { word: "Daily Signal", defn: "One cryptic line per day, transmitted at 04:04 UTC, from a different civilization each cycle." },
+      { word: "Cycle 0404", defn: "The current phase of FREELON CITY. After the rebuild. Before the next collapse." },
+    ],
+  },
+  {
+    kicker: "IV · THE FOUR",
+    title: "The corners of the city.",
+    terms: [
+      { word: "Origin Signal (#0001)", defn: "The founder. The first to hear and survive intact. The reference frequency the city is measured against." },
+      { word: "Patient Zero (#0404)", defn: "The moment before the collapse, captured and held. The hex that broke." },
+      { word: "Genesis Hex (#1337)", defn: "The bracket. The first hex cut into stone that did not crack." },
+      { word: "The Final Signal (#4040)", defn: "When the city ends, this is who turns out the lights." },
+    ],
+  },
+  {
+    kicker: "V · INVENTORY",
+    title: "The fixed counts.",
+    terms: [
+      { word: "4040", defn: "Total citizens. Locked. No mint key remains." },
+      { word: "10 / 7 / 16", defn: "Civilizations, castes, shapes. The taxonomy is sealed." },
+      { word: "35", defn: "Honoraries — citizens carrying the names of real signal-carriers." },
+      { word: "4", defn: "One-of-ones — Origin, Patient Zero, Genesis Hex, Final Signal." },
+      { word: "80", defn: "Silver Machine's population. The rarest civilization. They were here before the colonists." },
+      { word: "70", defn: "Days of non-repeating Daily Signals (10 civs × 7 lines each)." },
+    ],
+  },
+];
+
+export function CanonLexicon() {
+  return (
+    <div style={{ marginTop: "var(--s-3)", paddingTop: "var(--s-3)", borderTop: "1px dashed var(--line)" }}>
+      {SECTIONS.map((s) => (
+        <section key={s.kicker} style={{ marginBottom: "var(--s-4)" }}>
+          <span
+            style={{
+              display: "block",
+              fontFamily: "var(--mono2)",
+              fontSize: 10,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--gold)",
+              marginBottom: 4,
+            }}
+          >
+            ⬡ {s.kicker}
+          </span>
+          <h3 style={{ fontFamily: "var(--display)", fontSize: 18, margin: "0 0 10px", letterSpacing: "-0.005em" }}>
+            {s.title}
+          </h3>
+          <dl style={{ margin: 0 }}>
+            {s.terms.map((t) => (
+              <div
+                key={t.word}
+                style={{
+                  padding: "8px 0",
+                  borderTop: "1px solid var(--line)",
+                  display: "grid",
+                  gridTemplateColumns: "minmax(120px, 200px) 1fr",
+                  gap: "4px 16px",
+                  alignItems: "baseline",
+                }}
+              >
+                <dt
+                  style={{
+                    fontFamily: "var(--mono2)",
+                    fontSize: 12,
+                    letterSpacing: "0.06em",
+                    color: "var(--gold)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {t.word}
+                </dt>
+                <dd style={{ margin: 0, fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.65 }}>
+                  {t.defn}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ))}
+    </div>
+  );
+}

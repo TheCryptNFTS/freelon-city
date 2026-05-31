@@ -1,6 +1,7 @@
 import { getAllCitizens } from "@/lib/citizens";
 import { FindCitizen } from "@/components/FindCitizen";
 import { CitizensBrowser } from "@/components/CitizensBrowser";
+import { PfpSection } from "@/components/citizens/PfpSection";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import Link from "next/link";
@@ -94,6 +95,15 @@ export default function Citizens() {
         <div className="finder">
           <FindCitizen />
         </div>
+        {/* Jump link to the folded PFP studio (2026-05-31). */}
+        <p style={{ marginTop: "var(--s-3)" }}>
+          <a
+            href="#pfp"
+            style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", textDecoration: "none" }}
+          >
+            ⬡ HEX-FRAME YOUR AVATAR ↓
+          </a>
+        </p>
       </section>
 
       {/* Phase 3: CURATED FIRST. The original order put the 4040-item
@@ -189,6 +199,9 @@ export default function Citizens() {
         </header>
         <CitizensBrowser all={mini} rareTraitIds={rareTraitIds} rareThreshold={RARE_THRESHOLD} />
       </section>
+
+      {/* ── FOLDED: PFP STUDIO (former /pfp) ── */}
+      <PfpSection />
 
       <section style={{ marginTop: "var(--s-6)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>

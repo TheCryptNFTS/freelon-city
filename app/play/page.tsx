@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArcadeProgress } from "@/components/ArcadeProgress";
 import { DailyHub } from "@/components/DailyHub";
+import { DailyTransmission } from "@/components/play/DailyTransmission";
 import { GamePreview, type GameKind } from "@/components/GamePreview";
+
+// Folded /daily transmission rolls per UTC day without redeploy
+// (2026-05-31). Matches the former /daily page's force-dynamic.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Play · FREELON CITY Arcade",
@@ -100,6 +105,9 @@ export default function PlayHub() {
           another, and nothing here hides clues for the others.
         </p>
       </section>
+
+      {/* ── FOLDED: DAILY TRANSMISSION (former /daily) ── */}
+      <DailyTransmission />
 
       <DailyHub />
 

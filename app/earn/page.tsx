@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { RelaySection } from "@/components/earn/RelaySection";
+import { SynthesisSection } from "@/components/earn/SynthesisSection";
+import { getStats } from "@/lib/defender-store";
+import { tickDefenderOnVisitFireAndForget } from "@/lib/defender-tick-on-visit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
@@ -67,18 +71,47 @@ async function fetchLive(): Promise<LiveStats> {
 
 // ── Page ─────────────────────────────────────────────────────────────
 export default async function EarnPage() {
-  const live = await fetchLive();
+  // Fire-and-forget visit tick for the synthesis bid-wall scan (backstop
+  // for the cron) — preserved from the former standalone /synthesis page.
+  tickDefenderOnVisitFireAndForget();
+  const [live, defenderStats] = await Promise.all([fetchLive(), getStats()]);
   const saleHexFor01Eth = Math.round(0.01 * ECONOMY.SALE_SHARE_PCT / 100 * ECONOMY.HEX_PER_ETH);
   const hasLive = live.redSignalCount > 0;
 
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--s-4) var(--s-7)" }}>
       <style>{`
         @keyframes pulseGlow {
           0%, 100% { box-shadow: 0 0 0 0 rgba(255,90,77,0.0); }
           50%      { box-shadow: 0 0 0 8px rgba(255,90,77,0.18); }
         }
       `}</style>
+
+      {/* ── STICKY IN-PAGE SUB-NAV ─────────────────────────────────── */}
+      <nav
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+          alignItems: "center",
+          padding: "var(--s-3) 0",
+          marginBottom: "var(--s-3)",
+          background: "rgba(5,5,5,0.9)",
+          backdropFilter: "blur(8px)",
+          borderBottom: "1px solid var(--line)",
+        }}
+      >
+        <span className="kicker" style={{ color: "var(--ink-dim)", marginRight: 4 }}>⬡ EARN</span>
+        <a href="#ledger" className="btn btn-secondary btn-sm"><span className="ttl">THE LEDGER</span></a>
+        <a href="#relay" className="btn btn-secondary btn-sm"><span className="ttl">RELAY</span></a>
+        <a href="#synthesis" className="btn btn-secondary btn-sm"><span className="ttl">SYNTHESIS</span></a>
+      </nav>
+
+      {/* ── LEDGER ─────────────────────────────────────────────────── */}
+      <section id="ledger" style={{ scrollMarginTop: 72 }}>
 
       {/* ── HERO · single question ─────────────────────────────────── */}
       <section
@@ -326,6 +359,25 @@ export default async function EarnPage() {
             <span className="ttl">CLAIM TODAY&apos;S {ECONOMY.DAILY_CLAIM} ⬡ →</span>
           </Link>
         </div>
+      </section>
+
+      {/* end #ledger */}
+      </section>
+
+      {/* ── RELAY ──────────────────────────────────────────────────── */}
+      <section
+        id="relay"
+        style={{ scrollMarginTop: 72, marginTop: "var(--s-7)", paddingTop: "var(--s-6)", borderTop: "1px solid var(--line-2)" }}
+      >
+        <RelaySection />
+      </section>
+
+      {/* ── SYNTHESIS ──────────────────────────────────────────────── */}
+      <section
+        id="synthesis"
+        style={{ scrollMarginTop: 72, marginTop: "var(--s-7)", paddingTop: "var(--s-6)", borderTop: "1px solid var(--line-2)" }}
+      >
+        <SynthesisSection stats={defenderStats} />
       </section>
     </div>
   );
