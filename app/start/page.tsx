@@ -12,7 +12,46 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
-import { TOTAL } from "@/lib/constants";
+import { TOTAL, heroImageUrl } from "@/lib/constants";
+
+// The six connected collections with one representative on-chain record
+// each — the same 1/1 art the homepage strip and /archive show. The
+// "30-second version" names the universe in prose; this strip SHOWS it, so
+// a newcomer sees the scope is real, not a marketing claim. Freelons leads
+// with citizen #1 (the origin signal); the rest are seadn.io records.
+const UNIVERSE_THUMBS: { name: string; href: string; image: string }[] = [
+  { name: "Freelons", href: "/citizens", image: heroImageUrl(1) },
+  {
+    name: "The Crypt",
+    href: "/archive",
+    image:
+      "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/62731ec9b5f6ba2d2476c16b566881/a362731ec9b5f6ba2d2476c16b566881.png",
+  },
+  {
+    name: "Combat Archives",
+    href: "/combat-archives",
+    image:
+      "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/7b5c6c2b8cdeda3ae4238574005ea0/867b5c6c2b8cdeda3ae4238574005ea0.jpeg",
+  },
+  {
+    name: "OOGIES",
+    href: "/archive",
+    image:
+      "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/2c469337fc98d8e6fc65ddaf2d9493/4f2c469337fc98d8e6fc65ddaf2d9493.png",
+  },
+  {
+    name: "Emile",
+    href: "/archive",
+    image:
+      "https://i2c.seadn.io/ethereum/15e47d237d674ec68ab5d400ee3def70/98c0f0a7a4060344823b2c9de57749/1298c0f0a7a4060344823b2c9de57749.jpeg",
+  },
+  {
+    name: "SMILES",
+    href: "/archive",
+    image:
+      "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/93f22023c68dad315e737fddb3d4b7/7693f22023c68dad315e737fddb3d4b7.png",
+  },
+];
 
 // Phase 1 metadata 2026-05-26 — route-specific text, reuses
 // /og/home.jpg.
@@ -147,6 +186,69 @@ export default function StartPage() {
           Combat Archives, and a free <strong>arcade</strong> of mini-games. One city ties
           them together.
         </P>
+        {/* Show the universe, don't just list it — a record from each
+            connected collection. */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(92px, 1fr))",
+            gap: 10,
+            margin: "4px 0 4px",
+          }}
+        >
+          {UNIVERSE_THUMBS.map((t) => (
+            <Link
+              key={t.name}
+              href={t.href}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                textDecoration: "none",
+                color: "var(--ink-2)",
+              }}
+            >
+              <span
+                style={{
+                  position: "relative",
+                  aspectRatio: "1 / 1",
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  border: "1px solid var(--line)",
+                  background: "rgba(0,0,0,0.4)",
+                  display: "block",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={t.image}
+                  alt={`${t.name} record`}
+                  loading="lazy"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                    filter: "saturate(0.85) contrast(1.02)",
+                  }}
+                />
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--mono2)",
+                  fontSize: 10,
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  textAlign: "center",
+                  color: "var(--ink-dim)",
+                  lineHeight: 1.3,
+                }}
+              >
+                {t.name}
+              </span>
+            </Link>
+          ))}
+        </div>
         <P>
           <strong>You do NOT have to buy a citizen to play.</strong> You can earn hex,
           pick a civilization, and use most of the site without owning anything.

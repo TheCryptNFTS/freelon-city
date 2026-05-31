@@ -17,6 +17,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
+import { heroImageUrl } from "@/lib/constants";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (archive.jpg).
 const PAGE_DESC =
@@ -53,6 +54,14 @@ type ArchiveEntry = {
       the Freelons collection (404hexnotfound has no OpenSea slug), so it
       prices off "freelons". */
   slug: string;
+  /**
+   * A representative recovered record per layer — the same on-chain 1/1
+   * art the homepage archive strip shows, so the deep page SHOWS each
+   * signal instead of only describing it. seadn.io for the OpenSea
+   * collections; the 404/root layer uses Freelon citizen #1 (the origin
+   * signal). CSP img-src allows *.seadn.io + self.
+   */
+  image: string;
 };
 
 const ENTRIES: ArchiveEntry[] = [
@@ -72,6 +81,9 @@ const ENTRIES: ArchiveEntry[] = [
     openseaUrl: "https://opensea.io/collection/the-crypt-official",
     artifactClass: "dead signal archive · skull records beneath the city",
     slug: "the-crypt-official",
+    // "Walter" (#1907) — a One of One skull record.
+    image:
+      "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/62731ec9b5f6ba2d2476c16b566881/a362731ec9b5f6ba2d2476c16b566881.png",
   },
   {
     sequence: "TRANSMISSION 0119",
@@ -83,6 +95,9 @@ const ENTRIES: ArchiveEntry[] = [
     openseaUrl: "https://opensea.io/collection/crypttradingcards",
     artifactClass: "combat relic / commander archive · ten gods sealed inside",
     slug: "crypttradingcards",
+    // Anubis (#1519) — the recovered god relic; same art on /combat-archives.
+    image:
+      "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/7b5c6c2b8cdeda3ae4238574005ea0/867b5c6c2b8cdeda3ae4238574005ea0.jpeg",
   },
   {
     // Founder brief 2026-05-25 (same discipline as Crypt + Emile):
@@ -99,6 +114,9 @@ const ENTRIES: ArchiveEntry[] = [
     openseaUrl: "https://opensea.io/collection/oogies",
     artifactClass: "ancient signal species · pre-civilization listeners",
     slug: "oogies",
+    // "Horse Relic" (#2575) — the rarest OOGIES tier; OOGIES has no 1/1.
+    image:
+      "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/2c469337fc98d8e6fc65ddaf2d9493/4f2c469337fc98d8e6fc65ddaf2d9493.png",
   },
   {
     // Founder brief 2026-05-25 (same scope discipline as the Crypt
@@ -115,6 +133,9 @@ const ENTRIES: ArchiveEntry[] = [
     openseaUrl: "https://opensea.io/collection/emile0x1908",
     artifactClass: "memory archive · emotional preservation",
     slug: "emile0x1908",
+    // Collection cover — Emile is video-only on-chain, so no still 1/1.
+    image:
+      "https://i2c.seadn.io/ethereum/15e47d237d674ec68ab5d400ee3def70/98c0f0a7a4060344823b2c9de57749/1298c0f0a7a4060344823b2c9de57749.jpeg",
   },
   {
     sequence: "TRANSMISSION 0991",
@@ -126,6 +147,9 @@ const ENTRIES: ArchiveEntry[] = [
     openseaUrl: "https://opensea.io/collection/smiles-genesis/overview",
     artifactClass: "collapse event · failed suppression system",
     slug: "smiles-genesis",
+    // "Gilded Emissary" (#74) — a One of One (Series: One of One).
+    image:
+      "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/93f22023c68dad315e737fddb3d4b7/7693f22023c68dad315e737fddb3d4b7.png",
   },
   {
     sequence: "TRANSMISSION 0404 · ROOT",
@@ -137,6 +161,9 @@ const ENTRIES: ArchiveEntry[] = [
     openseaUrl: "https://opensea.io/collection/404hexnotfound",
     artifactClass: "core symbol · the missing identity signal",
     slug: "freelons",
+    // Freelon citizen #1 "origin-signal" — the One of One the city formed
+    // around. Served from the local hero mirror, not seadn.
+    image: heroImageUrl(1),
   },
 ];
 
@@ -204,6 +231,17 @@ export default async function ArchivePage() {
                 )}
               </span>
             </header>
+            {/* Recovered record — real on-chain 1/1 art, archival-toned to
+                match the document aesthetic (desaturated, gradient floor). */}
+            <div className="archive-card__art">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={t.image}
+                alt={`${t.title} — recovered archive record`}
+                loading="lazy"
+              />
+              <span className="archive-card__artScrim" aria-hidden />
+            </div>
             <div className="archive-card__body">
               <h2 className="archive-card__title">{t.title}</h2>
               <p className="archive-card__text">{t.body}</p>

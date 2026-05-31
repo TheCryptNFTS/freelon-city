@@ -5627,6 +5627,34 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   background: var(--state-color, var(--archival-dust));
   flex-shrink: 0;
 }
+/* Recovered-record art banner. Archival treatment: desaturated, low
+   contrast, a gradient floor blending into the card body so the 1/1 reads
+   as a document scan, not a marketplace thumbnail. */
+.archive-card__art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--archival-carbon);
+  border-bottom: 1px solid var(--archival-line);
+}
+.archive-card__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(0.78) contrast(1.02) brightness(0.96);
+}
+.archive-card__artScrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 55%,
+    rgba(10, 11, 16, 0.55) 100%
+  );
+}
 .archive-card__body {
   padding: 22px 24px 18px;
 }
