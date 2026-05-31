@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
+import { HeroVideo } from "@/components/HeroVideo";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
@@ -64,8 +65,10 @@ export default function Home() {
           /canon, not as a homepage wall. */}
       <section className="hero--landing" aria-label="FREELON CITY">
         {/* Full-bleed Mars-city backdrop + dark gradient live in
-            .hero--landing (globals.css). Everything below sits in one
-            centered column over it. */}
+            .hero--landing (globals.css). The static image now drifts; drop
+            a trailer (components/HeroVideo.tsx) to replace it with motion.
+            Everything below sits in one centered column over it. */}
+        <HeroVideo />
         <div className="hero-landing__inner">
           {/* Live identity greeting — wallet-aware. For known viewers
               the page transforms into a personal experience (civ color,
@@ -92,12 +95,24 @@ export default function Home() {
 
           {/* Scope chips — names the universe's pieces in one scannable row so
               the one-liner's "six collections + arcade" is concrete, not vague.
-              Plain labels, no links (these resolve via the More nav / archive);
-              deliberately low contrast so they don't compete with OWN. */}
-          <div className="hero-landing__scope" aria-label="What's in the universe" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", marginTop: "var(--s-4)" }}>
-            {["Freelons", "The Crypt", "Combat Archives", "OOGIES", "Emile", "SMILES Collapse", "Arcade"].map((name) => (
-              <span
-                key={name}
+              2026-05-31: now clickable (scope legibility) — each chip routes to
+              where that piece actually lives, so a newcomer can explore the
+              universe instead of just reading its parts. Still low-contrast so
+              they don't compete with the OWN button. */}
+          <div className="hero-landing__scope" aria-label="Explore the universe" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", marginTop: "var(--s-4)" }}>
+            {[
+              { name: "Freelons", href: "/citizens" },
+              { name: "The Crypt", href: "/archive" },
+              { name: "Combat Archives", href: "/combat-archives" },
+              { name: "OOGIES", href: "/archive" },
+              { name: "Emile", href: "/archive" },
+              { name: "SMILES Collapse", href: "/archive" },
+              { name: "Arcade", href: "/play" },
+            ].map((c) => (
+              <Link
+                key={c.name}
+                href={c.href}
+                className="universe-chip"
                 style={{
                   fontFamily: "var(--mono2)",
                   fontSize: "var(--t-mono-xxs)",
@@ -108,10 +123,11 @@ export default function Home() {
                   borderRadius: "var(--r-pill)",
                   padding: "4px 10px",
                   whiteSpace: "nowrap",
+                  textDecoration: "none",
                 }}
               >
-                {name}
-              </span>
+                {c.name}
+              </Link>
             ))}
           </div>
 
