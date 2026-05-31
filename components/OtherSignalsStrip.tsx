@@ -10,12 +10,15 @@
  * So each card reads as a transmission, not a project.
  */
 import Link from "next/link";
+import { getFloors, formatFloor } from "@/lib/floor-prices";
 
 type Card = {
   title: string;
   body: string;
   status: string;
   statusColor: string;
+  /** OpenSea slug — used to look up the live floor price. */
+  slug: string;
   /**
    * Real on-chain art (one representative token / cover) per collection,
    * off OpenSea's seadn.io CDN. Resolved once via the OpenSea API and
@@ -31,6 +34,7 @@ const CARDS: Card[] = [
     title: "The Crypt",
     status: "RECOVERED",
     statusColor: "var(--state-active)",
+    slug: "the-crypt-official",
     body: "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
     image:
       "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/34245db092583f9a0345f2efce31a8/4a34245db092583f9a0345f2efce31a8.png",
@@ -39,6 +43,7 @@ const CARDS: Card[] = [
     title: "Combat Archives",
     status: "RECONSTRUCTING",
     statusColor: "var(--state-surge)",
+    slug: "crypttradingcards",
     body: "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
     // Anubis (#1519) — the recovered god relic; same art shown on /combat-archives.
     image:
@@ -48,6 +53,7 @@ const CARDS: Card[] = [
     title: "OOGIES",
     status: "FRAGMENT",
     statusColor: "var(--state-unstable)",
+    slug: "oogies",
     body: "Ancient signal species. They heard the HEX before the city existed.",
     image:
       "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/bd8e33bba115f8d1900af129630eac/4bbd8e33bba115f8d1900af129630eac.png",
@@ -56,6 +62,7 @@ const CARDS: Card[] = [
     title: "Emile",
     status: "DECAYING",
     statusColor: "var(--state-surge)",
+    slug: "emile0x1908",
     body: "Memory fragments preserved before the signal collapse.",
     image:
       "https://i2c.seadn.io/ethereum/15e47d237d674ec68ab5d400ee3def70/98c0f0a7a4060344823b2c9de57749/1298c0f0a7a4060344823b2c9de57749.jpeg",
@@ -64,13 +71,18 @@ const CARDS: Card[] = [
     title: "SMILES Collapse",
     status: "SEALED",
     statusColor: "var(--state-warning)",
+    slug: "smiles-genesis",
     body: "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
     image:
       "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/80bc4aebb8ad22ef11ec89f3afc823/6780bc4aebb8ad22ef11ec89f3afc823.gif",
   },
 ];
 
-export function OtherSignalsStrip() {
+export async function OtherSignalsStrip() {
+  // Live floor prices (cached 1h server-side). Defensive: if OpenSea is
+  // unreachable each entry is null and the badge simply doesn't render.
+  const floors = await getFloors(CARDS.map((c) => c.slug));
+
   return (
     <section
       aria-label="Other signals · archives"
@@ -209,6 +221,11 @@ export function OtherSignalsStrip() {
                 }}
               >
                 <span>● {c.status}</span>
+                {formatFloor(floors[c.slug]) && (
+                  <span style={{ color: "var(--gold)" }}>
+                    FLOOR {formatFloor(floors[c.slug])}
+                  </span>
+                )}
               </header>
               <h3
                 style={{

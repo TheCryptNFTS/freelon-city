@@ -16,6 +16,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
+import { getFloors, formatFloor } from "@/lib/floor-prices";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (archive.jpg).
 const PAGE_DESC =
@@ -48,6 +49,10 @@ type ArchiveEntry = {
   openseaUrl: string;
   /** Internal note shown only on hover/title — keeps mystery on the surface. */
   artifactClass: string;
+  /** OpenSea stats slug for the live floor price. The 404/root entry IS
+      the Freelons collection (404hexnotfound has no OpenSea slug), so it
+      prices off "freelons". */
+  slug: string;
 };
 
 const ENTRIES: ArchiveEntry[] = [
@@ -66,6 +71,7 @@ const ENTRIES: ArchiveEntry[] = [
       "Beneath the city, a vault of skull records — dead signal identities recovered from before the hex disappeared. Ancient relics, corrupted commanders, names the city was never supposed to remember.",
     openseaUrl: "https://opensea.io/collection/the-crypt-official",
     artifactClass: "dead signal archive · skull records beneath the city",
+    slug: "the-crypt-official",
   },
   {
     sequence: "TRANSMISSION 0119",
@@ -76,6 +82,7 @@ const ENTRIES: ArchiveEntry[] = [
       "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
     openseaUrl: "https://opensea.io/collection/crypttradingcards",
     artifactClass: "combat relic / commander archive · ten gods sealed inside",
+    slug: "crypttradingcards",
   },
   {
     // Founder brief 2026-05-25 (same discipline as Crypt + Emile):
@@ -91,6 +98,7 @@ const ENTRIES: ArchiveEntry[] = [
       "Biological entities older than the city. The architects classify them as listeners — anatomy tuned to the hex long before humans named the signal. Few specimens remain coherent. Most reach us as fragments.",
     openseaUrl: "https://opensea.io/collection/oogies",
     artifactClass: "ancient signal species · pre-civilization listeners",
+    slug: "oogies",
   },
   {
     // Founder brief 2026-05-25 (same scope discipline as the Crypt
@@ -106,6 +114,7 @@ const ENTRIES: ArchiveEntry[] = [
       "Preserved emotional fragments. Memory loops the architects could not let dissolve. Signal echoes recorded in the seconds before the collapse — fragile, looping, half-erased.",
     openseaUrl: "https://opensea.io/collection/emile0x1908",
     artifactClass: "memory archive · emotional preservation",
+    slug: "emile0x1908",
   },
   {
     sequence: "TRANSMISSION 0991",
@@ -116,6 +125,7 @@ const ENTRIES: ArchiveEntry[] = [
       "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
     openseaUrl: "https://opensea.io/collection/smiles-genesis/overview",
     artifactClass: "collapse event · failed suppression system",
+    slug: "smiles-genesis",
   },
   {
     sequence: "TRANSMISSION 0404 · ROOT",
@@ -126,10 +136,14 @@ const ENTRIES: ArchiveEntry[] = [
       "The original anomaly. The hex that disappeared from X. The reason the city formed.",
     openseaUrl: "https://opensea.io/collection/404hexnotfound",
     artifactClass: "core symbol · the missing identity signal",
+    slug: "freelons",
   },
 ];
 
-export default function ArchivePage() {
+export default async function ArchivePage() {
+  // Live floor prices (cached 1h). Null entries simply hide the badge.
+  const floors = await getFloors(ENTRIES.map((e) => e.slug));
+
   return (
     <div
       className="archive-page"
@@ -176,6 +190,18 @@ export default function ArchivePage() {
               <span className="archive-card__status">
                 <span className="archive-card__statusDot" aria-hidden />
                 {t.status}
+                {formatFloor(floors[t.slug]) && (
+                  <span
+                    style={{
+                      marginLeft: 10,
+                      paddingLeft: 10,
+                      borderLeft: "1px solid var(--line)",
+                      color: "var(--gold)",
+                    }}
+                  >
+                    FLOOR {formatFloor(floors[t.slug])}
+                  </span>
+                )}
               </span>
             </header>
             <div className="archive-card__body">

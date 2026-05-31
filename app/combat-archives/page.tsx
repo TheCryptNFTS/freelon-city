@@ -18,6 +18,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { GODS, godOpenSeaUrl } from "@/lib/gods";
 import { CIVILIZATIONS } from "@/lib/constants";
+import { getFloors, formatFloor } from "@/lib/floor-prices";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
 const PAGE_DESC =
@@ -78,7 +79,10 @@ const FRAGMENTS: Fragment[] = [
   },
 ];
 
-export default function CombatArchivesPage() {
+export default async function CombatArchivesPage() {
+  const floors = await getFloors(["crypttradingcards"]);
+  const floor = formatFloor(floors["crypttradingcards"]);
+
   return (
     <div
       style={{
@@ -150,6 +154,29 @@ export default function CombatArchivesPage() {
           />
           ⬡ RECONSTRUCTION UNSTABLE · TERMINAL SEALED
         </div>
+
+        {floor && (
+          <div
+            style={{
+              marginTop: "var(--s-3)",
+              fontFamily: "var(--mono2)",
+              fontSize: 12,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "var(--ink-dim)",
+            }}
+          >
+            ⬡ RELIC FLOOR ·{" "}
+            <a
+              href="https://opensea.io/collection/crypttradingcards"
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: "var(--gold)", textDecoration: "none" }}
+            >
+              {floor} ↗
+            </a>
+          </div>
+        )}
       </section>
 
       {/* FRAGMENTS */}
