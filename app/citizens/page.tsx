@@ -1,6 +1,7 @@
 import { getAllCitizens } from "@/lib/citizens";
 import { FindCitizen } from "@/components/FindCitizen";
 import { CitizensBrowser } from "@/components/CitizensBrowser";
+import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import Link from "next/link";
 
@@ -82,8 +83,12 @@ export default function Citizens() {
             open straight into "enter a token number", assuming the visitor
             knew what a citizen was or why they'd look. */}
         <p className="lead">
-          Each citizen is one of the 4040 Freelon NFTs — a character with its own
-          civilization, caste and shape. Browsing is free; owning one is optional.
+          Each <GlossaryTerm term="citizen">citizen</GlossaryTerm> is one of the
+          4040 Freelon NFTs — a character with its own{" "}
+          <GlossaryTerm term="civilization">civilization</GlossaryTerm>,{" "}
+          <GlossaryTerm term="caste">caste</GlossaryTerm> and{" "}
+          <GlossaryTerm term="shape">shape</GlossaryTerm>. Browsing is free;
+          owning one is optional.
         </p>
         <p className="lead">Enter a token number 1—4040. The city returns the file.</p>
         <div className="finder">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CIVILIZATIONS, imageUrl, type CivilizationSlug } from "@/lib/constants";
 import { getByCivilization } from "@/lib/citizens";
 import { CivGlyph } from "@/components/CivGlyph";
+import { GlossaryTerm } from "@/components/GlossaryTerm";
 
 // A real citizen face for every civilization. The cards used to point at
 // /civs/{slug}.webp plates that don't exist (404 → plain text + colour
@@ -65,9 +66,10 @@ export default function Page() {
         <span className="kicker">⬡ CIVILIZATIONS</span>
         <h1>Ten doctrines.<br /><em>One of them is yours.</em></h1>
         <p className="lead">
-          Every citizen belongs to one. Your civilization is your color, your
-          chant, your earning bonus, and the side you take when the city splits.
-          Below: the ten, in order of population.
+          Every <GlossaryTerm term="citizen">citizen</GlossaryTerm> belongs to
+          one. Your <GlossaryTerm term="civilization">civilization</GlossaryTerm>{" "}
+          is your color, your chant, your earning bonus, and the side you take
+          when the city splits. Below: the ten, in order of population.
         </p>
       </section>
       <section className="civs-list">
