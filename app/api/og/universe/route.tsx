@@ -10,20 +10,25 @@ export const runtime = "edge";
 // "just another Freelons collection." This card names the pieces up front
 // so the very first thing a link-preview shows is the SCOPE.
 //
-// Font-free (system-ui) and self-contained — no remote image/font fetch — to
-// match the other og routes and stay fast + reliable at the edge.
+// 2026-05-31 rebuild: the previous version showed EMPTY colored boxes (no
+// art) which read as a wireframe — founder: "this image is awful." This
+// card now leads with REAL on-chain art: a contact-sheet of one
+// representative record per collection. Art is mirrored locally under
+// /public/og/art (PNG, same-origin) so the edge render stays fast + reliable
+// and never depends on a remote CDN fetch mid-render.
 
-const PIECES: { name: string; tag: string; color: string }[] = [
-  { name: "Freelons", tag: "4040 CITIZENS", color: "#C8A75D" },
-  { name: "The Crypt", tag: "DEAD SIGNALS", color: "#4CFF7A" },
-  { name: "Combat Archives", tag: "TEN GODS", color: "#FF6A3D" },
-  { name: "OOGIES", tag: "ANCIENT SPECIES", color: "#B85CFF" },
-  { name: "Emile", tag: "MEMORY", color: "#FF5CB4" },
-  { name: "SMILES", tag: "COLLAPSE", color: "#FFD24A" },
-  { name: "Arcade", tag: "SIX GAMES", color: "#00B8FF" },
+const PIECES: { name: string; tag: string; color: string; img: string }[] = [
+  { name: "Freelons", tag: "4040 CITIZENS", color: "#C8A75D", img: "/og/art/freelons.png" },
+  { name: "The Crypt", tag: "DEAD SIGNALS", color: "#4CFF7A", img: "/og/art/crypt.png" },
+  { name: "Combat Archives", tag: "TEN GODS", color: "#FF6A3D", img: "/og/art/combat.png" },
+  { name: "OOGIES", tag: "ANCIENT SPECIES", color: "#B85CFF", img: "/og/art/oogies.png" },
+  { name: "Emile", tag: "MEMORY", color: "#FF5CB4", img: "/og/art/emile.png" },
+  { name: "SMILES", tag: "COLLAPSE", color: "#FFD24A", img: "/og/art/smiles.png" },
 ];
 
-export function GET() {
+export function GET(req: Request) {
+  const src = (p: string) => new URL(p, req.url).toString();
+
   return new ImageResponse(
     (
       <div
@@ -36,7 +41,7 @@ export function GET() {
           background: "#0A0E27",
           color: "#F5F2E8",
           fontFamily: "system-ui, sans-serif",
-          padding: "64px",
+          padding: "54px 56px",
           position: "relative",
         }}
       >
@@ -44,38 +49,36 @@ export function GET() {
         <div
           style={{
             position: "absolute",
-            top: -180,
-            right: -140,
-            width: 560,
-            height: 560,
+            top: -200,
+            right: -160,
+            width: 600,
+            height: 600,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(0,184,255,0.20) 0%, rgba(0,184,255,0) 70%)",
+              "radial-gradient(circle, rgba(0,184,255,0.18) 0%, rgba(0,184,255,0) 70%)",
             display: "flex",
           }}
         />
 
-        {/* kicker — no ⬡ glyph: system-ui at the edge renders it as tofu. */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            fontSize: 26,
-            letterSpacing: "0.22em",
-            color: "#00B8FF",
-            textTransform: "uppercase",
-          }}
-        >
-          One universe · six collections · one arcade
-        </div>
-
-        {/* headline */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* headline block */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div
             style={{
-              fontSize: 132,
+              display: "flex",
+              alignItems: "center",
+              fontSize: 22,
+              letterSpacing: "0.24em",
+              color: "#00B8FF",
+              textTransform: "uppercase",
+            }}
+          >
+            One universe · six collections · one arcade
+          </div>
+          <div
+            style={{
+              fontSize: 96,
               fontWeight: 800,
-              lineHeight: 0.9,
+              lineHeight: 0.92,
               letterSpacing: "-0.03em",
               color: "#F5F2E8",
               display: "flex",
@@ -85,9 +88,9 @@ export function GET() {
           </div>
           <div
             style={{
-              fontSize: 34,
+              fontSize: 28,
               color: "#C8A75D",
-              letterSpacing: "0.04em",
+              letterSpacing: "0.02em",
               display: "flex",
             }}
           >
@@ -95,7 +98,7 @@ export function GET() {
           </div>
         </div>
 
-        {/* the pieces — a tile per connected layer */}
+        {/* the pieces — a REAL art tile per connected collection */}
         <div style={{ display: "flex", gap: 12 }}>
           {PIECES.map((p) => (
             <div
@@ -104,41 +107,69 @@ export function GET() {
                 flex: 1,
                 display: "flex",
                 flexDirection: "column",
-                gap: 6,
-                padding: "16px 14px 18px",
-                borderTop: `4px solid ${p.color}`,
-                border: "1px solid rgba(255,255,255,0.10)",
-                borderTopWidth: 4,
-                borderTopColor: p.color,
-                borderRadius: 8,
-                background: "rgba(255,255,255,0.03)",
+                height: 250,
+                borderRadius: 10,
+                overflow: "hidden",
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "#11152E",
               }}
             >
-              <span
+              {/* real on-chain record */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src(p.img)}
+                width="180"
+                height="168"
+                alt=""
+                style={{ width: "100%", height: "168px", objectFit: "cover" }}
+              />
+              <div
                 style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: "#F5F2E8",
-                  lineHeight: 1.05,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 5,
+                  padding: "12px 12px 14px",
+                  borderTop: `3px solid ${p.color}`,
+                  flex: 1,
                 }}
               >
-                {p.name}
-              </span>
-              <span
-                style={{
-                  fontSize: 14,
-                  letterSpacing: "0.10em",
-                  color: p.color,
-                  textTransform: "uppercase",
-                }}
-              >
-                {p.tag}
-              </span>
+                <span
+                  style={{
+                    fontSize: 17,
+                    fontWeight: 700,
+                    color: "#F5F2E8",
+                    lineHeight: 1.0,
+                    display: "flex",
+                  }}
+                >
+                  {p.name}
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: "0.10em",
+                    color: p.color,
+                    textTransform: "uppercase",
+                    display: "flex",
+                  }}
+                >
+                  {p.tag}
+                </span>
+              </div>
             </div>
           ))}
         </div>
       </div>
     ),
-    { width: 1200, height: 630 },
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        // Static composition — cache hard so social platforms hit the CDN
+        // cache instead of re-rendering (re-renders are what make cards
+        // silently fall back to a placeholder).
+        "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    },
   );
 }
