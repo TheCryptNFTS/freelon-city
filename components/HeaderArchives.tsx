@@ -35,6 +35,17 @@ type Group = { heading: string; items: Item[] };
 // itself is untouched — only its nav placement changed.
 const GROUPS: Group[] = [
   {
+    // 2026-05-31 — Civilizations / Archive / Your Signal demoted from top
+    // nav into this Explore group (ruthless newcomer-surface cut). Pages
+    // untouched; only nav placement moved.
+    heading: "Explore",
+    items: [
+      { href: "/civilizations", label: "Civilizations" },
+      { href: "/archive",       label: "Archive" },
+      { href: "/signal",        label: "Your Signal" },
+    ],
+  },
+  {
     heading: "Holder",
     items: [
       { href: "/dashboard",     label: "Dashboard" },

@@ -22,24 +22,20 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          {/* Nav re-prioritisation 2026-05-31 — Discord feedback (Munch:
-              "minefield... too many sections"). The two surfaces holders
-              actually engaged with — the games and the onboarding guide —
-              were buried in the More dropdown, while jargon surfaces
-              (Archive / Combat Archives) sat top-level. Top nav now leads
-              with the newcomer's needs: New? · Play · Citizens ·
-              Civilizations · Archive, then the long tail in More. Combat
-              Archives + Shop moved INTO More (the /combat-archives PAGE is
-              untouched — only its nav placement changed). Archive kept
-              top-level as the signature surface. EARN HEX pill still gone
-              (deliberate). Mobile sheet + More dropdown mirror this order. */}
+          {/* 2026-05-31 ruthless cut (founder: "too much / too complex",
+              Discord echo "minefield... too many sections"). Top nav is now
+              the newcomer's three needs only — New? (understand) · Play (the
+              engaged surface) · Citizens (browse the product) — and ONE
+              primary action: Own a Freelon. Civilizations / Archive / Your
+              Signal moved INTO the More dropdown (pages untouched, only nav
+              placement). Primary CTA changed from Enter City (/sync) to Own
+              (OpenSea) per the single-action decision; /sync still reachable
+              via /start and the mobile sheet. EARN HEX pill still gone. */}
           <Link href="/start" className="nav-link nav-start">New?</Link>
           <Link href="/play" className="nav-link">Play</Link>
           <Link href="/citizens" className="nav-link">Citizens</Link>
-          <Link href="/civilizations" className="nav-link">Civilizations</Link>
-          <Link href="/archive" className="nav-link">Archive</Link>
           <HeaderArchives />
-          <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Enter City</Link>
+          <a href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer" className="btn btn-primary btn-sm nav-sync">Own a Freelon</a>
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>

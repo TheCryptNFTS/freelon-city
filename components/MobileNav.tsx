@@ -28,7 +28,10 @@ const GROUPS: NavGroup[] = [
   {
     heading: null,                                          // primary CTA, ungrouped
     links: [
-      { href: "/sync", label: "⬡ ENTER THE CITY", gold: true },
+      // 2026-05-31 ruthless cut — primary action is now Own a Freelon
+      // (OpenSea), mirroring desktop. /sync kept just below as a secondary
+      // entry so returning holders still reach the city.
+      { href: "https://opensea.io/collection/freelons", label: "⬡ OWN A FREELON", gold: true },
     ],
   },
   {
@@ -37,8 +40,17 @@ const GROUPS: NavGroup[] = [
       { href: "/start",         label: "New? · Start here", gold: true },
       { href: "/play",          label: "Play" },
       { href: "/citizens",      label: "Citizens" },
+      { href: "/sync",          label: "Enter the city" },
+    ],
+  },
+  {
+    // 2026-05-31 — Civilizations / Archive / Your Signal demoted from the
+    // top parity block into Explore (mirrors desktop More dropdown).
+    heading: "EXPLORE",
+    links: [
       { href: "/civilizations", label: "Civilizations" },
       { href: "/archive",       label: "Archive" },
+      { href: "/signal",        label: "Your Signal" },
     ],
   },
   {

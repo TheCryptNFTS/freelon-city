@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
-import { ResponsiveGrid } from "@/components/ui/ResponsiveGrid";
 import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
 import { CivGlyph } from "@/components/CivGlyph";
 import { CIVILIZATIONS, CONTRACT, METADATA_CID, heroImageUrl } from "@/lib/constants";
@@ -75,58 +74,56 @@ export default function Home() {
 
           <span className="term-badge flicker"><span className="dot" />404 HEX NOT FOUND</span>
 
-          {/* 2026-05-28 — the giant "THE CITY REMEMBERS" headline + 3-line
-              gloss + split image panel were cut per founder ("4 clean boxes
-              and that epic background"). One short tagline states what this
-              is; the 4 doors do the rest, over the full-bleed city. */}
+          {/* 2026-05-31 — the one-liner now sells the UNIVERSE, not just the
+              4040 PFPs (founder: "we dont just have freelons as a collection").
+              Mythic opener → plain-English scope so a stranger gets the WHOLE
+              thing in one read. The chip row below names the pieces at low
+              visual weight; the OWN button stays the single primary action. */}
           <p className="hero-landing__tag">
-            A city formed around a missing signal.<br />
-            <strong>4040 sealed citizens · 10 civilizations.</strong>
+            When the HEX vanished, a city formed around the signal — six collections, a trading-card war, and an arcade.<br />
+            <strong>One universe. 4040 citizens deep.</strong>
           </p>
 
-          {/* The 4 intent-doors ARE the landing. Box 1 (start) + Box 4
-              (collect) cover the cold/returning split the old cookie swap
-              used to handle. Box 3 → /signal (the cross-collection
-              "your signal across the universe" portfolio). */}
-          <div className="hero-landing__boxes">
-            <ResponsiveGrid cols={4} colsMd={2} variant="cards">
-              <Link className="landing-box" href="/start">
-                <span className="landing-box__img" style={{ backgroundImage: "url(/lore/city.webp)" }} aria-hidden />
-                <span className="landing-box__body">
-                  <span className="landing-box__k">⬡ 01 · New here</span>
-                  <h2 className="landing-box__t">What is this?</h2>
-                  <p className="landing-box__d">4040 sealed citizens across 10 civilizations — a city that formed around a missing hex.</p>
-                  <span className="landing-box__cta">The 2-minute guide</span>
-                </span>
-              </Link>
-              <Link className="landing-box" href="/civilizations">
-                <span className="landing-box__img" style={{ backgroundImage: "url(/civs/gold-sovereignty.webp)" }} aria-hidden />
-                <span className="landing-box__body">
-                  <span className="landing-box__k">⬡ 02 · Belong</span>
-                  <h2 className="landing-box__t">Your civilization</h2>
-                  <p className="landing-box__d">Ten signal doctrines. Every citizen belongs to one. Find yours.</p>
-                  <span className="landing-box__cta">See the ten</span>
-                </span>
-              </Link>
-              <Link className="landing-box" href="/signal">
-                <span className="landing-box__img" style={{ backgroundImage: "url(/atmos/carrier.webp)" }} aria-hidden />
-                <span className="landing-box__body">
-                  <span className="landing-box__k">⬡ 03 · Your signal</span>
-                  <h2 className="landing-box__t">Everything you hold</h2>
-                  <p className="landing-box__d">Your citizens, relics and signals across all six collections of the Crypt — one place.</p>
-                  <span className="landing-box__cta">Read your signal</span>
-                </span>
-              </Link>
-              <Link className="landing-box" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
-                <span className="landing-box__img" style={{ backgroundImage: "url(/heroes/0404.webp)" }} aria-hidden />
-                <span className="landing-box__body">
-                  <span className="landing-box__k">⬡ 04 · Collect</span>
-                  <h2 className="landing-box__t">Own a citizen</h2>
-                  <p className="landing-box__d">4040 sealed. No more will ever be made. Enter on OpenSea.</p>
-                  <span className="landing-box__cta">On OpenSea</span>
-                </span>
-              </Link>
-            </ResponsiveGrid>
+          {/* Scope chips — names the universe's pieces in one scannable row so
+              the one-liner's "six collections + arcade" is concrete, not vague.
+              Plain labels, no links (these resolve via the More nav / archive);
+              deliberately low contrast so they don't compete with OWN. */}
+          <div className="hero-landing__scope" aria-label="What's in the universe" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", marginTop: "var(--s-4)" }}>
+            {["Freelons", "The Crypt", "Combat Archives", "OOGIES", "Emile", "SMILES Collapse", "Arcade"].map((name) => (
+              <span
+                key={name}
+                style={{
+                  fontFamily: "var(--mono2)",
+                  fontSize: "var(--t-mono-xxs)",
+                  letterSpacing: "var(--tr-loose)",
+                  textTransform: "uppercase",
+                  color: "var(--ink-dim)",
+                  border: "1px solid var(--line)",
+                  borderRadius: "var(--r-pill)",
+                  padding: "4px 10px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+
+          {/* 2026-05-31 ruthless simplification (founder: "too much / too
+              complex to understand", Discord echo "minefield"). The 4
+              competing intent-doors were collapsed to ONE primary action —
+              own a Freelon on OpenSea — with a single quiet "new here" link
+              for comprehension. The other former doors (/civilizations,
+              /signal) are not deleted: they live in the More nav. This is
+              the single-button hero the whole funnel now points at. */}
+          <div className="hero-landing__cta" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--s-4)", marginTop: "var(--s-6)" }}>
+            <Link className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+              <span className="lbl">⬡ 4040 SEALED · NONE WILL EVER BE MADE</span>
+              <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
+            </Link>
+            <Link className="hero-landing__newhere" href="/start" style={{ fontFamily: "var(--mono2)", fontSize: "var(--t-mono-sm)", letterSpacing: "var(--tr-loose)", textTransform: "uppercase", color: "var(--ink-2)" }}>
+              New here? The 2-minute guide →
+            </Link>
           </div>
 
           {/* 2026-05-28 collector pass (founder: "lean in") — live floor
@@ -139,26 +136,13 @@ export default function Home() {
       {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
       <OtherSignalsStrip />
 
-      {/* SIGNAL RECOGNITION — the ownership-answer bridge. 2026-05-26.
-         Sits between OtherSignalsStrip (what exists) and Civilizations
-         (who you belong to). Answers "why own?" without saying buy/
-         hold/utility. One sacred line + one CTA to /archive. All
-         styling lives in .home-page__recognition (globals.css). */}
-      <section className="home-page__recognition" aria-label="Signal recognition">
-        <span className="home-page__recognitionKicker">⬡ SIGNAL RECOGNITION</span>
-        <h2 className="home-page__recognitionHeading">
-          The city remembers<br />
-          <em>what you carry.</em>
-        </h2>
-        <p className="home-page__recognitionBody">
-          Citizens. Dead signals. Combat relics. Ancient species.<br />
-          Memory fragments. Collapse records.<br />
-          <strong>Six signals. One record. Yours.</strong>
-        </p>
-        <Link href="/archive" className="home-page__recognitionLink">
-          ⬡ READ YOUR SIGNAL →
-        </Link>
-      </section>
+      {/* SIGNAL RECOGNITION section removed from homepage 2026-05-31 (ruthless
+         simplification). It stacked 6 jargon nouns (Citizens / Dead signals /
+         Combat relics / Ancient species / Memory fragments / Collapse records)
+         on a newcomer before they understood the product — a core contributor
+         to the "too much / too complex" feeling. The /archive scanner it
+         pointed to is still reachable via the More nav. Restore by reverting
+         this block if the bridge is missed. */}
 
       {/* Compressed homepage spine. Earlier iterations of this file
          carried ~200 LOC of commented-out JSX blocks (WHY FREELON,
