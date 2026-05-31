@@ -23,13 +23,19 @@ export const metadata: Metadata = {
   },
 };
 
+// Each game carries a `genre` — a one-line "you already know this game"
+// anchor (2026-05-31). Discord feedback: holders couldn't tell what the
+// games were, so they played them wrong or bounced. Naming the familiar
+// genre up front (Wordle / Bejeweled / idle clicker) lets people pattern-
+// match in seconds instead of decoding the lore first.
 const GAMES = [
   {
     href: "/play/hex-match",
     kicker: "ARCADE · NO WALLET",
     title: "Hex Match",
+    genre: "Like Bejeweled / Candy Crush",
     blurb:
-      "Swap glowing hex-eyes, line up three or more, chain combos. A 60-second skill hit. The free hook — anyone can play.",
+      "Swap glowing hex-eyes, line up three or more, chain combos. Hit the target score before your moves run out. A 60-second skill hit — anyone can play.",
     accent: "var(--neon-cyan)",
     tag: "ACQUISITION",
   },
@@ -37,6 +43,7 @@ const GAMES = [
     href: "/play/restore",
     kicker: "IDLE · HOLDER-AWARE",
     title: "Restore the Signal",
+    genre: "Like Cookie Clicker (idle game)",
     blurb:
       "The city went dark at 404. Bring nodes online, generate signal, watch the ten civilizations light back up. Holders compound.",
     accent: "var(--neon-magenta)",
@@ -46,8 +53,9 @@ const GAMES = [
     href: "/play/proof",
     kicker: "DAILY · NO WALLET",
     title: "Proof of Signal",
+    genre: "Like Wordle (daily deduction)",
     blurb:
-      "One hidden frequency a day — four signals from the ten doctrines. Tune to it in eight tries. Same puzzle for everyone, a shareable result for X.",
+      "One hidden code a day. Guess it; the dots tell you how close you are. Crack it within your tries. No clues to unlock — pure deduction, same puzzle for everyone, shareable on X.",
     accent: "var(--gold-bright)",
     tag: "ACQUISITION",
   },
@@ -55,6 +63,7 @@ const GAMES = [
     href: "/play/sweep",
     kicker: "ARCADE · NO WALLET",
     title: "Sweep Run",
+    genre: "Reflex arcade — tap fast",
     blurb:
       "The floor is corrupting. Sweep the dead signals before they take the grid — but spare the living. A pure reflex hit. Beat your best, share the score.",
     accent: "var(--neon-cyan)",
@@ -64,6 +73,7 @@ const GAMES = [
     href: "/play/reckoning",
     kicker: "WEEKLY · HOLDER WAR",
     title: "The Reckoning",
+    genre: "Weekly team war (king-of-the-hill)",
     blurb:
       "Ten civilizations, one crown a week. Burn hex to muster for your side — your citizens amplify the signal. The leading civ when the week ends is crowned, and the city remembers.",
     accent: "var(--neon-magenta)",
@@ -73,6 +83,7 @@ const GAMES = [
     href: "/play/cipher",
     kicker: "ARG · LORE",
     title: "The Cipher",
+    genre: "Puzzle hunt / ARG",
     blurb:
       "Five fragments of a lost transmission, scattered across the lore. Decode each to reassemble what the city was trying to say.",
     accent: "var(--gold-bright)",
@@ -91,6 +102,13 @@ export default function PlayHub() {
         <p className="lead">
           The free hook. The reflex run. The holder loop. The daily ritual. The
           weekly war. The community hunt. Pick a door.
+        </p>
+        <p
+          className="lead"
+          style={{ fontSize: 13, opacity: 0.7, marginTop: 8 }}
+        >
+          Six separate games — each one stands alone. None of them unlocks
+          another, and nothing here hides clues for the others.
         </p>
       </section>
 
@@ -136,10 +154,21 @@ export default function PlayHub() {
                 fontFamily: "var(--display)",
                 fontSize: 26,
                 color: "var(--ink)",
-                marginBottom: 10,
+                marginBottom: 4,
               }}
             >
               {g.title}
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 11,
+                letterSpacing: "0.04em",
+                color: "var(--ink-2)",
+                marginBottom: 12,
+              }}
+            >
+              {g.genre}
             </div>
             <p
               style={{

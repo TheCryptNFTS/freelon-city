@@ -18,6 +18,12 @@ import { createPortal } from "react-dom";
 type NavLink = { href: string; label: string; gold?: boolean };
 type NavGroup = { heading: string | null; links: NavLink[] };
 
+// 2026-05-31 — mobile sheet rebuilt to MIRROR the desktop nav exactly
+// (Header.tsx top items + HeaderArchives More groups). Previously the two
+// navs had drifted into different groupings/labels. Top block now leads
+// with the newcomer's path (New? · Play) the same way the laptop nav
+// does; Combat Archives + Shop live under CITY. One source of truth in
+// spirit — edit both files together when the IA changes.
 const GROUPS: NavGroup[] = [
   {
     heading: null,                                          // primary CTA, ungrouped
@@ -26,48 +32,41 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: "CITY",
+    heading: null,                                          // top-nav parity block
     links: [
-      { href: "/archive",         label: "Archive" },
-      { href: "/civilizations",   label: "Civilizations" },
-      { href: "/combat-archives", label: "Combat Archives" },
-      { href: "/shop",            label: "Shop" },
-    ],
-  },
-  {
-    heading: "DEEPER",
-    links: [
-      { href: "/canon",         label: "Canon" },
-      { href: "/tribute",       label: "Tribute" },
+      { href: "/start",         label: "New? · Start here", gold: true },
+      { href: "/play",          label: "Play" },
       { href: "/citizens",      label: "Citizens" },
-      { href: "/numbers",       label: "Pulse" },
+      { href: "/civilizations", label: "Civilizations" },
+      { href: "/archive",       label: "Archive" },
     ],
   },
   {
     heading: "HOLDER",
     links: [
-      // 2026-05-28 mobile parity: dashboard/earn/leaderboard were added to
-      // the desktop More dropdown (HeaderArchives) by the nav-funnel pass
-      // but the matching mobile entries were missed. Added here so the
-      // sheet exposes the same post-sync surfaces the laptop nav does.
       { href: "/dashboard",     label: "Dashboard" },
       { href: "/vault",         label: "⬡ Vault", gold: true },
-      { href: "/transmissions", label: "Transmissions" },
-      { href: "/relay",         label: "Relay" },
       { href: "/earn",          label: "Earn" },
       { href: "/leaderboard",   label: "Leaderboard" },
+      { href: "/carrier",       label: "Carrier" },
     ],
   },
   {
-    heading: "PLAY",
+    heading: "CITY",
     links: [
-      { href: "/play", label: "⬡ Arcade", gold: true },
+      { href: "/combat-archives", label: "Combat Archives" },
+      { href: "/shop",            label: "Shop" },
+      { href: "/transmissions",   label: "Transmissions" },
+      { href: "/relay",           label: "Relay" },
+      { href: "/numbers",         label: "Pulse" },
     ],
   },
   {
-    heading: "NEW HERE?",
+    heading: "LORE",
     links: [
-      { href: "/start", label: "Start Here · 2-min guide" },
+      { href: "/canon",         label: "Canon" },
+      { href: "/tribute",       label: "Tribute" },
+      { href: "/secrets",       label: "Secrets" },
     ],
   },
 ];

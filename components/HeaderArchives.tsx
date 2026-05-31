@@ -28,6 +28,11 @@ type Group = { heading: string; items: Item[] };
 // 13-item dump. Re-grouped into labelled sections with HOLDER tools first
 // so a collector/holder finds their surfaces immediately. Same 13 routes,
 // now scannable. (The component already renders headings + dividers.)
+// 2026-05-31 — Play, New-here and Citizens promoted to top-level nav
+// (Discord: games + onboarding were the engaged surfaces but were
+// buried here). Combat Archives + Shop moved IN from top nav. Long
+// tail now grouped Holder / City / Lore. The /combat-archives page
+// itself is untouched — only its nav placement changed.
 const GROUPS: Group[] = [
   {
     heading: "Holder",
@@ -40,18 +45,13 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    heading: "Explore",
+    heading: "City",
     items: [
-      { href: "/citizens",      label: "Citizens" },
-      { href: "/numbers",       label: "Pulse" },
-      { href: "/transmissions", label: "Transmissions" },
-      { href: "/relay",         label: "Relay" },
-    ],
-  },
-  {
-    heading: "Play",
-    items: [
-      { href: "/play",          label: "⬡ Arcade", gold: true },
+      { href: "/combat-archives", label: "Combat Archives" },
+      { href: "/shop",            label: "Shop" },
+      { href: "/transmissions",   label: "Transmissions" },
+      { href: "/relay",           label: "Relay" },
+      { href: "/numbers",         label: "Pulse" },
     ],
   },
   {
@@ -60,12 +60,6 @@ const GROUPS: Group[] = [
       { href: "/canon",         label: "Canon" },
       { href: "/tribute",       label: "Tribute" },
       { href: "/secrets",       label: "Secrets" },
-    ],
-  },
-  {
-    heading: "New here",
-    items: [
-      { href: "/start",         label: "Start Here · 2-min guide" },
     ],
   },
 ];

@@ -631,10 +631,18 @@ export function HexMatch() {
   return (
     <div className="manifesto" style={{ paddingBottom: 64 }}>
       <section className="manifesto-hero" style={{ paddingBottom: 8 }}>
-        <span className="kicker">⬡ ARCADE · HEX MATCH · NO WALLET</span>
+        <span className="kicker">⬡ ARCADE · HEX MATCH · NO WALLET · LIKE BEJEWELED</span>
         <h1>
           Line up <em>the signal</em>.
         </h1>
+        <p
+          className="lead"
+          style={{ maxWidth: 520, margin: "10px auto 0" }}
+        >
+          Tap a hex-eye, then tap a touching one to swap them. Line up{" "}
+          <strong>three or more of the same colour</strong> to clear them and
+          score. Keep clearing before your <strong>moves</strong> run out.
+        </p>
       </section>
 
       {/* mode toggle — ENDLESS (leaderboard) vs DAILY (seeded + streak) */}
@@ -695,6 +703,29 @@ export function HexMatch() {
             ⬡ STREAK {streak}
           </span>
           <span>GOAL: LEVEL {DAILY_GOAL_LEVEL}</span>
+        </div>
+      )}
+
+      {/* endless strip — kills the "what am I unlocking?" confusion: there's
+          no hidden puzzle, it's a high-score run that ends when moves run out.
+          (2026-05-31, Discord: a holder played to 50k looking for clues to
+          unlock and quit confused.) */}
+      {mode === "endless" && (
+        <div
+          style={{
+            display: "flex",
+            gap: 18,
+            justifyContent: "center",
+            alignItems: "baseline",
+            marginBottom: 12,
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            letterSpacing: "0.16em",
+            color: "var(--ink-fade)",
+          }}
+        >
+          <span>∞ NO FINISH LINE</span>
+          <span>NOTHING TO UNLOCK — JUST BEAT YOUR BEST</span>
         </div>
       )}
 

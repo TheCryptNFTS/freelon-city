@@ -78,13 +78,59 @@ export default function StartPage() {
         </p>
       </section>
 
+      {/* ── DO THIS ONE THING ──
+         2026-05-31: the single first action, above everything. Munch's
+         core note was "if they have to do too much to get anywhere they
+         give up." So before the 9 sections, one card, one button. The
+         detail below is optional — this is the whole ask for a newcomer. */}
+      <section
+        style={{
+          marginBottom: "var(--s-6)",
+          padding: "var(--s-4) var(--s-4)",
+          border: "1px solid var(--gold)",
+          borderTop: "3px solid var(--gold-bright)",
+          background: "var(--tint-gold)",
+          borderRadius: 14,
+          textAlign: "center",
+        }}
+      >
+        <span className="kicker" style={{ color: "var(--gold-bright)" }}>⬡ JUST WANT TO START?</span>
+        <h2
+          style={{
+            fontFamily: "var(--display)",
+            fontSize: "clamp(24px, 4vw, 34px)",
+            lineHeight: 1.05,
+            letterSpacing: "-0.015em",
+            margin: "10px 0 6px",
+          }}
+        >
+          Do one thing: <em style={{ color: "var(--gold)", fontStyle: "normal" }}>sync and claim your {ECONOMY.DAILY_CLAIM} ⬡.</em>
+        </h2>
+        <p
+          style={{
+            fontFamily: "var(--mono2)",
+            fontSize: 13,
+            color: "var(--ink-2)",
+            lineHeight: 1.6,
+            maxWidth: 480,
+            margin: "0 auto var(--s-3)",
+          }}
+        >
+          Enter your X handle, get your civilization, claim today&apos;s hex. ~30 seconds, no wallet needed.
+          Everything below is optional reading for when you want it.
+        </p>
+        <Link className="btn btn-primary" href="/sync">
+          <span className="ttl">SYNC + CLAIM →</span>
+        </Link>
+      </section>
+
       {/* ── CONNECTING ──
          2026-05-30: added after a wave of Discord reports — X login looping,
          "can't have wallet + X connected at once", and mobile users unable to
          connect at all. The code bugs are fixed; this section heads off the
          remaining USER-side gotcha: on a phone you must use your wallet's
          in-app browser, not Safari/Chrome. */}
-      <Section title="Connecting (and staying connected)">
+      <Section title="Connecting (and staying connected)" collapsible>
         <Box>
           <P>
             You connect <strong style={{ color: "var(--gold)" }}>two things</strong>, and they
@@ -222,7 +268,7 @@ export default function StartPage() {
       </Section>
 
       {/* ── DAILY 60s ── */}
-      <Section title="Your daily 60 seconds">
+      <Section title="Your daily 60 seconds" collapsible>
         <Box>
           <Ul>
             <Li>Claim your <strong>+{ECONOMY.DAILY_CLAIM} ⬡</strong> on /carrier</Li>
@@ -240,7 +286,7 @@ export default function StartPage() {
          hidden routes — "dump ledger" (drives /graveyard, banned word)
          and "leaderboard" (hidden route). Cold-visitor guide stays
          focused on positive participation. */}
-      <Section title="Your weekly 5 minutes">
+      <Section title="Your weekly 5 minutes" collapsible>
         <Box>
           <Ul>
             <Li>Send a transmission (a mini-post — image + caption) for {`100 ⬡`}. Top weekly transmission earns 5,000 ⬡.</Li>
@@ -257,7 +303,7 @@ export default function StartPage() {
          positive identity terms (hex, carrier, citizen, civilization,
          caste, signal, transmission) + adds "archive" to bridge to
          /archive and /combat-archives. */}
-      <Section title="The lingo (so nothing is confusing)">
+      <Section title="The lingo (so nothing is confusing)" collapsible>
         <dl style={{ display: "grid", gap: 12, fontFamily: "var(--mono2)", fontSize: 13 }}>
           <Lingo term="hex (⬡)" def="The city's credits. You earn it. You spend it. It is not money. It is not redeemable for anything outside the city." />
           <Lingo term="carrier" def="Anyone who participates. You don't need to own a citizen to be a carrier." />
@@ -279,7 +325,7 @@ export default function StartPage() {
            - "I don't want to write tweets myself" (drives /relay, hidden)
          Reframed "Where's the floor / sales / holders?" to ask about the
          city's live numbers without the banned words in the question. */}
-      <Section title="Questions people actually ask">
+      <Section title="Questions people actually ask" collapsible>
         <Faq q="Why didn't my post credit me hex?">
           Posting on X doesn&apos;t auto-credit — you need to either (a) reply to a city post (and be one of the first 10 in 30 min),
           or (b) hit the daily CLAIM button after sharing. Going to <Link href="/carrier" style={{ color: "var(--gold)" }}>/carrier</Link> and pressing CLAIM is what does it.
@@ -304,7 +350,7 @@ export default function StartPage() {
       </Section>
 
       {/* ── STUCK ── */}
-      <Section title="Still stuck?">
+      <Section title="Still stuck?" collapsible>
         <Box>
           <P>
             DM <a href="https://x.com/4040hex" target="_blank" rel="noreferrer" style={{ color: "var(--gold)" }}>@4040hex</a> on X.
@@ -357,7 +403,41 @@ export default function StartPage() {
 
 // ── helpers ────────────────────────────────────────────────────────
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// 2026-05-31 — Discord (Munch, again): the guide built to fix overwhelm
+// was itself a wall (9 sections, ~15 terms). `collapsible` lets the
+// reference-heavy sections fold shut by default so the page reads as one
+// screen — the core path (30-sec / do-I-buy / first-5-min) stays open,
+// everything else is one tap away. No copy removed.
+function Section({
+  title,
+  children,
+  collapsible = false,
+}: {
+  title: string;
+  children: React.ReactNode;
+  collapsible?: boolean;
+}) {
+  if (collapsible) {
+    return (
+      <details className="start-section" style={{ marginBottom: "var(--s-6)" }}>
+        <summary
+          className="kicker"
+          style={{
+            cursor: "pointer",
+            listStyle: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+          }}
+        >
+          <span>⬡ {title.toUpperCase()}</span>
+          <span aria-hidden style={{ color: "var(--ink-fade)", fontSize: 12 }}>▾ OPEN</span>
+        </summary>
+        <div style={{ marginTop: "var(--s-3)" }}>{children}</div>
+      </details>
+    );
+  }
   return (
     <section style={{ marginBottom: "var(--s-6)" }}>
       <span className="kicker">⬡ {title.toUpperCase()}</span>

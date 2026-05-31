@@ -258,14 +258,14 @@ export default function Home() {
            2026-05-25 — self-quoting your own brand as scripture was a
            tell. The quote stands on its own. */}
         {/* CTA below the closer — best line on the site shouldn't dead-end.
-            Single button, single instruction, brand voice. */}
+            Single button, single instruction, brand voice. 2026-05-31: the
+            secondary "NEW HERE · 2-MIN GUIDE" button was removed — it
+            duplicated hero Box 01 (/start) and the redundant CTA pair was
+            part of the "too much / minefield" feeling (Discord, Munch). */}
         <div style={{ marginTop: "var(--s-5)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/sync">
             <span className="lbl">JOIN THE FRAME</span>
             <span className="ttl">ENTER THE CITY <span className="ar">⬡ →</span></span>
-          </Link>
-          <Link className="btn btn-secondary" href="/start">
-            <span className="ttl">NEW HERE? · 2-MIN GUIDE →</span>
           </Link>
         </div>
       </section>

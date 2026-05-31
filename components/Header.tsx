@@ -22,20 +22,22 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          {/* Route compression 2026-05-25 — desktop nav reduced from 7
-              → 4 + More dropdown + Enter City. Order: Archive first
-              (the signature surface), then Civilizations / Combat
-              Archives / Shop / More. Pulse moved INTO the More
-              dropdown (it's holder/analyst context, not a first-time
-              visitor surface). EARN HEX pill removed entirely — it
-              was the loudest utility-token tell on every page; the
-              earn rules live at /earn behind /sync. Sync button
-              renamed "Enter City" for one canonical verb across the
-              site. */}
-          <Link href="/archive" className="nav-link">Archive</Link>
+          {/* Nav re-prioritisation 2026-05-31 — Discord feedback (Munch:
+              "minefield... too many sections"). The two surfaces holders
+              actually engaged with — the games and the onboarding guide —
+              were buried in the More dropdown, while jargon surfaces
+              (Archive / Combat Archives) sat top-level. Top nav now leads
+              with the newcomer's needs: New? · Play · Citizens ·
+              Civilizations · Archive, then the long tail in More. Combat
+              Archives + Shop moved INTO More (the /combat-archives PAGE is
+              untouched — only its nav placement changed). Archive kept
+              top-level as the signature surface. EARN HEX pill still gone
+              (deliberate). Mobile sheet + More dropdown mirror this order. */}
+          <Link href="/start" className="nav-link nav-start">New?</Link>
+          <Link href="/play" className="nav-link">Play</Link>
+          <Link href="/citizens" className="nav-link">Citizens</Link>
           <Link href="/civilizations" className="nav-link">Civilizations</Link>
-          <Link href="/combat-archives" className="nav-link">Combat Archives</Link>
-          <Link href="/shop" className="nav-link">Shop</Link>
+          <Link href="/archive" className="nav-link">Archive</Link>
           <HeaderArchives />
           <Link href="/sync" className="btn btn-primary btn-sm nav-sync">Enter City</Link>
           <HeaderHexPill />

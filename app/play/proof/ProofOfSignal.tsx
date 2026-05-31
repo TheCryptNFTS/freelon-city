@@ -323,6 +323,56 @@ export function ProofOfSignal() {
         </p>
       </section>
 
+      {/* How-this-works callout — 2026-05-31. Discord feedback: players
+          treated this as a progression game ("uncovering puzzle bits",
+          "how far to unlock clues") and one played it wrong for 30 min.
+          It's Mastermind/Wordle — one hidden code, deduce it from the dot
+          feedback. There is nothing to unlock and nothing to grind. This
+          names the genre and the dots in plain English up front. */}
+      <details className="proof-howto" open style={{
+        maxWidth: 420,
+        margin: "0 auto 18px",
+        border: "1px solid var(--line)",
+        borderTop: "2px solid var(--gold-bright)",
+        background: "var(--bg-2)",
+        padding: "12px 16px 14px",
+        borderRadius: 8,
+      }}>
+        <summary style={{
+          cursor: "pointer",
+          fontFamily: "var(--mono)",
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          color: "var(--gold-bright)",
+          textTransform: "uppercase",
+          listStyle: "none",
+        }}>
+          ⬡ How this works — it&apos;s Wordle for signals
+        </summary>
+        <div style={{
+          marginTop: 10,
+          fontFamily: "var(--mono2)",
+          fontSize: 12.5,
+          lineHeight: 1.65,
+          color: "var(--ink-2)",
+        }}>
+          <p style={{ margin: "0 0 8px" }}>
+            There is <strong>one hidden code</strong> of {codeLen} signals. Guess
+            it. After each guess the dots tell you how close you were:
+          </p>
+          <ul style={{ margin: "0 0 8px", paddingLeft: 0, listStyle: "none", display: "grid", gap: 4 }}>
+            <li><Dot peg="locked" /> <strong>LOCKED</strong> — right signal, right spot.</li>
+            <li><Dot peg="carrier" /> <strong>CARRIER</strong> — right signal, wrong spot.</li>
+            <li><Dot peg="dead" /> <strong>DEAD AIR</strong> — not in the code at all.</li>
+          </ul>
+          <p style={{ margin: 0, color: "var(--ink-dim)" }}>
+            Use the dots to narrow it down and crack the code within your tries.
+            <strong> There are no clues to unlock and nothing to grind</strong> — it&apos;s
+            pure deduction. One puzzle a day, same for everyone.
+          </p>
+        </div>
+      </details>
+
       {/* mode switch — daily (canonical) vs practice (local drills) */}
       <div className="proof-modes">
         <button
@@ -837,5 +887,24 @@ function Row({
         <Cell key={i} slug={signals[i] ?? null} peg={pegs ? pegs[i] : null} />
       ))}
     </div>
+  );
+}
+
+/** Inline legend dot — used by the "how this works" callout. */
+function Dot({ peg }: { peg: Peg }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: "inline-block",
+        width: 9,
+        height: 9,
+        borderRadius: "50%",
+        marginRight: 4,
+        verticalAlign: "middle",
+        background: PEG_STYLE[peg].bg,
+        border: `1px solid ${PEG_STYLE[peg].ring}`,
+      }}
+    />
   );
 }
