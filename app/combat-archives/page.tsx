@@ -290,6 +290,44 @@ export default function CombatArchivesPage() {
                   transition: "border-color 120ms ease, transform 120ms ease",
                 }}
               >
+                {/* Real on-chain relic art (the 1/1 commander card). seadn.io
+                    CDN, plain <img> so it bypasses next/image domain config.
+                    The relic is "recovered through the signal" — slightly
+                    desaturated + dark gradient overlay so it reads as an
+                    archived record, not a finished playable card. */}
+                <div
+                  style={{
+                    position: "relative",
+                    aspectRatio: "1 / 1",
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    border: `1px solid ${color}33`,
+                    marginBottom: 12,
+                    background: "rgba(0,0,0,0.5)",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={g.image}
+                    alt={`${g.name} — recovered relic record #${g.tokenId}`}
+                    loading="lazy"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                      filter: "saturate(0.85) contrast(1.02)",
+                    }}
+                  />
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: `linear-gradient(180deg, transparent 45%, ${color}14 80%, rgba(0,0,0,0.55) 100%)`,
+                    }}
+                  />
+                </div>
                 <header
                   style={{
                     display: "flex",

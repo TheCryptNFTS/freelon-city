@@ -82,7 +82,11 @@ const config: NextConfig = {
               // mono data fell back to system monospace.
               "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com https://fonts.googleapis.com",
               "font-src 'self' https://cdn.fontshare.com https://fonts.gstatic.com data:",
-              "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link",
+              // 2026-05-31: added OpenSea's seadn.io CDN — the Crypt Trading
+              // Cards (Combat Archives) relic art is served from *.seadn.io
+              // (i2c.seadn.io). Without it the god card images were
+              // silently CSP-blocked.
+              "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link https://*.seadn.io",
               "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth.llamarpc.com https://ethereum.publicnode.com https://rpc.ankr.com https://*.upstash.io https://api.x.com https://plausible.io",
               "frame-ancestors 'self'",
               "base-uri 'self'",

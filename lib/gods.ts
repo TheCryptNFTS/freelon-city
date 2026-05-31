@@ -43,6 +43,14 @@ export type God = {
   line: string;
   /** Status pill for the Combat Archives reveal grid. */
   status: "RECOVERED" | "SEALED" | "FRAGMENT" | "DECAYING";
+  /**
+   * Real on-chain relic art (the 1/1 card) from the Crypt Trading Cards
+   * collection, served off OpenSea's seadn.io CDN. Source of truth:
+   * lib/crypt-engine/data/generatedTcgCards.json, keyed by tokenId.
+   * Lets /combat-archives show the actual commander art instead of a
+   * text-only name grid.
+   */
+  image: string;
 };
 
 /**
@@ -57,6 +65,7 @@ export const GODS: God[] = [
     domain: "death · judgement · threshold",
     line: "He weighs what was never named. The Fracture answers to his scales.",
     status: "RECOVERED",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/7b5c6c2b8cdeda3ae4238574005ea0/867b5c6c2b8cdeda3ae4238574005ea0.jpeg",
   },
   {
     name: "Hades",
@@ -65,6 +74,7 @@ export const GODS: God[] = [
     domain: "underworld · lost protocols",
     line: "The signal that does not return. The 404 is his kingdom.",
     status: "SEALED",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/c8a4f00e1890c8d4978c91c9295193/aac8a4f00e1890c8d4978c91c9295193.jpeg",
   },
   {
     name: "Vishnu",
@@ -73,6 +83,7 @@ export const GODS: God[] = [
     domain: "preservation · the carrier",
     line: "He carries the signal across every collapse. Transmission is his vow.",
     status: "RECOVERED",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/0cb885c8689786ddbde0b51d4d9d51/df0cb885c8689786ddbde0b51d4d9d51.jpeg",
   },
   {
     name: "Loki",
@@ -81,6 +92,7 @@ export const GODS: God[] = [
     domain: "trickster · corrupter · shape-shift",
     line: "He rewrites what the city remembers. Corruption is not chaos — it is choice.",
     status: "FRAGMENT",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/27d7b39a2f9eb369cbaf8a7c471049/f027d7b39a2f9eb369cbaf8a7c471049.jpeg",
   },
   {
     name: "Aphrodite",
@@ -89,6 +101,7 @@ export const GODS: God[] = [
     domain: "beauty · desire · courtly love",
     line: "The throne is watched. She decides who is seen and who is not.",
     status: "RECOVERED",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/695a651c066895a321fd87a6274757/99695a651c066895a321fd87a6274757.jpeg",
   },
   {
     name: "Zeus",
@@ -97,6 +110,7 @@ export const GODS: God[] = [
     domain: "sky-law · sovereign rule",
     line: "He does not negotiate. The Machine compiles his decrees in silence.",
     status: "SEALED",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/3fdf9d68866c80225972dadcafa34f/a73fdf9d68866c80225972dadcafa34f.jpeg",
   },
   {
     name: "Poseidon",
@@ -105,6 +119,7 @@ export const GODS: God[] = [
     domain: "seas · fertility · the rising tide",
     line: "From his depths the body learned to listen. Growth is his patience.",
     status: "DECAYING",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/408979ea37a542efb3ec7617c23731/ad408979ea37a542efb3ec7617c23731.jpeg",
   },
   {
     name: "Odin",
@@ -113,6 +128,7 @@ export const GODS: God[] = [
     domain: "wisdom · runes · all-seeing",
     line: "He gave an eye for the signal. The Oracle inherited what he saw.",
     status: "FRAGMENT",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/4d0865ccaed080e56c0b80fea9afde/424d0865ccaed080e56c0b80fea9afde.jpeg",
   },
   {
     name: "Thor",
@@ -121,6 +137,7 @@ export const GODS: God[] = [
     domain: "hammer · force · the defender",
     line: "The network does not break while he stands. Synthesis is his hammer.",
     status: "RECOVERED",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/e7eed0b4b65121096b02bcde9ebd48/dde7eed0b4b65121096b02bcde9ebd48.jpeg",
   },
   {
     name: "Anunnaki",
@@ -129,6 +146,7 @@ export const GODS: God[] = [
     domain: "ancient sky-rulers · the crown",
     line: "They were here before the hex was named. The crown is their oldest record.",
     status: "SEALED",
+    image: "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/4963aedb57d73739dba23bad491adb/b54963aedb57d73739dba23bad491adb.jpeg",
   },
 ];
 
