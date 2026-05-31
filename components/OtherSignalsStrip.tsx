@@ -36,8 +36,9 @@ const CARDS: Card[] = [
     statusColor: "var(--state-active)",
     slug: "the-crypt-official",
     body: "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
+    // "Walter" (#1907) — a One of One skull record.
     image:
-      "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/34245db092583f9a0345f2efce31a8/4a34245db092583f9a0345f2efce31a8.png",
+      "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/62731ec9b5f6ba2d2476c16b566881/a362731ec9b5f6ba2d2476c16b566881.png",
   },
   {
     title: "Combat Archives",
@@ -55,8 +56,10 @@ const CARDS: Card[] = [
     statusColor: "var(--state-unstable)",
     slug: "oogies",
     body: "Ancient signal species. They heard the HEX before the city existed.",
+    // "Horse Relic" (#2575) — the rarest OOGIES tier ("Relics"); on-theme
+    // as a recovered relic. OOGIES has no designated 1/1.
     image:
-      "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/bd8e33bba115f8d1900af129630eac/4bbd8e33bba115f8d1900af129630eac.png",
+      "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/2c469337fc98d8e6fc65ddaf2d9493/4f2c469337fc98d8e6fc65ddaf2d9493.png",
   },
   {
     title: "Emile",
@@ -73,8 +76,9 @@ const CARDS: Card[] = [
     statusColor: "var(--state-warning)",
     slug: "smiles-genesis",
     body: "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",
+    // "Gilded Emissary" (#74) — a One of One (Series: One of One).
     image:
-      "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/80bc4aebb8ad22ef11ec89f3afc823/6780bc4aebb8ad22ef11ec89f3afc823.gif",
+      "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/93f22023c68dad315e737fddb3d4b7/7693f22023c68dad315e737fddb3d4b7.png",
   },
 ];
 
