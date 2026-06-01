@@ -14,6 +14,15 @@ import { CivGlyph } from "@/components/CivGlyph";
 import doctrineFragments from "@/data/doctrine-fragments.json";
 import { godForCiv, godOpenSeaUrl } from "@/lib/gods";
 
+// Civs with a cinematic district establishing shot (public/districts/<slug>.jpg).
+// These read as a *place* — territory in the city — which sells the lore far
+// better than a portrait. The two without one fall back to the generated
+// hooded-figure banner.
+const DISTRICTS = new Set([
+  "black-fracture", "blue-synthesis", "gold-sovereignty", "pink-luxury",
+  "purple-oracle", "silver-machine", "void-404", "white-transmission",
+]);
+
 export function generateStaticParams() {
   return Object.keys(CIVILIZATIONS).map((slug) => ({ slug }));
 }
@@ -46,6 +55,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const rival = rivalSlug
     ? (CIVILIZATIONS as Record<string, { name: string; doctrine: string; color: string }>)[rivalSlug]
     : null;
+  const hasDistrict = DISTRICTS.has(slug);
+  const bannerSrc = hasDistrict ? `/districts/${slug}.jpg` : `/generated/civ-banner-${slug}.png`;
   const citizens = getByCivilization(slug as CivilizationSlug);
   const featured = [
     ...citizens.filter((x) => x.tier === "One of One"),
@@ -58,9 +69,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     <div className="max-w-6xl mx-auto px-6 py-12">
       <CivVisitTracker slug={slug} />
       <QuestTracker questId="city-tourist" stepId={slug} />
-      {/* Generated civilization banner — wide cinematic atmosphere image
-          themed to the civ palette. Bleeds across the full width above
-          the headline. */}
+      {/* Civilization banner — a wide cinematic district establishing shot
+          (the civ's territory in the city) where one exists, else the
+          generated hooded-figure portrait. Bleeds full width above the
+          headline. */}
       <div
         style={{
           position: "relative",
@@ -76,9 +88,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={`/generated/civ-banner-${slug}.png`}
-          alt={`${c.name} — civilization banner`}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", objectPosition: "center 35%" }}
+          src={bannerSrc}
+          alt={hasDistrict ? `${c.name} district` : `${c.name} — civilization banner`}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", objectPosition: hasDistrict ? "center 45%" : "center 35%" }}
         />
         {/* Bottom gradient for legibility of any caption later */}
         <div
