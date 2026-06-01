@@ -94,10 +94,13 @@ export default async function CollectionsIndex() {
                   height: "100%",
                 }}
               >
-                <div style={{ position: "relative", aspectRatio: "16 / 10", borderRadius: 8, overflow: "hidden", border: `1px solid ${c.statusColor}33`, background: "rgba(0,0,0,0.5)" }}>
+                {/* Square frame + contain so the WHOLE record shows. The art is
+                    square (PFPs) or portrait (the Anubis god-card); a landscape
+                    crop was chopping ~37% off the top/bottom. */}
+                <div style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 8, overflow: "hidden", border: `1px solid ${c.statusColor}33`, background: "rgba(0,0,0,0.5)" }}>
                   {c.img && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.img} alt={`${c.title} record`} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "saturate(0.85) contrast(1.02)" }} />
+                    <img src={c.img} alt={`${c.title} record`} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "saturate(0.85) contrast(1.02)" }} />
                   )}
                 </div>
                 <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: c.statusColor, fontWeight: 700 }}>
