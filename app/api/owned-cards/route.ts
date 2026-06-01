@@ -3,6 +3,7 @@ import { isValidAddress, normalizeAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { openseaFetch, type OpenSeaFetchResult } from "@/lib/opensea-fetch";
 import { collectionBySlug } from "@/lib/collections";
+import { verifyBearer } from "@/lib/game-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,11 +34,16 @@ const SLUG = "crypttradingcards";
 const MAX_PAGES = 5; // 5 × 200 = up to 1000 cards scanned per wallet
 const PAGE_LIMIT = 200;
 
+/** Response contract version. The TCG client pins this; bump it on any
+ *  breaking shape change so a mismatch fails loud instead of silently
+ *  stripping every holder's deck. */
+const CONTRACT_VERSION = 2;
+
 function corsHeaders(): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 }
 
@@ -55,7 +61,25 @@ export async function GET(req: Request) {
   if (!rl.ok) return tooManyResponse(rl);
 
   const url = new URL(req.url);
-  const addr = (url.searchParams.get("addr") || "").toLowerCase();
+
+  // Authenticated branch: when a Bearer session is present we use the SESSION
+  // address and ignore `?addr=`, so an authed caller can't query someone else's
+  // wallet through a spoofed query param. The public `?addr=` path (no auth)
+  // stays — this payload is public on-chain data, so a wildcard GET is safe.
+  let addr: string;
+  if (req.headers.get("authorization")) {
+    const session = await verifyBearer(req);
+    if (!session) {
+      return NextResponse.json(
+        { error: "unauthorized" },
+        { status: 401, headers: corsHeaders() },
+      );
+    }
+    addr = session.address;
+  } else {
+    addr = (url.searchParams.get("addr") || "").toLowerCase();
+  }
+
   if (!isValidAddress(addr)) {
     return NextResponse.json(
       { error: "invalid_address" },
@@ -109,7 +133,7 @@ export async function GET(req: Request) {
   // unknown rather than lying with an empty deck.
   if (sawFailure && ids.size === 0) {
     return NextResponse.json(
-      { address: norm, tokenIds: [], count: 0, unknown: true },
+      { version: CONTRACT_VERSION, address: norm, tokenIds: [], count: 0, unknown: true },
       { headers: corsHeaders() },
     );
   }
@@ -117,10 +141,20 @@ export async function GET(req: Request) {
   const tokenIds = Array.from(ids);
   return NextResponse.json(
     {
+      version: CONTRACT_VERSION,
       address: norm,
       tokenIds,
       count: tokenIds.length,
-      truncated: truncated || sawFailure,
+      // Two DISTINCT signals — do NOT conflate them:
+      //  truncated  = case (A) clean cap: hit MAX_PAGES with more pages still
+      //               remaining. The list is VALID, just capped at 1000. A
+      //               whale with >1000 cards still has far more than the
+      //               30-card deck cap, so this is harmless — never fail-close.
+      //  incomplete = case (B) a page errored mid-scan but we still recovered
+      //               some ids. The list is genuinely suspect/short; surface it
+      //               so the client can warn instead of silently shorting.
+      truncated,
+      incomplete: sawFailure,
       unknown: false,
     },
     { headers: corsHeaders() },

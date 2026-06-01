@@ -9,14 +9,23 @@ const memory = new Map<string, { count: number; reset: number }>();
 
 function getIp(req: Request): string {
   // Prefer the trusted Vercel header (x-real-ip is set by Vercel's edge and
-  // cannot be spoofed by clients). Fall back to X-Forwarded-For for non-Vercel
-  // deployments, taking the LEFTMOST value (the original client). Without
-  // this ordering, an attacker can rotate X-Forwarded-For per request to
-  // bypass per-IP limits entirely.
+  // cannot be spoofed by clients). On Vercel/prod this is always present, so
+  // it is the only source we need.
   const realIp = req.headers.get("x-real-ip");
   if (realIp) return realIp.trim();
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0].trim();
+
+  // SECURITY: X-Forwarded-For is fully client-controlled. If we fell back to
+  // it unconditionally, an attacker could rotate XFF per request to mint
+  // unlimited rate-limit buckets and burn the OpenSea quota. So we only trust
+  // XFF when the operator has explicitly opted in (e.g. self-hosting behind a
+  // trusted reverse proxy that overwrites the header). Default: OFF.
+  if (process.env.RATE_LIMIT_TRUST_XFF === "true") {
+    const xff = req.headers.get("x-forwarded-for");
+    if (xff) return xff.split(",")[0].trim();
+  }
+
+  // No trusted IP source. Collapse everyone into a single shared bucket so a
+  // spoofer can't fan out across buckets — fail to a shared limit, not none.
   return "unknown";
 }
 

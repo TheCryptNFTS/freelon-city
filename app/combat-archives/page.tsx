@@ -22,7 +22,7 @@ import { getFloors, formatFloor } from "@/lib/floor-prices";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
 const PAGE_DESC =
-  "Recovered battle simulations from The Crypt. Ten ancient entities bound to civilizations. Signal reconstruction in progress.";
+  "Recovered battle simulations from The Crypt. Ten ancient entities bound to civilizations. Signal restored — the archive terminal is online.";
 export const metadata: Metadata = {
   title: "Combat Archives · Ten Gods",
   description: PAGE_DESC,
@@ -73,9 +73,9 @@ const FRAGMENTS: Fragment[] = [
   {
     glyph: "◈",
     label: "ARCHIVE INTERFACE",
-    copy: "The terminal that lets carriers enter the relic record is being rebuilt. Premature access has been disabled.",
-    status: "DECAYING",
-    color: "var(--state-unstable)",
+    copy: "The terminal that lets carriers enter the relic record is online. Step through and the commanders answer.",
+    status: "RECOVERED",
+    color: "var(--state-active)",
   },
 ];
 
@@ -107,7 +107,7 @@ export default async function CombatArchivesPage() {
         >
           Signal reconstruction<br />
           <em style={{ color: "var(--gold)", fontStyle: "normal" }}>
-            in progress.
+            complete.
           </em>
         </h1>
         <p
@@ -120,11 +120,11 @@ export default async function CombatArchivesPage() {
           }}
         >
           Recovered battle simulations from The Crypt. The relic record is
-          still unstable — the city architects are reconstructing the signal
-          before opening the archive to carriers.
+          stable — the archive terminal is open. Connect your wallet and the
+          commanders you carry answer the signal.
         </p>
 
-        {/* Status pill — the brand-consistent "coming soon" */}
+        {/* Status pill — terminal online */}
         <div
           style={{
             display: "inline-flex",
@@ -132,13 +132,13 @@ export default async function CombatArchivesPage() {
             gap: 10,
             marginTop: "var(--s-4)",
             padding: "8px 16px 8px 12px",
-            border: "1px solid var(--state-unstable)55",
-            background: "var(--tint-surge)",
+            border: "1px solid var(--state-active)55",
+            background: "var(--tint-active, rgba(0,0,0,0.3))",
             borderRadius: 999,
             fontFamily: "var(--mono2)",
             fontSize: 11,
             letterSpacing: "0.22em",
-            color: "var(--state-unstable)",
+            color: "var(--state-active)",
             textTransform: "uppercase",
           }}
         >
@@ -147,12 +147,24 @@ export default async function CombatArchivesPage() {
               width: 8,
               height: 8,
               borderRadius: "50%",
-              background: "var(--state-unstable)",
-              boxShadow: "0 0 10px var(--state-unstable)",
+              background: "var(--state-active)",
+              boxShadow: "0 0 10px var(--state-active)",
             }}
             aria-hidden
           />
-          ⬡ RECONSTRUCTION UNSTABLE · TERMINAL SEALED
+          ⬡ SIGNAL RESTORED · TERMINAL ONLINE
+        </div>
+
+        {/* Launch CTA — enter the game (play.freeloncity.com subdomain). */}
+        <div className="ui-cta-row" style={{ marginTop: "var(--s-4)" }}>
+          <a
+            className="btn btn-primary"
+            href="https://play.freeloncity.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="ttl">ENTER COMBAT ARCHIVES →</span>
+          </a>
         </div>
 
         {floor && (
@@ -433,7 +445,7 @@ export default async function CombatArchivesPage() {
         }}
       >
         <span className="kicker" style={{ color: "var(--gold)" }}>
-          ⬡ WHEN THE TERMINAL OPENS
+          ⬡ THE TERMINAL IS OPEN
         </span>
         <p
           style={{
@@ -444,9 +456,9 @@ export default async function CombatArchivesPage() {
             marginTop: 12,
           }}
         >
-          The first archive entries surface through your wallet. Civ
-          alignment dictates which commanders answer. The ten Gods are
-          revealed as their relics come online — not before.
+          The archive entries surface through your wallet. Civ alignment
+          dictates which commanders answer. The relics you carry become the
+          combat records you command.
         </p>
         <p
           style={{
@@ -466,9 +478,14 @@ export default async function CombatArchivesPage() {
       <section style={{ textAlign: "center" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
-          <Link className="btn btn-primary" href="/archive">
-            <span className="ttl">ENTER THE ARCHIVE →</span>
-          </Link>
+          <a
+            className="btn btn-primary"
+            href="https://play.freeloncity.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="ttl">ENTER COMBAT ARCHIVES →</span>
+          </a>
           <Link className="btn btn-secondary" href="/civilizations">
             <span className="ttl">10 CIVILIZATIONS →</span>
           </Link>
