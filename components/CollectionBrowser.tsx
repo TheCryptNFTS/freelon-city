@@ -173,8 +173,23 @@ export function CollectionBrowser({
             className="result-cell scan-card"
             style={{ "--civ": accent, position: "relative" } as React.CSSProperties}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={t.img} alt={t.name} loading="lazy" />
+            {/\.(mp4|webm|mov)(\?|$)/i.test(t.img) ? (
+              // Some collections (Emile) are video-only on-chain — no still
+              // exists, so render the looping record itself.
+              <video
+                src={t.img}
+                muted
+                loop
+                playsInline
+                autoPlay
+                preload="metadata"
+                aria-label={t.name}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={t.img} alt={t.name} loading="lazy" />
+            )}
             <div className="meta">
               <div className="id">#{t.id}</div>
               <div className="sub">{t.name}</div>

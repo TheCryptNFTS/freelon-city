@@ -137,6 +137,11 @@ const config: NextConfig = {
               // (i2c.seadn.io). Without it the god card images were
               // silently CSP-blocked.
               "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link https://*.seadn.io",
+              // 2026-06-01: Emile is a video-only collection — its on-chain
+              // record is an .mp4 served from raw2.seadn.io. The per-collection
+              // explorer renders these in <video>, so the media must be
+              // allowlisted or it falls back to default-src and is blocked.
+              "media-src 'self' blob: https://*.seadn.io",
               "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth.llamarpc.com https://ethereum.publicnode.com https://rpc.ankr.com https://*.upstash.io https://api.x.com https://plausible.io",
               "frame-ancestors 'self'",
               "base-uri 'self'",

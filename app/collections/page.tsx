@@ -7,11 +7,21 @@ export const metadata = {
   description: "Every collection in the FREELON CITY universe — browse each one's full set on-site.",
 };
 
+// Some collections' first on-chain record is video-only (Emile is .mp4),
+// which can't render in an <img>. Pin those to a local still mirror.
+const COVER_OVERRIDE: Record<string, string> = {
+  emile0x1908: "/og/art/emile.png",
+};
+
 // One representative token per collection for the cover art (first record).
 function cover(slug: string): { img: string; total: number } {
   try {
     const d = loadCollection(slug);
-    return { img: d.tokens.find((t) => t.img)?.img || "", total: d.total };
+    const img =
+      COVER_OVERRIDE[slug] ||
+      d.tokens.find((t) => t.img && !/\.(mp4|webm|mov)(\?|$)/i.test(t.img))?.img ||
+      "";
+    return { img, total: d.total };
   } catch {
     return { img: "", total: 0 };
   }
@@ -32,7 +42,7 @@ export default async function CollectionsIndex() {
       statusColor: "var(--gold)",
       kicker: "THE CITIZENS · 4040 TOTAL",
       blurb: "The 4040 citizens of FREELON CITY. Ten civilizations, seven castes, nine shapes.",
-      img: "/heroes/emile.jpg",
+      img: "/og/art/freelons.png",
       total: 4040,
       onsite: true,
     },

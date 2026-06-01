@@ -16,20 +16,22 @@ export function generateStaticParams() {
   return COLLECTION_SLUGS.map((slug) => ({ slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const meta = COLLECTION_META[params.slug];
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const meta = COLLECTION_META[slug];
   if (!meta) return { title: "Collection" };
   return { title: `${meta.title} · Archive`, description: meta.blurb };
 }
 
-export default async function CollectionPage({ params }: { params: { slug: string } }) {
-  const meta = COLLECTION_META[params.slug];
+export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const meta = COLLECTION_META[slug];
   if (!meta) notFound();
 
-  const data = loadCollection(params.slug);
+  const data = loadCollection(slug);
   const facets = buildFacets(data.tokens);
-  const floors = await getFloors([params.slug]);
-  const floor = formatFloor(floors[params.slug]);
+  const floors = await getFloors([slug]);
+  const floor = formatFloor(floors[slug]);
 
   return (
     <div className="citizens-page">
