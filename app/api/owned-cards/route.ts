@@ -31,13 +31,62 @@ export const dynamic = "force-dynamic";
  */
 
 const SLUG = "crypttradingcards";
-const MAX_PAGES = 5; // 5 × 200 = up to 1000 cards scanned per wallet
+// Quota-burn cap: each page is one OpenSea call, so this bounds the fan-out per
+// request. 3 × 200 = up to 600 cards scanned — still far above the 30-card deck
+// cap, so a >600 whale is `truncated` (valid, just capped), never fail-closed.
+const MAX_PAGES = 3;
 const PAGE_LIMIT = 200;
 
 /** Response contract version. The TCG client pins this; bump it on any
  *  breaking shape change so a mismatch fails loud instead of silently
- *  stripping every holder's deck. */
+ *  stripping every holder's deck. Response SHAPE is unchanged by the
+ *  auth/cache/page-cap hardening, so this stays at 2. */
 const CONTRACT_VERSION = 2;
+
+/**
+ * Opt-in strict mode. When OWNED_CARDS_REQUIRE_AUTH === "true" the anonymous
+ * `?addr=` path is rejected (401) and a valid Bearer is REQUIRED. Default OFF
+ * preserves today's public read, which the SPA depends on. Flip this ON before
+ * any reward/leaderboard/stakes tie ownership to this endpoint, so a wallet
+ * must SIWE-prove control instead of letting anyone enumerate any address.
+ */
+function requireAuth(): boolean {
+  return process.env.OWNED_CARDS_REQUIRE_AUTH === "true";
+}
+
+/**
+ * Short per-address in-memory cache. Repeat hits for the same wallet inside the
+ * TTL return the prior result instead of re-fanning-out to OpenSea — directly
+ * cuts the quota-burn amplification. Only SUCCESSFUL, non-unknown results are
+ * cached; an `unknown`/failed lookup is never cached so a transient OpenSea
+ * outage can't pin a real holder to an empty deck. Keyed by lowercased address
+ * (already resolved from session or query), so cache reuse can't leak across
+ * wallets. */
+const CACHE_TTL_MS = 45_000;
+type CachedBody = {
+  version: number;
+  address: string;
+  tokenIds: string[];
+  count: number;
+  truncated: boolean;
+  incomplete: boolean;
+  unknown: boolean;
+};
+const ownedCache = new Map<string, { body: CachedBody; at: number }>();
+
+function getCached(addr: string): CachedBody | null {
+  const hit = ownedCache.get(addr);
+  if (!hit) return null;
+  if (Date.now() - hit.at > CACHE_TTL_MS) {
+    ownedCache.delete(addr);
+    return null;
+  }
+  return hit.body;
+}
+
+function setCached(addr: string, body: CachedBody): void {
+  ownedCache.set(addr, { body, at: Date.now() });
+}
 
 function corsHeaders(): Record<string, string> {
   return {
@@ -76,6 +125,13 @@ export async function GET(req: Request) {
       );
     }
     addr = session.address;
+  } else if (requireAuth()) {
+    // Strict mode (opt-in): no Bearer present and the anonymous path is
+    // disabled — refuse rather than serving an unauthenticated lookup.
+    return NextResponse.json(
+      { error: "auth_required" },
+      { status: 401, headers: corsHeaders() },
+    );
   } else {
     addr = (url.searchParams.get("addr") || "").toLowerCase();
   }
@@ -96,6 +152,13 @@ export async function GET(req: Request) {
     );
   }
   const contract = collection.contract.toLowerCase();
+
+  // Cache short-circuit: a fresh, confirmed prior result for this exact wallet
+  // skips the OpenSea fan-out entirely.
+  const cached = getCached(norm);
+  if (cached) {
+    return NextResponse.json(cached, { headers: corsHeaders() });
+  }
 
   const ids = new Set<string>();
   let next: string | null = null;
@@ -139,24 +202,29 @@ export async function GET(req: Request) {
   }
 
   const tokenIds = Array.from(ids);
-  return NextResponse.json(
-    {
-      version: CONTRACT_VERSION,
-      address: norm,
-      tokenIds,
-      count: tokenIds.length,
+  const body: CachedBody = {
+    version: CONTRACT_VERSION,
+    address: norm,
+    tokenIds,
+    count: tokenIds.length,
       // Two DISTINCT signals — do NOT conflate them:
       //  truncated  = case (A) clean cap: hit MAX_PAGES with more pages still
-      //               remaining. The list is VALID, just capped at 1000. A
-      //               whale with >1000 cards still has far more than the
-      //               30-card deck cap, so this is harmless — never fail-close.
+      //               remaining. The list is VALID, just capped at MAX_PAGES ×
+      //               PAGE_LIMIT. A whale past the cap still has far more than
+      //               the 30-card deck cap, so this is harmless — never fail-close.
       //  incomplete = case (B) a page errored mid-scan but we still recovered
       //               some ids. The list is genuinely suspect/short; surface it
       //               so the client can warn instead of silently shorting.
-      truncated,
-      incomplete: sawFailure,
-      unknown: false,
-    },
-    { headers: corsHeaders() },
-  );
+    truncated,
+    incomplete: sawFailure,
+    unknown: false,
+  };
+
+  // Cache only confirmed (non-unknown) results. A clean full scan or a clean
+  // cap is safe to reuse; an `incomplete` (mid-scan error) result is still a
+  // real recovered list with the warning flag preserved, so caching it for a
+  // few seconds is acceptable and still cuts quota burn.
+  setCached(norm, body);
+
+  return NextResponse.json(body, { headers: corsHeaders() });
 }
