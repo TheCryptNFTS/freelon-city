@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { verifyBearer } from "@/lib/game-session";
 import {
   isArcadeGame,
   makeIdentity,
@@ -27,6 +28,12 @@ export async function GET(req: Request) {
  * POST /api/arcade/score  { game, score, handle?, wallet? }
  * Stamps a run under a typed handle or connected wallet. Keeps the player's
  * best (server-side max). Scores are client-reported, so we cap + rate-limit.
+ *
+ * SECURITY: a wallet-attributed score is identity, not just decoration —
+ * stamping a top run under someone else's wallet is impersonation. So `body.wallet`
+ * is NEVER trusted: any wallet attribution REQUIRES a valid SIWE bearer, and the
+ * stored wallet is forced to the authenticated SESSION address. Anonymous,
+ * handle-only scores stay open so casual top-of-funnel play still works.
  */
 export async function POST(req: Request) {
   const state = await limit(req, "arcade-score", { max: 20, windowSec: 60 });
@@ -53,7 +60,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad_handle" }, { status: 400 });
   }
 
-  const identity = makeIdentity({ wallet: body.wallet, handle: body.handle });
+  // Wallet attribution is impersonation-sensitive: require a valid bearer and
+  // bind the stored wallet to the SESSION address, never to client-supplied
+  // `body.wallet`. Anonymous (handle-only) scores skip auth entirely.
+  let walletForIdentity: string | undefined;
+  const claimedWallet = body.wallet?.trim();
+  if (claimedWallet) {
+    const session = await verifyBearer(req);
+    if (!session) {
+      return NextResponse.json({ error: "auth_required" }, { status: 401 });
+    }
+    if (session.address.toLowerCase() !== claimedWallet.toLowerCase()) {
+      return NextResponse.json({ error: "wallet_mismatch" }, { status: 403 });
+    }
+    walletForIdentity = session.address;
+  }
+
+  const identity = makeIdentity({ wallet: walletForIdentity, handle: body.handle });
   if (!identity) {
     return NextResponse.json({ error: "need_identity" }, { status: 400 });
   }
