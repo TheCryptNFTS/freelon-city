@@ -48,7 +48,18 @@ type StoredSession = {
  * still works; prod always has the real secret.
  */
 function secret(): Buffer {
-  const s = process.env.X_OAUTH_CLIENT_SECRET || process.env.GAME_SESSION_SECRET || "dev-insecure-crypt-game-secret";
+  const real = process.env.X_OAUTH_CLIENT_SECRET || process.env.GAME_SESSION_SECRET;
+  // SECURITY: never let production fall back to the public dev secret — that
+  // would let anyone forge a bearer for any address (full auth bypass). Hard-fail
+  // at boot/first-use if neither real secret is set in prod.
+  if (!real) {
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+      throw new Error(
+        "game-session: missing X_OAUTH_CLIENT_SECRET / GAME_SESSION_SECRET in production — refusing the insecure dev fallback.",
+      );
+    }
+  }
+  const s = real || "dev-insecure-crypt-game-secret";
   return crypto.createHash("sha256").update(`freelon:crypt-game:v1:${s}`).digest();
 }
 
