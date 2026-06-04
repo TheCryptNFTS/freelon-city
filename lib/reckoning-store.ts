@@ -98,6 +98,79 @@ async function setJSON(key: string, value: unknown): Promise<void> {
   await upstash(["SET", key, raw]);
 }
 
+/** Bounded key scan (Upstash SCAN / in-mem prefix match). */
+async function scanKeys(pattern: string): Promise<string[]> {
+  if (!hasUpstash) {
+    const prefix = pattern.replace(/\*$/, "");
+    return [...mem.keys()].filter((k) => k.startsWith(prefix));
+  }
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL!;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
+    const keys: string[] = [];
+    let cursor = "0";
+    let pages = 0;
+    const startedAt = Date.now();
+    do {
+      if (Date.now() - startedAt > 4000) break;
+      const res = await fetch(
+        `${url}/SCAN/${encodeURIComponent(cursor)}/MATCH/${encodeURIComponent(pattern)}/COUNT/1000`,
+        { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+      );
+      if (!res.ok) break;
+      const j = (await res.json()) as { result: [string, string[]] };
+      cursor = j.result[0];
+      for (const k of j.result[1]) keys.push(k);
+      if (++pages > 10) break;
+    } while (cursor !== "0");
+    return keys;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Self-heal against the v1→v2 incident (2026-06): RECKONING_VERSION is part of
+ * the storage namespace, so bumping it MID-WEEK abandoned the live week's
+ * already-burned tributes in the old namespace — real hex gone, standing
+ * vanished (see scripts/reckoning-v1-audit.mjs).
+ *
+ * To make that UNABLE to recur, the first time the live week is touched under a
+ * new version we carry its prior-version records forward VERBATIM — scores are
+ * copied exactly as they were stored, never re-scored under the new rules — so
+ * a future bump can no longer silently drop in-flight burns. Completed weeks
+ * are left to settle under their own version; only the in-flight week heals.
+ * Idempotent: a per-week marker (and a per-process guard) stop repeat work.
+ */
+const PRIOR_NS =
+  RECKONING_VERSION > 1 ? `freelon:reckoning:v${RECKONING_VERSION - 1}` : null;
+const carriedWeeks = new Set<number>();
+
+async function carryForwardInFlight(week: number): Promise<void> {
+  if (!PRIOR_NS || carriedWeeks.has(week)) return;
+  carriedWeeks.add(week);
+  const marker = `${NS}:wk${week}:carried`;
+  if (await getJSON<number>(marker)) return; // already healed in a prior process
+
+  const priorWk = `${PRIOR_NS}:wk${week}`;
+  // Civ tallies: copy any the new namespace doesn't already have.
+  for (const slug of CIV_SLUGS) {
+    const prior = await getJSON<CivWar>(`${priorWk}:civ:${slug}`);
+    if (!prior || prior.tributes <= 0) continue;
+    if (await getJSON<CivWar>(CIV_KEY(week, slug))) continue;
+    await setJSON(CIV_KEY(week, slug), prior);
+  }
+  // General records: same, scanned from the prior namespace.
+  for (const k of await scanKeys(`${priorWk}:gen:*`)) {
+    const prior = await getJSON<General>(k);
+    if (!prior) continue;
+    const addr = prior.address.toLowerCase();
+    if (await getJSON<General>(GEN_KEY(week, addr))) continue;
+    await setJSON(GEN_KEY(week, addr), prior);
+  }
+  await setJSON(marker, Date.now());
+}
+
 // ── reads ──────────────────────────────────────────────────────────────────
 
 async function getCivWar(week: number, slug: string): Promise<CivWar> {
@@ -190,6 +263,7 @@ export async function getReckoning(): Promise<ReckoningView> {
   const now = Date.now();
   await settleElapsedWeeks(now);
   const week = reckoningWeek(now);
+  await carryForwardInFlight(week);
   const civs = await getWeekCivs(week);
   const totalScore = civs.reduce((n, c) => n + c.score, 0);
   const totalHex = civs.reduce((n, c) => n + c.rawHex, 0);
@@ -240,6 +314,7 @@ export async function recordTribute(input: {
   const slug = input.civ.toLowerCase();
   const addr = input.address.toLowerCase();
 
+  await carryForwardInFlight(week);
   const gen = await getGeneral(week, addr);
   const prevRawToCiv = (gen.rawByCiv?.[slug] ?? 0);
   const points = warPointsMarginal(prevRawToCiv, input.rawHex, input.heldOfCiv);

@@ -117,6 +117,15 @@ export async function POST(req: Request) {
       } catch (e) {
         console.error("[claim] streak bonus credit failed (base paid, not rolled back)", addr, e);
       }
+
+      // EARN PREMIUM RUNS — a 7d/30d streak also grants the holder premium agent
+      // runs on their citizen. Best-effort + idempotent (per wallet+milestone+day),
+      // never affects the hex claim.
+      try {
+        const { claimEarnedRuns } = await import("@/lib/missions/earn-runs");
+        const reason = streak === 30 ? "streak30" : "streak7";
+        await claimEarnedRuns({ wallet: addr, reason, eventKey: `${reason}:${addr.toLowerCase()}:${todayUTC()}` });
+      } catch { /* non-fatal */ }
     }
   } catch (e) {
     // Base credit failed → nothing was paid. Release the claim so the user

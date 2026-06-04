@@ -40,14 +40,25 @@ const allCitizens = () => getAllCitizens();
 
 export const CITIZEN_HEX_PER_SALE = 25;
 
-// In-memory fallback so the helper compiles + runs in local dev.
-const mem = {
-  hex: new Map<number, number>(),
-  lastSale: new Map<number, number>(),
-  lastSaleTs: new Map<number, number>(),
-  transferTs: new Map<number, number>(),
-  seenEvents: new Set<string>(),
+// In-memory fallback so the helper compiles + runs in local dev. Backed by
+// globalThis so one shared instance spans Next's per-route module bundles in dev
+// (a seed route's write must be visible to the page render). Prod always has
+// Upstash, so this is never used there.
+type ValueMem = {
+  hex: Map<number, number>;
+  lastSale: Map<number, number>;
+  lastSaleTs: Map<number, number>;
+  transferTs: Map<number, number>;
+  seenEvents: Set<string>;
 };
+const mem: ValueMem =
+  ((globalThis as { __freelonValueMem?: ValueMem }).__freelonValueMem ??= {
+    hex: new Map<number, number>(),
+    lastSale: new Map<number, number>(),
+    lastSaleTs: new Map<number, number>(),
+    transferTs: new Map<number, number>(),
+    seenEvents: new Set<string>(),
+  });
 
 const KEY_HEX = (id: number) => `freelon:cit:hex:${id}`;
 const KEY_LAST_SALE = (id: number) => `freelon:cit:lastSale:${id}`;
@@ -161,6 +172,25 @@ export async function getCitizenStats(tokenId: number): Promise<{
     lastSaleTs: mem.lastSaleTs.get(tokenId) || 0,
     transferTs: mem.transferTs.get(tokenId) || 0,
   };
+}
+
+/**
+ * ADMIN/DEMO ONLY — set a citizen's accumulated hex to an exact value (not
+ * +=). Used by the demo-seed tool to make "HEX EARNED" read a believable number
+ * on a display-model FREELON. Never called by normal flows (which only ever
+ * INCRBY via creditCitizenHexOnSale). Honors the in-memory fallback so it's safe
+ * on a no-Upstash local instance.
+ */
+export async function setCitizenHex(tokenId: number, hex: number): Promise<void> {
+  if (hasUpstash) {
+    try {
+      await upstash(["SET", KEY_HEX(tokenId), String(Math.max(0, Math.floor(hex)))]);
+      return;
+    } catch {
+      /* fall through */
+    }
+  }
+  mem.hex.set(tokenId, Math.max(0, Math.floor(hex)));
 }
 
 /** Batch read for many citizens. Uses a single pipeline. */

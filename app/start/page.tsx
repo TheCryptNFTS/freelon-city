@@ -98,8 +98,8 @@ export default function StartPage() {
             margin: "10px 0 14px",
           }}
         >
-          Two minutes.<br />
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>One civilization. A daily signal.</em>
+          FREELON CITY is built around<br />
+          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>4,040 trainable AI agents.</em>
         </h1>
         <p
           style={{
@@ -110,9 +110,10 @@ export default function StartPage() {
             maxWidth: 620,
           }}
         >
-          By the end of this page you&apos;ll know what FREELON CITY is, which
-          civilization you belong to, and how to claim {ECONOMY.DAILY_CLAIM} ⬡
-          for showing up today. No wallet required to read on.
+          You can use the city for free — earn HEX, play games, explore the world.
+          But owning a <strong style={{ color: "var(--ink)" }}>FREELON</strong> unlocks the
+          main loop: give your agent jobs, level it up, build its work history, and carry
+          that progress with the NFT. No wallet required to read on.
         </p>
       </section>
 
@@ -170,20 +171,22 @@ export default function StartPage() {
          previously never mentioned anywhere in this guide. */}
       <Section title="The 30-second version">
         <P>
-          FREELON CITY is a sci-fi city. It has {TOTAL.toLocaleString()} citizens
-          (NFTs on Ethereum). Each citizen belongs to one of 10 civilizations.
+          A <strong style={{ color: "var(--gold)" }}>FREELON</strong> is a trainable AI
+          agent you own — one of {TOTAL.toLocaleString()} NFTs on Ethereum. Give it jobs
+          (write, strategize, research, red-team) and it levels up, develops a role, and
+          builds a work history that stays with the NFT. A trained FREELON is different
+          from a blank one.
         </P>
         <P>
-          The city pays people in <strong style={{ color: "var(--gold)" }}>hex (⬡)</strong> —
-          city credits you earn by being active. You spend hex to name your citizen,
-          change civilization, post on the city wall, and unlock things.
+          <strong style={{ color: "var(--gold)" }}>HEX (⬡)</strong> is the shared reward
+          layer across the city — credits you earn by being active and spend on actions,
+          upgrades, and access. It is not money and not redeemable outside the city.
         </P>
         <P>
-          Freelons is the main collection, but it&apos;s one part of a wider universe:{" "}
-          <strong>six collections in all</strong> (Freelons, The Crypt, Combat Archives,
-          OOGIES, Emile, SMILES Collapse), a <strong>trading-card game</strong> built on
-          Combat Archives, and a free <strong>arcade</strong> of mini-games. One city ties
-          them together.
+          FREELONS are the front door, but they sit in a wider universe:{" "}
+          <strong>six collections</strong> (Freelons, The Crypt, Combat Archives,
+          OOGIES, Emile, SMILES Collapse), a <strong>trading-card game</strong>, and a free
+          <strong> arcade</strong> of mini-games. One city ties them together.
         </P>
         {/* Show the universe, don't just list it — a record from each
             connected collection. */}

@@ -34,42 +34,35 @@ type Group = { heading: string; items: Item[] };
 // tail now grouped Holder / City / Lore. The /combat-archives page
 // itself is untouched — only its nav placement changed.
 const GROUPS: Group[] = [
-  // 2026-05-31 GREAT CONSOLIDATION — the dropdown now lists ONLY the
-  // surviving hubs. ~28 thin pages were folded into a handful of tabbed
-  // hubs (e.g. signal/vault/carrier → /sync; leaderboard/numbers → /dashboard;
-  // relay → /earn; secrets → /canon) and 308-redirected (next.config.ts), so
-  // the former dropdown entries for those routes were removed — they're now
-  // sections (#anchors) inside hubs already listed here. "Your wallet" now
-  // points at the /sync hub. Top nav (Start/Play/Citizens + Own) unchanged.
+  // 2026-06-03 ECOSYSTEM dropdown (founder FREELONS-first restructure): the top
+  // nav is Start / FREELONS / Earn HEX / Play / Ecosystem / Dashboard. This
+  // "Ecosystem ▾" menu holds everything that is NOT the product front door —
+  // the game branch (Crypt TCG + collections), the city, and the lore. Order is
+  // deliberate: branches first, lore last. Keep in sync with MobileNav.tsx.
   {
-    heading: "Explore",
+    heading: "The branches",
     items: [
-      { href: "/collections",   label: "Collections" },     // on-site explorers for every collection
-      { href: "/civilizations", label: "Civilizations" },
-      { href: "/archive",       label: "Archive" },
-      { href: "/sync",          label: "Your wallet" },     // /signal etc. folded into the /sync hub
+      { href: "/crypt-tcg",   label: "Crypt TCG" },          // the card game (was top-nav)
+      { href: "/collections", label: "Collections" },        // the 6-collection index
     ],
   },
   {
-    heading: "Holder",
+    heading: "The city",
     items: [
-      { href: "/dashboard",     label: "Dashboard" },       // absorbs stats / leaderboard / heat / snipes / civ-wars
-      { href: "/earn",          label: "Earn" },            // absorbs share-to-earn + the bid-wall mission
-    ],
-  },
-  {
-    heading: "City",
-    items: [
-      { href: "/combat-archives", label: "Combat Archives" },
-      { href: "/shop",            label: "Shop" },
-      { href: "/transmissions",   label: "Community" },     // community posting wall
+      { href: "/civilizations", label: "Factions" },         // absorbs castes / shapes
+      { href: "/transmissions", label: "Community wall" },
+      { href: "/archive",       label: "Connected collections" },
+      { href: "/sync",          label: "Connect wallet" },
+      { href: "/shop",          label: "Shop" },
     ],
   },
   {
     heading: "Lore",
     items: [
-      { href: "/canon",         label: "Canon" },           // absorbs lexicon / names / secrets / roadmap
-      { href: "/tribute",       label: "Honorees" },        // absorbs patrons + the architect bio
+      { href: "/canon",     label: "Story & glossary" },     // absorbs lexicon / names / secrets / roadmap
+      { href: "/manifesto", label: "Manifesto" },
+      { href: "/origin",    label: "Origin" },
+      { href: "/tribute",   label: "Honorees" },             // moved LOWER — clout-borrowing risk
     ],
   },
 ];
@@ -161,8 +154,10 @@ export function HeaderArchives() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        More ▾
+        Ecosystem ▾
       </button>
+      {/* "Ecosystem" holds the branches + city + lore; the product (FREELONS)
+          and the live surfaces are top-level nav. */}
       {mounted && open && pos && createPortal(
         <div
           ref={menuRef}

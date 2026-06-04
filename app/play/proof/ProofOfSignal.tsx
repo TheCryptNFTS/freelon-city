@@ -55,10 +55,17 @@ function randomCode(len: number): string[] {
   return out;
 }
 
-const PEG_STYLE: Record<Peg, { bg: string; ring: string; label: string }> = {
-  locked: { bg: "var(--gold-bright)", ring: "var(--gold-bright)", label: "LOCKED" },
-  carrier: { bg: "var(--neon-cyan)", ring: "var(--neon-cyan)", label: "CARRIER" },
-  dead: { bg: "transparent", ring: "var(--line-2)", label: "DEAD AIR" },
+// Pegs are encoded by SHAPE first, colour second — colour alone failed for
+// colour-blind / low-contrast players (Discord, Nonz). The glyph is the
+// source of truth and is mirrored in the legend, the inline Dot, and the
+// Cell corner marker so the same symbol teaches and plays.
+//  ⬡ locked  = right signal, right spot
+//  ◐ carrier = right signal, wrong spot
+//  · dead    = not in the code
+const PEG_STYLE: Record<Peg, { bg: string; ring: string; label: string; glyph: string }> = {
+  locked: { bg: "var(--gold-bright)", ring: "var(--gold-bright)", label: "LOCKED", glyph: "⬡" },
+  carrier: { bg: "var(--neon-cyan)", ring: "var(--neon-cyan)", label: "CARRIER", glyph: "◐" },
+  dead: { bg: "transparent", ring: "var(--line-2)", label: "DEAD AIR", glyph: "·" },
 };
 
 function saveKey(dayKey: string) {
@@ -211,6 +218,11 @@ export function ProofOfSignal() {
         let next: number;
         if (nextStatus === "lost") {
           next = 0;
+        } else if (prev && prev.lastDayKey === dayKey) {
+          // Already counted today. A deploy that bumps the daily save key
+          // (v1→v2) wipes today's board but NOT the streak, so the player
+          // re-solves the same day — that replay must not reset the streak.
+          next = prev.streak;
         } else {
           // won: continue the streak only if yesterday was the last solved day
           const y = proofDayKey(new Date(Date.now() - 86_400_000));
@@ -659,14 +671,21 @@ export function ProofOfSignal() {
             }}
           >
             <span
+              aria-hidden
               style={{
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                background: PEG_STYLE[p].bg,
-                border: `1px solid ${PEG_STYLE[p].ring}`,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 14,
+                height: 14,
+                fontSize: 12,
+                lineHeight: 1,
+                color: PEG_STYLE[p].ring,
+                opacity: p === "dead" ? 0.6 : 1,
               }}
-            />
+            >
+              {PEG_STYLE[p].glyph}
+            </span>
             {PEG_STYLE[p].label}
           </span>
         ))}
@@ -853,7 +872,7 @@ function Cell({
             opacity: peg === "dead" ? 0.5 : 1,
           }}
         >
-          {peg === "locked" ? "⬡" : peg === "carrier" ? "◐" : "·"}
+          {PEG_STYLE[peg].glyph}
         </span>
       )}
     </div>
@@ -896,15 +915,20 @@ function Dot({ peg }: { peg: Peg }) {
     <span
       aria-hidden
       style={{
-        display: "inline-block",
-        width: 9,
-        height: 9,
-        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 12,
+        height: 12,
         marginRight: 4,
+        fontSize: 11,
+        lineHeight: 1,
         verticalAlign: "middle",
-        background: PEG_STYLE[peg].bg,
-        border: `1px solid ${PEG_STYLE[peg].ring}`,
+        color: PEG_STYLE[peg].ring,
+        opacity: peg === "dead" ? 0.6 : 1,
       }}
-    />
+    >
+      {PEG_STYLE[peg].glyph}
+    </span>
   );
 }

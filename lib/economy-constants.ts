@@ -104,6 +104,67 @@ export const ECONOMY = {
   HEX_HUNTER_REWARD: 75,
   DOCTRINE_MASTER_REWARD: 500,
 
+  // ─── Citizen jobs / progression (lib/jobs-catalog + progression-store) ─
+  // Jobs are the repeatable RPG loop: an owner works a job on a citizen they
+  // hold → the citizen gains XP + a skill point + reputation, the wallet earns
+  // a small ⬡ reward. Each job is re-completable once per UTC day per citizen.
+  //
+  // Reward sizing is deliberately SMALL — jobs are repeatable AND a whale can
+  // hold many citizens, so without a tight band + per-wallet daily cap this
+  // becomes a passive-income farm that dwarfs sweeps. Per-job ⬡ sits at/below
+  // the sweep tier (SWEEP_BOUNTY=25); the per-wallet daily cap mirrors
+  // SWEEP_DAILY_CAP so jobs can't become the dominant income source.
+  JOB_SIGNAL_T1: 5,   // difficulty 1 ⬡ reward
+  JOB_SIGNAL_T2: 12,  // difficulty 2
+  JOB_SIGNAL_T3: 25,  // difficulty 3
+  JOB_XP_T1: 50,
+  JOB_XP_T2: 150,
+  JOB_XP_T3: 400,
+  // Reputation gained per job = REP_PER_DIFFICULTY × difficulty.
+  REP_PER_DIFFICULTY: 10,
+  // Level curve coefficient: cumulative XP to reach level L = BASE × (L-1)².
+  // L1=0, L2=100, L3=400, L4=900 … one constant, no hand-maintained table.
+  JOB_XP_LEVEL_BASE: 100,
+  // Per-wallet ⬡ cap across ALL job completions per UTC day. Bounds whale
+  // farming regardless of how many citizens a wallet holds.
+  JOB_DAILY_CAP: 250,
+
+  // ─── Missions (lib/missions/*) — the SINK side of the loop ───────────
+  // Missions are the inverse of jobs: a holder BURNS ⬡ to deploy a citizen
+  // on a mission and gets an output back (AI result, generated content, etc).
+  // Costs sit well above what jobs pay (5-25 ⬡) so the loop nets to a sink —
+  // the faucet funds onboarding, missions are where ⬡ actually drains.
+  //
+  // Missions are GATED by progression: a citizen must have reached a minimum
+  // level in the mission's skill to deploy it. That's the whole point of XP —
+  // levels unlock higher-tier (more expensive, better) missions.
+  //
+  // First missions are STUBS (templated output, no LLM wired). Costs/tiers are
+  // here so we can A/B test which missions holders actually pay for, then wire
+  // the real resolver behind the winner.
+  MISSION_COST_T1: 50,   // entry tier (level 1)
+  MISSION_COST_T2: 100,  // mid tier
+  MISSION_COST_T3: 250,  // oracle tier (high level)
+  MISSION_XP_T1: 60,
+  MISSION_XP_T2: 160,
+  MISSION_XP_T3: 420,
+
+  // Per-civilization XP multiplier — a citizen earns more XP on jobs that
+  // match its civilization's doctrine strength. Keyed by the on-chain
+  // civilization slug. Missing slug falls back to 1.0 in applyJob.
+  CIV_XP_BONUS: {
+    "blue-synthesis": 1.1,   // Synthesis → research
+    "red-corruption": 1.1,   // Corruption → security
+    "green-growth": 1.1,     // Growth → engineering
+    "purple-oracle": 1.1,    // Oracle → research
+    "white-transmission": 1.1, // Transmission → diplomacy
+    "pink-luxury": 1.1,      // Luxury → trading
+    "black-fracture": 1.1,   // Fracture → security
+    "gold-sovereignty": 1.1, // Sovereignty → diplomacy
+    "void-404": 1.1,         // 404 → creativity
+    "silver-machine": 1.1,   // Machine → engineering
+  } as Record<string, number>,
+
   // ─── Burns / spends (priced against the new peg) ────────────────────
   TITHE_MIN: 250,                    // was 100
   NAMING_COST: 500,                  // was 100 — ~$17 at peg

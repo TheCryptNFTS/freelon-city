@@ -12,9 +12,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // origin + civilizations tabs; /lore now 308 redirects to
   // /canon#civilizations. Sitemap should not list redirect sources.
   const staticRoutes: MetadataRoute.Sitemap = [
-    "/", "/origin", "/manifesto", "/carrier", "/sync",
-    "/pfp", "/tribute", "/citizens", "/civilizations", "/shapes", "/lexicon",
-    "/canon",
+    // The 5 pillars first, then supporting pages. Redirect sources omitted.
+    "/", "/citizens", "/crypt-tcg", "/play", "/dashboard", "/earn",
+    "/sync", "/collections", "/civilizations", "/shop", "/transmissions",
+    "/canon", "/tribute", "/manifesto", "/origin", "/archive",
     "/legal", "/legal/terms", "/legal/privacy", "/legal/honorary-notice", "/legal/dmca",
   ].map((p) => ({
     url: `${BASE}${p}`,

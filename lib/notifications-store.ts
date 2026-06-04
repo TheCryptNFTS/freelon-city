@@ -30,7 +30,10 @@ export type NotifKind =
   | "civ-wars-mid-week"      // Thursday standings update
   | "snipe-matured"          // their 14-day snipe hold completed, bounty paid
   | "fresh-citizen"          // first citizen acquired (welcome)
-  | "sweep-burst";           // 5+ citizens swept in 4h window — broadcast to all holders
+  | "sweep-burst"            // 5+ citizens swept in 4h window — broadcast to all holders
+  | "agent-levelup"          // a citizen-agent reached a new level / rank
+  | "agent-runs-low"         // premium runs running low — recharge nudge
+  | "agent-runs-earned";     // earned premium runs (streak / referral)
 
 export type NotifEvent = {
   /** Event identity. eventKey makes (wallet, eventKey) globally unique. */

@@ -90,6 +90,8 @@ const config: NextConfig = {
       { source: "/graveyard", destination: "/archive#graveyard", permanent: true },
       { source: "/pfp",       destination: "/citizens#pfp",      permanent: true },
       { source: "/daily",     destination: "/play#daily",        permanent: true },
+      // 2026-06-03 IA: Combat Archives renamed to the plain "Crypt TCG".
+      { source: "/combat-archives", destination: "/crypt-tcg", permanent: true },
     ];
   },
   async headers() {

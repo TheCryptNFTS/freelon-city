@@ -35,50 +35,42 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: null,                                          // top-nav parity block
+    heading: null,                                          // top-nav parity block — FREELONS-first
     links: [
-      { href: "/start",         label: "New? · Start here", gold: true },
-      { href: "/play",          label: "Play" },
-      { href: "/citizens",      label: "Citizens" },
-      { href: "/sync",          label: "Enter the city" },
+      { href: "/start",     label: "Start" },
+      { href: "/citizens",  label: "FREELONS", gold: true },
+      { href: "/earn",      label: "Earn HEX" },
+      { href: "/play",      label: "Play" },
+      { href: "/dashboard", label: "Dashboard" },
     ],
   },
-  // 2026-05-31 GREAT CONSOLIDATION — mirrors the trimmed HeaderArchives
-  // dropdown. ~28 thin pages were folded into tabbed hubs and 308-redirected,
-  // so the former Vault/Ranks/Leaderboard/Share-to-earn/Stats/Secrets entries
-  // were removed — they're now #anchor sections inside hubs already listed
-  // here (signal/vault/carrier → /sync; leaderboard/numbers → /dashboard;
-  // relay → /earn; secrets → /canon). "Your wallet" now points at /sync.
-  // Keep this in sync with HeaderArchives.tsx.
+  // 2026-06-03 ECOSYSTEM — mirrors the HeaderArchives "Ecosystem ▾" dropdown:
+  // the game branch + city + lore, in that order. Keep in sync with
+  // HeaderArchives.tsx (one IA, two renderers).
   {
-    heading: "EXPLORE",
+    heading: "THE BRANCHES",
     links: [
-      { href: "/collections",   label: "Collections" },
-      { href: "/civilizations", label: "Civilizations" },
-      { href: "/archive",       label: "Archive" },
-      { href: "/sync",          label: "Your wallet" },
+      { href: "/crypt-tcg",   label: "Crypt TCG" },
+      { href: "/collections", label: "Collections" },
     ],
   },
   {
-    heading: "HOLDER",
+    heading: "THE CITY",
     links: [
-      { href: "/dashboard",     label: "Dashboard" },
-      { href: "/earn",          label: "Earn" },
-    ],
-  },
-  {
-    heading: "CITY",
-    links: [
-      { href: "/combat-archives", label: "Combat Archives" },
-      { href: "/shop",            label: "Shop" },
-      { href: "/transmissions",   label: "Community" },
+      { href: "/civilizations", label: "Factions" },
+      { href: "/transmissions", label: "Community wall" },
+      { href: "/archive",       label: "Connected collections" },
+      { href: "/sync",          label: "Connect wallet" },
+      { href: "/shop",          label: "Shop" },
     ],
   },
   {
     heading: "LORE",
     links: [
-      { href: "/canon",         label: "Canon" },
-      { href: "/tribute",       label: "Honorees" },
+      { href: "/canon",     label: "Story & glossary" },
+      { href: "/manifesto", label: "Manifesto" },
+      { href: "/origin",    label: "Origin" },
+      { href: "/tribute",   label: "Honorees" },
     ],
   },
 ];

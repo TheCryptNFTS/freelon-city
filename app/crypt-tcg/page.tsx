@@ -22,19 +22,19 @@ import { getFloors, formatFloor } from "@/lib/floor-prices";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
 const PAGE_DESC =
-  "Recovered battle simulations from The Crypt. Ten ancient entities bound to civilizations. Signal reconstruction in progress.";
+  "Crypt TCG — the FREELON CITY trading card game. Ten commanders, one for each civilization. Build a deck and battle.";
 export const metadata: Metadata = {
-  title: "Combat Archives · Ten Gods",
+  title: "Crypt TCG · The Card Game",
   description: PAGE_DESC,
   openGraph: {
-    title: "Combat Archives · Ten Gods",
+    title: "Crypt TCG · The Card Game",
     description: PAGE_DESC,
     images: [{ url: "/og/combat-archives.jpg", width: 1536, height: 1024 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Combat Archives · Ten Gods",
+    title: "Crypt TCG · The Card Game",
     description: PAGE_DESC,
     images: ["/og/combat-archives.jpg"],
   },
@@ -94,7 +94,7 @@ export default async function CombatArchivesPage() {
       {/* HERO */}
       <section style={{ marginBottom: "var(--s-6)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>
-          ⬡ COMBAT ARCHIVES · TRANSMISSION 0119
+          ⬡ CRYPT TCG · THE CARD GAME
         </span>
         <h1
           style={{
@@ -105,9 +105,9 @@ export default async function CombatArchivesPage() {
             margin: "10px 0 14px",
           }}
         >
-          Signal reconstruction<br />
+          The Crypt<br />
           <em style={{ color: "var(--gold)", fontStyle: "normal" }}>
-            in progress.
+            card game.
           </em>
         </h1>
         <p
@@ -119,9 +119,9 @@ export default async function CombatArchivesPage() {
             maxWidth: 660,
           }}
         >
-          Recovered battle simulations from The Crypt. The relic record is
-          still unstable — the city architects are reconstructing the signal
-          before opening the archive to carriers.
+          Ten commanders, one for each civilization. Collect cards, build a
+          deck, and battle. The full game is in final reconstruction — the
+          card system is being readied before it opens to holders.
         </p>
 
         {/* Status pill — the brand-consistent "coming soon" */}

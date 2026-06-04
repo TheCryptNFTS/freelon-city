@@ -10,6 +10,15 @@ import { CitizenOwnedByYou } from "@/components/CitizenOwnedByYou";
 import { WatchlistButton } from "@/components/WatchlistButton";
 import { CitizenNameEditor } from "@/components/CitizenNameEditor";
 import { CitizenRealignEditor } from "@/components/CitizenRealignEditor";
+import { CitizenProgressPanel } from "@/components/CitizenProgressPanel";
+import { CitizenJobsBoard } from "@/components/CitizenJobsBoard";
+import { CitizenMissionsBoard } from "@/components/CitizenMissionsBoard";
+import { CitizenCheckIn } from "@/components/CitizenCheckIn";
+import { CitizenResume } from "@/components/CitizenResume";
+import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
+import { CitizenAgentDashboard } from "@/components/CitizenAgentDashboard";
+import { getCheckIn } from "@/lib/daily-checkin";
+import { getRankByLevel } from "@/lib/progression-store";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
 import { getName } from "@/lib/name-store";
 import { getRealignment } from "@/lib/realignment-store";
@@ -74,6 +83,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     ? (CIVILIZATIONS as Record<string, { name: string }>)[realign.alignedCiv]
     : null;
   const cleanHandle = (c.honoree_handle || "").replace(/^@/, "");
+
+  // Daily check-in (today's line if already generated) + level rank — both cheap,
+  // both fail-quiet so they never block the profile render.
+  const [todayCheckIn, levelRank] = await Promise.all([
+    getCheckIn(tid).catch(() => null),
+    getRankByLevel(tid).catch(() => null),
+  ]);
 
   const rank = rarityRank(tid);
   const meta = await Promise.race<CitizenMeta>([
@@ -184,6 +200,34 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
+          {/* THE AGENT LEADS — 2026-06-03: the whole pitch ("your NFT is an AI
+              agent") now sits at the TOP of the citizen page, above the lore.
+              Newcomers see what it IS and what it does before the backstory. */}
+          {/* Lead with the PITCH in plain words → show it work → let them DO it
+              → then the record. (Restructured 2026-06-03: the page used to open
+              on an empty stat block; now a stranger gets it in one line.) */}
+          <p className="agent-lede">
+            This NFT is an <strong>AI agent</strong> — it works for you, remembers you, and becomes more
+            useful the more you train it.
+          </p>
+          {/* RÉSUMÉ LEADS (2026-06-03 founder brief): the first screen must answer
+              who owns it · level · role · status · what it's done · how to use it.
+              The résumé card does that; SEE IT WORK (proof) and the run panel
+              follow it. */}
+          <CitizenResume tokenId={tid} />
+          <CitizenAgentExplainer />
+          <CitizenAgentDashboard citizenId={tid} />
+          {/* Proof CTA — the public work-log, right after the agent block. */}
+          <div className="worklog-cta-row">
+            <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>
+              <span className="ttl">VIEW PUBLIC WORK LOG →</span>
+            </Link>
+          </div>
+          {/* The agent's OWN record (level/skills/memory) stays with the agent
+              journey — BEFORE lore/traits. (2026-06-04 reorder: keep the agent
+              story unbroken; lore + NFT traits come after.) */}
+          <CitizenProgressPanel tokenId={tid} />
+
           {identity && (
             <div className="identity-block">
               <div className="headline" style={{ color }}>{identity.headline}</div>
@@ -244,6 +288,15 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             )}
           </dl>
 
+          {/* Full record + daily flavor live DOWN here now (not stacked under the
+              résumé hero) — the detailed skill bars / memory log / check-in are
+              reference, not the lead. */}
+          <CitizenCheckIn citizenId={tid} initial={todayCheckIn} rank={levelRank} />
+
+          {/* Training (jobs) stays below the traits — it's the slow leveling
+              loop, secondary to the agent dashboard above. */}
+          <CitizenJobsBoard citizenId={tid} />
+
           {valueCard && (
             <section
               className="citizen-value-card"
@@ -256,7 +309,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               }}
             >
               <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
-                <span className="kicker" style={{ color }}>⬡ CITIZEN VALUE · LIVE</span>
+                <span className="kicker" style={{ color }}>⬡ CITIZEN SCORE · RARITY + ACTIVITY</span>
                 {valueCard.civRank && (
                   <span
                     className="kicker"

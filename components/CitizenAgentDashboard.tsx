@@ -1,0 +1,581 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useHolder } from "@/lib/useHolder";
+import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
+import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
+import { openseaUrl } from "@/lib/constants";
+import ShareAgentOutput from "@/components/ShareAgentOutput";
+
+type Task = { key: string; label: string };
+type AbilityView = { id: string; label: string; blurb: string; skill: string; tasks: Task[]; primary: boolean; premium: boolean };
+type Work = { id: string; ability: string; abilityLabel: string; task: string; kind: "text" | "image"; body: string; level: number; timestamp: number };
+
+type UnlockState = { unlocked: boolean; credits: number; tier: string; priceEth: number; rechargeEth: number; grantPerUnlock: number };
+type UnlockQuote = { amountEth: string; amountWei: string; toWallet: string; expiresAt: number };
+type PayStep = "idle" | "quoting" | "await" | "confirming";
+
+type Props = { citizenId: number };
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Starter briefs — a one-tap way to run a REAL first mission (lowers the
+// blank-textarea friction). These don't grant anything; they just pre-fill an
+// apt brief the owner can edit and run. Keyed by ability id.
+const STARTERS: Record<string, string> = {
+  content: "Write 3 punchy launch tweets for an NFT project where each piece is a trainable AI agent.",
+  strategy: "My NFT mint is live but stalled at 20% sold. What do I fix first, in priority order?",
+  sales: "Rewrite this landing headline to convert: 'We make AI agents.'",
+  research: "Summarize the current state of the NFT market in 5 tight bullets.",
+  design: "Describe a bold visual concept for a cyberpunk PFP brand — mood, palette, silhouette.",
+  risk: "Red-team my plan to launch a paid AI tool with no waitlist and no audience yet.",
+};
+
+function ago(ts: number): string {
+  const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60); if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+
+export function CitizenAgentDashboard({ citizenId }: Props) {
+  const h = useHolder();
+  const o = useOwnsCitizen(citizenId, h.address);
+
+  const [abilities, setAbilities] = useState<AbilityView[] | null>(null);
+  const [paymentsLive, setPaymentsLive] = useState(false);
+  const [history, setHistory] = useState<Work[]>([]);
+  const [abilityId, setAbilityId] = useState<string>("");
+  const [taskKey, setTaskKey] = useState<string>("");
+  const [brief, setBrief] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [output, setOutput] = useState<{ kind: string; body: string; title: string } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [followUp, setFollowUp] = useState(""); // multi-turn refine instruction
+  const [copied, setCopied] = useState(false);
+
+  // Unlock flow (engaged when paymentsLive && a premium ability is picked on a
+  // not-yet-unlocked citizen). One ETH payment → finite signal-credit pool.
+  const [unlock, setUnlock] = useState<UnlockState | null>(null);
+  const [payStep, setPayStep] = useState<PayStep>("idle");
+  const [quote, setQuote] = useState<UnlockQuote | null>(null);
+  const [accepted, setAccepted] = useState(false);
+  const [txInput, setTxInput] = useState("");
+  const [payNote, setPayNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!o.isOwner) return;
+    let cancelled = false;
+    fetch(`/api/citizens/${citizenId}/agent`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled || !Array.isArray(d.abilities)) return;
+        setAbilities(d.abilities);
+        setPaymentsLive(!!d.paymentsLive);
+        if (d.unlock) setUnlock(d.unlock);
+        setHistory(Array.isArray(d.history) ? d.history : []);
+        const first = d.abilities.find((a: AbilityView) => a.primary) ?? d.abilities[0];
+        if (first) { setAbilityId(first.id); setTaskKey(first.tasks[0]?.key ?? ""); }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [o.isOwner, citizenId]);
+
+  /** Refetch agent state (e.g. after unlocking, to pick up credits). */
+  async function refreshAgent() {
+    try {
+      const d = await (await fetch(`/api/citizens/${citizenId}/agent`, { cache: "no-store" })).json();
+      if (d.unlock) setUnlock(d.unlock);
+      if (Array.isArray(d.history)) setHistory(d.history);
+    } catch { /* non-fatal */ }
+  }
+
+  if (h.loading || o.loading) {
+    // Reserve the anchor so the "RUN THIS AGENT" CTA always has a target.
+    return <section className="agentdash agentdash-locked" id="run" />;
+  }
+  if (o.error && h.address) {
+    return (
+      <section className="agentdash" id="run">
+        <span className="kicker">⬡ YOUR AGENT</span>
+        <p className="agentdash-err">⬡ SIGNAL DISRUPTED · couldn&apos;t verify ownership · retry.</p>
+      </section>
+    );
+  }
+  // NOT THE OWNER → don't vanish (the page used to show nothing here). Show the
+  // gate so there's always a visible "DO": connect the holding wallet, or buy in.
+  if (!o.isOwner) {
+    return (
+      <section className="agentdash agentdash-locked" id="run">
+        <span className="kicker">⬡ RUN THIS AGENT</span>
+        {h.address ? (
+          <>
+            <p className="agentdash-locked-msg">
+              You&apos;re connected, but this wallet doesn&apos;t hold this citizen — so you can&apos;t run its
+              agent. Own it to train it and build its résumé.
+            </p>
+            <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
+              <span className="ttl">OWN THIS CITIZEN ↗</span>
+            </a>
+          </>
+        ) : (
+          <>
+            <p className="agentdash-locked-msg">
+              Connect the wallet that holds this citizen (button top-right) to run it — pick a task, give it a
+              brief, and it does the work. Don&apos;t own one yet?
+            </p>
+            <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
+              <span className="ttl">GET A CITIZEN ↗</span>
+            </a>
+          </>
+        )}
+      </section>
+    );
+  }
+
+  const ability = abilities?.find((a) => a.id === abilityId) ?? null;
+  const premiumLive = !!ability && ability.premium && paymentsLive;
+  // First-time: needs ACTIVATION. Activated-but-empty: needs RECHARGE.
+  const needsActivate = premiumLive && !(unlock?.unlocked);
+  const needsRecharge = premiumLive && !!unlock?.unlocked && (unlock?.credits ?? 0) <= 0;
+  const needsUnlock = needsActivate || needsRecharge; // either starts the pay flow
+  const payKind: "activate" | "recharge" = needsRecharge ? "recharge" : "activate";
+
+  /** Sign the given message if the server demands wallet auth (no bound session). */
+  async function signOrThrow(message: string): Promise<{ address: string; signature: string }> {
+    if (!window.ethereum) throw new Error("Open this page in your wallet's browser (a signature is required).");
+    if (!h.address) throw new Error("Connect your wallet first.");
+    const signature = (await window.ethereum.request({ method: "personal_sign", params: [message, h.address] })) as string;
+    return { address: h.address, signature };
+  }
+
+  function resetPay() {
+    setPayStep("idle"); setQuote(null); setAccepted(false); setTxInput(""); setPayNote(null);
+  }
+
+  /** Run the mission. Premium runs spend a signal credit server-side; free runs
+   *  just run. Handles the one-time wallet-auth signature. */
+  async function doRun() {
+    if (!ability || !taskKey || !brief.trim()) return;
+    setBusy(true); setErr(null); setOutput(null);
+    const input = `${taskKey}: ${brief.trim()}`;
+    const base: Record<string, unknown> = { missionId: ability.id, input };
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { ...base, ...creds } : base),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "${ability.id}".`);
+          continue;
+        }
+        finish(res, d);
+        // Premium run consumed a credit → refresh the meter.
+        if (ability.premium) refreshAgent();
+        return;
+      }
+    } catch (e) {
+      setErr((e as Error).message || "Couldn't run the agent.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Multi-turn REFINE — re-run the same ability/task with the current output as
+   *  context + a refinement instruction ("make it punchier"). Costs a run like
+   *  any premium job (honest — it's another model call). */
+  async function doFollowUp() {
+    if (!ability || !taskKey || !output || output.kind === "image" || !followUp.trim()) return;
+    // Premium + activated check happens server-side; here just gate on credits UX.
+    if (needsRecharge) { getUnlockQuote(); return; }
+    setBusy(true); setErr(null);
+    const input = `${taskKey}: ${followUp.trim()}`;
+    const base: Record<string, unknown> = { missionId: ability.id, input, priorOutput: output.body };
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { ...base, ...creds } : base),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "${ability.id}".`);
+          continue;
+        }
+        if (res.ok && d.ok && d.output) {
+          setOutput({ kind: "text", body: d.output.body, title: d.output.title });
+          setFollowUp("");
+          if (ability.premium) refreshAgent();
+        } else {
+          setErr(d.message || d.error || "The agent couldn't refine that.");
+        }
+        return;
+      }
+    } catch (e) {
+      setErr((e as Error).message || "Couldn't refine.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Get an exact-ETH quote to ACTIVATE (one-time) or RECHARGE (refill) this agent. */
+  async function getUnlockQuote() {
+    setBusy(true); setErr(null); setPayNote(null); setPayStep("quoting");
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/unlock`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { action: "quote", kind: payKind, ...creds } : { action: "quote", kind: payKind }),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am unlocking FREELON CITY agent #${citizenId}.`);
+          continue;
+        }
+        if (res.ok && d.ok && !d.already) {
+          setQuote({ amountEth: d.amountEth, amountWei: d.amountWei, toWallet: d.toWallet, expiresAt: d.expiresAt });
+          setPayStep("await");
+          return;
+        }
+        if (d.already) { await refreshAgent(); resetPay(); return; }
+        setErr(d.message || d.error || "Couldn't get an unlock price. Try again.");
+        setPayStep("idle");
+        return;
+      }
+    } catch (e) {
+      setErr((e as Error).message || "Couldn't get an unlock price.");
+      setPayStep("idle");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Claim the unlock after a payment tx (polls confirmations). On success the
+   *  citizen is unlocked + credited; we refresh and the run can proceed. */
+  async function claimUnlock(txHash: string) {
+    let creds: { address: string; signature: string } | null = null;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const res = await fetch(`/api/citizens/${citizenId}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(creds ? { action: "claim", kind: payKind, txHash, ...creds } : { action: "claim", kind: payKind, txHash }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        creds = await signOrThrow(`I am unlocking FREELON CITY agent #${citizenId}.`);
+        continue;
+      }
+      if (res.status === 425) { setPayNote("Payment received — waiting for confirmations…"); await sleep(5000); continue; }
+      if (res.ok && d.ok) {
+        setPayNote(null); resetPay();
+        await refreshAgent();
+        setErr(null);
+        return true;
+      }
+      setErr(d.message || d.error || "Couldn't confirm the unlock.");
+      setPayStep("await"); setBusy(false);
+      return false;
+    }
+    setErr("Still confirming on-chain. Wait a minute, then press Verify again.");
+    setPayStep("await"); setBusy(false);
+    return false;
+  }
+
+  /** Pay the unlock from the wallet, then claim it. */
+  async function payUnlock() {
+    if (!quote) return;
+    if (!window.ethereum || !h.address) { setErr("Open this page in your wallet's browser to pay."); return; }
+    setBusy(true); setErr(null);
+    try {
+      const valueHex = "0x" + BigInt(quote.amountWei).toString(16);
+      const txHash = (await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [{ from: h.address, to: quote.toWallet, value: valueHex }],
+      })) as string;
+      setTxInput(txHash);
+      setPayStep("confirming");
+      setPayNote("Payment sent — unlocking your agent…");
+      await claimUnlock(txHash);
+    } catch (e) {
+      setErr((e as Error).message || "Payment was cancelled or failed.");
+      setBusy(false);
+    }
+  }
+
+  /** RUN button: premium + not-unlocked + live → start the unlock flow; else run. */
+  function run() {
+    if (!ability || !brief.trim()) return;
+    if (needsUnlock) { getUnlockQuote(); return; }
+    doRun();
+  }
+
+  function finish(res: Response, d: { ok?: boolean; output?: { body: string; title: string; meta?: { kind?: string } }; already?: boolean; capacity?: boolean; message?: string; error?: string }) {
+    if (res.ok && d.ok && d.output) {
+      const kind = d.output.meta?.kind === "image" ? "image" : "text";
+      setOutput({ kind, body: d.output.body, title: d.output.title });
+      resetPay();
+      // refresh history
+      fetch(`/api/citizens/${citizenId}/agent`, { cache: "no-store" })
+        .then((r) => r.json()).then((j) => { if (Array.isArray(j.history)) setHistory(j.history); }).catch(() => {});
+      return;
+    }
+    if (res.ok && d.already) { setErr(d.message || "Already run for this citizen today. Resets at UTC midnight."); return; }
+    if (d.capacity || res.status === 503) { setErr(d.message || "The agents are at capacity right now. Try again shortly."); return; }
+    setErr(d.message || d.error || "The agent couldn't complete that.");
+  }
+
+  return (
+    <section className="agentdash" id="run">
+      <div className="agentdash-hd">
+        <span className="kicker">⬡ YOUR AGENT · WHAT IT CAN DO</span>
+        {paymentsLive && unlock?.unlocked ? (
+          <span
+            className={`agentdash-credits${unlock.credits <= 0 ? " is-empty" : ""}`}
+            title="Premium runs left — 1 per premium job or image. Recharge to refill; activation is permanent."
+          >
+            {unlock.credits.toLocaleString()} PREMIUM RUNS LEFT
+          </span>
+        ) : (
+          <span className="agentdash-note">AI-generated, review before acting</span>
+        )}
+      </div>
+
+      {abilities === null ? (
+        <p className="agentdash-loading">Loading your agent…</p>
+      ) : (
+        <>
+          {/* Ability picker */}
+          <div className="agentdash-abilities">
+            {abilities.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className={`agentdash-ability${a.id === abilityId ? " is-active" : ""}${a.primary ? " is-primary" : ""}`}
+                onClick={() => { setAbilityId(a.id); setTaskKey(a.tasks[0]?.key ?? ""); setOutput(null); setErr(null); resetPay(); }}
+              >
+                <span className="agentdash-ability-name">
+                  {a.label}{a.primary ? " ★" : ""}
+                  {paymentsLive && a.premium
+                    ? <span className="agentdash-ability-price">{unlock?.unlocked ? "1 RUN" : "PREMIUM"}</span>
+                    : <span className="agentdash-ability-price is-free">FREE</span>}
+                </span>
+                <span className="agentdash-ability-blurb">{a.blurb}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Task + brief */}
+          {ability && (
+            <div className="agentdash-run">
+              <div className="agentdash-tasks">
+                {ability.tasks.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    className={`agentdash-task${t.key === taskKey ? " is-active" : ""}`}
+                    onClick={() => setTaskKey(t.key)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                className="agentdash-brief"
+                placeholder={`Tell your ${ability.label} what to do…`}
+                maxLength={600}
+                value={brief}
+                onChange={(e) => setBrief(e.target.value)}
+                disabled={payStep !== "idle"}
+              />
+
+              {payStep === "idle" && !brief.trim() && STARTERS[ability.id] && (
+                <button
+                  type="button"
+                  className="agentdash-starter"
+                  onClick={() => setBrief(STARTERS[ability.id])}
+                >
+                  ✎ Try a starter brief — “{STARTERS[ability.id].slice(0, 52)}…”
+                </button>
+              )}
+
+              {payStep === "idle" ? (
+                <button className="btn agentdash-go" type="button" disabled={busy || !brief.trim()} onClick={run}>
+                  <span className="ttl">
+                    {busy ? "WORKING…"
+                      : needsActivate ? `ACTIVATE TO RUN ${ability.label.toUpperCase()} →`
+                      : needsRecharge ? `RECHARGE TO RUN →`
+                      : `RUN ${ability.label.toUpperCase()} →`}
+                  </span>
+                </button>
+              ) : (
+                <div className="agentdash-pay">
+                  <div className="agentdash-pay-hd">
+                    <span className="kicker">
+                      {payKind === "recharge"
+                        ? `⬡ RECHARGE · ${unlock?.tier?.toUpperCase()}`
+                        : `⬡ ACTIVATE YOUR AGENT · ${unlock?.tier?.toUpperCase()}`}
+                    </span>
+                    <button type="button" className="agentdash-pay-cancel" onClick={resetPay} disabled={busy}>CANCEL</button>
+                  </div>
+
+                  {payKind === "recharge" ? (
+                    <p className="agentdash-pay-note">
+                      Your agent is already activated — this just refills{" "}
+                      <strong>{unlock?.grantPerUnlock?.toLocaleString()} more premium runs</strong>. Cheaper than
+                      activating; you only pay the one-time activation once.
+                    </p>
+                  ) : (
+                    <p className="agentdash-pay-note">
+                      Activate premium abilities (deep Strategy, Red Team, Dossier &amp; images) — <strong>forever</strong>.
+                      Includes <strong>{unlock?.grantPerUnlock?.toLocaleString()} premium runs</strong> (1 per job).
+                      Less than a month of ChatGPT. Activation and training history stay with the FREELON when it changes hands.
+                    </p>
+                  )}
+
+                  {payStep === "quoting" && <p className="agentdash-pay-note">Getting the price…</p>}
+
+                  {quote && (
+                    <>
+                      <div className="agentdash-pay-amount">
+                        <span className="agentdash-pay-eth">{quote.amountEth} ETH</span>
+                        <span className="agentdash-pay-usd">{payKind === "recharge" ? "refill" : "one-time · forever"} · {unlock?.tier}</span>
+                      </div>
+                      <p className="agentdash-pay-to">
+                        Send the <strong>exact</strong> amount to<br />
+                        <code>{quote.toWallet}</code>
+                      </p>
+
+                      <label className="agentdash-pay-accept">
+                        <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
+                        <span>{MISSION_DISCLAIMER}</span>
+                      </label>
+
+                      <button
+                        className="btn btn-primary agentdash-go"
+                        type="button"
+                        disabled={busy || !accepted || payStep === "confirming"}
+                        onClick={payUnlock}
+                      >
+                        <span className="ttl">{payStep === "confirming" ? (payKind === "recharge" ? "RECHARGING…" : "ACTIVATING…") : `PAY ${quote.amountEth} ETH & ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
+                      </button>
+
+                      <div className="agentdash-pay-manual">
+                        <span className="agentdash-pay-manual-lbl">Already sent it yourself? Paste the transaction hash:</span>
+                        <input
+                          className="agentdash-pay-tx"
+                          placeholder="0x…"
+                          value={txInput}
+                          onChange={(e) => setTxInput(e.target.value.trim())}
+                          disabled={busy}
+                        />
+                        <button
+                          className="btn agentdash-go"
+                          type="button"
+                          disabled={busy || !accepted || !/^0x[a-fA-F0-9]{64}$/.test(txInput)}
+                          onClick={() => claimUnlock(txInput)}
+                        >
+                          <span className="ttl">{busy ? "VERIFYING…" : `I'VE PAID — ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {payNote && <p className="agentdash-pay-note">{payNote}</p>}
+                  <p className="agentdash-pay-support">
+                    Payments are on-chain &amp; non-refundable. Problem with a payment?{" "}
+                    <a href="https://x.com/4040hex" target="_blank" rel="noreferrer">DM @4040hex</a> — we&apos;ll sort it.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {err && (
+            <p className="agentdash-err">
+              {err}
+              {" "}
+              <a href="https://x.com/4040hex" target="_blank" rel="noreferrer" className="agentdash-support">
+                Stuck after paying? DM @4040hex →
+              </a>
+            </p>
+          )}
+
+          {output && (
+            <div className="agentdash-output">
+              <span className="agentdash-output-hd">{output.title}</span>
+              {output.kind === "image"
+                ? <img src={output.body} alt="agent output" className="agentdash-img" />
+                : <pre className="agentdash-text">{output.body}</pre>}
+
+              {/* Output actions: copy · share · (text only) refine */}
+              <div className="agentdash-output-actions">
+                {output.kind !== "image" && (
+                  <button
+                    type="button"
+                    className="agentdash-outbtn"
+                    onClick={() => { navigator.clipboard?.writeText(output.body).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {}); }}
+                  >
+                    {copied ? "COPIED ✓" : "COPY"}
+                  </button>
+                )}
+                <ShareAgentOutput
+                  tokenId={citizenId}
+                  citizenName={`Citizen #${citizenId.toString().padStart(4, "0")}`}
+                  abilityLabel={ability?.label ?? "AGENT"}
+                  className="agentdash-outbtn"
+                />
+              </div>
+
+              {/* Multi-turn refine (text outputs only) */}
+              {output.kind !== "image" && (
+                <div className="agentdash-followup">
+                  <input
+                    className="agentdash-followup-input"
+                    placeholder="Refine it — e.g. “make it punchier”, “shorter”, “more aggressive”…"
+                    value={followUp}
+                    maxLength={200}
+                    onChange={(e) => setFollowUp(e.target.value)}
+                    disabled={busy}
+                    onKeyDown={(e) => { if (e.key === "Enter" && followUp.trim()) doFollowUp(); }}
+                  />
+                  <button
+                    type="button"
+                    className="btn agentdash-outbtn agentdash-followup-go"
+                    disabled={busy || !followUp.trim()}
+                    onClick={doFollowUp}
+                  >
+                    {busy ? "…" : "REFINE →"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Body of work */}
+          {history.length > 0 && (
+            <div className="agentdash-history">
+              <span className="agentdash-history-hd">BODY OF WORK · {history.length}</span>
+              <ul>
+                {history.slice(0, 6).map((w) => (
+                  <li key={w.id}>
+                    <span className="aw-when">{ago(w.timestamp)}</span>
+                    <span className="aw-tag">{w.abilityLabel}/{w.task}</span>
+                    <span className="aw-body">{w.kind === "image" ? "🖼 image" : w.body.slice(0, 80)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}

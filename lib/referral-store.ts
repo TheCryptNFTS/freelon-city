@@ -101,6 +101,13 @@ export async function markRewarded(joiner: string): Promise<void> {
   if (!row || row.rewarded) return;
   row.rewarded = true;
 
+  // EARN PREMIUM RUNS — the REFERRER earns runs for bringing a real holder.
+  // Best-effort + idempotent (claimEarnedRuns SET-NX on the joiner key).
+  try {
+    const { claimEarnedRuns } = await import("@/lib/missions/earn-runs");
+    await claimEarnedRuns({ wallet: row.referrer, reason: "referral", eventKey: `referral:${j}` });
+  } catch { /* non-fatal — never block the referral reward on the run grant */ }
+
   if (!hasUpstash) {
     memoryByJoiner.set(j, row);
     const arr = memoryByReferrer.get(row.referrer) ?? [];

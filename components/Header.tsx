@@ -22,19 +22,18 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          {/* 2026-05-31 ruthless cut (founder: "too much / too complex",
-              Discord echo "minefield... too many sections"). Top nav is now
-              the newcomer's three needs only — New? (understand) · Play (the
-              engaged surface) · Citizens (browse the product) — and ONE
-              primary action: Own a Freelon. Civilizations / Archive / Your
-              Signal moved INTO the More dropdown (pages untouched, only nav
-              placement). Primary CTA changed from Enter City (/sync) to Own
-              (OpenSea) per the single-action decision; /sync still reachable
-              via /start and the mobile sheet. EARN HEX pill still gone. */}
-          <Link href="/start" className="nav-link nav-start">New?</Link>
+          {/* 2026-06-03 FREELONS-FIRST nav (founder restructure): the visible
+              path is Start → FREELONS → Earn HEX → Play → Ecosystem → Dashboard.
+              FREELONS (the trainable agents = the product) is the gold pillar.
+              Crypt TCG + all lore/collections moved INTO the Ecosystem dropdown
+              (they're branches, not the front door). "Earn HEX" is a plain nav
+              link, NOT the killed gold pill. Primary action: Own a Freelon. */}
+          <Link href="/start" className="nav-link">Start</Link>
+          <Link href="/citizens" className="nav-link nav-start">FREELONS</Link>
+          <Link href="/earn" className="nav-link">Earn HEX</Link>
           <Link href="/play" className="nav-link">Play</Link>
-          <Link href="/citizens" className="nav-link">Citizens</Link>
           <HeaderArchives />
+          <Link href="/dashboard" className="nav-link">Dashboard</Link>
           <a href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer" className="btn btn-primary btn-sm nav-sync">Own a Freelon</a>
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>

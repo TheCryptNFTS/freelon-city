@@ -79,92 +79,84 @@ export default function Home() {
               handle, citizen count, hex balance). */}
           <IdentityGreeting />
 
-          {/* 2026-05-31 — was "404 HEX NOT FOUND", which mimics an HTTP 404
-              error string and read as a broken page to first-time visitors
-              (the single first line of text on the site). Reframed to a
-              status badge that pairs with the one-liner directly below
-              ("When the HEX vanished…"). Keeps the 0404 brand number; drops
-              the "NOT FOUND" error mimicry. */}
-          <span className="term-badge flicker"><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
-
-          {/* 2026-05-31 — the one-liner now sells the UNIVERSE, not just the
-              4040 PFPs (founder: "we dont just have freelons as a collection").
-              Mythic opener → plain-English scope so a stranger gets the WHOLE
-              thing in one read. The chip row below names the pieces at low
-              visual weight; the OWN button stays the single primary action. */}
+          {/* 2026-06-03 FREELONS-FIRST FUNNEL (founder restructure): the product
+              value prop is the FIRST thing, in plain words a newcomer gets in
+              ~10 seconds. Lore moved below. Three actions only. The structured
+              ecosystem lives in its own section further down, not as competing
+              chips up here. */}
+          <h1 className="hero-landing__h1">
+            FREELONS are 4,040 <strong>trainable AI agents</strong> you own.
+          </h1>
           <p className="hero-landing__tag">
-            When the HEX vanished, a city formed around the signal — six collections, a trading-card war, and an arcade.<br />
-            <strong>One universe. 4040 citizens deep.</strong>
+            Give your FREELON jobs. It levels up, develops a role, and builds a work history that
+            stays with the NFT.
           </p>
+          <p className="hero-landing__rhythm">Train it. Level it. Use it. Trade it.</p>
 
-          {/* Scope chips — names the universe's pieces in one scannable row so
-              the one-liner's "six collections + arcade" is concrete, not vague.
-              2026-05-31: now clickable (scope legibility) — each chip routes to
-              where that piece actually lives, so a newcomer can explore the
-              universe instead of just reading its parts. Still low-contrast so
-              they don't compete with the OWN button. */}
-          <div className="hero-landing__scope" aria-label="Explore the universe" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", marginTop: "var(--s-4)" }}>
-            {/* 2026-05-31 — each chip routes to a DISTINCT destination.
-                Originally all of Crypt/OOGIES/Emile/SMILES pointed at /archive
-                (founder: "everything you click into is the same information on
-                EVERY page"); they briefly deep-linked to OpenSea. They now land
-                on their own on-site explorer (/collections/<slug>) — a full
-                trait browser like the Freelons one — so the whole universe is
-                browsable in-city. */}
-            {[
-              { name: "Freelons", href: "/citizens", ext: false },
-              { name: "The Crypt", href: "/collections/the-crypt-official", ext: false },
-              { name: "Combat Archives", href: "/combat-archives", ext: false },
-              { name: "OOGIES", href: "/collections/oogies", ext: false },
-              { name: "Emile", href: "/collections/emile0x1908", ext: false },
-              { name: "SMILES Collapse", href: "/collections/smiles-genesis", ext: false },
-              { name: "Arcade", href: "/play", ext: false },
-            ].map((c) => (
-              <Link
-                key={c.name}
-                href={c.href}
-                {...(c.ext ? { target: "_blank", rel: "noreferrer" } : {})}
-                className="universe-chip"
-                style={{
-                  fontFamily: "var(--mono2)",
-                  fontSize: "var(--t-mono-xxs)",
-                  letterSpacing: "var(--tr-loose)",
-                  textTransform: "uppercase",
-                  color: "var(--ink-dim)",
-                  border: "1px solid var(--line)",
-                  borderRadius: "var(--r-pill)",
-                  padding: "4px 10px",
-                  whiteSpace: "nowrap",
-                  textDecoration: "none",
-                }}
-              >
-                {c.name}
-              </Link>
-            ))}
-          </div>
-
-          {/* 2026-05-31 ruthless simplification (founder: "too much / too
-              complex to understand", Discord echo "minefield"). The 4
-              competing intent-doors were collapsed to ONE primary action —
-              own a Freelon on OpenSea — with a single quiet "new here" link
-              for comprehension. The other former doors (/civilizations,
-              /signal) are not deleted: they live in the More nav. This is
-              the single-button hero the whole funnel now points at. */}
-          <div className="hero-landing__cta" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--s-4)", marginTop: "var(--s-6)" }}>
+          {/* THREE actions, no more. Own (buy) · Try (see a live agent) · Earn (free hook). */}
+          <div className="hero-landing__cta hero-cta-row">
             <Link className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
-              <span className="lbl">⬡ 4040 SEALED · NONE WILL EVER BE MADE</span>
               <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
             </Link>
-            <Link className="hero-landing__newhere" href="/start" style={{ fontFamily: "var(--mono2)", fontSize: "var(--t-mono-sm)", letterSpacing: "var(--tr-loose)", textTransform: "uppercase", color: "var(--ink-2)" }}>
-              New here? The 2-minute guide →
+            <Link className="btn btn-secondary btn-lg" href="/citizens/1">
+              <span className="ttl">TRY AN AGENT →</span>
+            </Link>
+            <Link className="btn btn-secondary btn-lg" href="/earn">
+              <span className="ttl">EARN HEX →</span>
             </Link>
           </div>
+          <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
 
-          {/* 2026-05-28 collector pass (founder: "lean in") — live floor
-              + sealed-supply line under the doors. Client-side fetch, never
-              blocks the hero LCP. */}
+          {/* Lore flavour, now SECONDARY (below the value prop + actions). */}
+          <span className="term-badge flicker" style={{ marginTop: "var(--s-5)" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
+
+          {/* 2026-05-28 collector pass — live floor + sealed-supply line.
+              Client-side fetch, never blocks the hero LCP. */}
           <HeroMarketStat />
         </div>
+      </section>
+
+      {/* ── WHY OWN A FREELON? — the money explanation, in plain words, right
+          under the hero. Filetree styling matches the brand's terminal voice.
+          Copy is deliberately careful: "more useful / more desirable", visible
+          work history, trained vs blank — no investment / appreciation claims. */}
+      <section className="why-own reveal">
+        <span className="kicker">⬡ WHY OWN A FREELON?</span>
+        <ul className="filetree">
+          <li>It does jobs for you</li>
+          <li>It levels up through use</li>
+          <li>It develops a role</li>
+          <li>It builds a visible work history</li>
+          <li>That history stays with the NFT</li>
+          <li>A trained FREELON is different from a blank one</li>
+        </ul>
+      </section>
+
+      {/* ── HOW IT WORKS — the loop in six steps + the six roles a FREELON can
+          grow into. */}
+      <section className="how-it-works reveal">
+        <span className="kicker">⬡ HOW IT WORKS</span>
+        <ol className="how-steps">
+          {[
+            "Own a FREELON",
+            "Give it jobs",
+            "It earns XP",
+            "It develops a role",
+            "Its work history grows",
+            "Keep using it — or sell it later as a trained agent",
+          ].map((s, i) => (
+            <li key={i}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
+          ))}
+        </ol>
+        <div className="how-roles">
+          <span className="how-roles-lbl">ROLES IT CAN GROW INTO</span>
+          <div className="how-roles-row">
+            {["Writer", "Strategist", "Sales Agent", "Researcher", "Designer", "Red Team"].map((r) => (
+              <span key={r} className="how-role">{r}</span>
+            ))}
+          </div>
+        </div>
+        <Link className="btn btn-primary" href="/citizens/1"><span className="ttl">TRY AN AGENT →</span></Link>
       </section>
 
       {/* CITIZEN SHOWCASE — the homepage finally shows the product. A
@@ -172,6 +164,36 @@ export default function Home() {
           tell"; this slow band of real portraits (1/1s + honoraries) fixes
           that the moment a visitor scrolls past the hero. */}
       <CitizenShowcase />
+
+      {/* ── THE ECOSYSTEM — only AFTER FREELONS are understood. A simple tree:
+          FREELONS first, then HEX (the reward layer), then the branches. Each
+          line is one plain sentence; deep lore lives a layer down. */}
+      <section className="ecosystem-tree reveal" id="ecosystem">
+        <span className="kicker">⬡ THE ECOSYSTEM</span>
+        <h2>One city, <em>five parts</em></h2>
+        <ul className="eco-tree">
+          <li>
+            <Link href="/citizens"><strong>FREELONS</strong></Link>
+            <span>Trainable AI agents you upskill and can trade.</span>
+          </li>
+          <li>
+            <Link href="/earn"><strong>HEX</strong></Link>
+            <span>The shared reward layer across the city. Use the ecosystem, earn HEX, spend it on actions, upgrades and access.</span>
+          </li>
+          <li>
+            <Link href="/collections/emile0x1908"><strong>EMILE</strong></Link>
+            <span>The creative and emotional branch — fun, memory, imagination, storytelling.</span>
+          </li>
+          <li>
+            <Link href="/crypt-tcg"><strong>TCG + CRYPT OGs</strong></Link>
+            <span>Game assets for the card-game branch — battles, strategy, collection.</span>
+          </li>
+          <li>
+            <Link href="/collections/oogies"><strong>OOGIES</strong></Link>
+            <span>The hidden utility branch. More coming.</span>
+          </li>
+        </ul>
+      </section>
 
       {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
       <OtherSignalsStrip />

@@ -1,12 +1,17 @@
 import { getAllCitizens } from "@/lib/citizens";
 import { FindCitizen } from "@/components/FindCitizen";
+import { TopAgents } from "@/components/TopAgents";
 import { CitizensBrowser } from "@/components/CitizensBrowser";
 import { PfpSection } from "@/components/citizens/PfpSection";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import Link from "next/link";
 
-export const metadata = { title: "Citizens" };
+export const metadata = { title: "FREELONS · Trainable AI Agents" };
+
+// ISR: the curated/trait data is static, but the TopAgents rail reads the live
+// progression leaderboard — revalidate so the showcase reflects real training.
+export const revalidate = 300;
 
 const ONE_TAGS: Record<number, { slug: string; sub: string }> = {
   1:    { slug: "origin-signal",   sub: "ONE OF ONE · SIGNAL BORN" },
@@ -78,23 +83,42 @@ export default function Citizens() {
   return (
     <div className="citizens-page">
       <section className="citizens-hero">
-        <span className="kicker">⬡ CITIZENS · 4040 TOTAL</span>
-        <h1>Find your <em>citizen</em></h1>
-        {/* 2026-05-31 — added a plain "what is this" line. The page used to
-            open straight into "enter a token number", assuming the visitor
-            knew what a citizen was or why they'd look. */}
+        <span className="kicker">⬡ FREELONS · 4040 TRAINABLE AGENTS</span>
+        <h1>Meet a <em>FREELON</em></h1>
+        {/* 2026-06-03 FREELONS-first — a newcomer learns it's a trainable AI
+            AGENT, not just "enter a token number". The agent is the point; the
+            trait/lore stuff is secondary. */}
         <p className="lead">
-          Each <GlossaryTerm term="citizen">citizen</GlossaryTerm> is one of the
-          4040 Freelon NFTs — a character with its own{" "}
-          <GlossaryTerm term="civilization">civilization</GlossaryTerm>,{" "}
-          <GlossaryTerm term="caste">caste</GlossaryTerm> and{" "}
-          <GlossaryTerm term="shape">shape</GlossaryTerm>. Browsing is free;
-          owning one is optional.
+          Each <GlossaryTerm term="citizen">FREELON</GlossaryTerm> is a trainable
+          <strong> AI agent you own</strong> — with art, traits and a civilization, plus a growing
+          work record. Give it jobs (write, strategize, research, red-team); it levels up, develops a
+          role, and builds a work history that stays with the NFT.
         </p>
-        <p className="lead">Enter a token number 1—4040. The city returns the file.</p>
+        <p className="lead">Enter a token number 1—4040 to meet one — or open #1 to see an agent.</p>
         <div className="finder">
           <FindCitizen />
+          {/* 2026-06-04 — KinkiDred (Discord): the lookup box looked like an
+              ownership filter ("why does someone else's citizen come up?").
+              It's a public viewer for ANY token. Point owners at the wallet
+              view so the box reads as "look up any citizen", not "find mine". */}
+          <p style={{ marginTop: "var(--s-3)", color: "var(--ink-2)", fontSize: 13 }}>
+            Any token 1—4040 opens — it&rsquo;s a public viewer, not an ownership
+            check. Want the ones <em>you</em> own?{" "}
+            <Link href="/sync#connect" style={{ color: "var(--gold)" }}>
+              Connect your wallet →
+            </Link>
+          </p>
         </div>
+        {/* 2026-06-03 — one-click way for a newcomer to actually SEE an agent
+            (the #1 friction point: "My Citizen" used to dead-end at a lookup). */}
+        <p style={{ marginTop: "var(--s-4)" }}>
+          <Link
+            href="/citizens/1"
+            className="btn btn-primary"
+          >
+            <span className="ttl">SEE AN AGENT · OPEN #0001 →</span>
+          </Link>
+        </p>
         {/* Jump link to the folded PFP studio (2026-05-31). */}
         <p style={{ marginTop: "var(--s-3)" }}>
           <a
@@ -105,6 +129,11 @@ export default function Citizens() {
           </a>
         </p>
       </section>
+
+      {/* TOP AGENTS — the "look what these become" proof. Sits right after the
+          hero so a buyer sees specialized, leveled citizens before the trait
+          browse. Empty (with a claim hook) until citizens specialize. */}
+      <TopAgents />
 
       {/* Phase 3: CURATED FIRST. The original order put the 4040-item
           mass browser above the 4 one-of-ones — terrible mobile experience

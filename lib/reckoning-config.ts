@@ -17,9 +17,27 @@
 
 import { ECONOMY } from "@/lib/economy-constants";
 
-/** Schema/season tag. Bump to wipe all weeks and start a fresh war record.
- *  v2: opened a fresh season alongside the anti-whale war curve so no wallet
- *  gets re-scored mid-week — every general starts clean under the new rules. */
+/**
+ * Storage SCHEMA version — part of the Redis namespace.
+ *
+ * ⚠ DO NOT bump this to "reset standings" or "start a fresh season". It is part
+ * of the live storage key, so a mid-week bump abandons the in-flight week's
+ * already-burned tributes in the old namespace — real hex leaves the balance
+ * with nothing to show (the v1→v2 incident, 2026-06; see
+ * scripts/reckoning-v1-audit.mjs + scripts/reckoning-v1-refund.mjs).
+ *
+ * Seasons advance naturally at WEEK boundaries (settleElapsedWeeks crowns +
+ * archives each completed week, then a fresh week opens). Ruleset changes (e.g.
+ * the anti-whale war curve) apply going forward on their own, because war
+ * points are computed at tribute time by the pure functions below — no
+ * namespace change is required or wanted.
+ *
+ * Bump ONLY for a genuinely breaking schema change to the stored records. If
+ * you ever must, reckoning-store#carryForwardInFlight migrates the live week's
+ * records forward verbatim so in-flight burns can never be silently orphaned.
+ *
+ * (v2 = launch of the anti-whale curve; left in place, frozen.)
+ */
 export const RECKONING_VERSION = 2;
 
 /** Week 1 anchor — Monday 2026-05-25 00:00 UTC, the launch-era week. Weeks are

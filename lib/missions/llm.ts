@@ -1,0 +1,85 @@
+/**
+ * Thin LLM client for citizen "agent" missions. No SDK — a single fetch to the
+ * OpenAI chat API, with the guardrails the security review demanded:
+ *   - persona/system prompt is SERVER-controlled; user input goes ONLY in the
+ *     user role (never interpolated into the system prompt) — prompt-injection
+ *     defense.
+ *   - hard output cap (max_tokens) so a crafted input can't run up cost.
+ *   - bounded timeout + clean error → caller returns ok:false → endpoint refunds.
+ *
+ * This is what makes a citizen a real agent rather than a template: the model
+ * reasons FROM the citizen's own persistent identity + memory, so two citizens
+ * (or the same citizen at different levels) genuinely produce different output.
+ */
+
+// Provider-agnostic. If OPENROUTER_API_KEY is set we route through OpenRouter
+// (one OpenAI-compatible API that exposes many models by name — gpt-5.5,
+// Claude, etc.), otherwise straight to OpenAI. Lets you upgrade the model with
+// only an env change. Model NAMES come from lib/missions/models.ts.
+function provider(): { url: string; key: string | undefined; openrouter: boolean } {
+  const orKey = process.env.OPENROUTER_API_KEY;
+  if (orKey) {
+    return { url: "https://openrouter.ai/api/v1/chat/completions", key: orKey, openrouter: true };
+  }
+  return { url: "https://api.openai.com/v1/chat/completions", key: process.env.OPENAI_API_KEY, openrouter: false };
+}
+const DEFAULT_MODEL = "gpt-4o-mini";
+
+export type LlmResult =
+  | { ok: true; text: string; usage?: { prompt: number; completion: number } }
+  | { ok: false; error: string };
+
+export async function citizenReason(args: {
+  system: string;
+  user: string;
+  maxTokens: number;
+  /** Model id (from lib/missions/models.ts modelFor()). Defaults to cheap. */
+  model?: string;
+  timeoutMs?: number;
+}): Promise<LlmResult> {
+  const { url, key, openrouter } = provider();
+  if (!key) return { ok: false, error: "no_api_key" };
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 30_000);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${key}`,
+        // OpenRouter recommends these; harmless on OpenAI (ignored).
+        ...(openrouter ? { "HTTP-Referer": "https://www.freeloncity.com", "X-Title": "FREELON CITY" } : {}),
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: args.model || DEFAULT_MODEL,
+        // System = server-authored persona. User = the holder's prompt, isolated.
+        messages: [
+          { role: "system", content: args.system },
+          { role: "user", content: args.user },
+        ],
+        max_tokens: args.maxTokens,
+        temperature: 0.8,
+      }),
+    });
+    if (!res.ok) {
+      return { ok: false, error: `openai_${res.status}` };
+    }
+    const j = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    };
+    const text = j.choices?.[0]?.message?.content?.trim();
+    if (!text) return { ok: false, error: "empty_completion" };
+    return {
+      ok: true,
+      text,
+      usage: { prompt: j.usage?.prompt_tokens ?? 0, completion: j.usage?.completion_tokens ?? 0 },
+    };
+  } catch (e) {
+    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
+  } finally {
+    clearTimeout(t);
+  }
+}

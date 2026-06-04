@@ -14,6 +14,7 @@ import { HeatSection } from "@/components/dashboard/HeatSection";
 import { SnipesSection } from "@/components/dashboard/SnipesSection";
 import { CivWarSection } from "@/components/dashboard/CivWarSection";
 import { EarnersSection } from "@/components/dashboard/EarnersSection";
+import { ProgressionSection } from "@/components/dashboard/ProgressionSection";
 import { CONTRACT, TOTAL } from "@/lib/constants";
 import { listWalletHexRecords } from "@/lib/wallet-hex-store";
 
@@ -47,6 +48,7 @@ const SUBNAV: Array<{ id: string; label: string }> = [
   { id: "snipes", label: "Snipes" },
   { id: "civ-war", label: "Civ War" },
   { id: "earners", label: "Earners" },
+  { id: "progression", label: "Citizens" },
 ];
 
 export default async function Dashboard() {
@@ -146,6 +148,9 @@ export default async function Dashboard() {
 
       {/* ── EARNERS ← app/leaderboard ── */}
       <EarnersSection />
+
+      {/* ── CITIZEN PROGRESSION ── */}
+      <ProgressionSection />
 
       <section className="dash-share">
         <span className="kicker">⬡ SHARE THE CITY</span>
