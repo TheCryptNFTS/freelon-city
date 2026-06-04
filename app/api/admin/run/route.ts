@@ -44,6 +44,7 @@ export async function POST(req: Request) {
     tokenId?: number;
     missionId?: string;
     brief?: string;
+    priorOutput?: string;
   };
 
   const tokenId = Number(body.tokenId);
@@ -73,10 +74,14 @@ export async function POST(req: Request) {
     input = hasTask || !def ? raw : `${def}: ${raw}`;
   }
 
+  // Multi-turn: a prior agent reply lets the resolver REFINE instead of restart.
+  // Treated as untrusted data inside the resolver (prompt-injection safe). Capped.
+  const priorOutput = typeof body.priorOutput === "string" ? body.priorOutput.slice(0, 4000) : undefined;
+
   // paid:true → full paid depth, so the founder sees the quality a BUYER gets
   // (free runs would use the cheap, shallower model). This is a dry-run, so the
   // small LLM cost is the only side effect.
-  const ctx: MissionContext = { citizen, progress, input, walletAddress: "admin-dryrun", paid: true };
+  const ctx: MissionContext = { citizen, progress, input, walletAddress: "admin-dryrun", paid: true, priorOutput };
 
   try {
     const output = await mission.resolve(ctx);

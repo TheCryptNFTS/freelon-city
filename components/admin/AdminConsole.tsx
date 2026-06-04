@@ -11,6 +11,7 @@ type OpsError = { ts: number; where: string; error: string; tokenId?: number; wa
 type Ops = { runs: number; images: number; estCostUsd: number; recentErrors: OpsError[]; day: string };
 type Check = { step: string; ok: boolean; detail: string };
 type Preflight = { ready: boolean; note: string; checks: Check[] };
+type RunTurn = { role: "you" | "agent"; title?: string; body: string; kind?: string };
 
 const KEY_STORE = "freelon_admin_key";
 
@@ -43,11 +44,11 @@ export function AdminConsole() {
   // preflight inputs
   const [tokenId, setTokenId] = useState("");
   const [wallet, setWallet] = useState("");
-  // dry-run (test a job) inputs
+  // dry-run (test a job) — a back-and-forth thread, not one-shot
   const [runAbility, setRunAbility] = useState("strategy");
   const [runToken, setRunToken] = useState("");
   const [runBrief, setRunBrief] = useState("");
-  const [runOut, setRunOut] = useState<{ title: string; body: string; kind: string } | null>(null);
+  const [runThread, setRunThread] = useState<RunTurn[]>([]);
   const [runErr, setRunErr] = useState<string | null>(null);
   const [runLoading, setRunLoading] = useState(false);
 
@@ -81,24 +82,32 @@ export function AdminConsole() {
     } catch { setErr("Couldn't run the preflight."); }
   }
 
+  // Send the next message in the dry-run thread. The latest agent reply is sent as
+  // priorOutput, so a follow-up ("make it punchier") refines instead of restarting.
   async function runTest() {
-    setRunErr(null); setRunOut(null);
-    if (!runToken.trim() || !runBrief.trim()) { setRunErr("Pick a token # and type a brief."); return; }
+    setRunErr(null);
+    const msg = runBrief.trim();
+    if (!runToken.trim() || !msg) { setRunErr("Pick a token # and type a message."); return; }
+    const priorOutput = [...runThread].reverse().find((t) => t.role === "agent")?.body;
+    setRunThread((prev) => [...prev, { role: "you", body: msg }]);
+    setRunBrief("");
     setRunLoading(true);
     try {
       const r = await fetch(`/api/admin/run?key=${encodeURIComponent(key)}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tokenId: Number(runToken), missionId: runAbility, brief: runBrief }),
+        body: JSON.stringify({ tokenId: Number(runToken), missionId: runAbility, brief: msg, priorOutput }),
         cache: "no-store",
       });
       const d = await r.json();
       if (r.status === 404) { setRunErr("Dry-run needs ADMIN_SEED_KEY set in Vercel."); return; }
       if (!r.ok || !d.ok) { setRunErr(d.message || "Run failed — try again."); return; }
-      setRunOut({ title: d.title, body: d.body, kind: d.kind });
+      setRunThread((prev) => [...prev, { role: "agent", title: d.title, body: d.body, kind: d.kind }]);
     } catch { setRunErr("Couldn't reach the server."); }
     finally { setRunLoading(false); }
   }
+
+  function resetRun() { setRunThread([]); setRunErr(null); setRunBrief(""); }
 
   function submitKey(k: string) {
     const trimmed = k.trim();
@@ -152,26 +161,49 @@ export function AdminConsole() {
 
       {/* RUN A TEST JOB (dry-run) */}
       <section className="admin-card">
-        <span className="admin-card-h">RUN A TEST JOB · DRY-RUN</span>
-        <p className="admin-note">See the exact output a paying buyer would get — at full paid depth. Nothing is saved: no level change, no public work-log entry, no charge. Run it as much as you like to judge quality.</p>
+        <div className="admin-run-top">
+          <span className="admin-card-h">RUN A TEST JOB · DRY-RUN</span>
+          {runThread.length > 0 && <button className="admin-run-new" onClick={resetRun}>↺ New chat</button>}
+        </div>
+        <p className="admin-note">A back-and-forth with the agent — reply to refine, just like chatting. Full paid depth, so it&apos;s the exact quality a buyer gets. Nothing is saved: no level change, no public work-log entry, no charge.</p>
         <div className="admin-run-form">
-          <select className="admin-input admin-input-sm" value={runAbility} onChange={(e) => setRunAbility(e.target.value)}>
+          <select className="admin-input admin-input-sm" value={runAbility} onChange={(e) => setRunAbility(e.target.value)} disabled={runThread.length > 0}>
             {RUN_ABILITIES.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
           </select>
-          <input className="admin-input admin-input-sm" placeholder="Token # (any 1–4040)" value={runToken} onChange={(e) => setRunToken(e.target.value)} />
+          <input className="admin-input admin-input-sm" placeholder="Token # (any 1–4040)" value={runToken} onChange={(e) => setRunToken(e.target.value)} disabled={runThread.length > 0} />
         </div>
-        <textarea className="admin-input admin-run-brief" placeholder="Tell the agent what to do — e.g. “Fix my launch: $9/mo app that writes 30 days of X posts for founders.”" value={runBrief} onChange={(e) => setRunBrief(e.target.value)} />
-        <button className="btn btn-primary admin-run-btn" onClick={runTest} disabled={runLoading}><span className="ttl">{runLoading ? "Running…" : "Run test →"}</span></button>
-        {runErr && <p className="admin-err">{runErr}</p>}
-        {runOut && (
-          <div className="admin-run-out">
-            <span className="admin-run-out-h">{runOut.title}</span>
-            {runOut.kind === "image"
-              ? <img src={runOut.body} alt="agent output" className="admin-run-img" />
-              : <pre className="admin-run-body">{runOut.body}</pre>}
-            <span className="admin-run-foot">Dry-run · nothing saved</span>
+
+        {runThread.length > 0 && (
+          <div className="admin-run-thread">
+            {runThread.map((t, i) => (
+              t.role === "you" ? (
+                <div key={i} className="admin-run-you"><span className="admin-run-role">You</span><p className="admin-run-you-msg">{t.body}</p></div>
+              ) : (
+                <div key={i} className="admin-run-out">
+                  {t.title && <span className="admin-run-out-h">{t.title}</span>}
+                  {t.kind === "image"
+                    ? <img src={t.body} alt="agent output" className="admin-run-img" />
+                    : <pre className="admin-run-body">{t.body}</pre>}
+                </div>
+              )
+            ))}
+            {runLoading && <p className="admin-dim">The agent is thinking…</p>}
           </div>
         )}
+
+        <textarea
+          className="admin-input admin-run-brief"
+          placeholder={runThread.length === 0
+            ? "Tell the agent what to do — e.g. “$9/mo app that writes 30 days of X posts for founders.”"
+            : "Reply to refine — e.g. “make it punchier”, “shorter”, “more aggressive”…"}
+          value={runBrief}
+          onChange={(e) => setRunBrief(e.target.value)}
+        />
+        <button className="btn btn-primary admin-run-btn" onClick={runTest} disabled={runLoading}>
+          <span className="ttl">{runLoading ? "Running…" : runThread.length === 0 ? "Run test →" : "Send →"}</span>
+        </button>
+        {runErr && <p className="admin-err">{runErr}</p>}
+        {runThread.length > 0 && <span className="admin-run-foot">Dry-run · nothing saved</span>}
       </section>
 
       {/* RECENT ERRORS */}
