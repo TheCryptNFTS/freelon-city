@@ -44,7 +44,7 @@ export default function Page() {
             <span className="ttl">EXPLORE CIVILIZATIONS →</span>
           </Link>
           <Link href="/citizens" className="btn btn-secondary">
-            <span className="ttl">FIND YOUR CITIZEN →</span>
+            <span className="ttl">MEET A CITIZEN →</span>
           </Link>
         </div>
       </article>
