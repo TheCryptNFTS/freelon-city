@@ -143,7 +143,10 @@ export function makeAbilityResolver(ability: Ability) {
     // tailored to them — the moat. Fail-quiet: no dossier = generic persona.
     const { getDossier } = await import("@/lib/missions/dossier-store");
     const dossier = await getDossier(ctx.citizen.id).catch(() => null);
-    const persona = buildPersona(ctx.citizen, ctx.progress, dossier?.profile, { paid: ctx.paid });
+    // Anti-chatbot moat: feed the agent its OWN past work so it can reference it.
+    const { getAgentHistory, workDigest } = await import("@/lib/agent-history");
+    const recentWork = await getAgentHistory(ctx.citizen.id).then(workDigest).catch(() => "");
+    const persona = buildPersona(ctx.citizen, ctx.progress, dossier?.profile, { paid: ctx.paid, recentWork });
     // The agent's persona (identity/level/memory/dossier) + how to do THIS
     // ability + the specific task + the safety guardrail. User brief isolated.
     // Multi-turn: the prior output is CLIENT-SUPPLIED, so it is UNTRUSTED data —

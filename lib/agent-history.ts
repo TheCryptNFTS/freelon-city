@@ -40,6 +40,33 @@ export async function getAgentHistory(tokenId: number): Promise<AgentWork[]> {
   }
 }
 
+/**
+ * Compact digest of recent work, for injecting into the agent's PERSONA so it
+ * can reference what it has actually done for this holder — the difference
+ * between a continuing relationship and a stateless chatbot. Newest first; text
+ * snippets are short to protect the token budget. Returns "" when there's no
+ * history (caller omits the block).
+ */
+export function workDigest(history: AgentWork[], max = 5): string {
+  const items = history.slice(0, max);
+  if (items.length === 0) return "";
+  const ago = (ts: number) => {
+    const d = Math.floor((Date.now() - ts) / 86_400_000);
+    if (d <= 0) return "today";
+    if (d === 1) return "yesterday";
+    return `${d}d ago`;
+  };
+  return items
+    .map((w) => {
+      const what =
+        w.kind === "image"
+          ? "made an image"
+          : w.body.split(/\s+/).slice(0, 14).join(" ").trim();
+      return `- ${ago(w.timestamp)} · ${w.abilityLabel}/${w.task}: ${what}`;
+    })
+    .join("\n");
+}
+
 export async function addAgentWork(tokenId: number, entry: Omit<AgentWork, "id" | "timestamp">): Promise<void> {
   const rec: AgentWork = {
     ...entry,

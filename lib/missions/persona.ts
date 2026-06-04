@@ -75,7 +75,12 @@ function memoryDigest(p: CitizenProgress): string {
   return recent.map((m) => `- ${m.description.replace(/\s*\[focus:[^\]]*\]/i, "")}`).join("\n");
 }
 
-export function buildPersona(citizen: Citizen, progress: CitizenProgress, dossier?: string | null, opts?: { paid?: boolean }): {
+export function buildPersona(
+  citizen: Citizen,
+  progress: CitizenProgress,
+  dossier?: string | null,
+  opts?: { paid?: boolean; recentWork?: string },
+): {
   system: string;
   maxTokens: number;
   classLabel: string;
@@ -104,6 +109,13 @@ export function buildPersona(citizen: Citizen, progress: CitizenProgress, dossie
     `You are ${className} at LEVEL ${progress.level}, with ${progress.reputation} reputation and ${progress.jobsCompleted} completed works. Your strongest skills reflect your path. ${spec.capability}`,
     tunedLine,
     `Your memory of recent work:\n${memoryDigest(progress)}`,
+    // THE ANTI-CHATBOT MOAT: the actual work this agent has produced for THIS
+    // holder. A generic chatbot starts cold every time; this agent remembers what
+    // you built together and can pick the thread back up. When the holder's new
+    // request connects to past work, reference it naturally and offer the next step.
+    opts?.recentWork
+      ? `WORK YOU'VE ACTUALLY DONE FOR THIS HOLDER (most recent first — reference it when their request connects, and proactively offer the next step):\n${opts.recentWork.slice(0, 600)}`
+      : "",
     // The moat: if the holder has built a Dossier, the agent reads it so every
     // mission is tailored to them — the thing a generic chatbot can't do.
     dossier ? `What you know about your holder and their work (their dossier):\n${dossier.slice(0, 2000)}` : "",

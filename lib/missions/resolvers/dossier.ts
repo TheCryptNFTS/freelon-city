@@ -28,7 +28,10 @@ export async function dossierResolver(ctx: MissionContext): Promise<MissionOutpu
   }
 
   const existing = await getDossier(ctx.citizen.id);
-  const persona = buildPersona(ctx.citizen, ctx.progress, undefined, { paid: ctx.paid });
+  // Anti-chatbot moat: the dossier-builder also sees the agent's real past work.
+  const { getAgentHistory, workDigest } = await import("@/lib/agent-history");
+  const recentWork = await getAgentHistory(ctx.citizen.id).then(workDigest).catch(() => "");
+  const persona = buildPersona(ctx.citizen, ctx.progress, undefined, { paid: ctx.paid, recentWork });
 
   const system = [
     persona.system,

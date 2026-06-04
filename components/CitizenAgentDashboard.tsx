@@ -372,6 +372,30 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
             ))}
           </div>
 
+          {/* WELCOME BACK — the relationship moment. If this agent has done work
+              before and the box is empty, invite the holder to continue the last
+              thread (pre-selects that ability + primes the brief). This is what
+              makes it feel like a colleague who remembers, not a fresh chatbot. */}
+          {history.length > 0 && !brief.trim() && payStep === "idle" && (() => {
+            const last = history[0];
+            const a = abilities?.find((x) => x.id === last.ability);
+            if (!a) return null;
+            return (
+              <button
+                type="button"
+                className="agentdash-resume"
+                onClick={() => {
+                  setAbilityId(a.id);
+                  setTaskKey(a.tasks.find((t) => t.key === last.task)?.key ?? a.tasks[0]?.key ?? "");
+                  setBrief(`Continue from my last ${last.abilityLabel}: `);
+                  setOutput(null); setErr(null); resetPay();
+                }}
+              >
+                ⬡ Welcome back — pick up where you left off · continue your last {last.abilityLabel}
+              </button>
+            );
+          })()}
+
           {/* Task + brief */}
           {ability && (
             <div className="agentdash-run">

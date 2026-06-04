@@ -7497,3 +7497,13 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 }
 .collector-details[open] > .collector-summary::after { transform: rotate(180deg); }
 .collector-details[open] > .collector-summary { color: var(--gold); }
+
+/* "Welcome back — pick up where you left off" (anti-chatbot relationship cue) */
+.agentdash-resume {
+  display: block; width: 100%; text-align: left; margin: 4px 0 12px;
+  padding: 11px 13px; border: 1px solid var(--gold-deep); border-radius: 8px;
+  background: rgba(200,170,100,0.06); cursor: pointer;
+  font-family: var(--mono2); font-size: 12px; letter-spacing: 0.03em;
+  color: var(--gold-bright); line-height: 1.45; transition: background .15s, border-color .15s;
+}
+.agentdash-resume:hover { background: rgba(200,170,100,0.12); border-color: var(--gold); }
