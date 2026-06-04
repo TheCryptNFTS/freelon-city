@@ -4,9 +4,6 @@ import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
 import { CitizenShowcase } from "@/components/CitizenShowcase";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
-import { OtherSignalsStrip } from "@/components/OtherSignalsStrip";
-import { CivGlyph } from "@/components/CivGlyph";
-import { CIVILIZATIONS, CONTRACT, METADATA_CID, heroImageUrl } from "@/lib/constants";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -40,21 +37,13 @@ export const metadata: Metadata = {
 // client islands (IdentityGreeting / HeroMarketStat) never get baked
 // into a stale static shell.
 export const dynamic = "force-dynamic";
-// Audit 2026-05-25 — homepage mythic compression. Removed from homepage
-// render + imports: DoThisNow (quest-board energy), CityTerminal
-// (dashboard above the fold), HonoreeStrip (celeb pfp grid in hero),
-// LiveStats (FLOOR/HOLDERS/MINTED stats inside hero), WalletScanner +
-// signal-check section (duplicate of /archive scanner). All components
-// still live at their own routes — only the homepage surface is
-// stripped. Final homepage spine: Hero → OtherSignalsStrip →
-// Civilizations → Pull quote + ENTER CTA → On-chain footer.
-// Phase 3/4 historical: also removed from this file's commented blocks
-// — WHY FREELON, CivWarBoard, Four One-of-Ones, honoree band, featured
-// citizens, TopPatronsStrip, RecentTransmissions. Imports/locals
-// previously kept for those (getOneOfOnes/getAllCitizens/getHonoraries
-// /imageUrl/getUsdPerEth/hexToUsdLabel/ONE_OF_ONE_TAGLINES) are gone
-// now that compression is final. To restore any section, revert the
-// commented blocks AND re-add the matching import.
+// 2026-06-04 — AGENTS-ONLY homepage (founder: "agents are the main thing").
+// The newcomer-path simplification stripped everything that wasn't the agent
+// pitch. Current spine: Hero → Why own → How it works → CitizenShowcase →
+// closing CTA. Removed from the homepage (each still lives at its own route,
+// reachable via the Explore ▾ menu): the ecosystem tree, OtherSignalsStrip
+// (archive strip), the ten-civilizations grid, the pull quote, the on-chain
+// block. To restore one to the homepage, re-add its <section> + matching import.
 
 export default function Home() {
   return (
@@ -165,185 +154,22 @@ export default function Home() {
           that the moment a visitor scrolls past the hero. */}
       <CitizenShowcase />
 
-      {/* ── THE ECOSYSTEM — only AFTER FREELONS are understood. A simple tree:
-          FREELONS first, then HEX (the reward layer), then the branches. Each
-          line is one plain sentence; deep lore lives a layer down. */}
-      <section className="ecosystem-tree reveal" id="ecosystem">
-        <span className="kicker">⬡ THE ECOSYSTEM</span>
-        <h2>One city, <em>five parts</em></h2>
-        <ul className="eco-tree">
-          <li>
-            <Link href="/citizens"><strong>FREELONS</strong></Link>
-            <span>Trainable AI agents you upskill and can trade.</span>
-          </li>
-          <li>
-            <Link href="/earn"><strong>HEX</strong></Link>
-            <span>The shared reward layer across the city. Use the ecosystem, earn HEX, spend it on actions, upgrades and access.</span>
-          </li>
-          <li>
-            <Link href="/collections/emile0x1908"><strong>EMILE</strong></Link>
-            <span>The creative and emotional branch — fun, memory, imagination, storytelling.</span>
-          </li>
-          <li>
-            <Link href="/crypt-tcg"><strong>TCG + CRYPT OGs</strong></Link>
-            <span>Game assets for the card-game branch — battles, strategy, collection.</span>
-          </li>
-          <li>
-            <Link href="/collections/oogies"><strong>OOGIES</strong></Link>
-            <span>The hidden utility branch. More coming.</span>
-          </li>
-        </ul>
-      </section>
-
-      {/* OTHER SIGNALS · ARCHIVE strip — the universe bridge. */}
-      <OtherSignalsStrip />
-
-      {/* SIGNAL RECOGNITION section removed from homepage 2026-05-31 (ruthless
-         simplification). It stacked 6 jargon nouns (Citizens / Dead signals /
-         Combat relics / Ancient species / Memory fragments / Collapse records)
-         on a newcomer before they understood the product — a core contributor
-         to the "too much / too complex" feeling. The /archive scanner it
-         pointed to is still reachable via the More nav. Restore by reverting
-         this block if the bridge is missed. */}
-
-      {/* Compressed homepage spine. Earlier iterations of this file
-         carried ~200 LOC of commented-out JSX blocks (WHY FREELON,
-         CivWarBoard, Four One-of-Ones, honoree band, featured citizens,
-         TopPatronsStrip, RecentTransmissions) preserved as "revert
-         switches" after the 2026-05-25 mythic compression. Those
-         components moved to components/_archive/ on 2026-05-26 with
-         a README explaining how to restore one. The commented JSX
-         blocks were pruned here so the active spine reads cleanly.
-         To restore a section: see components/_archive/README.md. */}
-
-      {/* CIVILIZATIONS */}
-      <section className="civs-section reveal">
-        <div className="section-bar" style={{ paddingTop: "var(--s-9)" }}>
-          <div className="left-col">
-            <span className="kicker">TEN SIGNAL DOCTRINES</span>
-            <h2>Ten <em>civilizations</em></h2>
-          </div>
-          <Link className="more" href="/civilizations">ENTER A CIVILIZATION →</Link>
-        </div>
-        <div
-          className="civ-grid"
-          role="region"
-          aria-label="The ten civilizations — scroll horizontally to explore"
-          tabIndex={0}
-        >
-          {Object.entries(CIVILIZATIONS).map(([slug, c]) => (
-            <Link
-              key={slug}
-              href={`/civilizations/${slug}`}
-              style={{ "--civ": c.color } as React.CSSProperties}
-            >
-              <div className="top" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <CivGlyph slug={slug} color={c.color} size={22} title={c.name} />
-                <span className="idx">{c.stamp}</span>
-                <span className="name">{c.doctrine}</span>
-              </div>
-              <span className="pop">{c.population}</span>
-              <p className="role">{c.role}</p>
-              <span className="chant">⬡ {c.chant}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Phase 4 compression 2026-05-25: honoree band + featured
-         citizens + TopPatrons + RecentTransmissions all hidden from
-         homepage. They live at /tribute, /citizens, /patrons,
-         /transmissions. Hero + DoThisNow + GoodValueToSweep +
-         OtherSignals + CityTerminal + Civilizations + SignalCheck
-         already cover HEX/CITY/SIGNAL — these were noise. */}
-      {/*
-      <section className="honoree-band reveal">
-        <div className="section-bar">
-          <div className="left-col"><span className="kicker">35 TRIBUTES · NAMED AFTER THE SIGNAL CARRIERS</span><h2>The <em>honoraries</em></h2></div>
-          <Link className="more" href="/tribute">SEE ALL 35 →</Link>
-        </div>
-        <div className="honoree-grid">
-          {honoraries.slice(0, 7).map((h) => (
-            <Link key={h.id} href={`/tribute/${(h.honoree_handle || "").replace(/^@/, "") || h.id}`} className="honoree-cell">
-              <img src={imageUrl(h.id)} alt={h.honoree} loading="lazy" />
-              <div className="meta"><div className="name">{h.honoree}</div><div className="handle">{h.honoree_handle}</div></div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="featured-band reveal">
-        <div className="section-bar">
-          <div className="left-col"><span className="kicker">EIGHT OF FOUR THOUSAND FORTY</span><h2>8 <em>citizens</em><br />4,032 more behind them</h2></div>
-          <Link className="more" href="/citizens">BROWSE ALL 4040 →</Link>
-        </div>
-        <div className="featured-grid">
-          {featured.slice(0, 8).map((c) => {
-            const civ = (CIVILIZATIONS as Record<string, { color: string; doctrine: string }>)[c.civilization];
-            return (
-              <Link key={c.id} href={`/citizens/${c.id}`} className="cell" style={{ "--civ": civ?.color } as React.CSSProperties}>
-                <img src={imageUrl(c.id)} alt={c.name} loading="lazy" />
-                <div className="id"><div className="top-row"><span>#{c.id.toString().padStart(4, "0")}</span><span className="dot" /></div><div className="civ-name">{civ?.doctrine.toUpperCase()} · {c.tier.toUpperCase()}</div></div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      <TopPatronsStrip />
-      <RecentTransmissions />
-      */}
-
-      {/* PULL QUOTE */}
-      <section className="pull reveal">
-        <q>
-          The platform removed the frame.<br />
-          The people <em>became</em> the frame.
-        </q>
-        {/* Attribution "⬡ FREELON CITY · FINAL TRANSMISSION" removed
-           2026-05-25 — self-quoting your own brand as scripture was a
-           tell. The quote stands on its own. */}
-        {/* CTA below the closer — best line on the site shouldn't dead-end.
-            Single button, single instruction, brand voice. 2026-05-31: the
-            secondary "NEW HERE · 2-MIN GUIDE" button was removed — it
-            duplicated hero Box 01 (/start) and the redundant CTA pair was
-            part of the "too much / minefield" feeling (Discord, Munch). */}
-        <div style={{ marginTop: "var(--s-5)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap", justifyContent: "center" }}>
-          <Link className="btn btn-primary" href="/sync">
-            <span className="lbl">JOIN THE FRAME</span>
-            <span className="ttl">ENTER THE CITY <span className="ar">⬡ →</span></span>
+      {/* ── CLOSING CTA — one clean ending, agents only. 2026-06-04 newcomer-path
+          simplification (founder: "agents are the main thing"): the homepage was
+          stripped to the agent story. The ecosystem tree, archive strip, ten
+          civilizations, pull quote and on-chain block were removed FROM THE
+          HOMEPAGE — every one of those pages still lives at its own route and is
+          reachable from the Explore ▾ menu. To restore any to the homepage,
+          re-add its section + matching import (history: git + components/_archive). */}
+      <section className="home-close reveal">
+        <p className="home-close__line">4,040 trainable agents. Train one. See what it becomes.</p>
+        <div className="home-close__cta">
+          <Link className="btn btn-primary btn-lg" href="/citizens/1">
+            <span className="ttl">TRY AN AGENT →</span>
           </Link>
-        </div>
-      </section>
-
-      {/* ON-CHAIN */}
-      <section className="onchain reveal">
-        <div style={{ marginBottom: "var(--s-5)" }}>
-          <span className="kicker">ON-CHAIN</span>
-          <h2 style={{ marginTop: "var(--s-3)" }}>Truths that <em>don&apos;t move</em></h2>
-        </div>
-        <div className="trinity">
-          <div className="cell">
-            <span className="lbl">CONTRACT — ETHEREUM MAINNET</span>
-            <a className="val" target="_blank" rel="noopener noreferrer" href={`https://etherscan.io/address/${CONTRACT}`}>
-              {(CONTRACT.slice(0, 8) + "…" + CONTRACT.slice(-6)).toUpperCase()} ↗
-            </a>
-            <span className="sub">ONE LINE OF SOLIDITY · ZERO REVISIONS.</span>
-          </div>
-          <div className="cell">
-            <span className="lbl">METADATA — IPFS CID</span>
-            <a className="val" target="_blank" rel="noopener noreferrer" href={`https://ipfs.io/ipfs/${METADATA_CID}`}>
-              {(METADATA_CID.slice(0, 12) + "…" + METADATA_CID.slice(-8)).toUpperCase()} ↗
-            </a>
-            <span className="sub">SEALED · PINNED · UNREMOVABLE.</span>
-          </div>
-          <div className="cell">
-            <span className="lbl">MARKETPLACE</span>
-            <a className="val" target="_blank" rel="noopener noreferrer" href="https://opensea.io/collection/freelons">
-              OPENSEA · /FREELONS ↗
-            </a>
-            <span className="sub">SECONDARY ROYALTIES · 5%</span>
-          </div>
+          <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+            <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
+          </a>
         </div>
       </section>
     </div>

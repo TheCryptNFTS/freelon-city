@@ -7472,3 +7472,28 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 }
 .admin-run-you-msg { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.55; }
 .admin-run-thread .admin-run-out { margin-top: 0; }
+
+/* ── Homepage closing CTA (2026-06-04 agents-only homepage) ── */
+.home-close { text-align: center; padding: var(--s-8) var(--pad) var(--s-9); }
+.home-close__line {
+  font-family: var(--mono2); font-size: clamp(16px, 2.4vw, 22px);
+  letter-spacing: 0.02em; color: var(--ink); margin: 0 0 var(--s-5);
+}
+.home-close__cta { display: flex; gap: var(--s-3); flex-wrap: wrap; justify-content: center; }
+
+/* ── Citizen page: collapsed collector/NFT details (2026-06-04) ── */
+.collector-details { margin-top: var(--s-5); border-top: 1px solid var(--line); }
+.collector-summary {
+  list-style: none; cursor: pointer; user-select: none;
+  padding: 16px 0; display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono2); font-size: var(--t-mono-sm, 12px);
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim);
+  transition: color 0.15s;
+}
+.collector-summary:hover { color: var(--gold-bright); }
+.collector-summary::-webkit-details-marker { display: none; }
+.collector-summary::after {
+  content: "▾"; margin-left: auto; font-size: 11px; transition: transform 0.15s;
+}
+.collector-details[open] > .collector-summary::after { transform: rotate(180deg); }
+.collector-details[open] > .collector-summary { color: var(--gold); }

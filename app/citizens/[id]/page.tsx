@@ -228,6 +228,15 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               story unbroken; lore + NFT traits come after.) */}
           <CitizenProgressPanel tokenId={tid} />
 
+          {/* COLLECTOR & NFT DETAILS — 2026-06-04 newcomer-path simplification
+              (founder: "the try-an-agent page is too much"). Everything below the
+              agent block (lore, NFT traits, rarity/value score, scarcity, owner
+              tools) is folded into ONE collapsed expander so the page LEADS with
+              the agent and doesn't wall a newcomer. The components are unchanged —
+              only wrapped — so owner tools still work once expanded. */}
+          <details className="collector-details">
+            <summary className="collector-summary">Collector &amp; NFT details</summary>
+
           {identity && (
             <div className="identity-block">
               <div className="headline" style={{ color }}>{identity.headline}</div>
@@ -438,6 +447,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             originalCiv={c.civilization}
             currentRealignment={realign}
           />
+          </details>
 
           <div className="cta-row ui-cta-row">
             <a className="btn" href={openseaUrl(tid)} target="_blank" rel="noreferrer">

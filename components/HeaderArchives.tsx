@@ -34,11 +34,19 @@ type Group = { heading: string; items: Item[] };
 // tail now grouped Holder / City / Lore. The /combat-archives page
 // itself is untouched — only its nav placement changed.
 const GROUPS: Group[] = [
-  // 2026-06-03 ECOSYSTEM dropdown (founder FREELONS-first restructure): the top
-  // nav is Start / FREELONS / Earn HEX / Play / Ecosystem / Dashboard. This
-  // "Ecosystem ▾" menu holds everything that is NOT the product front door —
-  // the game branch (Crypt TCG + collections), the city, and the lore. Order is
-  // deliberate: branches first, lore last. Keep in sync with MobileNav.tsx.
+  // 2026-06-04 EXPLORE dropdown (founder AGENTS-FIRST restructure): the top nav
+  // is now just FREELONS / Earn HEX / Explore ▾. This menu holds everything that
+  // is NOT the product front door. "Get started" leads (Start / Play / Dashboard
+  // were demoted from the top bar), then the branches, the city, and the lore.
+  // Keep in sync with MobileNav.tsx (one IA, two renderers).
+  {
+    heading: "Get started",
+    items: [
+      { href: "/start",     label: "New here? Start" },
+      { href: "/play",      label: "Play" },
+      { href: "/dashboard", label: "Dashboard" },
+    ],
+  },
   {
     heading: "The branches",
     items: [
@@ -154,10 +162,10 @@ export function HeaderArchives() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        Ecosystem ▾
+        Explore ▾
       </button>
-      {/* "Ecosystem" holds the branches + city + lore; the product (FREELONS)
-          and the live surfaces are top-level nav. */}
+      {/* "Explore" holds get-started + branches + city + lore; the product
+          (FREELONS) and the free hook (Earn HEX) are the only top-level nav. */}
       {mounted && open && pos && createPortal(
         <div
           ref={menuRef}

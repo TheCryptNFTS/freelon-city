@@ -35,18 +35,24 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: null,                                          // top-nav parity block — FREELONS-first
+    heading: null,                                          // top-nav parity block — AGENTS-FIRST
     links: [
-      { href: "/start",     label: "Start" },
       { href: "/citizens",  label: "FREELONS", gold: true },
       { href: "/earn",      label: "Earn HEX" },
+    ],
+  },
+  // 2026-06-04 EXPLORE — mirrors the HeaderArchives "Explore ▾" dropdown:
+  // get-started + the game branch + city + lore, in that order. Start / Play /
+  // Dashboard were demoted from the top bar into "Get started". Keep in sync
+  // with HeaderArchives.tsx (one IA, two renderers).
+  {
+    heading: "GET STARTED",
+    links: [
+      { href: "/start",     label: "New here? Start" },
       { href: "/play",      label: "Play" },
       { href: "/dashboard", label: "Dashboard" },
     ],
   },
-  // 2026-06-03 ECOSYSTEM — mirrors the HeaderArchives "Ecosystem ▾" dropdown:
-  // the game branch + city + lore, in that order. Keep in sync with
-  // HeaderArchives.tsx (one IA, two renderers).
   {
     heading: "THE BRANCHES",
     links: [
