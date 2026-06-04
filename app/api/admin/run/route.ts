@@ -10,6 +10,17 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120; // a real LLM call — allow time
 
+// Ability resolvers expect a "taskKey: brief" input (the key picks the sub-task).
+// A founder typing a plain sentence shouldn't need to know the magic keys, so we
+// prepend each ability's primary task unless they already supplied one.
+const DEFAULT_TASK: Record<string, string> = {
+  strategy: "fix-launch",
+  content: "post",
+  sales: "pitch",
+  research: "market",
+  risk: "red-team",
+};
+
 /**
  * FOUNDER DRY-RUN — run ONE real agent job and return the FULL output, WITHOUT
  * persisting anything: no XP, no level change, no public work-log entry. Lets the
@@ -54,7 +65,13 @@ export async function POST(req: Request) {
   }
 
   const progress = await getProgress(tokenId);
-  const input = mission.inputMode === "prompt" ? brief.slice(0, 600) : "";
+  let input = "";
+  if (mission.inputMode === "prompt") {
+    const raw = brief.slice(0, 600);
+    const hasTask = /^[\w-]+:/.test(raw); // power users may pass their own "task: ..."
+    const def = DEFAULT_TASK[mission.id];
+    input = hasTask || !def ? raw : `${def}: ${raw}`;
+  }
 
   // paid:true → full paid depth, so the founder sees the quality a BUYER gets
   // (free runs would use the cheap, shallower model). This is a dry-run, so the
