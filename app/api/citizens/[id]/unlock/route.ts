@@ -113,7 +113,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       ? await recharge({ tokenId: cid, txHash, priceEthPaid: v.order.priceEth })
       : await activate({ tokenId: cid, txHash, priceEthPaid: v.order.priceEth });
     if (!rec) return NextResponse.json({ error: "not_activated" }, { status: 409 });
-    return NextResponse.json({ ok: true, unlocked: true, kind: v.order.kind, tier: rec.tier, credits: rec.credits });
+    // Single-currency model (2026-06-04): the ETH unlock drops BONUS HEX in the
+    // holder's wallet — the fuel for premium runs, which are now priced in HEX.
+    // bonus = tier.runs × per-run rate. Best-effort: never fail the unlock over it
+    // (the tx is already deduped, so this credits once per valid payment).
+    let bonusHex = 0;
+    try {
+      const { unlockTierFor } = await import("@/lib/missions/unlock");
+      const { UNLOCK_BONUS_HEX_PER_RUN } = await import("@/lib/economy-constants");
+      const { creditWalletHex } = await import("@/lib/wallet-hex-store");
+      bonusHex = unlockTierFor(rec.tier).runs * UNLOCK_BONUS_HEX_PER_RUN;
+      if (bonusHex > 0) {
+        await creditWalletHex(wallet, bonusHex, {
+          kind: "manual",
+          note: `Unlock bonus · #${String(cid).padStart(4, "0")} (+${bonusHex}⬡)`,
+        });
+      }
+    } catch { /* bonus credit is non-critical */ }
+    return NextResponse.json({ ok: true, unlocked: true, kind: v.order.kind, tier: rec.tier, bonusHex, credits: rec.credits });
   }
 
   return NextResponse.json({ error: "bad_action" }, { status: 400 });

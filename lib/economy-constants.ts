@@ -207,4 +207,26 @@ export function ethToHex(eth: number): number {
   return Math.round(eth * ECONOMY.HEX_PER_ETH);
 }
 
+// ─── PREMIUM (HEX-priced) abilities — 2026-06-04 single-currency model ────────
+// HEX is the one usage currency. ETH is spent ONCE at unlock (which grants bonus
+// HEX); after that, premium abilities cost HEX. Prices sit FAR above the daily
+// earn rate (DAILY_CLAIM 10⬡) so free-farmed HEX only ever funds occasional
+// premium use — the ETH-funded unlock bonus is the real fuel. Tune freely.
+export const PREMIUM_HEX: Record<string, number> = {
+  strategy: 1500,
+  risk: 1500,
+  dossier: 2500,
+  "deploy-citizen": 800, // image generation
+  feud: 600,
+};
+
+/** HEX granted per unlock "run" — the bonus dropped in the holder's wallet when
+ *  they activate (or recharge) a FREELON. bonus = tier.runs × this. */
+export const UNLOCK_BONUS_HEX_PER_RUN = 500;
+
+/** HEX cost of a premium ability (0 = not a premium/HEX-priced ability). */
+export function premiumHexFor(missionId: string): number {
+  return PREMIUM_HEX[missionId] ?? 0;
+}
+
 export type EconomyKey = keyof typeof ECONOMY;

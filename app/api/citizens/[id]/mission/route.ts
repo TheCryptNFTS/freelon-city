@@ -168,25 +168,41 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { PAYMENTS_LIVE } = await import("@/lib/missions/pricing");
   const { requiresUnlock } = await import("@/lib/missions/unlock");
   const unlockGated = PAYMENTS_LIVE && requiresUnlock(mission.id);
-  let spentCredit = false;
-  let runsRemaining = -1; // premium runs left after this spend (for the low nudge)
+  // HEX is the single usage currency (2026-06-04). A premium ability still needs
+  // the citizen UNLOCKED (the one-time ETH gate, which dropped bonus HEX in the
+  // wallet) — but the run itself is now paid in HEX, not a separate credit pool.
+  let premiumHexSpent = 0; // HEX charged for this premium run (refunded on failure)
   if (unlockGated) {
-    const { isUnlocked, spendCredit } = await import("@/lib/missions/unlock-store");
+    const { isUnlocked } = await import("@/lib/missions/unlock-store");
     if (!(await isUnlocked(cid))) {
       return NextResponse.json(
         { error: "unlock_required", message: "Unlock this FREELON to use its premium abilities." },
         { status: 402 },
       );
     }
-    const spend = await spendCredit(cid);
-    if (!spend.ok) {
-      return NextResponse.json(
-        { error: "no_credits", message: "This agent is out of premium runs. Recharge to refill." },
-        { status: 402 },
-      );
+    const { premiumHexFor } = await import("@/lib/economy-constants");
+    const cost = premiumHexFor(mission.id);
+    if (cost > 0) {
+      const rec = await getWalletHex(wallet);
+      if (rec.balance < cost) {
+        return NextResponse.json(
+          { error: "insufficient_hex", required: cost, balance: rec.balance, message: `This run costs ${cost}⬡. Earn more ⬡, or unlock to top up.` },
+          { status: 402 },
+        );
+      }
+      try {
+        await debitWalletHex(wallet, cost, {
+          kind: "manual",
+          note: `Premium: ${mission.title} on #${String(cid).padStart(4, "0")} (-${cost}⬡)`,
+        });
+      } catch (e) {
+        if (e instanceof InsufficientHexError) {
+          return NextResponse.json({ error: "insufficient_hex", required: cost }, { status: 402 });
+        }
+        return NextResponse.json({ error: "debit_failed" }, { status: 402 });
+      }
+      premiumHexSpent = cost;
     }
-    spentCredit = true;
-    runsRemaining = spend.remaining;
   }
 
   // 8a. PAYMENT GATE — when PAYMENTS_LIVE and this mission has a USD price (and
@@ -310,13 +326,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }).catch(() => {});
   }
   if (!output.ok) {
-    // Unlock-gated mission failed → give the spent signal credit back (no output,
-    // no charge). The holder can just run again.
-    if (spentCredit) {
-      const { refundCredit } = await import("@/lib/missions/unlock-store");
-      await refundCredit(cid);
+    // Premium mission failed → give the spent HEX back (no output, no charge).
+    // The holder can just run again.
+    if (premiumHexSpent > 0) {
+      await creditWalletHex(wallet, premiumHexSpent, {
+        kind: "manual",
+        note: `Refund: ${mission.title} on #${String(cid).padStart(4, "0")} (+${premiumHexSpent}⬡)`,
+      }).catch(() => {});
       return NextResponse.json(
-        { error: "mission_failed", message: output.error || "No output — your credit was refunded. Try again.", retryable: true },
+        { error: "mission_failed", message: output.error || "No output — your ⬡ was refunded. Try again.", retryable: true },
         { status: 502 },
       );
     }
@@ -382,7 +400,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // threshold. Fully wrapped — a failed import here must NEVER 500 a run that
   // already succeeded + (for premium) already spent a credit. (Hardened 2026-06-04.)
   try {
-    const { notifyAgentLevelUp, notifyRunsLow, RUNS_LOW_THRESHOLD } = await import("@/lib/missions/agent-notify");
+    const { notifyAgentLevelUp } = await import("@/lib/missions/agent-notify");
     if (result.leveledUp) {
       const { deriveSpec } = await import("@/lib/specialization");
       const spec = deriveSpec(result.progress);
@@ -390,9 +408,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         wallet, tokenId: cid, level: result.progress.level,
         rankLabel: spec.cls !== "drifter" ? spec.rank.label : undefined,
       }).catch(() => {});
-    }
-    if (spentCredit && runsRemaining >= 0 && runsRemaining <= RUNS_LOW_THRESHOLD) {
-      await notifyRunsLow({ wallet, tokenId: cid, remaining: runsRemaining }).catch(() => {});
     }
   } catch { /* notifications are non-critical — never block the response */ }
 
