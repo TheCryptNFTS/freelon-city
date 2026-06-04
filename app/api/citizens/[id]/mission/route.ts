@@ -306,7 +306,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   // 10. Run the resolver. If it throws OR returns ok:false, REFUND the burn —
   //     never charge for undelivered output.
-  const ctx: MissionContext = { citizen, progress, input, walletAddress: wallet, paid, priorOutput };
+  // PREMIUM = a genuinely PAID run → deep model + oracle depth (persona/llm read
+  // ctx.paid). A premium ability is unlock-gated, so the ETH-`paid` flag above is
+  // false for it (paid = isPaid && !requiresUnlock); the real signal is that we
+  // charged HEX for it. Without this, a holder who PAID (unlock + HEX) would get
+  // the cheap, shallow model. (Bug found in debug pass 2026-06-04.)
+  const isPaidRun = paid || premiumHexSpent > 0;
+  const ctx: MissionContext = { citizen, progress, input, walletAddress: wallet, paid: isPaidRun, priorOutput };
   let output;
   try {
     output = await mission.resolve(ctx);
@@ -322,7 +328,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const isImg = output.meta?.kind === "image";
     import("@/lib/missions/ops-log").then((m) => {
       if (isImg) return m.recordImage();
-      return m.recordRunCost({ tier: paid ? "premium" : "cheap", promptTokens: pt, completionTokens: ojt });
+      return m.recordRunCost({ tier: isPaidRun ? "premium" : "cheap", promptTokens: pt, completionTokens: ojt });
     }).catch(() => {});
   }
   if (!output.ok) {
