@@ -14,6 +14,15 @@ type Preflight = { ready: boolean; note: string; checks: Check[] };
 
 const KEY_STORE = "freelon_admin_key";
 
+// The reasoning abilities worth eyeballing for quality (design = image, omitted).
+const RUN_ABILITIES: { id: string; label: string }[] = [
+  { id: "strategy", label: "Strategy" },
+  { id: "risk", label: "Red Team" },
+  { id: "content", label: "Content" },
+  { id: "sales", label: "Sales" },
+  { id: "research", label: "Research" },
+];
+
 function ago(ts: number) {
   const s = Math.floor((Date.now() - ts) / 1000);
   if (s < 60) return `${s}s ago`;
@@ -34,6 +43,13 @@ export function AdminConsole() {
   // preflight inputs
   const [tokenId, setTokenId] = useState("");
   const [wallet, setWallet] = useState("");
+  // dry-run (test a job) inputs
+  const [runAbility, setRunAbility] = useState("strategy");
+  const [runToken, setRunToken] = useState("");
+  const [runBrief, setRunBrief] = useState("");
+  const [runOut, setRunOut] = useState<{ title: string; body: string; kind: string } | null>(null);
+  const [runErr, setRunErr] = useState<string | null>(null);
+  const [runLoading, setRunLoading] = useState(false);
 
   useEffect(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem(KEY_STORE) : null;
@@ -63,6 +79,25 @@ export function AdminConsole() {
       const d = await r.json();
       setPre(d);
     } catch { setErr("Couldn't run the preflight."); }
+  }
+
+  async function runTest() {
+    setRunErr(null); setRunOut(null);
+    if (!runToken.trim() || !runBrief.trim()) { setRunErr("Pick a token # and type a brief."); return; }
+    setRunLoading(true);
+    try {
+      const r = await fetch(`/api/admin/run?key=${encodeURIComponent(key)}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ tokenId: Number(runToken), missionId: runAbility, brief: runBrief }),
+        cache: "no-store",
+      });
+      const d = await r.json();
+      if (r.status === 404) { setRunErr("Dry-run needs ADMIN_SEED_KEY set in Vercel."); return; }
+      if (!r.ok || !d.ok) { setRunErr(d.message || "Run failed — try again."); return; }
+      setRunOut({ title: d.title, body: d.body, kind: d.kind });
+    } catch { setRunErr("Couldn't reach the server."); }
+    finally { setRunLoading(false); }
   }
 
   function submitKey(k: string) {
@@ -113,6 +148,30 @@ export function AdminConsole() {
         ) : <p className="admin-dim">No data.</p>}
         <p className="admin-note">This is your estimated AI cost today — what you&apos;re spending on agent jobs. It stays near $0 until people run paid jobs.</p>
         <button className="admin-refresh" onClick={() => loadOps(key)} disabled={loading}>{loading ? "Refreshing…" : "Refresh"}</button>
+      </section>
+
+      {/* RUN A TEST JOB (dry-run) */}
+      <section className="admin-card">
+        <span className="admin-card-h">RUN A TEST JOB · DRY-RUN</span>
+        <p className="admin-note">See the exact output a paying buyer would get — at full paid depth. Nothing is saved: no level change, no public work-log entry, no charge. Run it as much as you like to judge quality.</p>
+        <div className="admin-run-form">
+          <select className="admin-input admin-input-sm" value={runAbility} onChange={(e) => setRunAbility(e.target.value)}>
+            {RUN_ABILITIES.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+          </select>
+          <input className="admin-input admin-input-sm" placeholder="Token # (any 1–4040)" value={runToken} onChange={(e) => setRunToken(e.target.value)} />
+        </div>
+        <textarea className="admin-input admin-run-brief" placeholder="Tell the agent what to do — e.g. “Fix my launch: $9/mo app that writes 30 days of X posts for founders.”" value={runBrief} onChange={(e) => setRunBrief(e.target.value)} />
+        <button className="btn btn-primary admin-run-btn" onClick={runTest} disabled={runLoading}><span className="ttl">{runLoading ? "Running…" : "Run test →"}</span></button>
+        {runErr && <p className="admin-err">{runErr}</p>}
+        {runOut && (
+          <div className="admin-run-out">
+            <span className="admin-run-out-h">{runOut.title}</span>
+            {runOut.kind === "image"
+              ? <img src={runOut.body} alt="agent output" className="admin-run-img" />
+              : <pre className="admin-run-body">{runOut.body}</pre>}
+            <span className="admin-run-foot">Dry-run · nothing saved</span>
+          </div>
+        )}
       </section>
 
       {/* RECENT ERRORS */}
