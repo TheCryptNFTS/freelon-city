@@ -259,7 +259,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // collection-wide daily pool (image runs cost ~5× a text run). Consume after
     // the per-citizen day-claim so only genuine new runs count.
     const { RUN_COST_CENTS } = await import("@/lib/missions/budget");
-    runCostCents = mission.outputKind === "ai" && mission.id === "deploy-citizen"
+    runCostCents = mission.id === "deploy-video"
+      ? RUN_COST_CENTS.video
+      : mission.id === "deploy-citizen"
       ? RUN_COST_CENTS.image
       : RUN_COST_CENTS.text;
     const budget = await consumeFreeRun(runCostCents);
@@ -326,7 +328,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const pt = typeof output.meta?.promptTokens === "number" ? output.meta.promptTokens : 0;
     const ojt = typeof output.meta?.completionTokens === "number" ? output.meta.completionTokens : 0;
     const isImg = output.meta?.kind === "image";
+    const isVid = output.meta?.kind === "video";
     import("@/lib/missions/ops-log").then((m) => {
+      if (isVid) return m.recordVideo();
       if (isImg) return m.recordImage();
       return m.recordRunCost({ tier: isPaidRun ? "premium" : "cheap", promptTokens: pt, completionTokens: ojt });
     }).catch(() => {});

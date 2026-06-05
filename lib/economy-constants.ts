@@ -217,6 +217,7 @@ export const PREMIUM_HEX: Record<string, number> = {
   risk: 1500,
   dossier: 2500,
   "deploy-citizen": 800, // image generation
+  "deploy-video": 4000, // video generation — the most expensive lever
   feud: 600,
 };
 

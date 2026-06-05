@@ -131,6 +131,7 @@ export const UNLOCK_GATED_ABILITIES = new Set<string>([
   "risk", // Red Team
   "dossier", // the memory moat
   "deploy-citizen", // image generation
+  "deploy-video", // video generation (premium tier)
 ]);
 
 /** Does this mission require an unlock to run? */

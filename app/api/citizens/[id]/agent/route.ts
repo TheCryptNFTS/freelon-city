@@ -45,9 +45,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const unlock = await unlockStatus(cid);
   // Image scenes + character-transform STYLES (for the dashboard picker) + price.
   const { SCENES, STYLES } = await import("@/lib/missions/image-gen");
+  const { VIDEO_STYLES } = await import("@/lib/missions/video-gen");
   const scenes = Object.entries(SCENES).map(([key, s]) => ({ key, label: s.label }));
   const styles = Object.entries(STYLES).map(([key, s]) => ({ key, label: s.label, category: s.category }));
+  const videoStyles = Object.entries(VIDEO_STYLES).map(([key, s]) => ({ key, label: s.label }));
   const imageHexCost = premiumHexFor("deploy-citizen");
+  const videoHexCost = premiumHexFor("deploy-video");
+  // Video only offered when a provider is actually configured (keyless-safe UX).
+  const videoEnabled = !!process.env.REPLICATE_API_TOKEN;
   return NextResponse.json({
     level: progress.level,
     className: spec.className,
@@ -57,7 +62,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     abilities,
     scenes,
     styles,
+    videoStyles,
     imageHexCost,
+    videoHexCost,
+    videoEnabled,
     history,
   });
 }

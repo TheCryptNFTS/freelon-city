@@ -52,6 +52,13 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [imgBusy, setImgBusy] = useState<string | null>(null); // sceneKey while generating
   const [imgOut, setImgOut] = useState<{ url: string; label: string } | null>(null);
   const [imgErr, setImgErr] = useState<string | null>(null);
+  // Video generation (deploy-video) — only shown when a provider is configured.
+  const [videoStyles, setVideoStyles] = useState<{ key: string; label: string }[]>([]);
+  const [videoHexCost, setVideoHexCost] = useState(0);
+  const [videoEnabled, setVideoEnabled] = useState(false);
+  const [vidBusy, setVidBusy] = useState<string | null>(null);
+  const [vidOut, setVidOut] = useState<{ url: string; label: string } | null>(null);
+  const [vidErr, setVidErr] = useState<string | null>(null);
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [brief, setBrief] = useState("");
@@ -83,7 +90,10 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         setHistory(Array.isArray(d.history) ? d.history : []);
         if (Array.isArray(d.scenes)) setScenes(d.scenes);
         if (Array.isArray(d.styles)) setStyles(d.styles);
+        if (Array.isArray(d.videoStyles)) setVideoStyles(d.videoStyles);
         if (typeof d.imageHexCost === "number") setImageHexCost(d.imageHexCost);
+        if (typeof d.videoHexCost === "number") setVideoHexCost(d.videoHexCost);
+        setVideoEnabled(!!d.videoEnabled);
         const first = d.abilities.find((a: AbilityView) => a.primary) ?? d.abilities[0];
         if (first) { setAbilityId(first.id); setTaskKey(first.tasks[0]?.key ?? ""); }
       })
@@ -229,6 +239,40 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       setImgErr((e as Error).message || "Couldn't generate the image.");
     } finally {
       setImgBusy(null);
+    }
+  }
+
+  /** Generate a short branded clip (deploy-video). Same premium pay/sign flow;
+   *  input is the motion-style KEY. Costs videoHexCost ⬡ (the priciest lever). */
+  async function doGenerateVideo(key: string, label: string) {
+    if (vidBusy) return;
+    setVidBusy(key); setVidErr(null); setVidOut(null);
+    const base: Record<string, unknown> = { missionId: "deploy-video", input: key };
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { ...base, ...creds } : base),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-video".`);
+          continue;
+        }
+        if (res.ok && d?.ok && d.output?.kind === "video") {
+          setVidOut({ url: d.output.body, label });
+          refreshAgent();
+        } else {
+          setVidErr(d?.message || d?.error || "Couldn't generate the clip — your ⬡ was not spent on a failed render.");
+        }
+        return;
+      }
+    } catch (e) {
+      setVidErr((e as Error).message || "Couldn't generate the clip.");
+    } finally {
+      setVidBusy(null);
     }
   }
 
@@ -689,6 +733,34 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                   <img src={imgOut.url} alt={imgOut.label} className="agentdash-image-img" />
                   <a className="btn agentdash-outbtn" href={imgOut.url} target="_blank" rel="noreferrer">OPEN FULL SIZE ↗</a>
                 </div>
+              )}
+
+              {/* VIDEO — premium tier, only when a provider is configured. */}
+              {videoEnabled && videoStyles.length > 0 && (
+                <>
+                  <span className="agentdash-images-grp">ANIMATE{paymentsLive && videoHexCost > 0 ? ` · ${videoHexCost.toLocaleString()}⬡` : ""}</span>
+                  <div className="agentdash-scenes">
+                    {videoStyles.map((v) => (
+                      <button
+                        key={v.key}
+                        type="button"
+                        className="agentdash-scene"
+                        disabled={!!vidBusy}
+                        onClick={() => doGenerateVideo(v.key, v.label)}
+                      >
+                        {vidBusy === v.key ? "Rendering… (~1 min)" : `▶ ${v.label}`}
+                      </button>
+                    ))}
+                  </div>
+                  {vidErr && <p className="agentdash-err">{vidErr}</p>}
+                  {vidOut && (
+                    <div className="agentdash-image-out">
+                      <span className="agentdash-image-cap">{vidOut.label}</span>
+                      <video src={vidOut.url} className="agentdash-image-img" controls loop autoPlay muted playsInline />
+                      <a className="btn agentdash-outbtn" href={vidOut.url} target="_blank" rel="noreferrer">OPEN CLIP ↗</a>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

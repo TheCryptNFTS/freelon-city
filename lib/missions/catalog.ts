@@ -12,6 +12,7 @@
 import { registerMission } from "@/lib/missions/registry";
 import { ECONOMY } from "@/lib/economy-constants";
 import { deployResolver } from "@/lib/missions/resolvers/deploy";
+import { deployVideoResolver } from "@/lib/missions/resolvers/deploy-video";
 import { dossierResolver } from "@/lib/missions/resolvers/dossier";
 import { feudResolver } from "@/lib/missions/resolvers/feud";
 import { versusResolver } from "@/lib/missions/resolvers/versus";
@@ -40,6 +41,24 @@ registerMission({
   inputMode: "prompt", // input = scene KEY (allowlisted), NOT a free prompt
   category: "cosmetic", // gallery only — does NOT make the citizen "tuned for neon rooftops"
   resolve: deployResolver,
+});
+
+// Deploy Video — the premium tier above images: animate the citizen into a short
+// branded clip. Server-allowlisted motion KEY (no free prompt). Higher skill gate
+// + price (video is the most expensive lever). Ships keyless-safe (see video-gen).
+registerMission({
+  id: "deploy-video",
+  title: "Animate Citizen",
+  tagline: "Animate your citizen into a short branded clip.",
+  description:
+    "Bring this citizen to life — a short looping video rendered from its own art, branded and shareable. The premium tier above images.",
+  cost: 0,
+  gate: { skill: "design", minLevel: 3 },
+  rewardXp: ECONOMY.MISSION_XP_T2,
+  outputKind: "ai",
+  inputMode: "prompt", // input = motion-style KEY (allowlisted)
+  category: "cosmetic",
+  resolve: deployVideoResolver,
 });
 
 // Citizen Dossier — the MOAT product. The citizen keeps a persistent file on the

@@ -29,6 +29,7 @@ const DEFAULT_BUDGET_USD = 20;
 export const RUN_COST_CENTS = {
   text: 1, // cheap-model mission (~0.2¢ real) — rounded up hard
   image: 5, // gpt-image-1.5 medium 1024² (~4.65¢ real)
+  video: 60, // image-to-video (~$0.50 real) — rounded up hard
 } as const;
 
 function utcDay(): string {
