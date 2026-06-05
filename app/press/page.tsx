@@ -155,9 +155,9 @@ export default function PressPage() {
       <section style={{ marginTop: "var(--s-7)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/numbers"><span className="ttl">PULSE →</span></Link>
-          <Link className="btn btn-secondary" href="/architect"><span className="ttl">THE ARCHITECT →</span></Link>
-          <Link className="btn btn-secondary" href="/roadmap"><span className="ttl">THE ROADMAP →</span></Link>
+          <Link className="btn btn-primary" href="/dashboard"><span className="ttl">PULSE →</span></Link>
+          <Link className="btn btn-secondary" href="/tribute#architect"><span className="ttl">THE ARCHITECT →</span></Link>
+          <Link className="btn btn-secondary" href="/canon#roadmap"><span className="ttl">THE ROADMAP →</span></Link>
         </div>
       </section>
     </div>

@@ -187,7 +187,7 @@ export function SynthesisSection({ stats }: { stats: DefenderStats }) {
           >
             <span className="ttl">POST ON X →</span>
           </a>
-          <Link className="btn btn-secondary" href="/numbers"><span className="ttl">PULSE →</span></Link>
+          <Link className="btn btn-secondary" href="/dashboard"><span className="ttl">PULSE →</span></Link>
         </div>
       </section>
     </>

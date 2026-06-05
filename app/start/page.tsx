@@ -628,12 +628,14 @@ function Step({
       <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.65, margin: "8px 0 12px" }}>
         {body}
       </p>
+      {/* Step CTAs are SECONDARY — the page has one primary (SYNC + CLAIM) so
+          the walkthrough steps don't each compete for the gold treatment. */}
       {cta.external ? (
-        <a className="btn btn-primary btn-sm" href={cta.href} target="_blank" rel="noreferrer">
+        <a className="btn btn-secondary btn-sm" href={cta.href} target="_blank" rel="noreferrer">
           <span className="ttl">{cta.label}</span>
         </a>
       ) : (
-        <Link className="btn btn-primary btn-sm" href={cta.href}>
+        <Link className="btn btn-secondary btn-sm" href={cta.href}>
           <span className="ttl">{cta.label}</span>
         </Link>
       )}

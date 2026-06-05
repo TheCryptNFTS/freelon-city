@@ -71,7 +71,7 @@ export function FifthBracketClient() {
       </div>
 
       <div style={{ marginTop: 32, display: "flex", gap: 14, flexWrap: "wrap" }}>
-        <Link href="/carrier" className="btn btn-primary">
+        <Link href="/sync#carrier" className="btn btn-primary">
           <span className="lbl">CARRY THE SIGNAL</span>
           <span className="ttl">OPEN CARRIER <span className="ar">→</span></span>
         </Link>

@@ -82,15 +82,17 @@ export default function Home() {
           </p>
           <p className="hero-landing__rhythm">Train it. Level it. Use it. Trade it.</p>
 
-          {/* THREE actions, no more. Own (buy) · Try (see a live agent) · Earn (free hook). */}
+          {/* ONE primary action (TRY — experience the agent), then OWN as the
+              secondary, then EARN as a tertiary text link. Value before purchase,
+              and consistent with the closing CTA below. */}
           <div className="hero-landing__cta hero-cta-row">
-            <Link className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
-              <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
-            </Link>
-            <Link className="btn btn-secondary btn-lg" href="/citizens/1">
+            <Link className="btn btn-primary btn-lg" href="/citizens/1">
               <span className="ttl">TRY AN AGENT →</span>
             </Link>
-            <Link className="btn btn-secondary btn-lg" href="/earn">
+            <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+              <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
+            </a>
+            <Link className="btn btn-ghost btn-lg" href="/earn">
               <span className="ttl">EARN HEX →</span>
             </Link>
           </div>

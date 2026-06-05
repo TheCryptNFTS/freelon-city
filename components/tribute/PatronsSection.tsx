@@ -108,8 +108,8 @@ export async function PatronsSection() {
       </div>
 
       <div style={{ marginTop: "var(--s-5)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-        <Link className="btn btn-primary" href="/carrier"><span className="ttl">CARVE YOUR NAME →</span></Link>
-        <Link className="btn btn-secondary" href="/leaderboard"><span className="ttl">THE LEADERBOARD →</span></Link>
+        <Link className="btn btn-primary" href="/sync#carrier"><span className="ttl">CARVE YOUR NAME →</span></Link>
+        <Link className="btn btn-secondary" href="/dashboard#earners"><span className="ttl">THE LEADERBOARD →</span></Link>
       </div>
     </section>
   );

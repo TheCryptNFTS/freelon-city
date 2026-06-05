@@ -150,20 +150,23 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
           </div>
         </Link>
       </section>
+      {/* This is a public conversion page — BUY is the one primary action.
+          Share (viral) is secondary; entering the civ + claiming a carrier are
+          tertiary. One gold button per screen. */}
       <section className="cp-cta">
-        <a className="btn btn-primary" href={intent} target="_blank" rel="noreferrer">
-          <span className="lbl">RELAY</span>
-          <span className="ttl">SHARE THIS PROFILE <span className="ar">→</span></span>
-        </a>
-        <Link className="btn btn-secondary" href={`/civilizations/${r.civilization}`}>
-          <span className="lbl">ENTER</span>
-          <span className="ttl">{civ?.name?.toUpperCase()} →</span>
-        </Link>
-        <a className="btn btn-secondary" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+        <a className="btn btn-primary" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
           <span className="lbl">OWN ONE</span>
           <span className="ttl">BUY A FREELON ↗</span>
         </a>
-        <Link className="btn btn-ghost" href="/carrier">
+        <a className="btn btn-secondary" href={intent} target="_blank" rel="noreferrer">
+          <span className="lbl">RELAY</span>
+          <span className="ttl">SHARE THIS PROFILE <span className="ar">→</span></span>
+        </a>
+        <Link className="btn btn-ghost" href={`/civilizations/${r.civilization}`}>
+          <span className="lbl">ENTER</span>
+          <span className="ttl">{civ?.name?.toUpperCase()} →</span>
+        </Link>
+        <Link className="btn btn-ghost" href="/sync#carrier">
           <span className="ttl">CLAIM YOUR OWN CARRIER →</span>
         </Link>
       </section>
@@ -220,10 +223,10 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
             </>
           )}
           <div style={{ display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-            <Link href={`/wallet/${verified.wallet}`} className="btn btn-primary">
+            <Link href={`/wallet/${verified.wallet}`} className="btn btn-secondary">
               <span className="ttl">FULL WALLET PROFILE →</span>
             </Link>
-            <Link href={`/passport/${verified.wallet}`} className="btn btn-secondary">
+            <Link href={`/passport/${verified.wallet}`} className="btn btn-ghost">
               <span className="ttl">PASSPORT →</span>
             </Link>
           </div>
@@ -236,7 +239,7 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
             ? `Verified holder. ${verified.balance} citizen${verified.balance !== 1 ? "s" : ""} · ${verified.hexBalance.toLocaleString()} ⬡.`
             : `This is @${h}. If it's you, your dashboard tracks streak, decay, and ⬡.`}
         </p>
-        <Link className="btn btn-primary" href="/carrier">
+        <Link className="btn btn-secondary" href="/sync#carrier">
           <span className="ttl">OPEN MY CARRIER DASH →</span>
         </Link>
       </section>

@@ -233,10 +233,10 @@ export default async function EarnPage() {
             ⬡ The city only ticks for active carriers. Hit at least {ECONOMY.ACTIVITY_MIN_DAYS_PER_WINDOW} active days per {ECONOMY.ACTIVITY_DECAY_DAYS}-day window or background hex pauses. Posting daily is the easiest way.
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Link href="/carrier" className="btn btn-primary">
+            <Link href="/sync#carrier" className="btn btn-primary">
               <span className="ttl">CLAIM TODAY&apos;S {ECONOMY.DAILY_CLAIM} ⬡ →</span>
             </Link>
-            <Link href="/relay" className="btn btn-secondary">
+            <Link href="/earn#relay" className="btn btn-secondary">
               <span className="ttl">⬡ RELAY · POST TEMPLATES →</span>
             </Link>
           </div>
@@ -307,10 +307,10 @@ export default async function EarnPage() {
             <Link href="/transmissions" className="btn btn-primary">
               <span className="ttl">⬡ TRANSMIT YOUR SIGNAL →</span>
             </Link>
-            <Link href="/civ-wars" className="btn btn-secondary">
+            <Link href="/dashboard#civ-war" className="btn btn-secondary">
               <span className="ttl">CIV WARS →</span>
             </Link>
-            <Link href="/leaderboard" className="btn btn-secondary">
+            <Link href="/dashboard#earners" className="btn btn-secondary">
               <span className="ttl">LEADERBOARD →</span>
             </Link>
           </div>
@@ -338,7 +338,7 @@ export default async function EarnPage() {
               <BurnRow name="Feature citizen"   cost={ECONOMY.FEATURE_CITIZEN_24H}    how="Hero slot on /civilizations for 24h." />
               <BurnRow name="Signal Burst"      cost={ECONOMY.SIGNAL_BURST_COST}      how="Top-of-feed spotlight on the homepage." />
               <BurnRow name="Custom title"      cost={ECONOMY.CUSTOM_TITLE_COST}      how="Vanity title on your /carrier page." />
-              <BurnRow name="Tithe"             cost={ECONOMY.TITHE_MIN}              how={`Burn ≥ ${ECONOMY.TITHE_MIN} ⬡ → name on /patrons for 7 days.`} href="/patrons" />
+              <BurnRow name="Tithe"             cost={ECONOMY.TITHE_MIN}              how={`Burn ≥ ${ECONOMY.TITHE_MIN} ⬡ → name on /tribute for 7 days.`} href="/tribute#patrons" />
               <BurnRow name="Shop"              cost={ECONOMY.SHOP_MIN}               how={`30 artifacts. ${ECONOMY.SHOP_MIN}–${ECONOMY.SHOP_MAX} ⬡.`} href="/shop" />
             </ul>
           </div>

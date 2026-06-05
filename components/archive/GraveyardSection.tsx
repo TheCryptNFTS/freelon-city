@@ -321,7 +321,7 @@ export async function GraveyardSection() {
         >
           <span className="ttl">BUY ON OPENSEA →</span>
         </a>
-        <Link className="btn btn-secondary" href="/leaderboard">
+        <Link className="btn btn-secondary" href="/dashboard#earners">
           <span className="ttl">THE LEADERBOARD →</span>
         </Link>
       </div>
