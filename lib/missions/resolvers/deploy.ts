@@ -11,32 +11,41 @@
 
 import type { MissionContext, MissionOutput } from "@/lib/missions/types";
 import { deriveSpec } from "@/lib/specialization";
-import { generateCitizenScene, isValidScene, SCENES } from "@/lib/missions/image-gen";
+import { generateCitizenScene, isValidScene, isValidStyle, SCENES, STYLES } from "@/lib/missions/image-gen";
 
 function id4(n: number): string {
   return n.toString().padStart(4, "0");
 }
 
 export async function deployResolver(ctx: MissionContext): Promise<MissionOutput> {
-  const sceneKey = ctx.input.trim();
-  if (!sceneKey || !isValidScene(sceneKey)) {
+  // Input is either a scene KEY ("throne-room") or a style KEY prefixed "style:"
+  // ("style:transformers-robot"). Both are server-allowlisted (no free prompt).
+  const raw = ctx.input.trim();
+  const isStyle = raw.startsWith("style:");
+  const renderKey = isStyle ? raw.slice("style:".length).trim() : raw;
+  const valid = isStyle ? isValidStyle(renderKey) : isValidScene(renderKey);
+  if (!renderKey || !valid) {
     return {
       ok: false,
-      title: "Pick a scene",
+      title: isStyle ? "Pick a style" : "Pick a scene",
       body: "",
-      error: `Choose a scene: ${Object.keys(SCENES).join(", ")}.`,
+      error: isStyle
+        ? `Choose a style: ${Object.keys(STYLES).join(", ")}.`
+        : `Choose a scene: ${Object.keys(SCENES).join(", ")}.`,
     };
   }
 
   const spec = deriveSpec(ctx.progress);
-  const result = await generateCitizenScene({ citizen: ctx.citizen, spec, sceneKey });
+  const result = isStyle
+    ? await generateCitizenScene({ citizen: ctx.citizen, spec, styleKey: renderKey })
+    : await generateCitizenScene({ citizen: ctx.citizen, spec, sceneKey: renderKey });
 
   if (!result.ok) {
     // Make image failures OBSERVABLE — the raw code (no_blob_store / openai_400 /
     // reference_art_missing / empty_image) goes to the ops log so the operator can
     // see WHY a render failed instead of just the friendly message.
     import("@/lib/missions/ops-log")
-      .then((m) => m.recordError(`deploy:${sceneKey}`, new Error(result.error || "unknown"), { tokenId: ctx.citizen.id }))
+      .then((m) => m.recordError(`deploy:${renderKey}`, new Error(result.error || "unknown"), { tokenId: ctx.citizen.id }))
       .catch(() => {});
     return {
       ok: false,
@@ -49,20 +58,20 @@ export async function deployResolver(ctx: MissionContext): Promise<MissionOutput
     };
   }
 
-  const scene = SCENES[sceneKey];
+  const label = isStyle ? STYLES[renderKey].label : SCENES[renderKey].label;
   const name = ctx.citizen.transmission_name || ctx.citizen.honoree || `Citizen #${id4(ctx.citizen.id)}`;
   return {
     ok: true,
-    title: `${name} · deployed into ${scene.label}`,
+    title: isStyle ? `${name} · ${label}` : `${name} · deployed into ${label}`,
     // body holds the rendered image URL (UI renders it as an <img>).
     body: result.url,
     meta: {
       kind: "image",
       imageUrl: result.url,
-      scene: sceneKey,
-      sceneLabel: scene.label,
-      // focus = the scene, so repeat deployments accrue into the citizen's history
-      focus: sceneKey,
+      scene: renderKey,
+      sceneLabel: label,
+      // focus = the render key, so repeat deployments accrue into the citizen's history
+      focus: renderKey,
       level: ctx.progress.level,
     },
   };

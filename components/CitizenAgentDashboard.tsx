@@ -45,8 +45,9 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [abilities, setAbilities] = useState<AbilityView[] | null>(null);
   const [paymentsLive, setPaymentsLive] = useState(false);
   const [history, setHistory] = useState<Work[]>([]);
-  // Image generation (deploy-citizen): scene picker + its own busy/result state.
+  // Image generation (deploy-citizen): scene/style picker + its own busy/result state.
   const [scenes, setScenes] = useState<{ key: string; label: string }[]>([]);
+  const [styles, setStyles] = useState<{ key: string; label: string; category: string }[]>([]);
   const [imageHexCost, setImageHexCost] = useState(0);
   const [imgBusy, setImgBusy] = useState<string | null>(null); // sceneKey while generating
   const [imgOut, setImgOut] = useState<{ url: string; label: string } | null>(null);
@@ -81,6 +82,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         if (d.unlock) setUnlock(d.unlock);
         setHistory(Array.isArray(d.history) ? d.history : []);
         if (Array.isArray(d.scenes)) setScenes(d.scenes);
+        if (Array.isArray(d.styles)) setStyles(d.styles);
         if (typeof d.imageHexCost === "number") setImageHexCost(d.imageHexCost);
         const first = d.abilities.find((a: AbilityView) => a.primary) ?? d.abilities[0];
         if (first) { setAbilityId(first.id); setTaskKey(first.tasks[0]?.key ?? ""); }
@@ -193,12 +195,15 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     }
   }
 
-  /** Generate a branded scene image (deploy-citizen). Same premium pay/sign flow
-   *  as a mission run; input is the scene KEY. Costs imageHexCost ⬡. */
-  async function doGenerateImage(sceneKey: string) {
+  /** Generate a branded image (deploy-citizen). `key` is a scene key, or a style
+   *  key when `kind="style"` (sent as "style:<key>"). Same premium pay/sign flow;
+   *  costs imageHexCost ⬡. */
+  async function doGenerateImage(key: string, label: string, kind: "scene" | "style" = "scene") {
     if (imgBusy) return;
-    setImgBusy(sceneKey); setImgErr(null); setImgOut(null);
-    const base: Record<string, unknown> = { missionId: "deploy-citizen", input: sceneKey };
+    const busyId = `${kind}:${key}`;
+    setImgBusy(busyId); setImgErr(null); setImgOut(null);
+    const input = kind === "style" ? `style:${key}` : key;
+    const base: Record<string, unknown> = { missionId: "deploy-citizen", input };
     try {
       let creds: { address: string; signature: string } | null = null;
       for (let attempt = 0; attempt < 2; attempt++) {
@@ -213,7 +218,6 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           continue;
         }
         if (res.ok && d?.ok && d.output?.kind === "image") {
-          const label = scenes.find((s) => s.key === sceneKey)?.label ?? "Scene";
           setImgOut({ url: d.output.body, label });
           refreshAgent();
         } else {
@@ -632,31 +636,57 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               agent is unlocked (or in free test mode). Each render is signed +
               HEX-priced like any premium run, hosted on Blob, and stamped with the
               FREELON signature (free marketing when shared). */}
-          {scenes.length > 0 && (!paymentsLive || unlock?.unlocked) && (
+          {(scenes.length > 0 || styles.length > 0) && (!paymentsLive || unlock?.unlocked) && (
             <div className="agentdash-images">
               <span className="agentdash-images-hd">
-                ⬡ GENERATE IMAGE{paymentsLive && imageHexCost > 0 ? ` · ${imageHexCost.toLocaleString()}⬡ EACH` : ""}
+                ⬡ IMAGE STUDIO{paymentsLive && imageHexCost > 0 ? ` · ${imageHexCost.toLocaleString()}⬡ EACH` : ""}
               </span>
-              <p className="agentdash-images-sub">Render your FREELON into a cinematic scene — branded + ready to share.</p>
-              <div className="agentdash-scenes">
-                {scenes.map((s) => (
-                  <button
-                    key={s.key}
-                    type="button"
-                    className="agentdash-scene"
-                    disabled={!!imgBusy}
-                    onClick={() => doGenerateImage(s.key)}
-                  >
-                    {imgBusy === s.key ? "Rendering…" : s.label}
-                  </button>
-                ))}
-              </div>
+              <p className="agentdash-images-sub">Render your FREELON — every image is branded + ready to share.</p>
+
+              {styles.length > 0 && (
+                <>
+                  <span className="agentdash-images-grp">TRANSFORMS</span>
+                  <div className="agentdash-scenes">
+                    {styles.map((s) => (
+                      <button
+                        key={s.key}
+                        type="button"
+                        className="agentdash-scene"
+                        disabled={!!imgBusy}
+                        onClick={() => doGenerateImage(s.key, s.label, "style")}
+                      >
+                        {imgBusy === `style:${s.key}` ? "Rendering…" : s.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {scenes.length > 0 && (
+                <>
+                  <span className="agentdash-images-grp">SCENES</span>
+                  <div className="agentdash-scenes">
+                    {scenes.map((s) => (
+                      <button
+                        key={s.key}
+                        type="button"
+                        className="agentdash-scene"
+                        disabled={!!imgBusy}
+                        onClick={() => doGenerateImage(s.key, s.label, "scene")}
+                      >
+                        {imgBusy === `scene:${s.key}` ? "Rendering…" : s.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
               {imgErr && <p className="agentdash-err">{imgErr}</p>}
               {imgOut && (
                 <div className="agentdash-image-out">
                   <span className="agentdash-image-cap">{imgOut.label}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imgOut.url} alt={`${imgOut.label} scene`} className="agentdash-image-img" />
+                  <img src={imgOut.url} alt={imgOut.label} className="agentdash-image-img" />
                   <a className="btn agentdash-outbtn" href={imgOut.url} target="_blank" rel="noreferrer">OPEN FULL SIZE ↗</a>
                 </div>
               )}

@@ -7546,3 +7546,6 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .agent-howto-steps strong { color: var(--ink); }
 .agent-howto-foot { margin: 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.55; color: var(--ink-dim); }
 .agent-howto-foot strong { color: var(--gold-bright); }
+
+/* Image studio group labels (Transforms / Scenes) */
+.agentdash-images-grp { display: block; font-family: var(--mono2); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-fade); margin: 14px 0 8px; }

@@ -58,6 +58,33 @@ export function isValidScene(key: string): boolean {
   return Object.prototype.hasOwnProperty.call(SCENES, key);
 }
 
+/**
+ * Server-side STYLE allowlist — character TRANSFORMS (the community-loved
+ * "Transformers" effect, productized). Unlike SCENES (which change the setting and
+ * keep the figure locked), a style REIMAGINES the figure itself while preserving
+ * its silhouette/pose/identity cues + the original background. The client may only
+ * pass one of these keys (no free-form prompt → brand-safe, no moderation risk).
+ */
+export const STYLES: Record<string, { label: string; category: string; desc: string }> = {
+  "transformers-robot": { label: "Transformer", category: "Mech", desc: "a cinematic Transformers-style transforming robot — metallic panels, robotic joints, glowing mechanical details, heroic meme energy" },
+  "cyber-mech":         { label: "Cyber-Mech", category: "Mech", desc: "a sleek armored cyber-mech with carbon-fibre plating, exposed servos, neon underglow, hard-surface sci-fi detail" },
+  "marble-statue":      { label: "Marble Statue", category: "Sculpture", desc: "a flawless white Carrara marble statue on a plinth, chiselled folds, museum lighting, fine veining" },
+  "bronze-bust":        { label: "Bronze Idol", category: "Sculpture", desc: "an ancient cast-bronze idol with green patina and gold-leaf accents, lit like a museum artifact" },
+  "gold-idol":          { label: "Solid Gold", category: "Sculpture", desc: "cast in solid polished gold, reflective and opulent, dramatic rim light, luxury collector feel" },
+  "anime":              { label: "Anime", category: "Illustrated", desc: "a high-detail anime / cel-shaded illustration, bold linework, dynamic shading, expressive and clean" },
+  "comic-ink":          { label: "Comic Ink", category: "Illustrated", desc: "a gritty inked comic-book panel, heavy blacks, halftone shading, dramatic crosshatching" },
+  "vaporwave":          { label: "Vaporwave", category: "Illustrated", desc: "an 80s vaporwave aesthetic — magenta/cyan neon, chrome, grid horizon, retro-futuristic glow" },
+  "graffiti":           { label: "Graffiti", category: "Illustrated", desc: "a bold street-art graffiti mural version, spray-paint texture, drips, vivid outlines on concrete" },
+  "skeleton-lich":      { label: "Lich", category: "Dark", desc: "a skeletal lich form wreathed in eerie soul-fire, cracked bone, glowing sockets, gothic and ominous" },
+  "lego":               { label: "Brick Toy", category: "Toy", desc: "rebuilt entirely from plastic toy building bricks, glossy studs, playful, on a clean studio backdrop" },
+  "claymation":         { label: "Claymation", category: "Toy", desc: "a handmade stop-motion claymation figure, visible thumbprints and clay texture, charming and tactile" },
+  "pixel-art":          { label: "Pixel Art", category: "Toy", desc: "16-bit pixel-art sprite version, crisp pixels, limited palette, retro game character energy" },
+};
+
+export function isValidStyle(key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(STYLES, key);
+}
+
 function id4(n: number): string {
   return n.toString().padStart(4, "0");
 }
@@ -80,6 +107,25 @@ function buildImagePrompt(citizen: Citizen, spec: Specialization, sceneDesc: str
   ].join(" ");
 }
 
+/**
+ * TRANSFORM prompt — the inverse of buildImagePrompt: it REIMAGINES the figure as
+ * a style while preserving identity cues (the glowing geometric hex face, robe
+ * silhouette, palette) and keeping the original background unchanged. This is the
+ * productized "Transformers" effect the community made by hand.
+ */
+function buildTransformPrompt(citizen: Citizen, styleDesc: string): string {
+  return [
+    `Reimagine the character in the reference image as ${styleDesc}.`,
+    "CRITICAL: keep it recognizably the SAME character — same pose, same silhouette, same proportions,",
+    "and preserve its signature glowing geometric HEX where a face would be plus its robe/hood shape and colour palette.",
+    "Do NOT add a human face, eyes, or hair. Reinterpret its form/material in the new style only.",
+    "Keep the ORIGINAL background and composition essentially unchanged — transform ONLY the character itself,",
+    "composited naturally back into the same scene with matching light.",
+    `This is FREELON CITY citizen #${id4(citizen.id)} (${citizen.civilization}).`,
+    "Premium render, dramatic light, collector-grade, readable at thumbnail size. Square 1:1.",
+  ].join(" ");
+}
+
 export type ImageGenResult =
   | { ok: true; url: string; filename: string; promptTokens?: number; imageTokens?: number }
   | { ok: false; error: string };
@@ -91,12 +137,18 @@ export type ImageGenResult =
 export async function generateCitizenScene(args: {
   citizen: Citizen;
   spec: Specialization;
-  sceneKey: string;
+  /** Either a scene key (changes setting) OR a style key (transforms the figure). */
+  sceneKey?: string;
+  styleKey?: string;
   timeoutMs?: number;
 }): Promise<ImageGenResult> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return { ok: false, error: "no_api_key" };
-  if (!isValidScene(args.sceneKey)) return { ok: false, error: "invalid_scene" };
+  const isStyle = !!args.styleKey;
+  const renderKey = isStyle ? args.styleKey! : args.sceneKey ?? "";
+  if (isStyle ? !isValidStyle(renderKey) : !isValidScene(renderKey)) {
+    return { ok: false, error: isStyle ? "invalid_style" : "invalid_scene" };
+  }
 
   // Reference art: fetch the citizen's hosted image (works on serverless; the
   // old ../ship local folder isn't deployed). Timeout-guarded.
@@ -111,8 +163,9 @@ export async function generateCitizenScene(args: {
     return { ok: false, error: "reference_art_missing" };
   }
 
-  const scene = SCENES[args.sceneKey];
-  const prompt = buildImagePrompt(args.citizen, args.spec, scene.desc);
+  const prompt = isStyle
+    ? buildTransformPrompt(args.citizen, STYLES[renderKey].desc)
+    : buildImagePrompt(args.citizen, args.spec, SCENES[renderKey].desc);
 
   const form = new FormData();
   form.append("model", MODEL);
@@ -148,7 +201,7 @@ export async function generateCitizenScene(args: {
     // Auth: the SDK uses BLOB_READ_WRITE_TOKEN if present, else the project's OIDC
     // connection. We DON'T pre-guard on the env token (OIDC-connected stores don't
     // set it) — instead we let put() try and surface its real error if it fails.
-    const filename = `deploy/${id4(args.citizen.id)}-${args.sceneKey}-${Date.now()}.png`;
+    const filename = `deploy/${id4(args.citizen.id)}-${renderKey}-${Date.now()}.png`;
     const { stampSignature } = await import("@/lib/missions/image-stamp");
     const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id);
     let blob;

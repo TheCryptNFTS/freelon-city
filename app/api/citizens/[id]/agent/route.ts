@@ -43,9 +43,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   // non-owner. The brief is not rendered anywhere; only the output is.
   const history = (await getAgentHistory(cid)).map(({ brief: _brief, ...rest }) => rest);
   const unlock = await unlockStatus(cid);
-  // Image scenes (for the dashboard's "Generate image" picker) + its HEX price.
-  const { SCENES } = await import("@/lib/missions/image-gen");
+  // Image scenes + character-transform STYLES (for the dashboard picker) + price.
+  const { SCENES, STYLES } = await import("@/lib/missions/image-gen");
   const scenes = Object.entries(SCENES).map(([key, s]) => ({ key, label: s.label }));
+  const styles = Object.entries(STYLES).map(([key, s]) => ({ key, label: s.label, category: s.category }));
   const imageHexCost = premiumHexFor("deploy-citizen");
   return NextResponse.json({
     level: progress.level,
@@ -55,6 +56,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     unlock, // { unlocked, credits, tier, priceEth, grantPerUnlock }
     abilities,
     scenes,
+    styles,
     imageHexCost,
     history,
   });
