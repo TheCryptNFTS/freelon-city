@@ -59,7 +59,7 @@ const GROUPS: Group[] = [
     items: [
       { href: "/civilizations", label: "Factions" },         // absorbs castes / shapes
       { href: "/transmissions", label: "Community wall" },
-      { href: "/archive",       label: "Connected collections" },
+      { href: "/archive",       label: "The Archive" },
       { href: "/sync",          label: "Connect wallet" },
       { href: "/shop",          label: "Shop" },
     ],

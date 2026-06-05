@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "The Ledger ⬡",
+  title: "Earn HEX ⬡",
   description: "Three time horizons. One question: what do you do right now? The full carrier economy of FREELON CITY.",
 };
 

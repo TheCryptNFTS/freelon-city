@@ -12,50 +12,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
-import { TOTAL, heroImageUrl } from "@/lib/constants";
-
-// The six connected collections with one representative on-chain record
-// each — the same 1/1 art the homepage strip and /archive show. The
-// "30-second version" names the universe in prose; this strip SHOWS it, so
-// a newcomer sees the scope is real, not a marketing claim. Freelons leads
-// with citizen #1 (the origin signal); the rest are seadn.io records.
-const UNIVERSE_THUMBS: { name: string; href: string; image: string }[] = [
-  { name: "Freelons", href: "/citizens", image: heroImageUrl(1) },
-  {
-    name: "The Crypt",
-    href: "/collections/the-crypt-official",
-    image:
-      "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/62731ec9b5f6ba2d2476c16b566881/a362731ec9b5f6ba2d2476c16b566881.png",
-  },
-  {
-    name: "Combat Archives",
-    href: "/combat-archives",
-    image:
-      "https://i2c.seadn.io/ethereum/0x48fd513c9f8ca591ffada7223a261ffc6e797394/7b5c6c2b8cdeda3ae4238574005ea0/867b5c6c2b8cdeda3ae4238574005ea0.jpeg",
-  },
-  {
-    name: "OOGIES",
-    href: "/collections/oogies",
-    image:
-      "https://i2c.seadn.io/ape_chain/0x214cae51c3bae88515aaefd8e1867e64502b0342/2c469337fc98d8e6fc65ddaf2d9493/4f2c469337fc98d8e6fc65ddaf2d9493.png",
-  },
-  {
-    name: "Emile",
-    href: "/collections/emile0x1908",
-    image: "/heroes/emile.jpg",
-  },
-  {
-    name: "SMILES",
-    href: "/collections/smiles-genesis",
-    image:
-      "https://i2c.seadn.io/ethereum/0x30ac46575d2f3474edc79b084088819805e1ef42/93f22023c68dad315e737fddb3d4b7/7693f22023c68dad315e737fddb3d4b7.png",
-  },
-];
+import { TOTAL } from "@/lib/constants";
 
 // Phase 1 metadata 2026-05-26 — route-specific text, reuses
 // /og/home.jpg.
 const PAGE_DESC =
-  "Two minutes to understand FREELON CITY. Read the signal, find your civilization, and enter the archive.";
+  "Two minutes to understand FREELON CITY: own a FREELON, unlock its AI agent, and put it to work.";
 export const metadata: Metadata = {
   title: "Start Here · 2-Min Guide",
   description: PAGE_DESC,
@@ -110,10 +72,10 @@ export default function StartPage() {
             maxWidth: 620,
           }}
         >
-          You can use the city for free — earn HEX, play games, explore the world.
-          But owning a <strong style={{ color: "var(--ink)" }}>FREELON</strong> unlocks the
-          main loop: give your agent jobs, level it up, build its work history, and carry
-          that progress with the NFT. No wallet required to read on.
+          Here&apos;s the whole thing in one line: <strong style={{ color: "var(--ink)" }}>own a FREELON,
+          unlock its agent, and put it to work</strong> — it does jobs for you, remembers your project,
+          and builds a work history that stays with the NFT. (Prefer to look around free first? You
+          can — scroll down.)
         </p>
       </section>
 
@@ -143,7 +105,7 @@ export default function StartPage() {
             margin: "10px 0 6px",
           }}
         >
-          Do one thing: <em style={{ color: "var(--gold)", fontStyle: "normal" }}>sync and claim your {ECONOMY.DAILY_CLAIM} ⬡.</em>
+          Do one thing: <em style={{ color: "var(--gold)", fontStyle: "normal" }}>see an agent work.</em>
         </h2>
         <p
           style={{
@@ -155,11 +117,11 @@ export default function StartPage() {
             margin: "0 auto var(--s-3)",
           }}
         >
-          Enter your X handle, get your civilization, claim today&apos;s hex. ~30 seconds, no wallet needed.
-          Everything below is optional reading for when you want it.
+          Open a real FREELON and see what its agent does — no wallet needed. Everything below is
+          optional reading for when you want it.
         </p>
-        <Link className="btn btn-primary" href="/sync">
-          <span className="ttl">SYNC + CLAIM →</span>
+        <Link className="btn btn-primary" href="/citizens/1">
+          <span className="ttl">SEE AN AGENT →</span>
         </Link>
       </section>
 
@@ -183,80 +145,8 @@ export default function StartPage() {
           upgrades, and access. It is not money and not redeemable outside the city.
         </P>
         <P>
-          FREELONS are the front door, but they sit in a wider universe:{" "}
-          <strong>six collections</strong> (Freelons, The Crypt, Combat Archives,
-          OOGIES, Emile, SMILES Collapse), a <strong>trading-card game</strong>, and a free
-          <strong> arcade</strong> of mini-games. One city ties them together.
-        </P>
-        {/* Show the universe, don't just list it — a record from each
-            connected collection. */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(92px, 1fr))",
-            gridAutoRows: "1fr",
-            gap: 10,
-            margin: "4px 0 4px",
-          }}
-        >
-          {UNIVERSE_THUMBS.map((t) => (
-            <Link
-              key={t.name}
-              href={t.href}
-              {...(t.href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-                textDecoration: "none",
-                color: "var(--ink-2)",
-              }}
-            >
-              <span
-                style={{
-                  position: "relative",
-                  aspectRatio: "1 / 1",
-                  borderRadius: 8,
-                  overflow: "hidden",
-                  border: "1px solid var(--line)",
-                  background: "rgba(0,0,0,0.4)",
-                  display: "block",
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={t.image}
-                  alt={`${t.name} record`}
-                  loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                    filter: "saturate(0.85) contrast(1.02)",
-                  }}
-                />
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--mono2)",
-                  fontSize: 10,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  textAlign: "center",
-                  color: "var(--ink-dim)",
-                  lineHeight: 1.3,
-                }}
-              >
-                {t.name}
-              </span>
-            </Link>
-          ))}
-        </div>
-        <P>
-          <strong>You do NOT have to buy a citizen to play.</strong> You can earn hex,
-          pick a civilization, and use most of the site without owning anything.
-          Owning a citizen unlocks more.
+          That&apos;s the whole product. <strong>You don&apos;t have to buy anything to look around</strong> —
+          but owning a FREELON and unlocking its agent is the part that does real work for you.
         </P>
       </Section>
 
@@ -328,61 +218,59 @@ export default function StartPage() {
       </Section>
 
       {/* ── DO I NEED TO BUY? ── */}
-      <Section title="Do I need to buy a citizen?">
+      <Section title="Do I need to buy one?" collapsible>
         <Box>
-          <Strong color="#7AE08D">No, you don&apos;t.</Strong> Here&apos;s what you can do for free:
-          <Ul>
-            <Li>Claim <strong>{ECONOMY.DAILY_CLAIM} ⬡ every day</strong> just for showing up</Li>
-            <Li>Pick a civilization (a tribe). It assigns based on your X handle.</Li>
-            <Li>Post a transmission (a mini-post) on the city wall</Li>
-            <Li>Earn hex by sharing posts on X — first 10 replies on a city post get double</Li>
-            <Li>Browse all {TOTAL.toLocaleString()} citizens, see who&apos;s ranked top, see the latest sales</Li>
-          </Ul>
+          <Strong color="#7AE08D">To look around — no.</Strong> You can sync, earn ⬡, and browse all{" "}
+          {TOTAL.toLocaleString()} citizens for free (see the section below).
         </Box>
         <Box>
-          <Strong color="var(--gold)">Owning a citizen adds:</Strong>
-          <Ul>
-            <Li>Naming rights — you choose what your citizen is called on the city site</Li>
-            <Li>Civ realignment — switch a citizen to a different tribe</Li>
-            <Li>Bigger hex earnings — owning + active beats active alone</Li>
-            <Li>Status badges that show up across the site</Li>
-            <Li>For the 35 honorary citizens: a private channel page</Li>
-          </Ul>
+          <Strong color="var(--gold)">To put an agent to work — yes.</Strong> Owning a FREELON and unlocking it
+          is what gets you the agent: it does real jobs for you, remembers your project, and builds a work
+          history that stays with the NFT. That&apos;s the product.
         </Box>
       </Section>
 
-      {/* ── FIRST 5 MINUTES ── */}
-      <Section title="Your first 5 minutes (do these in order)">
+      {/* ── THE FOUR STEPS (agent-first) ── */}
+      <Section title="The four steps">
         <Step
           n="1"
-          title="Sync your X handle"
-          body="Click SYNC in the header. Enter your X (Twitter) handle. The city assigns you to a civilization based on your name. Free, no wallet needed yet."
-          cta={{ label: "GO TO SYNC →", href: "/sync" }}
+          title="See an agent work"
+          body="Open any FREELON and look at what its agent does — a real example, no wallet needed. This is the thing you're buying."
+          cta={{ label: "SEE AN AGENT →", href: "/citizens/1" }}
         />
         <Step
           n="2"
-          title="Claim today's hex"
-          body={`Once synced, claim your daily +${ECONOMY.DAILY_CLAIM} ⬡. Come back every day to build a streak. 7-day streak adds +${ECONOMY.STREAK_7_BONUS} ⬡. 30-day streak adds +${ECONOMY.STREAK_30_BONUS} ⬡.`}
-          cta={{ label: "CLAIM TODAY'S ⬡ →", href: "/carrier" }}
+          title="Own one"
+          body="Find a FREELON you like and buy it on OpenSea. Now it's yours — the agent, the levels, and the work history all belong to the NFT."
+          cta={{ label: "OPENSEA COLLECTION ↗", href: "https://opensea.io/collection/freelons", external: true }}
         />
         <Step
           n="3"
-          title="Visit your civilization"
-          body="See who else is in your tribe. Read the doctrine. Civilizations compete for hex earned — yours rises when you stay active."
-          cta={{ label: "MY CIV →", href: "/civilizations" }}
-        />
-        <Step
-          n="4"
-          title="Find a citizen you like"
-          body={`Browse all ${TOTAL.toLocaleString()} citizens with trait filters (caste, sub-archetype, aura). Look for the ★ RARE badge — those carry trait values that appear on ≤20 other citizens.`}
+          title="Unlock it"
+          body={`One-time ETH payment switches the agent on — permanent, it survives a resale — and drops bonus ⬡ in your wallet to spend on jobs. Open your FREELON's page to unlock.`}
           cta={{ label: "BROWSE CITIZENS →", href: "/citizens" }}
         />
         <Step
-          n="5"
-          title="(Optional) Buy one on OpenSea"
-          body="When you find a citizen that matches you, click VIEW ON OPENSEA on its page. Owning unlocks the extras above."
-          cta={{ label: "OPENSEA COLLECTION ↗", href: "https://opensea.io/collection/freelons", external: true }}
+          n="4"
+          title="Put it to work"
+          body="Give it jobs — write, strategy, research, image transforms. It levels up, remembers your project, and builds a work history that stays with the NFT when you sell."
+          cta={{ label: "SEE IT IN ACTION →", href: "/citizens/1" }}
         />
+      </Section>
+
+      {/* ── PREFER FREE FIRST? (the city-game, demoted) ──
+         The free sync/claim/civ path used to be the primary funnel; it's now
+         one collapsed aside so a newcomer isn't taught the game before the
+         product. Reachable for anyone who wants the no-wallet hook. */}
+      <Section title="Prefer to look around free first?" collapsible>
+        <Box>
+          <P>No wallet, no purchase — you can still play:</P>
+          <Ul>
+            <Li><strong>Sync your X handle</strong> on <Link href="/sync" style={{ color: "var(--gold)" }}>/sync</Link> — the city sorts you into a tribe and shows you that tribe&apos;s face.</Li>
+            <Li><strong>Claim {ECONOMY.DAILY_CLAIM} ⬡ a day</strong> just for showing up. Streaks add more (+{ECONOMY.STREAK_7_BONUS} at 7 days, +{ECONOMY.STREAK_30_BONUS} at 30).</Li>
+            <Li><strong>Browse</strong> all {TOTAL.toLocaleString()} citizens and post on the city wall.</Li>
+          </Ul>
+        </Box>
       </Section>
 
       {/* ── DAILY 60s ── */}
@@ -423,14 +311,10 @@ export default function StartPage() {
          /archive and /combat-archives. */}
       <Section title="The lingo (so nothing is confusing)" collapsible>
         <dl style={{ display: "grid", gap: 12, fontFamily: "var(--mono2)", fontSize: 13 }}>
-          <Lingo term="hex (⬡)" def="The city's credits. You earn it. You spend it. It is not money. It is not redeemable for anything outside the city." />
-          <Lingo term="carrier" def="Anyone who participates. You don't need to own a citizen to be a carrier." />
-          <Lingo term="citizen" def={`An NFT. There are ${TOTAL.toLocaleString()} of them on Ethereum. Sealed supply — no more will be made.`} />
-          <Lingo term="civilization" def="Your tribe. There are 10. Your X handle assigns you one when you sync." />
-          <Lingo term="caste" def="A citizen's role inside the city. Seven of them." />
-          <Lingo term="signal" def="The city's word for anything that moves: a sale, a post, a transmission, a connected archive." />
-          <Lingo term="transmission" def="A small post (image + caption) carriers send to the city wall. Burns 100 ⬡ to send. Earns more if it scores." />
-          <Lingo term="archive" def="A connected collection the city recognises: The Crypt, Combat Archives, OOGIES, Emile, SMILES. Every archive your wallet carries deepens your record." />
+          <Lingo term="FREELON" def={`The NFT. There are ${TOTAL.toLocaleString()} of them on Ethereum — sealed supply, no more will be made. Each one is a trainable AI agent.`} />
+          <Lingo term="agent" def="What your FREELON does once it's unlocked — it takes jobs (writing, strategy, research, image transforms), remembers your project, and gets better the more you use it." />
+          <Lingo term="unlock" def="A one-time ETH payment that switches your FREELON's agent on. Permanent — it survives a resale — and drops bonus ⬡ in your wallet." />
+          <Lingo term="hex (⬡)" def="The city's credits. You earn them free or get them when you unlock, and spend them to run agent jobs. Not money, not redeemable outside the city." />
         </dl>
       </Section>
 
@@ -446,23 +330,23 @@ export default function StartPage() {
       <Section title="Questions people actually ask" collapsible>
         <Faq q="Why didn't my post credit me hex?">
           Posting on X doesn&apos;t auto-credit — you need to either (a) reply to a city post (and be one of the first 10 in 30 min),
-          or (b) hit the daily CLAIM button after sharing. Going to <Link href="/carrier" style={{ color: "var(--gold)" }}>/carrier</Link> and pressing CLAIM is what does it.
+          or (b) hit the daily CLAIM button after sharing. Going to your <Link href="/sync#carrier" style={{ color: "var(--gold)" }}>carrier page</Link> and pressing CLAIM is what does it.
         </Faq>
         <Faq q="Is hex worth real money?">
           No. Hex is city credits — usable to name citizens, realign, post transmissions, and unlock things on the site.
           It is not a token, not redeemable, not an investment. Hold it because you use it.
         </Faq>
         <Faq q="Where can I see the city's live numbers?">
-          <Link href="/numbers" style={{ color: "var(--gold)" }}>Pulse</Link> — sealed supply, current state, every receipt. Auto-updated every 5 minutes.
+          <Link href="/dashboard" style={{ color: "var(--gold)" }}>The dashboard</Link> — sealed supply, current state, every receipt. Auto-updated every 5 minutes.
         </Faq>
         <Faq q="How do I safely move my citizens to another wallet?">
-          Use <Link href="/vault" style={{ color: "var(--gold)" }}>/vault</Link>. It lets you batch-transfer
+          Use the <Link href="/sync#vault" style={{ color: "var(--gold)" }}>vault</Link>. It lets you batch-transfer
           citizens (to cold storage, a fresh wallet, or as a gift) one transaction at a time, with a
           test-send safeguard. The contract is standard ERC-721 so each move is a separate signed
           transaction — but the vault page sequences them and shows live progress so nothing slips.
         </Faq>
         <Faq q="Who runs this?">
-          One architect, building daily. See <Link href="/architect" style={{ color: "var(--gold)" }}>/architect</Link>.
+          One architect, building daily. See <Link href="/tribute#architect" style={{ color: "var(--gold)" }}>the architect page</Link>.
           Independent, no VC, no exit plan.
         </Faq>
       </Section>
@@ -498,10 +382,10 @@ export default function StartPage() {
             margin: "10px 0 var(--s-3)",
           }}
         >
-          Claim your <em style={{ color: "var(--gold)", fontStyle: "normal" }}>{ECONOMY.DAILY_CLAIM} ⬡</em> for today.
+          See what an <em style={{ color: "var(--gold)", fontStyle: "normal" }}>agent</em> actually does.
         </h2>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/sync"><span className="ttl">SYNC + CLAIM →</span></Link>
+          <Link className="btn btn-primary" href="/citizens/1"><span className="ttl">SEE AN AGENT →</span></Link>
         </div>
         <p
           style={{
@@ -512,7 +396,7 @@ export default function StartPage() {
             letterSpacing: "0.12em",
           }}
         >
-          Not ready? <Link href="/civilizations" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>Browse the ten civilizations first.</Link>
+          Just want the free {ECONOMY.DAILY_CLAIM} ⬡? <Link href="/sync" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>Sync and claim.</Link>
         </p>
       </section>
     </div>
@@ -628,7 +512,7 @@ function Step({
       <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.65, margin: "8px 0 12px" }}>
         {body}
       </p>
-      {/* Step CTAs are SECONDARY — the page has one primary (SYNC + CLAIM) so
+      {/* Step CTAs are SECONDARY — the page has one primary (SEE AN AGENT) so
           the walkthrough steps don't each compete for the gold treatment. */}
       {cta.external ? (
         <a className="btn btn-secondary btn-sm" href={cta.href} target="_blank" rel="noreferrer">
