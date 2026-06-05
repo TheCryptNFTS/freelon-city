@@ -5,6 +5,7 @@ import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
 import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
 import { openseaUrl } from "@/lib/constants";
 import ShareAgentOutput from "@/components/ShareAgentOutput";
+import { buildImageShareIntent } from "@/lib/share-agent";
 
 type Task = { key: string; label: string };
 type AbilityView = { id: string; label: string; blurb: string; skill: string; tasks: Task[]; primary: boolean; premium: boolean; hexCost: number };
@@ -758,7 +759,14 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                   <span className="agentdash-image-cap">{imgOut.label}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={imgOut.url} alt={imgOut.label} className="agentdash-image-img" />
-                  <a className="btn agentdash-outbtn" href={imgOut.url} target="_blank" rel="noreferrer">OPEN FULL SIZE ↗</a>
+                  <div className="agentdash-image-actions">
+                    <button
+                      type="button"
+                      className="btn btn-primary agentdash-outbtn"
+                      onClick={() => window.open(buildImageShareIntent({ tokenId: citizenId, styleLabel: imgOut.label, imageUrl: imgOut.url }), "_blank", "noopener,noreferrer")}
+                    >⬡ SHARE ON X →</button>
+                    <a className="btn agentdash-outbtn" href={imgOut.url} target="_blank" rel="noreferrer">OPEN FULL SIZE ↗</a>
+                  </div>
                 </div>
               )}
 
