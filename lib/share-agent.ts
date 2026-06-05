@@ -70,3 +70,20 @@ export function buildAgentShareIntent(input: {
       : base;
   return tweetIntent(`${text}\n${url}`);
 }
+
+/**
+ * Share a generated IMAGE on X. The transform is the viral asset, so the LAST URL
+ * is the (public, signature-stamped) image itself — X previews it, and the
+ * baked-in "⬡ MADE BY FREELON · FREELONCITY.COM" mark travels with every repost.
+ * The community already does this by hand with their Transformers prompt; this is
+ * the one-tap version.
+ */
+export function buildImageShareIntent(input: { tokenId: number; styleLabel: string; imageUrl: string }): string {
+  const id4 = input.tokenId.toString().padStart(4, "0");
+  const text = [
+    `⬡ Reimagined my FREELON #${id4} as a ${input.styleLabel.trim()}`,
+    `Made at freeloncity.com · #FREELONCITY`,
+    input.imageUrl,
+  ].join("\n");
+  return tweetIntent(text);
+}

@@ -7549,3 +7549,22 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 
 /* Image studio group labels (Transforms / Scenes) */
 .agentdash-images-grp { display: block; font-family: var(--mono2); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-fade); margin: 14px 0 8px; }
+
+/* LOCKED HERO — "unlock your citizen" is the whole owner experience until activated */
+.agentdash-lockhero {
+  text-align: center; margin: 6px 0 22px; padding: 28px 22px 24px;
+  border: 1px solid var(--gold-deep); border-radius: 14px;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(200,170,100,0.10), rgba(10,11,16,0.4));
+}
+.agentdash-lockhero-eye { display: block; font-size: 30px; color: var(--gold); margin-bottom: 6px; filter: drop-shadow(0 0 14px rgba(200,170,100,0.5)); }
+.agentdash-lockhero-h { margin: 0; font-family: var(--mono2); font-size: clamp(20px, 3.4vw, 30px); letter-spacing: 0.14em; color: var(--ink); }
+.agentdash-lockhero-sub { margin: 10px auto 18px; max-width: 460px; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+.agentdash-lockhero-price { display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
+.agentdash-lockhero-tier { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); }
+.agentdash-lockhero-eth { font-family: var(--display, var(--mono2)); font-size: clamp(28px, 5vw, 40px); line-height: 1; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.agentdash-lockhero-note { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-fade); }
+.agentdash-lockhero-cta { font-size: 15px; }
+.agentdash-lockhero .agentdash-pay { text-align: left; margin-top: 4px; }
+/* Locked ability preview — dimmed + non-interactive */
+.agentdash-lockpreview-lbl { display: block; font-family: var(--mono2); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-fade); margin-bottom: 8px; }
+.agentdash-abilities.is-locked { opacity: 0.4; filter: grayscale(0.4); pointer-events: none; user-select: none; }

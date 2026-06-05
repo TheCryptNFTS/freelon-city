@@ -6,7 +6,6 @@
  */
 
 import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
-import { TryFreeDemo } from "@/components/TryFreeDemo";
 
 // The six practical agent skills (must match lib/missions/abilities/*).
 const ABILITIES = [
@@ -55,9 +54,6 @@ export function CitizenAgentExplainer() {
         </div>
         <span className="agent-demo-foot">Example output — run it on your own citizen.</span>
       </div>
-
-      {/* THE TASTE — run one real job free, no wallet, before the wall. */}
-      <TryFreeDemo />
 
       {/* THE DO — the single obvious next action, scrolls to the run dashboard. */}
       <a className="btn btn-primary agent-explainer-cta" href="#run">

@@ -423,6 +423,82 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     setErr(d.message || d.error || "The agent couldn't complete that.");
   }
 
+  // The activation/recharge pay panel (quote → accept → pay). Rendered in the
+  // locked hero (activate) and the run area (recharge), so it's extracted once.
+  const payPanel = (
+    <div className="agentdash-pay">
+      <div className="agentdash-pay-hd">
+        <span className="kicker">
+          {payKind === "recharge"
+            ? `⬡ RECHARGE · ${unlock?.tier?.toUpperCase()}`
+            : `⬡ ACTIVATE YOUR AGENT · ${unlock?.tier?.toUpperCase()}`}
+        </span>
+        <button type="button" className="agentdash-pay-cancel" onClick={resetPay} disabled={busy}>CANCEL</button>
+      </div>
+      {payKind === "recharge" ? (
+        <p className="agentdash-pay-note">
+          Your agent is already activated — this just adds more bonus ⬡. You only pay the one-time activation once.
+        </p>
+      ) : (
+        <p className="agentdash-pay-note">
+          Activates every ability — write, strategy, research, red-team, dossier &amp; branded image generation — <strong>forever</strong>, and drops <strong>bonus ⬡</strong> in your wallet. Less than a month of ChatGPT. Activation + training history stay with the FREELON when it changes hands.
+        </p>
+      )}
+      {payStep === "quoting" && <p className="agentdash-pay-note">Getting the price…</p>}
+      {quote && (
+        <>
+          <div className="agentdash-pay-amount">
+            <span className="agentdash-pay-eth">{quote.amountEth} ETH</span>
+            <span className="agentdash-pay-usd">{payKind === "recharge" ? "refill" : "one-time · forever"} · {unlock?.tier}</span>
+          </div>
+          <p className="agentdash-pay-to">
+            Send the <strong>exact</strong> amount to<br />
+            <code>{quote.toWallet}</code>
+          </p>
+          <label className="agentdash-pay-accept">
+            <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
+            <span>{MISSION_DISCLAIMER}</span>
+          </label>
+          <button
+            className="btn btn-primary agentdash-go"
+            type="button"
+            disabled={busy || !accepted || payStep === "confirming"}
+            onClick={payUnlock}
+          >
+            <span className="ttl">{payStep === "confirming" ? (payKind === "recharge" ? "RECHARGING…" : "ACTIVATING…") : `PAY ${quote.amountEth} ETH & ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
+          </button>
+          <div className="agentdash-pay-manual">
+            <span className="agentdash-pay-manual-lbl">Already sent it yourself? Paste the transaction hash:</span>
+            <input
+              className="agentdash-pay-tx"
+              placeholder="0x…"
+              value={txInput}
+              onChange={(e) => setTxInput(e.target.value.trim())}
+              disabled={busy}
+            />
+            <button
+              className="btn agentdash-go"
+              type="button"
+              disabled={busy || !accepted || !/^0x[a-fA-F0-9]{64}$/.test(txInput)}
+              onClick={() => claimUnlock(txInput)}
+            >
+              <span className="ttl">{busy ? "VERIFYING…" : `I'VE PAID — ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
+            </button>
+          </div>
+        </>
+      )}
+      {payNote && <p className="agentdash-pay-note">{payNote}</p>}
+      <p className="agentdash-pay-support">
+        Payments are on-chain &amp; non-refundable. Problem with a payment?{" "}
+        <a href="https://x.com/4040hex" target="_blank" rel="noreferrer">DM @4040hex</a> — we&apos;ll sort it.
+      </p>
+    </div>
+  );
+
+  // When PAYMENTS_LIVE and the owner's citizen is LOCKED, activation is the WHOLE
+  // experience — everything else is gated behind it. (Founder 2026-06-05.)
+  const locked = paymentsLive && !!abilities && !unlock?.unlocked;
+
   return (
     <section className="agentdash" id="run">
       <div className="agentdash-hd">
@@ -439,18 +515,48 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         )}
       </div>
 
+      {/* LOCKED HERO — what an owner sees when they connect to a citizen they own
+          but haven't activated: a big "UNLOCK YOUR CITIZEN · <price>". Activation
+          is the front door; the abilities below are a locked preview. No free demo. */}
+      {locked && (
+        <div className="agentdash-lockhero">
+          <span className="agentdash-lockhero-eye" aria-hidden>⬡</span>
+          <h3 className="agentdash-lockhero-h">UNLOCK YOUR CITIZEN</h3>
+          <p className="agentdash-lockhero-sub">
+            This FREELON&apos;s AI agent is sleeping. Activate it to put it to work — writing, strategy,
+            research, red-team &amp; branded image generation — and it remembers everything you build together.
+          </p>
+          {payStep === "idle" ? (
+            <>
+              <div className="agentdash-lockhero-price">
+                <span className="agentdash-lockhero-tier">{unlock?.tier ?? "—"}</span>
+                <span className="agentdash-lockhero-eth">{unlock?.priceEth ?? "…"} ETH</span>
+                <span className="agentdash-lockhero-note">one-time · activates forever · + bonus ⬡</span>
+              </div>
+              <button className="btn btn-primary agentdash-lockhero-cta" type="button" disabled={busy} onClick={getUnlockQuote}>
+                <span className="ttl">⬡ UNLOCK · {unlock?.priceEth} ETH →</span>
+              </button>
+              {err && <p className="agentdash-err">{err}</p>}
+            </>
+          ) : payPanel}
+        </div>
+      )}
+
       {abilities === null ? (
         <p className="agentdash-loading">Loading your agent…</p>
       ) : (
         <>
-          {/* Ability picker */}
-          <div className="agentdash-abilities">
+          {/* Ability picker — a locked preview (dimmed, non-interactive) until the
+              citizen is activated; the locked hero above drives the unlock. */}
+          {locked && <span className="agentdash-lockpreview-lbl">⬡ WHAT YOU UNLOCK</span>}
+          <div className={`agentdash-abilities${locked ? " is-locked" : ""}`} aria-hidden={locked}>
             {abilities.map((a) => (
               <button
                 key={a.id}
                 type="button"
+                tabIndex={locked ? -1 : 0}
                 className={`agentdash-ability${a.id === abilityId ? " is-active" : ""}${a.primary ? " is-primary" : ""}`}
-                onClick={() => { setAbilityId(a.id); setTaskKey(a.tasks[0]?.key ?? ""); setOutput(null); setErr(null); resetPay(); }}
+                onClick={() => { if (locked) return; setAbilityId(a.id); setTaskKey(a.tasks[0]?.key ?? ""); setOutput(null); setErr(null); resetPay(); }}
               >
                 <span className="agentdash-ability-name">
                   {a.label}{a.primary ? " ★" : ""}
@@ -469,7 +575,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               before and the box is empty, invite the holder to continue the last
               thread (pre-selects that ability + primes the brief). This is what
               makes it feel like a colleague who remembers, not a fresh chatbot. */}
-          {history.length > 0 && !brief.trim() && payStep === "idle" && (() => {
+          {!locked && history.length > 0 && !brief.trim() && payStep === "idle" && (() => {
             const last = history[0];
             const a = abilities?.find((x) => x.id === last.ability);
             if (!a) return null;
@@ -489,8 +595,8 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
             );
           })()}
 
-          {/* Task + brief */}
-          {ability && (
+          {/* Task + brief — hidden when locked; activation happens in the hero. */}
+          {ability && !locked && (
             <div className="agentdash-run">
               <div className="agentdash-tasks">
                 {ability.tasks.map((t) => (
@@ -532,86 +638,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                       : `RUN ${ability.label.toUpperCase()} →`}
                   </span>
                 </button>
-              ) : (
-                <div className="agentdash-pay">
-                  <div className="agentdash-pay-hd">
-                    <span className="kicker">
-                      {payKind === "recharge"
-                        ? `⬡ RECHARGE · ${unlock?.tier?.toUpperCase()}`
-                        : `⬡ ACTIVATE YOUR AGENT · ${unlock?.tier?.toUpperCase()}`}
-                    </span>
-                    <button type="button" className="agentdash-pay-cancel" onClick={resetPay} disabled={busy}>CANCEL</button>
-                  </div>
-
-                  {payKind === "recharge" ? (
-                    <p className="agentdash-pay-note">
-                      Your agent is already activated — this just refills{" "}
-                      <strong>{unlock?.grantPerUnlock?.toLocaleString()} more premium runs</strong>. Cheaper than
-                      activating; you only pay the one-time activation once.
-                    </p>
-                  ) : (
-                    <p className="agentdash-pay-note">
-                      Activate premium abilities (deep Strategy, Red Team, Dossier &amp; images) — <strong>forever</strong>.
-                      Includes <strong>{unlock?.grantPerUnlock?.toLocaleString()} premium runs</strong> (1 per job).
-                      Less than a month of ChatGPT. Activation and training history stay with the FREELON when it changes hands.
-                    </p>
-                  )}
-
-                  {payStep === "quoting" && <p className="agentdash-pay-note">Getting the price…</p>}
-
-                  {quote && (
-                    <>
-                      <div className="agentdash-pay-amount">
-                        <span className="agentdash-pay-eth">{quote.amountEth} ETH</span>
-                        <span className="agentdash-pay-usd">{payKind === "recharge" ? "refill" : "one-time · forever"} · {unlock?.tier}</span>
-                      </div>
-                      <p className="agentdash-pay-to">
-                        Send the <strong>exact</strong> amount to<br />
-                        <code>{quote.toWallet}</code>
-                      </p>
-
-                      <label className="agentdash-pay-accept">
-                        <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
-                        <span>{MISSION_DISCLAIMER}</span>
-                      </label>
-
-                      <button
-                        className="btn btn-primary agentdash-go"
-                        type="button"
-                        disabled={busy || !accepted || payStep === "confirming"}
-                        onClick={payUnlock}
-                      >
-                        <span className="ttl">{payStep === "confirming" ? (payKind === "recharge" ? "RECHARGING…" : "ACTIVATING…") : `PAY ${quote.amountEth} ETH & ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
-                      </button>
-
-                      <div className="agentdash-pay-manual">
-                        <span className="agentdash-pay-manual-lbl">Already sent it yourself? Paste the transaction hash:</span>
-                        <input
-                          className="agentdash-pay-tx"
-                          placeholder="0x…"
-                          value={txInput}
-                          onChange={(e) => setTxInput(e.target.value.trim())}
-                          disabled={busy}
-                        />
-                        <button
-                          className="btn agentdash-go"
-                          type="button"
-                          disabled={busy || !accepted || !/^0x[a-fA-F0-9]{64}$/.test(txInput)}
-                          onClick={() => claimUnlock(txInput)}
-                        >
-                          <span className="ttl">{busy ? "VERIFYING…" : `I'VE PAID — ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                  {payNote && <p className="agentdash-pay-note">{payNote}</p>}
-                  <p className="agentdash-pay-support">
-                    Payments are on-chain &amp; non-refundable. Problem with a payment?{" "}
-                    <a href="https://x.com/4040hex" target="_blank" rel="noreferrer">DM @4040hex</a> — we&apos;ll sort it.
-                  </p>
-                </div>
-              )}
+              ) : payPanel}
             </div>
           )}
 
