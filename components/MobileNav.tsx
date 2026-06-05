@@ -74,8 +74,6 @@ const GROUPS: NavGroup[] = [
     heading: "LORE",
     links: [
       { href: "/canon",     label: "Story & glossary" },
-      { href: "/manifesto", label: "Manifesto" },
-      { href: "/origin",    label: "Origin" },
       { href: "/tribute",   label: "Honorees" },
     ],
   },

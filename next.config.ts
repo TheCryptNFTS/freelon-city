@@ -76,6 +76,13 @@ const config: NextConfig = {
       { source: "/secrets", destination: "/canon#secrets", permanent: true },
       { source: "/roadmap", destination: "/canon#roadmap", permanent: true },
 
+      // 2026-06-05 — /manifesto + /origin folded into /canon. Both were deep-lore
+      // pages reached only from the canon tabs; the unique IP (the ten verses,
+      // the origin prose) now lives inside those tabs (ExtendedManifesto +
+      // ExtendedOrigin), so the standalone pages are redundant surface.
+      { source: "/manifesto", destination: "/canon#manifesto", permanent: true },
+      { source: "/origin",    destination: "/canon#origin",    permanent: true },
+
       // Visual-taxonomy cluster → /civilizations (civilizations · castes · shapes)
       { source: "/castes", destination: "/civilizations#castes", permanent: true },
       { source: "/shapes", destination: "/civilizations#shapes", permanent: true },

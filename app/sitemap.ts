@@ -15,7 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // The 5 pillars first, then supporting pages. Redirect sources omitted.
     "/", "/citizens", "/crypt-tcg", "/play", "/dashboard", "/earn",
     "/sync", "/collections", "/civilizations", "/shop", "/transmissions",
-    "/canon", "/tribute", "/manifesto", "/origin", "/archive",
+    "/canon", "/tribute", "/archive",
     "/legal", "/legal/terms", "/legal/privacy", "/legal/honorary-notice", "/legal/dmca",
   ].map((p) => ({
     url: `${BASE}${p}`,

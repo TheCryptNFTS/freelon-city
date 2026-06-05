@@ -56,7 +56,7 @@ type Tab = {
   /** Optional extended view rendered inside the <details> after the
    *  summary + quote. Used for the merged /lore content (2026-05-27) and
    *  the merged /lexicon /names /secrets /roadmap content (2026-05-31). */
-  extended?: "origin" | "civilizations" | "lexicon" | "names" | "secrets" | "roadmap";
+  extended?: "origin" | "civilizations" | "lexicon" | "names" | "secrets" | "roadmap" | "manifesto";
   /** When set, the deep-link button is omitted — the full content lives
    *  inside this section now, so there is no separate page to link to. */
   noHref?: boolean;
@@ -67,8 +67,9 @@ const TABS: Tab[] = [
     id: "origin",
     kicker: "I · ORIGIN",
     title: "The hex didn't disappear. It changed location.",
-    href: "/origin",
+    href: "/canon#origin",
     hrefLabel: "READ THE ORIGIN →",
+    noHref: true, // 2026-06-05: /origin folded in here; full prose is below.
     summary: [
       "X once made digital ownership visible — a small hexagonal mark next to verified NFT profile pictures, woven into identity, present in every feed. Then it was quietly removed. No replacement. No handoff. Just absence.",
       "FREELON CITY is the answer to that absence. Humanity colonised Mars, then began detecting a signal. A city formed around it. The signal reshaped its citizens biologically, spiritually, technologically. The hexagon — present in the signal's mathematics — became sacred. 4040 citizens. 10 civilizations. 7 castes. 16 shapes.",
@@ -134,13 +135,15 @@ const TABS: Tab[] = [
     id: "manifesto",
     kicker: "VI · MANIFESTO",
     title: "The signal didn't die. It moved.",
-    href: "/manifesto",
+    href: "/canon#manifesto",
     hrefLabel: "READ THE TEN VERSES →",
+    noHref: true, // 2026-06-05: /manifesto folded in here; ten verses are below.
     summary: [
       "Ten verses, ten doctrines, one contract. The manifesto is the city's compressed creed — read once, spoken once, the city does the rest. It states what the hex is (a contract with no governance), what a citizen is (a stance the city can be measured from), and what remains when the city ends (the hex).",
       "The corners are fixed: Origin, Patient Zero, Genesis Hex, Final Signal. The middle is alive.",
     ],
     quote: "When the city ends, the hex remains. When the hex moves, the city rebuilds.",
+    extended: "manifesto",
   },
   {
     id: "art-system",
@@ -411,14 +414,17 @@ function TabBlock({ t, defaultOpen = false }: { t: Tab; defaultOpen?: boolean })
         {t.extended === "names" && <CanonNames />}
         {t.extended === "secrets" && <CanonSecrets />}
         {t.extended === "roadmap" && <CanonRoadmap />}
+        {t.extended === "manifesto" && <ExtendedManifesto />}
 
-        <Link
-          href={t.href}
-          className="btn btn-secondary btn-sm"
-          style={{ marginTop: 4 }}
-        >
-          <span className="ttl">{t.hrefLabel}</span>
-        </Link>
+        {!t.noHref && (
+          <Link
+            href={t.href}
+            className="btn btn-secondary btn-sm"
+            style={{ marginTop: 4 }}
+          >
+            <span className="ttl">{t.hrefLabel}</span>
+          </Link>
+        )}
       </div>
     </details>
   );
@@ -450,6 +456,37 @@ function ExtendedOrigin() {
       <p style={{ fontFamily: "var(--mono2)", fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.7, margin: "0 0 var(--s-2)" }}>
         {CITY_LORE.geography.body}
       </p>
+    </div>
+  );
+}
+
+// The ten verses — migrated here 2026-06-05 from the folded /manifesto page so
+// the city's compressed creed lives in the canonical reference, not an orphan.
+const MANIFESTO_VERSES: { n: string; t: string }[] = [
+  { n: "I",    t: "The signal was given. The signal was received. The signal was misnamed." },
+  { n: "II",   t: "The platform removed the frame. The people became the frame." },
+  { n: "III",  t: "Where one channel collapsed, ten doctrines rose. We did not split. We refracted." },
+  { n: "IV",   t: "The hex is not a logo. The hex is a contract with no governance." },
+  { n: "V",    t: "Truth that cannot be moved is the only truth a citizen owns." },
+  { n: "VI",   t: "Each citizen is a stance. Each stance is a position the city can be measured from." },
+  { n: "VII",  t: "Honor the carriers — the names sealed in stone, the channels that survived the static." },
+  { n: "VIII", t: "We do not lead. We do not follow. We hold the line where the signal arrives." },
+  { n: "IX",   t: "Four bracket the city: Origin, Patient Zero, Genesis Hex, Final Signal. The corners are fixed. The middle is alive." },
+  { n: "X",    t: "When the city ends, the hex remains. When the hex moves, the city rebuilds." },
+];
+
+function ExtendedManifesto() {
+  return (
+    <div style={{ marginTop: "var(--s-3)", paddingTop: "var(--s-3)", borderTop: "1px dashed var(--line)" }}>
+      <span className="kicker" style={{ display: "block", marginBottom: 10 }}>⬡ THE TEN VERSES · SEALED ON-CHAIN</span>
+      {MANIFESTO_VERSES.map((v) => (
+        <div key={v.n} style={{ display: "flex", gap: 14, alignItems: "baseline", margin: "0 0 12px" }}>
+          <span style={{ fontFamily: "var(--display)", fontSize: 14, color: "var(--gold)", minWidth: 34, letterSpacing: "0.08em" }}>{v.n}</span>
+          <blockquote style={{ margin: 0, fontFamily: "var(--mono2)", fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.6, fontStyle: "italic" }}>
+            {v.t}
+          </blockquote>
+        </div>
+      ))}
     </div>
   );
 }

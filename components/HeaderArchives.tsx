@@ -67,9 +67,7 @@ const GROUPS: Group[] = [
   {
     heading: "Lore",
     items: [
-      { href: "/canon",     label: "Story & glossary" },     // absorbs lexicon / names / secrets / roadmap
-      { href: "/manifesto", label: "Manifesto" },
-      { href: "/origin",    label: "Origin" },
+      { href: "/canon",     label: "Story & glossary" },     // absorbs lexicon / names / secrets / roadmap / manifesto / origin
       { href: "/tribute",   label: "Honorees" },             // moved LOWER — clout-borrowing risk
     ],
   },
