@@ -74,13 +74,13 @@ export default function Home() {
               ecosystem lives in its own section further down, not as competing
               chips up here. */}
           <h1 className="hero-landing__h1">
-            FREELONS are 4,040 <strong>trainable AI agents</strong> you own.
+            FREELONS are 4,040 <strong>AI characters you own</strong>.
           </h1>
           <p className="hero-landing__tag">
-            Give your FREELON jobs. It remembers your project, levels up, develops a role, and builds a
-            work history that stays with the NFT.
+            It&apos;s yours — turn it into anything, give it real jobs, and it remembers everything you build
+            together. The character, the training, and the whole history travel with the NFT.
           </p>
-          <p className="hero-landing__rhythm">Train it. Level it. Use it. Trade it.</p>
+          <p className="hero-landing__rhythm">Make it yours. Transform it. Train it. Trade it.</p>
 
           {/* ONE primary action (TRY — experience the agent), then OWN as the
               secondary, then EARN as a tertiary text link. Value before purchase,
@@ -114,12 +114,12 @@ export default function Home() {
       <section className="why-own reveal">
         <span className="kicker">⬡ WHY OWN A FREELON?</span>
         <ul className="filetree">
-          <li>It does jobs for you — writing, strategy, research</li>
-          <li>It remembers your project, so every job gets sharper</li>
-          <li>It turns your citizen into any style, ready to share</li>
-          <li>It builds a visible work history</li>
-          <li>That history stays with the NFT when you sell</li>
-          <li>A trained FREELON is different from a blank one</li>
+          <li>It&apos;s yours — a character no one else has</li>
+          <li>Transform it into any style — robot, statue, anime — ready to share</li>
+          <li>It remembers you and your project, so every job gets sharper</li>
+          <li>Put it to work — writing, strategy, research, red-team</li>
+          <li>Everything it learns becomes a visible work history</li>
+          <li>The character and its history travel with the NFT when you sell</li>
         </ul>
       </section>
 
@@ -129,12 +129,12 @@ export default function Home() {
         <span className="kicker">⬡ HOW IT WORKS</span>
         <ol className="how-steps">
           {[
-            "Own a FREELON",
-            "Give it jobs",
-            "It earns XP",
+            "Own a FREELON — it's your character",
+            "Transform it, and give it real jobs",
+            "It earns XP and remembers you",
             "It develops a role",
             "Its work history grows",
-            "Keep using it — or sell it later as a trained agent",
+            "Keep it — or sell it later as a trained character",
           ].map((s, i) => (
             <li key={i}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
           ))}
@@ -164,7 +164,7 @@ export default function Home() {
           reachable from the Explore ▾ menu. To restore any to the homepage,
           re-add its section + matching import (history: git + components/_archive). */}
       <section className="home-close reveal">
-        <p className="home-close__line">4,040 trainable agents. Train one. See what it becomes.</p>
+        <p className="home-close__line">4,040 characters. Make one yours. See what it becomes.</p>
         <div className="home-close__cta">
           <Link className="btn btn-primary btn-lg" href="/citizens/1">
             <span className="ttl">SEE AN AGENT →</span>

@@ -7,14 +7,16 @@
 
 import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
 
-// The six practical agent skills (must match lib/missions/abilities/*).
+// The six practical agent skills (must match lib/missions/abilities/*). Ordered
+// to LEAD with the transform — the thing the community already reaches for — then
+// the sharpest reasoning skills.
 const ABILITIES = [
-  { label: "Content", blurb: "writes X posts, threads, captions & content plans in your voice" },
+  { label: "Transform", blurb: "turns your citizen into any style — robot, statue, anime — ready to share" },
   { label: "Strategy", blurb: "fixes your launch, plans growth & sharpens positioning" },
-  { label: "Sales", blurb: "sharpens your pitch, DMs & landing copy" },
-  { label: "Research", blurb: "researches markets, summarizes long text, scans competitors" },
-  { label: "Design", blurb: "turns your citizen into any style — robot, statue, anime — ready to share" },
   { label: "Red Team", blurb: "finds weak points and red-teams your idea before you ship" },
+  { label: "Research", blurb: "researches markets, summarizes long text, scans competitors" },
+  { label: "Content", blurb: "writes X posts, threads, captions & content plans in your voice" },
+  { label: "Sales", blurb: "sharpens your pitch, DMs & landing copy" },
 ];
 
 export function CitizenAgentExplainer() {
@@ -61,8 +63,8 @@ export function CitizenAgentExplainer() {
       </a>
 
       <p className="agent-explainer-lead">
-        It&apos;s a little AI worker that&apos;s yours — it makes things, remembers what you&apos;ve done
-        together, and gets better the more you use it. Six things it does:
+        It&apos;s yours — a character you can turn into anything, that remembers what you build together and
+        gets sharper every time you use it. Not a chatbot you rent; a worker you own. Six things it does:
       </p>
       <ul className="agent-explainer-grid">
         {ABILITIES.map((a) => (
