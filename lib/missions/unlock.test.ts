@@ -34,7 +34,7 @@ describe("unlock pricing — rarity ladder", () => {
     // The one-time ETH unlock is required to train/use ANY ability now. The cheap
     // ones (content/sales/research) just cost 0⬡ to USE once unlocked; the free
     // taste for non-owners lives in the public /api/demo, not this gate.
-    for (const id of ["content", "sales", "research", "strategy", "risk", "dossier", "deploy-citizen"]) {
+    for (const id of ["content", "sales", "research", "design", "strategy", "risk", "dossier", "deploy-citizen"]) {
       expect(requiresUnlock(id)).toBe(true);
     }
     expect(requiresUnlock("feud")).toBe(false); // social/viral — not unlock-gated

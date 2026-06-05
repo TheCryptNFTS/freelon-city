@@ -126,6 +126,7 @@ export const UNLOCK_GATED_ABILITIES = new Set<string>([
   "content", // write — free to use after unlock (0⬡), but needs the unlock to train
   "sales", // closer — same
   "research", // analyst — same
+  "design", // designer (image prompts/concepts) — same
   "strategy", // deep "Fix My Launch"
   "risk", // Red Team
   "dossier", // the memory moat
