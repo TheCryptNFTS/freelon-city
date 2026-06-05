@@ -9,6 +9,7 @@
  * output and pass the citizen + ability.
  */
 
+import type { CSSProperties } from "react";
 import { buildAgentShareIntent } from "@/lib/share-agent";
 
 export type ShareAgentOutputProps = {
@@ -33,13 +34,12 @@ export default function ShareAgentOutput({
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  return (
-    <button
-      type="button"
-      onClick={share}
-      className={className}
-      aria-label="Share this agent output on X"
-      style={{
+  // When a className is supplied (e.g. the dashboard's `.agentdash-outbtn`),
+  // defer entirely to it so the button matches the row it sits in. The inline
+  // style is only a self-contained fallback for drop-anywhere use.
+  const fallbackStyle: CSSProperties | undefined = className
+    ? undefined
+    : {
         display: "inline-flex",
         alignItems: "center",
         gap: 8,
@@ -52,7 +52,15 @@ export default function ShareAgentOutput({
         fontSize: 14,
         letterSpacing: 1,
         cursor: "pointer",
-      }}
+      };
+
+  return (
+    <button
+      type="button"
+      onClick={share}
+      className={className}
+      aria-label="Share this agent output on X"
+      style={fallbackStyle}
     >
       <span aria-hidden>⬡</span>
       Share this →

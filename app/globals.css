@@ -404,6 +404,7 @@ a { color: inherit; text-decoration: none; }
 .btn.btn-ghost:hover, .terminal-button:hover { color: var(--ink); }
 
 .btn.btn-sm { height: 40px; padding: 0 16px; font-size: 11px; }
+.btn.btn-lg { height: 60px; padding: 0 30px; font-size: 14px; }
 
 /* Status label above buttons */
 .btn-with-label { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 6px; }

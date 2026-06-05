@@ -631,7 +631,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               )}
 
               {payStep === "idle" ? (
-                <button className="btn agentdash-go" type="button" disabled={busy || !brief.trim()} onClick={run}>
+                <button className="btn btn-primary agentdash-go" type="button" disabled={busy || !brief.trim()} onClick={run}>
                   <span className="ttl">
                     {busy ? "WORKING…"
                       : needsActivate ? `ACTIVATE TO RUN ${ability.label.toUpperCase()} →`

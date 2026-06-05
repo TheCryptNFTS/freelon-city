@@ -67,6 +67,34 @@ async function fireDefenderEnsure(addr: string): Promise<void> {
 }
 
 const KEY = (addr: string) => `freelon:walletHex:v1:${addr.toLowerCase()}`;
+const LOCK = (addr: string) => `freelon:walletHex:lock:${addr.toLowerCase()}`;
+
+/**
+ * Serialize a read-modify-write on one wallet's hex record. Without this, two
+ * concurrent debits (e.g. two paid renders fired from two tabs/devices) can both
+ * read balance B, both pass the balance check, and both write B-cost — losing
+ * one debit (a paid run for free). Mirrors `unlock-store.withLock`. Best-effort:
+ * if the lock can't be taken within ~5 tries it proceeds anyway (the window is
+ * already tiny), and a missing Upstash falls straight through to the in-memory
+ * map (single-process, no race). The premium $-budget pool still backstops COGS.
+ */
+async function withWalletLock<T>(addr: string, fn: () => Promise<T>): Promise<T> {
+  if (!hasUpstash) return fn();
+  const key = LOCK(addr);
+  for (let i = 0; i < 5; i++) {
+    try {
+      if ((await upstash(["SET", key, "1", "NX", "EX", "3"])) === "OK") break;
+    } catch {
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 60 + i * 30));
+  }
+  try {
+    return await fn();
+  } finally {
+    await upstash(["DEL", key]).catch(() => {});
+  }
+}
 
 function emptyRecord(addr: string): WalletHex {
   return {
@@ -122,18 +150,21 @@ export async function creditWalletHex(
   amount: number,
   ev: Omit<HexEvent, "ts" | "amount"> & { ts?: number },
 ): Promise<WalletHex> {
-  const rec = await getWalletHex(addr);
-  rec.balance += amount;
-  rec.lifetimeEarned += amount;
-  const ts = ev.ts ?? Date.now();
-  rec.events.unshift({ ts, kind: ev.kind, amount, note: ev.note });
-  if (rec.events.length > 50) rec.events.length = 50;
-  rec.lastEventTs = Math.max(rec.lastEventTs, ts);
-  // Stamp activity for the decay gate when this credit is an active action.
-  if (ACTIVE_KINDS.has(ev.kind)) {
-    rec.lastActiveDay = todayUTC();
-  }
-  await setWalletHex(rec);
+  const rec = await withWalletLock(addr, async () => {
+    const r = await getWalletHex(addr);
+    r.balance += amount;
+    r.lifetimeEarned += amount;
+    const ts = ev.ts ?? Date.now();
+    r.events.unshift({ ts, kind: ev.kind, amount, note: ev.note });
+    if (r.events.length > 50) r.events.length = 50;
+    r.lastEventTs = Math.max(r.lastEventTs, ts);
+    // Stamp activity for the decay gate when this credit is an active action.
+    if (ACTIVE_KINDS.has(ev.kind)) {
+      r.lastActiveDay = todayUTC();
+    }
+    await setWalletHex(r);
+    return r;
+  });
   // Lazy defender-streak init. Fires once per wallet per process — any earning
   // event (sweep/claim/sale/manual) starts a defender record from now if the
   // wallet has never been tracked. Subsequent dumps break it.
@@ -233,16 +264,18 @@ export async function debitWalletHex(
   amount: number,
   ev: Omit<HexEvent, "ts" | "amount"> & { ts?: number },
 ): Promise<WalletHex> {
-  const rec = await getWalletHex(addr);
-  if (rec.balance < amount) throw new InsufficientHexError(addr, rec.balance, amount);
-  rec.balance -= amount;
-  rec.events.unshift({
-    ts: ev.ts ?? Date.now(),
-    kind: ev.kind,
-    amount: -amount,
-    note: ev.note,
+  return withWalletLock(addr, async () => {
+    const rec = await getWalletHex(addr);
+    if (rec.balance < amount) throw new InsufficientHexError(addr, rec.balance, amount);
+    rec.balance -= amount;
+    rec.events.unshift({
+      ts: ev.ts ?? Date.now(),
+      kind: ev.kind,
+      amount: -amount,
+      note: ev.note,
+    });
+    if (rec.events.length > 50) rec.events.length = 50;
+    await setWalletHex(rec);
+    return rec;
   });
-  if (rec.events.length > 50) rec.events.length = 50;
-  await setWalletHex(rec);
-  return rec;
 }
