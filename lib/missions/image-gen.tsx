@@ -177,10 +177,17 @@ export async function generateCitizenScene(args: {
     // Upload to Vercel Blob (public) → a real, shareable, persistent URL. The
     // filesystem is read-only on Vercel, so we can't write to /public anymore.
     // The image is BRANDED with a FREELON signature first (free marketing on share).
-    if (!process.env.BLOB_READ_WRITE_TOKEN) return { ok: false, error: "no_blob_store" };
+    // Auth: the SDK uses BLOB_READ_WRITE_TOKEN if present, else the project's OIDC
+    // connection. We DON'T pre-guard on the env token (OIDC-connected stores don't
+    // set it) — instead we let put() try and surface its real error if it fails.
     const filename = `deploy/${id4(args.citizen.id)}-${args.sceneKey}-${Date.now()}.png`;
     const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id);
-    const blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
+    let blob;
+    try {
+      blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
+    } catch (e) {
+      return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
+    }
 
     return {
       ok: true,
