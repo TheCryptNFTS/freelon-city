@@ -35,7 +35,8 @@ function utcDay(): string {
 
 function clientIp(req: Request): string {
   const xff = req.headers.get("x-forwarded-for") || "";
-  return (xff.split(",")[0] || "unknown").trim();
+  const ip = (xff.split(",")[0] || "").trim() || (req.headers.get("x-real-ip") || "").trim();
+  return ip; // "" when we can't determine it (don't bucket everyone together)
 }
 
 export async function POST(req: Request) {
@@ -57,10 +58,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "no_brief", message: "Describe your project so the agent can help." }, { status: 400 });
   }
 
-  // ONE demo per IP per UTC day — atomic SET-NX so it can't be raced.
+  // ONE demo per IP per UTC day — atomic SET-NX so it can't be raced. We only
+  // gate when we can actually identify the IP (else we'd bucket every visitor
+  // into one shared slot and lock them all out); the global budget + rate limit
+  // still bound spend when the IP is unknown.
   const ip = clientIp(req);
-  const dayKey = `freelon:demo:ip:${ip}:${utcDay()}`;
-  if (hasUpstash) {
+  const dayKey = ip ? `freelon:demo:ip:${ip}:${utcDay()}` : null;
+  let claimedDayKey: string | null = null;
+  if (hasUpstash && dayKey) {
     try {
       const ok = await upstash(["SET", dayKey, "1", "NX", "EX", String(25 * 60 * 60)]);
       if (ok !== "OK") {
@@ -69,8 +74,12 @@ export async function POST(req: Request) {
           { status: 429 },
         );
       }
+      claimedDayKey = dayKey; // release this if the run fails → don't burn the visitor's one try
     } catch { /* infra hiccup → allow (rare) */ }
   }
+  const releaseDay = async () => {
+    if (claimedDayKey && hasUpstash) { try { await upstash(["DEL", claimedDayKey]); } catch { /* best-effort */ } }
+  };
 
   // Cost guard: count this against the global free $ budget + kill-switch.
   const { agentsKilled, consumeFreeRun, refundFreeRun, RUN_COST_CENTS } = await import("@/lib/missions/budget");
@@ -79,6 +88,7 @@ export async function POST(req: Request) {
   }
   const budget = await consumeFreeRun(RUN_COST_CENTS.text);
   if (!budget.ok) {
+    await releaseDay();
     return NextResponse.json(
       { error: "capacity", message: "Today's free demos are used up. Back at UTC midnight — or unlock a FREELON now." },
       { status: 503 },
@@ -89,6 +99,7 @@ export async function POST(req: Request) {
   const mission = getMission("strategy");
   if (!citizen || !mission) {
     await refundFreeRun(RUN_COST_CENTS.text);
+    await releaseDay();
     return NextResponse.json({ error: "unavailable" }, { status: 503 });
   }
 
@@ -107,11 +118,13 @@ export async function POST(req: Request) {
     const output = await mission.resolve(ctx);
     if (!output.ok) {
       await refundFreeRun(RUN_COST_CENTS.text);
+      await releaseDay(); // a failed demo must not burn the visitor's one daily try
       return NextResponse.json({ error: "no_output", message: "The agent couldn't complete that — try again." }, { status: 502 });
     }
     return NextResponse.json({ ok: true, demo: true, title: output.title, body: output.body });
   } catch {
     await refundFreeRun(RUN_COST_CENTS.text);
+    await releaseDay();
     return NextResponse.json({ error: "failed", message: "The agent couldn't be reached — try again." }, { status: 502 });
   }
 }
