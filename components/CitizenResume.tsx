@@ -107,8 +107,8 @@ export async function CitizenResume({ tokenId }: { tokenId: number }) {
           <span className="resume-id-cell">
             <span className="resume-id-lbl">PREMIUM</span>
             {unlock.unlocked ? (
-              <span className="resume-unlock is-on" title="Premium abilities (deep Strategy, Red Team, Dossier & images) are activated on this FREELON — permanently. Premium runs remaining.">
-                ⬡ ACTIVATED · {unlock.credits.toLocaleString()} RUNS LEFT
+              <span className="resume-unlock is-on" title="Premium abilities (deep Strategy, Red Team, Dossier & images) are activated on this FREELON — permanently. Premium runs are paid in ⬡.">
+                ⬡ ACTIVATED · PREMIUM IN ⬡
               </span>
             ) : (
               <span className="resume-unlock is-off" title="The owner can activate premium abilities (deep Strategy, Red Team, Dossier & images) with a one-time payment, priced by rarity. Activation is permanent and stays with the NFT. Common FREELONS activate from 0.005 ETH.">

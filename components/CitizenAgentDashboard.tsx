@@ -7,7 +7,7 @@ import { openseaUrl } from "@/lib/constants";
 import ShareAgentOutput from "@/components/ShareAgentOutput";
 
 type Task = { key: string; label: string };
-type AbilityView = { id: string; label: string; blurb: string; skill: string; tasks: Task[]; primary: boolean; premium: boolean };
+type AbilityView = { id: string; label: string; blurb: string; skill: string; tasks: Task[]; primary: boolean; premium: boolean; hexCost: number };
 type Work = { id: string; ability: string; abilityLabel: string; task: string; kind: "text" | "image"; body: string; level: number; timestamp: number };
 
 type UnlockState = { unlocked: boolean; credits: number; tier: string; priceEth: number; rechargeEth: number; grantPerUnlock: number };
@@ -338,10 +338,10 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         <span className="kicker">⬡ YOUR AGENT · WHAT IT CAN DO</span>
         {paymentsLive && unlock?.unlocked ? (
           <span
-            className={`agentdash-credits${unlock.credits <= 0 ? " is-empty" : ""}`}
-            title="Premium runs left — 1 per premium job or image. Recharge to refill; activation is permanent."
+            className="agentdash-credits"
+            title="This FREELON is unlocked. Premium abilities are paid in ⬡; earn or unlock to top up."
           >
-            {unlock.credits.toLocaleString()} PREMIUM RUNS LEFT
+            ⬡ UNLOCKED · PAY PER RUN IN ⬡
           </span>
         ) : (
           <span className="agentdash-note">AI-generated, review before acting</span>
@@ -364,7 +364,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                 <span className="agentdash-ability-name">
                   {a.label}{a.primary ? " ★" : ""}
                   {paymentsLive && a.premium
-                    ? <span className="agentdash-ability-price">{unlock?.unlocked ? "1 RUN" : "PREMIUM"}</span>
+                    ? <span className="agentdash-ability-price">{unlock?.unlocked ? `${a.hexCost.toLocaleString()}⬡` : "UNLOCK"}</span>
                     : <span className="agentdash-ability-price is-free">FREE</span>}
                 </span>
                 <span className="agentdash-ability-blurb">{a.blurb}</span>

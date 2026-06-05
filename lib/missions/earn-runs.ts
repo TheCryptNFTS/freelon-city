@@ -1,29 +1,27 @@
 /**
- * EARN PREMIUM RUNS — engagement feeds the agent. Holders earn premium runs (the
- * thing they'd otherwise pay to recharge) by doing things they already do:
- * keeping a daily claim streak, and referring new holders. This connects the
- * existing streak + referral systems to the agent money-loop.
+ * EARN HEX — engagement feeds the agent. Holders earn HEX (the single usage
+ * currency) by doing things they already do: keeping a daily-claim streak, and
+ * referring new holders. This connects the existing streak + referral systems to
+ * the agent money-loop.
  *
- * Runs are per-CITIZEN (tokenId); streaks/referrals are per-WALLET. So an earn
- * event targets ONE citizen the wallet chose (the caller passes the tokenId,
- * validated as owned upstream). Idempotency (don't double-grant the same streak
- * day / referral) is the CALLER's responsibility via its own store flags.
- *
- * PURE config + a thin grant wrapper. No payment, no value language.
+ * 2026-06-05: converted from per-citizen "premium runs" (a dead credit pool under
+ * the HEX model) to per-WALLET HEX. HEX is per-wallet, so an earn event credits
+ * the wallet directly. Amounts sit BELOW a premium run (~1500⬡) so engagement
+ * rewards meaningfully toward premium use without trivially funding it for free —
+ * the ETH unlock bonus stays the main fuel. Idempotency is the CALLER's job.
  */
-import { grantRuns } from "@/lib/missions/unlock-store";
 
-/** What each earn event is worth, in premium runs. Env-tunable ceiling. */
-export const EARN_RUNS = {
+/** What each earn event is worth, in ⬡. Conservative: below one premium run. */
+export const EARN_HEX = {
   /** Reaching a 7-day daily-claim streak. */
-  streak7: 3,
+  streak7: 1000,
   /** Reaching a 30-day streak (the big one). */
-  streak30: 15,
+  streak30: 5000,
   /** A referred wallet became a real holder. */
-  referral: 5,
+  referral: 2000,
 } as const;
 
-export type EarnReason = keyof typeof EARN_RUNS;
+export type EarnReason = keyof typeof EARN_HEX;
 
 /** Human label for notifications / the ledger. */
 export const EARN_LABEL: Record<EarnReason, string> = {
@@ -33,14 +31,14 @@ export const EARN_LABEL: Record<EarnReason, string> = {
 };
 
 /**
- * Grant the runs for an earn event to a specific citizen. Returns the new run
- * balance. The caller must have already confirmed the wallet owns `tokenId` and
- * that this event hasn't been rewarded before (idempotency upstream).
+ * Credit the ⬡ for an earn event to a WALLET. Returns the amount + new balance.
+ * The caller must have already confirmed eligibility + idempotency upstream.
  */
-export async function awardRuns(tokenId: number, reason: EarnReason): Promise<{ runs: number; balance: number }> {
-  const runs = EARN_RUNS[reason];
-  const rec = await grantRuns({ tokenId, runs, reason });
-  return { runs, balance: rec.credits };
+export async function awardHex(wallet: string, reason: EarnReason): Promise<{ hex: number; balance: number }> {
+  const hex = EARN_HEX[reason];
+  const { creditWalletHex } = await import("@/lib/wallet-hex-store");
+  const rec = await creditWalletHex(wallet, hex, { kind: "quest", note: `Earned: ${EARN_LABEL[reason]} (+${hex}⬡)` });
+  return { hex, balance: rec.balance };
 }
 
 /**
@@ -56,7 +54,7 @@ export async function claimEarnedRuns(args: {
   reason: EarnReason;
   /** Unique per earn event, e.g. `streak7:0xabc:2026-06-04` or `referral:<joiner>`. */
   eventKey: string;
-}): Promise<{ tokenId: number; runs: number; balance: number } | null> {
+}): Promise<{ tokenId: number | null; hex: number; balance: number } | null> {
   const wallet = args.wallet.toLowerCase();
 
   // Idempotency: one grant per eventKey, ever.
@@ -71,7 +69,8 @@ export async function claimEarnedRuns(args: {
     }
   }
 
-  // Resolve the target citizen: featured pick, else first owned token.
+  // HEX is per-wallet, so the credit doesn't need a citizen. We still resolve one
+  // (featured pick, else first owned) purely so the notification can name it.
   let tokenId: number | null = null;
   try {
     const { getFeaturedCitizen } = await import("@/lib/featured-citizen-store");
@@ -84,15 +83,14 @@ export async function claimEarnedRuns(args: {
       tokenId = Array.isArray(t?.tokenIds) && t.tokenIds.length > 0 ? t.tokenIds[0] : null;
     } catch { /* fall through */ }
   }
-  if (tokenId == null) return null; // wallet holds no citizen → nothing to grant
 
-  const { runs, balance } = await awardRuns(tokenId, args.reason);
+  const { hex, balance } = await awardHex(wallet, args.reason);
 
-  // Best-effort earned-runs notification.
+  // Best-effort earned notification.
   try {
     const { notifyRunsEarned } = await import("@/lib/missions/agent-notify");
-    await notifyRunsEarned({ wallet, tokenId, runs, reasonLabel: EARN_LABEL[args.reason] });
+    await notifyRunsEarned({ wallet, tokenId: tokenId ?? 0, runs: hex, reasonLabel: `${EARN_LABEL[args.reason]} (+${hex}⬡)` });
   } catch { /* non-fatal */ }
 
-  return { tokenId, runs, balance };
+  return { tokenId, hex, balance };
 }

@@ -25,6 +25,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
   const progress = await getProgress(cid);
   const spec = deriveSpec(progress);
+  const { premiumHexFor } = await import("@/lib/economy-constants");
   const abilities = listAbilityViews().map((a) => ({
     ...a,
     // every ability is available from level 1 in the free internal build;
@@ -33,6 +34,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     // Whether this ability needs the citizen unlocked (premium). Display-only —
     // the server re-checks on run, so a tampered client can't skip the gate.
     premium: requiresUnlock(a.id),
+    // HEX charged per run for premium abilities (0 = free). Single-currency model.
+    hexCost: premiumHexFor(a.id),
   }));
   // PUBLIC PORTFOLIO: expose the body of work (outputs are the citizen's
   // showcase), but STRIP the holder's raw `brief` — that's their private input

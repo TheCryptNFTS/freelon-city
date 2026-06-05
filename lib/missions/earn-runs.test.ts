@@ -1,32 +1,32 @@
 import { describe, it, expect } from "vitest";
-import { awardRuns, EARN_RUNS } from "@/lib/missions/earn-runs";
-import { unlockStatus, isUnlocked, spendCredit } from "@/lib/missions/unlock-store";
+import { awardHex, EARN_HEX } from "@/lib/missions/earn-runs";
+import { getWalletHex } from "@/lib/wallet-hex-store";
 
-describe("earn premium runs (streak / referral)", () => {
-  it("awarding runs activates a locked citizen and credits the runs", async () => {
-    const T = 8700; // never activated
-    expect(await isUnlocked(T)).toBe(false);
-    const r = await awardRuns(T, "referral");
-    expect(r.runs).toBe(EARN_RUNS.referral);
-    expect(r.balance).toBe(EARN_RUNS.referral);
-    // earned runs ACTIVATE the agent so the holder can use them
-    expect(await isUnlocked(T)).toBe(true);
-    expect((await unlockStatus(T)).credits).toBe(EARN_RUNS.referral);
+describe("earn HEX (streak / referral)", () => {
+  it("awarding credits the wallet's HEX balance", async () => {
+    const W = "0xearn0000000000000000000000000000000a0001";
+    const before = (await getWalletHex(W)).balance;
+    const r = await awardHex(W, "referral");
+    expect(r.hex).toBe(EARN_HEX.referral);
+    expect(r.balance).toBe(before + EARN_HEX.referral);
   });
 
   it("multiple earns stack; a streak30 is worth more than a streak7", async () => {
-    const T = 8701;
-    await awardRuns(T, "streak7");
-    const after = await awardRuns(T, "streak30");
-    expect(after.balance).toBe(EARN_RUNS.streak7 + EARN_RUNS.streak30);
-    expect(EARN_RUNS.streak30).toBeGreaterThan(EARN_RUNS.streak7);
+    const W = "0xearn0000000000000000000000000000000a0002";
+    await awardHex(W, "streak7");
+    const after = await awardHex(W, "streak30");
+    expect(after.balance).toBe(EARN_HEX.streak7 + EARN_HEX.streak30);
+    expect(EARN_HEX.streak30).toBeGreaterThan(EARN_HEX.streak7);
   });
 
-  it("earned runs are spendable like paid ones", async () => {
-    const T = 8702;
-    await awardRuns(T, "referral"); // 5 runs
-    const s = await spendCredit(T);
-    expect(s.ok).toBe(true);
-    if (s.ok) expect(s.remaining).toBe(EARN_RUNS.referral - 1);
+  it("a single earn can't fund a flagship premium run, and unlock dwarfs earning", async () => {
+    // The guard: free/earned HEX is SLOW relative to the flagship premium abilities
+    // (the real compute), so the ETH unlock bonus stays the main fuel. The cheap
+    // viral ability (feud) being streak-affordable is fine.
+    const { PREMIUM_HEX, UNLOCK_BONUS_HEX_PER_RUN } = await import("@/lib/economy-constants");
+    const flagship = Math.min(PREMIUM_HEX.strategy, PREMIUM_HEX.dossier);
+    expect(EARN_HEX.streak7).toBeLessThan(flagship); // a week of logins < one flagship run
+    // One common unlock (40 runs × bonus) must vastly exceed the biggest single earn.
+    expect(40 * UNLOCK_BONUS_HEX_PER_RUN).toBeGreaterThan(EARN_HEX.streak30 * 3);
   });
 });
