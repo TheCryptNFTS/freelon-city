@@ -35,6 +35,17 @@ export function CitizenAgentExplainer() {
         <p className="agent-howto-foot"><strong>Aligned ≠ owned.</strong> Syncing shows your tribe&apos;s face; owning means buying the FREELON; unlocking turns its agent on.</p>
       </div>
 
+      {/* WHAT YOU PAY & WHEN — the pricing made legible up front, so buy → unlock
+          → run isn't three surprises. Three steps, plain words. */}
+      <div className="agent-pay-explainer">
+        <span className="kicker">⬡ WHAT YOU PAY &amp; WHEN</span>
+        <ol className="agent-pay-steps">
+          <li><strong>Own it</strong> — buy the FREELON on OpenSea. One purchase, in ETH.</li>
+          <li><strong>Unlock it</strong> — a one-time ETH payment turns the agent on (it stays on, even if you sell) and drops bonus ⬡ in your wallet.</li>
+          <li><strong>Run jobs</strong> — each job spends a little ⬡. You earn ⬡ free every day, or use the bonus the unlock gave you.</li>
+        </ol>
+      </div>
+
       <span className="kicker">⬡ SEE IT WORK</span>
 
       {/* PROOF FIRST — a real example so a visitor witnesses the quality before
@@ -55,6 +66,25 @@ export function CitizenAgentExplainer() {
           </div>
         </div>
         <span className="agent-demo-foot">Example output — run it on your own citizen.</span>
+      </div>
+
+      {/* THE MOAT, MADE TANGIBLE — why this beats a blank chatbot: it remembers
+          you. Static before/after, clearly labelled. */}
+      <div className="agent-demo agent-demo-memory">
+        <span className="agent-demo-label">MEMORY → IT REMEMBERS YOU</span>
+        <div className="agent-demo-io">
+          <p className="agent-demo-you">
+            <strong>A blank AI:</strong> writes five generic launch tweets. Doesn&apos;t know your product,
+            your audience, or how you talk — so you re-explain everything, every time.
+          </p>
+          <div className="agent-demo-agent">
+            <strong>Your citizen:</strong>
+            <p>Reads its <em>dossier</em> on you — your project, your audience, your voice, the wedge you
+            gave it last week — and writes from that. The more you use it, the more it&apos;s yours.</p>
+            <p><strong>That memory is part of the NFT. Sell it, and the next owner inherits a trained agent — not a blank one.</strong></p>
+          </div>
+        </div>
+        <span className="agent-demo-foot">A chatbot starts over every time. Yours doesn&apos;t.</span>
       </div>
 
       {/* THE DO — the single obvious next action, scrolls to the run dashboard. */}

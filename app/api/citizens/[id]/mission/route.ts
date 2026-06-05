@@ -359,6 +359,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (isImg) return m.recordImage();
       return m.recordRunCost({ tier: isPaidRun ? "premium" : "cheap", promptTokens: pt, completionTokens: ojt });
     }).catch(() => {});
+    // Feed the public transforms wall (fire-and-forget; recordTransform never
+    // throws and silently drops anything that isn't a clean https image URL).
+    if (isImg && typeof output.body === "string") {
+      const styleLabel =
+        (typeof body.input === "string" ? body.input : "")
+          .replace(/^style:/, "")
+          .replace(/[-_]+/g, " ")
+          .trim()
+          .slice(0, 40) || "scene";
+      import("@/lib/transforms-feed")
+        .then((m) => m.recordTransform({ tokenId: cid, url: output.body as string, style: styleLabel }))
+        .catch(() => {});
+    }
   }
   if (!output.ok) {
     // A failed premium run never happened → give the premium $-pool charge back so

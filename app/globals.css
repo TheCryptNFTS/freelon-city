@@ -7485,6 +7485,16 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .admin-run-thread .admin-run-out { margin-top: 0; }
 
 /* ── Homepage closing CTA (2026-06-04 agents-only homepage) ── */
+/* Transforms wall — public proof grid of real generated transforms. */
+.transforms-wall { padding: var(--s-7) var(--pad); max-width: 1200px; margin: 0 auto; }
+.transforms-wall-sub { font-family: var(--mono2); font-size: 13px; color: var(--ink-2); line-height: 1.6; margin: 8px 0 var(--s-4); }
+.transforms-wall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.transforms-wall-item { position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--line-2); text-decoration: none; background: rgba(0,0,0,0.4); transition: border-color .15s, transform .15s; }
+.transforms-wall-item:hover { border-color: var(--gold); transform: translateY(-2px); }
+.transforms-wall-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.transforms-wall-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 8px; font-family: var(--mono2); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.78) 100%); }
+@media (max-width: 600px) { .transforms-wall-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); } }
+
 .home-close { text-align: center; padding: var(--s-8) var(--pad) var(--s-9); }
 .home-close__line {
   font-family: var(--mono2); font-size: clamp(16px, 2.4vw, 22px);
@@ -7564,6 +7574,15 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .agent-howto-steps strong { color: var(--ink); }
 .agent-howto-foot { margin: 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.55; color: var(--ink-dim); }
 .agent-howto-foot strong { color: var(--gold-bright); }
+
+/* WHAT YOU PAY & WHEN — pricing-clarity panel in the explainer. */
+.agent-pay-explainer { margin: 0 0 22px; padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg-2); }
+.agent-pay-steps { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: pay; display: flex; flex-direction: column; gap: 10px; }
+.agent-pay-steps li { counter-increment: pay; position: relative; padding-left: 30px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.agent-pay-steps li::before { content: counter(pay); position: absolute; left: 0; top: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-family: var(--mono2); font-size: 11px; color: var(--gold); border: 1px solid var(--gold-deep); border-radius: 999px; }
+.agent-pay-steps strong { color: var(--ink); }
+/* The memory before/after reuses .agent-demo; just a hair of separation. */
+.agent-demo-memory { margin-top: 14px; }
 
 /* Image studio group labels (Transforms / Scenes) */
 .agentdash-images-grp { display: block; font-family: var(--mono2); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-fade); margin: 14px 0 8px; }

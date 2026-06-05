@@ -4,6 +4,7 @@ import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
 import { CitizenShowcase } from "@/components/CitizenShowcase";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
+import TransformsWall from "@/components/TransformsWall";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -155,6 +156,10 @@ export default function Home() {
           tell"; this slow band of real portraits (1/1s + honoraries) fixes
           that the moment a visitor scrolls past the hero. */}
       <CitizenShowcase />
+
+      {/* PROOF WITHOUT A PAYWALL — a live wall of real transforms owners made.
+          Self-hides until the feed has entries, so it never shows empty. */}
+      <TransformsWall />
 
       {/* ── CLOSING CTA — one clean ending, agents only. 2026-06-04 newcomer-path
           simplification (founder: "agents are the main thing"): the homepage was
