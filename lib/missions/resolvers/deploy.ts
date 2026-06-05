@@ -32,6 +32,12 @@ export async function deployResolver(ctx: MissionContext): Promise<MissionOutput
   const result = await generateCitizenScene({ citizen: ctx.citizen, spec, sceneKey });
 
   if (!result.ok) {
+    // Make image failures OBSERVABLE — the raw code (no_blob_store / openai_400 /
+    // reference_art_missing / empty_image) goes to the ops log so the operator can
+    // see WHY a render failed instead of just the friendly message.
+    import("@/lib/missions/ops-log")
+      .then((m) => m.recordError(`deploy:${sceneKey}`, new Error(result.error || "unknown"), { tokenId: ctx.citizen.id }))
+      .catch(() => {});
     return {
       ok: false,
       title: "Deployment failed",
