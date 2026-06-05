@@ -30,12 +30,14 @@ describe("unlock pricing — rarity ladder", () => {
   it("unknown tier defaults to Common", () => {
     expect(unlockTierFor("Mythic???").tier).toBe("Common");
   });
-  it("only premium/image abilities require unlock", () => {
-    expect(requiresUnlock("strategy")).toBe(true);
-    expect(requiresUnlock("risk")).toBe(true);
-    expect(requiresUnlock("dossier")).toBe(true);
-    expect(requiresUnlock("deploy-citizen")).toBe(true);
-    expect(requiresUnlock("content")).toBe(false); // free funnel
+  it("EVERY ability requires the unlock (2026-06-05: no free training)", () => {
+    // The one-time ETH unlock is required to train/use ANY ability now. The cheap
+    // ones (content/sales/research) just cost 0⬡ to USE once unlocked; the free
+    // taste for non-owners lives in the public /api/demo, not this gate.
+    for (const id of ["content", "sales", "research", "strategy", "risk", "dossier", "deploy-citizen"]) {
+      expect(requiresUnlock(id)).toBe(true);
+    }
+    expect(requiresUnlock("feud")).toBe(false); // social/viral — not unlock-gated
     expect(isImageMission("deploy-citizen")).toBe(true);
     expect(isImageMission("strategy")).toBe(false);
   });

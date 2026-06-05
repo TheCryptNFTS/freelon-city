@@ -115,8 +115,17 @@ export function rechargePackFor(tierString: string | undefined | null, pack: Rec
   };
 }
 
-/** Which abilities/actions REQUIRE an unlock. Free funnel stays open. */
+/**
+ * Which abilities/actions REQUIRE an unlock. 2026-06-05 (Billy): EVERY ability now
+ * needs the one-time ETH unlock — no more free TRAINING of an owned citizen. After
+ * unlock, the cheap abilities (content/sales/research) cost 0⬡ (not in PREMIUM_HEX)
+ * so they're free to USE; the flagship + images stay HEX-priced. The free "taste"
+ * for non-owners is a separate public demo (app/api/demo), not this gate.
+ */
 export const UNLOCK_GATED_ABILITIES = new Set<string>([
+  "content", // write — free to use after unlock (0⬡), but needs the unlock to train
+  "sales", // closer — same
+  "research", // analyst — same
   "strategy", // deep "Fix My Launch"
   "risk", // Red Team
   "dossier", // the memory moat

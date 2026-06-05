@@ -364,7 +364,9 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                 <span className="agentdash-ability-name">
                   {a.label}{a.primary ? " ★" : ""}
                   {paymentsLive && a.premium
-                    ? <span className="agentdash-ability-price">{unlock?.unlocked ? `${a.hexCost.toLocaleString()}⬡` : "UNLOCK"}</span>
+                    ? (unlock?.unlocked
+                        ? <span className={`agentdash-ability-price${a.hexCost > 0 ? "" : " is-free"}`}>{a.hexCost > 0 ? `${a.hexCost.toLocaleString()}⬡` : "FREE"}</span>
+                        : <span className="agentdash-ability-price">UNLOCK</span>)
                     : <span className="agentdash-ability-price is-free">FREE</span>}
                 </span>
                 <span className="agentdash-ability-blurb">{a.blurb}</span>
