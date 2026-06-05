@@ -184,15 +184,15 @@ export function WalletScanner() {
                         <div className="ws-line">
                           <span className="ws-line-arrow">→</span>
                           <span>
-                            CITIZEN MATCH: #
-                            {result.citizenMatch?.id.toString().padStart(4, "0")}
+                            YOUR TRIBE&apos;S FACE: #
+                            {result.citizenMatch?.id.toString().padStart(4, "0")} · aligned, not owned
                           </span>
                         </div>
                         <Link
-                          className="btn btn-primary"
+                          className="btn btn-secondary"
                           href={`/citizens/${result.citizenMatch?.id}`}
                         >
-                          <span className="ttl">OPEN CITIZEN →</span>
+                          <span className="ttl">SEE THIS FREELON →</span>
                         </Link>
                       </>
                     )}

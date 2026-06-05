@@ -3,7 +3,7 @@ import Link from "next/link";
 import { syncHandle, normalizeHandle } from "@/lib/sync";
 import { getCarrier } from "@/lib/carrier-store";
 import { tier } from "@/lib/carrier";
-import { CIVILIZATIONS, imageUrl, openseaUrl, LOCAL_HEROES } from "@/lib/constants";
+import { CIVILIZATIONS, imageUrl, LOCAL_HEROES } from "@/lib/constants";
 import { getWalletByHandle } from "@/lib/x-store";
 import { getWalletTokens } from "@/lib/wallet-tokens";
 import { getWalletHex } from "@/lib/wallet-hex-store";
@@ -135,12 +135,18 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
           </dl>
         </div>
         <Link href={`/citizens/${r.patron.id}`} className="cp-patron">
-          <div className="lbl">PATRON CITIZEN</div>
+          <div className="lbl">YOUR TRIBE&apos;S FACE · ALIGNED</div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imageUrl(r.patron.id)} alt={r.patron.name} />
           <div className="meta">
             <div className="id">#{id4}</div>
             <div className="name">{r.patron.name}</div>
+          </div>
+          {/* 2026-06-05 onboarding fix: holders were confused, thinking this
+              X-handle-aligned citizen was THEIRS. Make alignment vs ownership
+              explicit right under the image. */}
+          <div className="cp-aligned-note">
+            Aligned to your X handle — <strong>you don&apos;t own this one</strong>. Owning a FREELON means buying the NFT.
           </div>
         </Link>
       </section>
@@ -153,8 +159,9 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
           <span className="lbl">ENTER</span>
           <span className="ttl">{civ?.name?.toUpperCase()} →</span>
         </Link>
-        <a className="btn btn-ghost" href={openseaUrl(r.patron.id)} target="_blank" rel="noreferrer">
-          <span className="ttl">VIEW PATRON ON OPENSEA ↗</span>
+        <a className="btn btn-secondary" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+          <span className="lbl">OWN ONE</span>
+          <span className="ttl">BUY A FREELON ↗</span>
         </a>
         <Link className="btn btn-ghost" href="/carrier">
           <span className="ttl">CLAIM YOUR OWN CARRIER →</span>

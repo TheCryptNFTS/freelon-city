@@ -21,6 +21,19 @@ const ABILITIES = [
 export function CitizenAgentExplainer() {
   return (
     <section className="agent-explainer">
+      {/* HOW IT WORKS — the plain "what is this / how do I play" the community kept
+          asking for, and the aligned-vs-owned clarity. 4 steps, no jargon. */}
+      <div className="agent-howto">
+        <span className="kicker">⬡ NEW HERE? HOW IT WORKS</span>
+        <ol className="agent-howto-steps">
+          <li><strong>Sync your X handle</strong> → the city sorts you into a tribe and shows you that tribe&apos;s face. <em>That citizen is an example — you don&apos;t own it.</em></li>
+          <li><strong>Own one</strong> → buy a FREELON on OpenSea. Now it&apos;s yours.</li>
+          <li><strong>Unlock it</strong> → a one-time ETH payment activates its AI agent (and drops bonus ⬡ in your wallet).</li>
+          <li><strong>Put it to work</strong> → give it jobs (write, strategy, research, images). It levels up, remembers your project, and builds a work history that stays with the NFT.</li>
+        </ol>
+        <p className="agent-howto-foot"><strong>Aligned ≠ owned.</strong> Syncing shows your tribe&apos;s face; owning means buying the FREELON; unlocking turns its agent on.</p>
+      </div>
+
       <span className="kicker">⬡ SEE IT WORK</span>
 
       {/* PROOF FIRST — a real example so a visitor witnesses the quality before

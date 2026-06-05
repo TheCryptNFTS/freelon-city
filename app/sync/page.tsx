@@ -126,7 +126,8 @@ export default function SyncPage() {
               fontSize: 14,
             }}
           >
-            Not a citizen yet. Drop your handle — the city assigns your civ deterministically.
+            Don&apos;t own a FREELON yet? Drop your X handle — the city sorts you into a tribe and shows
+            you that tribe&apos;s face. It&apos;s an <strong>example, not yours</strong>; you own a FREELON by buying one.
           </p>
           <div className="big-input">
             <InlineSync />

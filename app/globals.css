@@ -7534,3 +7534,15 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .agentdash-image-cap { display: block; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 8px; }
 .agentdash-image-img { max-width: 100%; height: auto; display: block; border: 1px solid var(--line-2); border-radius: 8px; }
 .agentdash-image-out .agentdash-outbtn { margin-top: 10px; }
+
+/* Onboarding clarity (2026-06-05): aligned vs owned + how-it-works */
+.cp-aligned-note { margin-top: 10px; font-family: var(--mono2); font-size: 11px; line-height: 1.5; color: var(--ink-dim); letter-spacing: 0.02em; }
+.cp-aligned-note strong { color: #E8997A; }
+.agent-howto { margin: 0 0 22px; padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg-2); }
+.agent-howto .kicker { color: var(--gold); }
+.agent-howto-steps { margin: 12px 0 10px; padding: 0 0 0 4px; list-style: none; counter-reset: howto; display: flex; flex-direction: column; gap: 10px; }
+.agent-howto-steps li { counter-increment: howto; position: relative; padding-left: 30px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.agent-howto-steps li::before { content: counter(howto); position: absolute; left: 0; top: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-family: var(--mono2); font-size: 11px; color: var(--gold); border: 1px solid var(--gold-deep); border-radius: 999px; }
+.agent-howto-steps strong { color: var(--ink); }
+.agent-howto-foot { margin: 0; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.55; color: var(--ink-dim); }
+.agent-howto-foot strong { color: var(--gold-bright); }
