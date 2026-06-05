@@ -139,7 +139,7 @@ export default function PressPage() {
           <Fact label="STANDARD"    value="ERC-721 · Ethereum mainnet" />
           <Fact label="CONTRACT"    value={<code style={{ fontSize: 12, color: "var(--ink)" }}>{CONTRACT}</code>} />
           <Fact label="MARKETPLACE" value={<a href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer" style={{ color: "var(--gold)" }}>opensea.io/collection/freelons ↗</a>} />
-          <Fact label="LIVE STATS"  value={<Link href="/numbers" style={{ color: "var(--gold)" }}>/numbers</Link>} />
+          <Fact label="LIVE STATS"  value={<Link href="/dashboard" style={{ color: "var(--gold)" }}>/dashboard</Link>} />
           <Fact label="VOICE"       value={<a href="https://x.com/4040hex" target="_blank" rel="noreferrer" style={{ color: "var(--gold)" }}>@4040hex on X</a>} />
         </div>
       </Section>

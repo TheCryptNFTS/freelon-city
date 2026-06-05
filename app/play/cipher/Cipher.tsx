@@ -792,7 +792,7 @@ export function Cipher() {
             <Link className={hasNextSeason ? "btn btn-secondary" : "btn btn-primary"} href="/citizens">
               <span className="ttl">OWN A CITIZEN ↗</span>
             </Link>
-            <Link className="btn btn-secondary" href="/lore">
+            <Link className="btn btn-secondary" href="/canon#civilizations">
               <span className="ttl">READ THE LORE</span>
             </Link>
           </div>

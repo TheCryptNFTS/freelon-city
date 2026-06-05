@@ -75,7 +75,7 @@ export function FifthBracketClient() {
           <span className="lbl">CARRY THE SIGNAL</span>
           <span className="ttl">OPEN CARRIER <span className="ar">→</span></span>
         </Link>
-        <Link href="/secrets" className="btn btn-secondary">
+        <Link href="/canon#secrets" className="btn btn-secondary">
           <span className="ttl">/SECRETS <span className="ar">→</span></span>
         </Link>
       </div>

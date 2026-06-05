@@ -279,7 +279,7 @@ export default function StartPage() {
           <Ul>
             <Li>Claim your <strong>+{ECONOMY.DAILY_CLAIM} ⬡</strong> on /carrier</Li>
             <Li>Look for the city&apos;s latest X post and reply to it — the first 10 replies in 30 min earn double hex</Li>
-            <Li>Glance at /numbers to see the city&apos;s pulse</Li>
+            <Li>Glance at /dashboard to see the city&apos;s pulse</Li>
           </Ul>
           <p style={{ marginTop: 12, fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.6 }}>
             Miss too many days and your background hex pauses. Come back, claim, and it resumes.

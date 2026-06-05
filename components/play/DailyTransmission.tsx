@@ -122,7 +122,7 @@ export function DailyTransmission() {
           <Link className="btn btn-secondary" href="/citizens">
             <span className="ttl">OWN A CITIZEN ↗</span>
           </Link>
-          <Link className="btn btn-ghost" href="/lore">
+          <Link className="btn btn-ghost" href="/canon#civilizations">
             <span className="ttl">READ THE LORE</span>
           </Link>
         </div>

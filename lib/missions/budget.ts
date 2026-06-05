@@ -137,9 +137,7 @@ async function refundTo(key: string, costCents: number): Promise<void> {
 export const consumeFreeRun = (c: number = RUN_COST_CENTS.text) => consumeFrom(`freelon:budget:cents:${utcDay()}`, dailyBudgetCents(), c);
 export const refundFreeRun = (c: number = RUN_COST_CENTS.text) => refundTo(`freelon:budget:cents:${utcDay()}`, c);
 
-// PUBLIC demo runs — SEPARATE pool so demo abuse can't starve owners' free runs. (H4)
-export const consumeDemoRun = (c: number = RUN_COST_CENTS.text) => consumeFrom(`freelon:budget:demo:${utcDay()}`, dailyBudgetCents(), c);
-export const refundDemoRun = (c: number = RUN_COST_CENTS.text) => refundTo(`freelon:budget:demo:${utcDay()}`, c);
+// (The public-demo budget pool was removed with the free demo — activation-first.)
 
 // PREMIUM (HEX-paid) runs — bounds the founder's daily premium COGS regardless of
 // HEX supply (the "premium has no $ cap" leak from the economy red-team). (C1/C2 backstop)
