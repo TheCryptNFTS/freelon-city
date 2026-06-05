@@ -45,6 +45,12 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [abilities, setAbilities] = useState<AbilityView[] | null>(null);
   const [paymentsLive, setPaymentsLive] = useState(false);
   const [history, setHistory] = useState<Work[]>([]);
+  // Image generation (deploy-citizen): scene picker + its own busy/result state.
+  const [scenes, setScenes] = useState<{ key: string; label: string }[]>([]);
+  const [imageHexCost, setImageHexCost] = useState(0);
+  const [imgBusy, setImgBusy] = useState<string | null>(null); // sceneKey while generating
+  const [imgOut, setImgOut] = useState<{ url: string; label: string } | null>(null);
+  const [imgErr, setImgErr] = useState<string | null>(null);
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [brief, setBrief] = useState("");
@@ -74,6 +80,8 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         setPaymentsLive(!!d.paymentsLive);
         if (d.unlock) setUnlock(d.unlock);
         setHistory(Array.isArray(d.history) ? d.history : []);
+        if (Array.isArray(d.scenes)) setScenes(d.scenes);
+        if (typeof d.imageHexCost === "number") setImageHexCost(d.imageHexCost);
         const first = d.abilities.find((a: AbilityView) => a.primary) ?? d.abilities[0];
         if (first) { setAbilityId(first.id); setTaskKey(first.tasks[0]?.key ?? ""); }
       })
@@ -182,6 +190,41 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       setErr((e as Error).message || "Couldn't run the agent.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** Generate a branded scene image (deploy-citizen). Same premium pay/sign flow
+   *  as a mission run; input is the scene KEY. Costs imageHexCost ⬡. */
+  async function doGenerateImage(sceneKey: string) {
+    if (imgBusy) return;
+    setImgBusy(sceneKey); setImgErr(null); setImgOut(null);
+    const base: Record<string, unknown> = { missionId: "deploy-citizen", input: sceneKey };
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { ...base, ...creds } : base),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-citizen".`);
+          continue;
+        }
+        if (res.ok && d?.ok && d.output?.kind === "image") {
+          const label = scenes.find((s) => s.key === sceneKey)?.label ?? "Scene";
+          setImgOut({ url: d.output.body, label });
+          refreshAgent();
+        } else {
+          setImgErr(d?.message || d?.error || "Couldn't generate the image — your ⬡ was not spent on a failed render.");
+        }
+        return;
+      }
+    } catch (e) {
+      setImgErr((e as Error).message || "Couldn't generate the image.");
+    } finally {
+      setImgBusy(null);
     }
   }
 
@@ -580,6 +623,41 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                   >
                     {busy ? "…" : "REFINE →"}
                   </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* GENERATE IMAGE — branded scene render (deploy-citizen). Shown when the
+              agent is unlocked (or in free test mode). Each render is signed +
+              HEX-priced like any premium run, hosted on Blob, and stamped with the
+              FREELON signature (free marketing when shared). */}
+          {scenes.length > 0 && (!paymentsLive || unlock?.unlocked) && (
+            <div className="agentdash-images">
+              <span className="agentdash-images-hd">
+                ⬡ GENERATE IMAGE{paymentsLive && imageHexCost > 0 ? ` · ${imageHexCost.toLocaleString()}⬡ EACH` : ""}
+              </span>
+              <p className="agentdash-images-sub">Render your FREELON into a cinematic scene — branded + ready to share.</p>
+              <div className="agentdash-scenes">
+                {scenes.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    className="agentdash-scene"
+                    disabled={!!imgBusy}
+                    onClick={() => doGenerateImage(s.key)}
+                  >
+                    {imgBusy === s.key ? "Rendering…" : s.label}
+                  </button>
+                ))}
+              </div>
+              {imgErr && <p className="agentdash-err">{imgErr}</p>}
+              {imgOut && (
+                <div className="agentdash-image-out">
+                  <span className="agentdash-image-cap">{imgOut.label}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imgOut.url} alt={`${imgOut.label} scene`} className="agentdash-image-img" />
+                  <a className="btn agentdash-outbtn" href={imgOut.url} target="_blank" rel="noreferrer">OPEN FULL SIZE ↗</a>
                 </div>
               )}
             </div>

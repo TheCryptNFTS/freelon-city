@@ -19,6 +19,9 @@ import { put } from "@vercel/blob";
 import type { Citizen } from "@/lib/citizens";
 import type { Specialization } from "@/lib/specialization";
 import { imageUrl } from "@/lib/constants";
+// NOTE: the JSX stamp (image-stamp.tsx) is loaded via DYNAMIC import at generation
+// time, NOT a static import — so test/tooling that pulls this module for SCENES or
+// the resolver's scene-validation never has to parse the JSX.
 
 const OPENAI_IMAGE_URL = "https://api.openai.com/v1/images/edits";
 const MODEL = "gpt-image-1.5";
@@ -57,41 +60,6 @@ export function isValidScene(key: string): boolean {
 
 function id4(n: number): string {
   return n.toString().padStart(4, "0");
-}
-
-/**
- * Stamp a tasteful FREELON signature onto the generated PNG so every shared copy
- * carries the brand (free marketing). Uses next/og (already a dep) to composite
- * the image full-bleed + a corner mark. Fail-soft: returns the original bytes if
- * compositing throws, so a stamp hiccup never costs the holder their render.
- */
-async function stampSignature(pngBytes: Buffer, tokenId: number): Promise<Buffer> {
-  try {
-    const { ImageResponse } = await import("next/og");
-    const dataUri = `data:image/png;base64,${pngBytes.toString("base64")}`;
-    const res = new ImageResponse(
-      (
-        <div style={{ display: "flex", width: "1024px", height: "1024px", position: "relative" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={dataUri} width={1024} height={1024} alt="" style={{ width: "1024px", height: "1024px" }} />
-          <div
-            style={{
-              position: "absolute", bottom: "22px", right: "26px", display: "flex",
-              alignItems: "center", padding: "8px 16px", borderRadius: "999px",
-              background: "rgba(8,8,10,0.62)", border: "1px solid rgba(200,170,100,0.5)",
-              color: "#E9C984", fontSize: "22px", letterSpacing: "0.06em", fontWeight: 600,
-            }}
-          >
-            {`⬡ MADE BY FREELON #${id4(tokenId)} · FREELONCITY.COM`}
-          </div>
-        </div>
-      ),
-      { width: 1024, height: 1024 },
-    );
-    return Buffer.from(await res.arrayBuffer());
-  } catch {
-    return pngBytes; // unstamped beats failed
-  }
 }
 
 /** The proven identity-lock-FIRST prompt. Identity is non-negotiable; the scene
@@ -181,6 +149,7 @@ export async function generateCitizenScene(args: {
     // connection. We DON'T pre-guard on the env token (OIDC-connected stores don't
     // set it) — instead we let put() try and surface its real error if it fails.
     const filename = `deploy/${id4(args.citizen.id)}-${args.sceneKey}-${Date.now()}.png`;
+    const { stampSignature } = await import("@/lib/missions/image-stamp");
     const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id);
     let blob;
     try {
