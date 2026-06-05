@@ -668,7 +668,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                   className="agentdash-starter"
                   onClick={() => setBrief(STARTERS[ability.id])}
                 >
-                  ✎ Try a starter brief — “{STARTERS[ability.id].slice(0, 52)}…”
+                  ⬡ Try a starter brief — “{STARTERS[ability.id].slice(0, 52)}…”
                 </button>
               )}
 
@@ -889,7 +889,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                   <li key={w.id}>
                     <span className="aw-when">{ago(w.timestamp)}</span>
                     <span className="aw-tag">{w.abilityLabel}/{w.task}</span>
-                    <span className="aw-body">{w.kind === "image" ? "🖼 image" : w.body.slice(0, 80)}</span>
+                    <span className="aw-body">{w.kind === "image" ? "⬡ image" : w.body.slice(0, 80)}</span>
                   </li>
                 ))}
               </ul>

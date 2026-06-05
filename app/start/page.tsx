@@ -283,7 +283,7 @@ export default function StartPage() {
         </Box>
 
         <Box>
-          <Strong color="var(--gold)">📱 On a phone — read this first.</Strong>
+          <Strong color="var(--gold)">⬡ On a phone — read this first.</Strong>
           <P>
             Don&apos;t open the site in Safari or Chrome — those can&apos;t talk to your
             wallet, so connecting silently fails. Open it{" "}
@@ -296,7 +296,7 @@ export default function StartPage() {
         </Box>
 
         <Box>
-          <Strong color="var(--gold)">💻 On a computer.</Strong>
+          <Strong color="var(--gold)">⬡ On a computer.</Strong>
           <P>
             Use Chrome, Brave, or Firefox with the <strong>MetaMask</strong> (or Rainbow)
             extension installed, then connect normally.

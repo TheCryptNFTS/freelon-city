@@ -13,7 +13,7 @@ const ABILITIES = [
   { label: "Strategy", blurb: "fixes your launch, plans growth & sharpens positioning" },
   { label: "Sales", blurb: "sharpens your pitch, DMs & landing copy" },
   { label: "Research", blurb: "researches markets, summarizes long text, scans competitors" },
-  { label: "Design", blurb: "generates visual concepts, image prompts & names" },
+  { label: "Design", blurb: "turns your citizen into any style — robot, statue, anime — ready to share" },
   { label: "Red Team", blurb: "finds weak points and red-teams your idea before you ship" },
 ];
 

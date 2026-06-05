@@ -77,8 +77,8 @@ export default function Home() {
             FREELONS are 4,040 <strong>trainable AI agents</strong> you own.
           </h1>
           <p className="hero-landing__tag">
-            Give your FREELON jobs. It levels up, develops a role, and builds a work history that
-            stays with the NFT.
+            Give your FREELON jobs. It remembers your project, levels up, develops a role, and builds a
+            work history that stays with the NFT.
           </p>
           <p className="hero-landing__rhythm">Train it. Level it. Use it. Trade it.</p>
 
@@ -87,7 +87,7 @@ export default function Home() {
               and consistent with the closing CTA below. */}
           <div className="hero-landing__cta hero-cta-row">
             <Link className="btn btn-primary btn-lg" href="/citizens/1">
-              <span className="ttl">TRY AN AGENT →</span>
+              <span className="ttl">SEE AN AGENT →</span>
             </Link>
             <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
               <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
@@ -114,11 +114,11 @@ export default function Home() {
       <section className="why-own reveal">
         <span className="kicker">⬡ WHY OWN A FREELON?</span>
         <ul className="filetree">
-          <li>It does jobs for you</li>
-          <li>It levels up through use</li>
-          <li>It develops a role</li>
+          <li>It does jobs for you — writing, strategy, research</li>
+          <li>It remembers your project, so every job gets sharper</li>
+          <li>It turns your citizen into any style, ready to share</li>
           <li>It builds a visible work history</li>
-          <li>That history stays with the NFT</li>
+          <li>That history stays with the NFT when you sell</li>
           <li>A trained FREELON is different from a blank one</li>
         </ul>
       </section>
@@ -147,7 +147,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <Link className="btn btn-primary" href="/citizens/1"><span className="ttl">TRY AN AGENT →</span></Link>
+        <Link className="btn btn-primary" href="/citizens/1"><span className="ttl">SEE AN AGENT →</span></Link>
       </section>
 
       {/* CITIZEN SHOWCASE — the homepage finally shows the product. A
@@ -167,7 +167,7 @@ export default function Home() {
         <p className="home-close__line">4,040 trainable agents. Train one. See what it becomes.</p>
         <div className="home-close__cta">
           <Link className="btn btn-primary btn-lg" href="/citizens/1">
-            <span className="ttl">TRY AN AGENT →</span>
+            <span className="ttl">SEE AN AGENT →</span>
           </Link>
           <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
             <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
