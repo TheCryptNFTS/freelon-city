@@ -1,12 +1,12 @@
 /**
- * "Deploy Citizen" resolver — INTERNAL/TEST ONLY, no payments.
+ * "Deploy Citizen" resolver — a HEX-priced premium image generation.
  *
- * Renders the citizen into one of three server-allowlisted cinematic scenes off
- * its REAL shipped art, keeping its faceted-monolith + hex-face identity. The
- * scene is passed as the mission input (a scene KEY, validated against the
- * allowlist — never a free-form prompt). On success the endpoint awards XP and
- * writes a memory entry ("Deployed into [scene]"); the image URL rides in the
- * output meta + a focus hint so the citizen's history records what it did.
+ * Renders the citizen into one of the server-allowlisted cinematic scenes off its
+ * REAL art, keeping its faceted-monolith + hex-face identity. The scene is passed
+ * as the mission input (a scene KEY, validated against the allowlist — never a
+ * free-form prompt). The output is hosted on Vercel Blob and branded with a
+ * FREELON signature (see image-gen). On success the endpoint awards XP and writes
+ * a memory entry; the image URL rides in the output meta + a focus hint.
  */
 
 import type { MissionContext, MissionOutput } from "@/lib/missions/types";

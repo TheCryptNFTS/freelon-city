@@ -1,30 +1,27 @@
 /**
- * Image generation for the "Deploy Citizen" mission — INTERNAL/TEST ONLY.
+ * Image generation for the "Deploy Citizen" mission.
  *
- * Mirrors the proven script (image_real_test.py): gpt-image-1.5 `images.edit()`
- * with the REAL shipped citizen art as the reference, and an identity-lock-FIRST
- * prompt so the output keeps the faceted-monolith head + glowing hex face + robes
- * and only the SCENE changes. No SDK — direct multipart fetch to OpenAI.
+ * gpt-image-1.5 `images.edit()` with the citizen's REAL art as the reference and
+ * an identity-lock-FIRST prompt so the output keeps the faceted-monolith head +
+ * glowing hex face + robes and only the SCENE changes. No SDK — direct multipart
+ * fetch to OpenAI.
  *
- * NO payments, NO FUEL, NO discounts. The generated PNG is written under
- * public/generated/deploy/ and served statically for the test.
+ * SERVERLESS-SAFE (2026-06-05): the reference art is FETCHED from the citizen's
+ * hosted image URL (the local ../ship folder doesn't exist on Vercel), and the
+ * output PNG is uploaded to Vercel BLOB (the filesystem is read-only in prod).
+ * Returns the public Blob URL. Falls back to local disk only in dev (no token).
  *
  * SECURITY: scene is chosen from a SERVER-SIDE allowlist (SCENES) by key — there
- * is NO arbitrary user prompt box and NO user-uploaded reference in v1.
+ * is NO arbitrary user prompt box and NO user-uploaded reference.
  */
 
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import path from "node:path";
+import { put } from "@vercel/blob";
 import type { Citizen } from "@/lib/citizens";
 import type { Specialization } from "@/lib/specialization";
+import { imageUrl } from "@/lib/constants";
 
 const OPENAI_IMAGE_URL = "https://api.openai.com/v1/images/edits";
 const MODEL = "gpt-image-1.5";
-
-// Real shipped art lives one level up from the site root.
-const SHIP_DIR = path.resolve(process.cwd(), "../ship/images_jpg");
-const OUT_DIR = path.resolve(process.cwd(), "public/generated/deploy");
-const PUBLIC_PREFIX = "/generated/deploy";
 
 /** Server-side scene allowlist. The client may only pass one of these keys. */
 export const SCENES: Record<string, { label: string; desc: string }> = {
@@ -40,6 +37,18 @@ export const SCENES: Record<string, { label: string; desc: string }> = {
     label: "Throne Room",
     desc: "seated on a throne dais under dramatic shafts of light, regal and still, the hall fading into shadow",
   },
+  "ash-wastes": {
+    label: "Ash Wastes",
+    desc: "alone on a cracked Mars salt-flat under a vast dust-storm sky, lone and monumental, distant ruins on the horizon",
+  },
+  "data-temple": {
+    label: "Data Temple",
+    desc: "inside a cathedral of glowing data-glass and floating glyphs, sacred and quiet, light raking through the columns",
+  },
+  "victory-parade": {
+    label: "Victory",
+    desc: "raised above a roaring crowd of citizens under banners and drifting embers, triumphant, hero-lit from below",
+  },
 };
 
 export function isValidScene(key: string): boolean {
@@ -48,6 +57,41 @@ export function isValidScene(key: string): boolean {
 
 function id4(n: number): string {
   return n.toString().padStart(4, "0");
+}
+
+/**
+ * Stamp a tasteful FREELON signature onto the generated PNG so every shared copy
+ * carries the brand (free marketing). Uses next/og (already a dep) to composite
+ * the image full-bleed + a corner mark. Fail-soft: returns the original bytes if
+ * compositing throws, so a stamp hiccup never costs the holder their render.
+ */
+async function stampSignature(pngBytes: Buffer, tokenId: number): Promise<Buffer> {
+  try {
+    const { ImageResponse } = await import("next/og");
+    const dataUri = `data:image/png;base64,${pngBytes.toString("base64")}`;
+    const res = new ImageResponse(
+      (
+        <div style={{ display: "flex", width: "1024px", height: "1024px", position: "relative" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={dataUri} width={1024} height={1024} alt="" style={{ width: "1024px", height: "1024px" }} />
+          <div
+            style={{
+              position: "absolute", bottom: "22px", right: "26px", display: "flex",
+              alignItems: "center", padding: "8px 16px", borderRadius: "999px",
+              background: "rgba(8,8,10,0.62)", border: "1px solid rgba(200,170,100,0.5)",
+              color: "#E9C984", fontSize: "22px", letterSpacing: "0.06em", fontWeight: 600,
+            }}
+          >
+            {`⬡ MADE BY FREELON #${id4(tokenId)} · FREELONCITY.COM`}
+          </div>
+        </div>
+      ),
+      { width: 1024, height: 1024 },
+    );
+    return Buffer.from(await res.arrayBuffer());
+  } catch {
+    return pngBytes; // unstamped beats failed
+  }
 }
 
 /** The proven identity-lock-FIRST prompt. Identity is non-negotiable; the scene
@@ -86,10 +130,15 @@ export async function generateCitizenScene(args: {
   if (!key) return { ok: false, error: "no_api_key" };
   if (!isValidScene(args.sceneKey)) return { ok: false, error: "invalid_scene" };
 
-  const refPath = path.join(SHIP_DIR, `${id4(args.citizen.id)}.jpg`);
+  // Reference art: fetch the citizen's hosted image (works on serverless; the
+  // old ../ship local folder isn't deployed). Timeout-guarded.
   let refBytes: Buffer;
   try {
-    refBytes = await readFile(refPath);
+    const refController = new AbortController();
+    const rt = setTimeout(() => refController.abort(), 15_000);
+    const refRes = await fetch(imageUrl(args.citizen.id), { signal: refController.signal }).finally(() => clearTimeout(rt));
+    if (!refRes.ok) return { ok: false, error: "reference_art_missing" };
+    refBytes = Buffer.from(await refRes.arrayBuffer());
   } catch {
     return { ok: false, error: "reference_art_missing" };
   }
@@ -125,13 +174,17 @@ export async function generateCitizenScene(args: {
     const b64 = j.data?.[0]?.b64_json;
     if (!b64) return { ok: false, error: "empty_image" };
 
-    await mkdir(OUT_DIR, { recursive: true });
-    const filename = `${id4(args.citizen.id)}-${args.sceneKey}-${Date.now()}.png`;
-    await writeFile(path.join(OUT_DIR, filename), Buffer.from(b64, "base64"));
+    // Upload to Vercel Blob (public) → a real, shareable, persistent URL. The
+    // filesystem is read-only on Vercel, so we can't write to /public anymore.
+    // The image is BRANDED with a FREELON signature first (free marketing on share).
+    if (!process.env.BLOB_READ_WRITE_TOKEN) return { ok: false, error: "no_blob_store" };
+    const filename = `deploy/${id4(args.citizen.id)}-${args.sceneKey}-${Date.now()}.png`;
+    const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id);
+    const blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
 
     return {
       ok: true,
-      url: `${PUBLIC_PREFIX}/${filename}`,
+      url: blob.url,
       filename,
       promptTokens: j.usage?.input_tokens,
       imageTokens: j.usage?.output_tokens,
