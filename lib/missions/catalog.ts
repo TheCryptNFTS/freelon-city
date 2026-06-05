@@ -14,9 +14,6 @@ import { ECONOMY } from "@/lib/economy-constants";
 import { deployResolver } from "@/lib/missions/resolvers/deploy";
 import { deployVideoResolver } from "@/lib/missions/resolvers/deploy-video";
 import { dossierResolver } from "@/lib/missions/resolvers/dossier";
-import { feudResolver } from "@/lib/missions/resolvers/feud";
-import { versusResolver } from "@/lib/missions/resolvers/versus";
-import { crewResolver } from "@/lib/missions/resolvers/crew";
 import { makeAbilityResolver } from "@/lib/missions/abilities/ability";
 import { ABILITY_DEFS } from "@/lib/missions/abilities";
 
@@ -78,54 +75,12 @@ registerMission({
   resolve: dossierResolver,
 });
 
-// Citizen Feud / Collab — the VIRAL product. Two citizens, one shareable output.
-registerMission({
-  id: "feud",
-  title: "Citizen Feud",
-  tagline: "Stage your citizen with another holder's — a rivalry, duet, or heist.",
-  description:
-    "Name a second citizen (token #). Your two agents co-produce a short, shareable scene in both their voices. (Free internal test.)",
-  cost: 0,
-  gate: { skill: "content", minLevel: 1 },
-  rewardXp: ECONOMY.MISSION_XP_T1,
-  outputKind: "ai",
-  inputMode: "prompt", // input = "<otherTokenId> [theme]"
-  category: "social", // reputation/social — no professional-profile pollution
-  resolve: feudResolver,
-});
-
-// Agent vs Agent — the RIVALRY product. Your citizen red-teams another holder's
-// idea, naming them as the opponent. Two NFTs per result, viral by design.
-registerMission({
-  id: "versus",
-  title: "Agent vs Agent",
-  tagline: "Your agent red-teams another holder's idea — name the token, pitch the idea.",
-  description:
-    "Name a second citizen (token #) and pitch an idea. Your agent tears into it in its own voice, naming the other as the opponent. Sharp, screenshot-ready. (Free internal test.)",
-  cost: 0,
-  gate: { skill: "risk", minLevel: 1 },
-  rewardXp: ECONOMY.MISSION_XP_T1,
-  outputKind: "ai",
-  inputMode: "prompt", // input = "<otherTokenId> <idea>"
-  category: "social", // social/viral — no professional-profile pollution
-  resolve: versusResolver,
-});
-
-// Crew Brief — the COLLAB product. Two named citizens co-produce one output.
-registerMission({
-  id: "crew",
-  title: "Crew Brief",
-  tagline: "Two citizens, one job — your agent teams up with another holder's.",
-  description:
-    "Name a second citizen (token #) and a brief. Your two agents collaborate on a short, shareable output in both voices. (Free internal test.)",
-  cost: 0,
-  gate: { skill: "content", minLevel: 1 },
-  rewardXp: ECONOMY.MISSION_XP_T1,
-  outputKind: "ai",
-  inputMode: "prompt", // input = "<otherTokenId> <brief>"
-  category: "social",
-  resolve: crewResolver,
-});
+// NOTE: the multi-citizen "viral" missions (feud / versus / crew) were removed
+// from the catalog (2026-06-05). They had no dashboard UI and no payment gate,
+// so as registered missions they were reachable only by a direct API POST and
+// would have run on the FREE path (no unlock, no ETH) — a quiet COGS leak. The
+// resolvers remain on disk; re-register here when the viral feature ships with
+// a real UI + price.
 
 // THE SIX MONEY-WORK ABILITIES — Content / Strategy / Sales / Research / Design /
 // Risk. FREE/internal for now (cost 0). Input = "taskKey: brief". Each trains

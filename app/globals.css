@@ -7525,6 +7525,9 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 
 /* GENERATE IMAGE — dashboard scene picker (branded image gen) */
 .agentdash-images { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.agentdash-dossier { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.agentdash-dossier .agentdash-brief { margin-top: 10px; }
+.agentdash-dossier .agentdash-go { margin-top: 12px; }
 .agentdash-images-hd { display: block; font-family: var(--mono2); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
 .agentdash-images-sub { margin: 8px 0 12px; font-size: 12.5px; line-height: 1.5; color: var(--ink-dim); }
 .agentdash-scenes { display: flex; flex-wrap: wrap; gap: 8px; }

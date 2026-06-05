@@ -21,7 +21,9 @@ export const PAYMENT_WALLET =
 const PRICE_USD: Record<string, number> = {
   // Visual — "it's MY citizen" (demand drivers)
   "deploy-citizen": 5, // your citizen in a cinematic scene (HERO)
-  feud: 6,             // your citizen + another holder's (viral, NEW)
+  // (feud removed 2026-06-05 — the only ETH-per-mission entry, but the mission
+  //  had no UI and was unregistered from the catalog; keeping it here would be
+  //  dead config + a mischarge trap. Re-add when the viral feature ships.)
   // Persistent memory — the unfakeable moat
   dossier: 19,         // your citizen keeps a living file on you (NEW)
   // Work / outcome — justified price (gpt-5.5)

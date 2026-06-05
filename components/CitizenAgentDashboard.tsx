@@ -60,6 +60,12 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [vidBusy, setVidBusy] = useState<string | null>(null);
   const [vidOut, setVidOut] = useState<{ url: string; label: string } | null>(null);
   const [vidErr, setVidErr] = useState<string | null>(null);
+  // Dossier (the MOAT product) — the citizen keeps a living file on the holder.
+  const [dossierHexCost, setDossierHexCost] = useState(0);
+  const [dossierText, setDossierText] = useState("");
+  const [dossierBusy, setDossierBusy] = useState(false);
+  const [dossierOut, setDossierOut] = useState<string | null>(null);
+  const [dossierErr, setDossierErr] = useState<string | null>(null);
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [brief, setBrief] = useState("");
@@ -94,6 +100,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         if (Array.isArray(d.videoStyles)) setVideoStyles(d.videoStyles);
         if (typeof d.imageHexCost === "number") setImageHexCost(d.imageHexCost);
         if (typeof d.videoHexCost === "number") setVideoHexCost(d.videoHexCost);
+        if (typeof d.dossierHexCost === "number") setDossierHexCost(d.dossierHexCost);
         setVideoEnabled(!!d.videoEnabled);
         const first = d.abilities.find((a: AbilityView) => a.primary) ?? d.abilities[0];
         if (first) { setAbilityId(first.id); setTaskKey(first.tasks[0]?.key ?? ""); }
@@ -274,6 +281,41 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       setVidErr((e as Error).message || "Couldn't generate the clip.");
     } finally {
       setVidBusy(null);
+    }
+  }
+
+  /** Build/update the citizen's DOSSIER (the moat) — a persistent private file
+   *  on the holder that every future mission reads from. Premium pay/sign flow;
+   *  text output. The brief is the holder's private input (never shown publicly). */
+  async function doDossier() {
+    if (dossierBusy || !dossierText.trim()) return;
+    setDossierBusy(true); setDossierErr(null); setDossierOut(null);
+    const base: Record<string, unknown> = { missionId: "dossier", input: dossierText.trim() };
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { ...base, ...creds } : base),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "dossier".`);
+          continue;
+        }
+        if (res.ok && d?.ok && d.output?.body) {
+          setDossierOut(d.output.body);
+          refreshAgent();
+        } else {
+          setDossierErr(d?.message || d?.error || "Couldn't update the dossier — your ⬡ was not spent on a failed run.");
+        }
+        return;
+      }
+    } catch (e) {
+      setDossierErr((e as Error).message || "Couldn't update the dossier.");
+    } finally {
+      setDossierBusy(false);
     }
   }
 
@@ -699,6 +741,44 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                   >
                     {busy ? "…" : "REFINE →"}
                   </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* DOSSIER — the MOAT product. The citizen keeps a private, persistent
+              file on the holder that every future mission reads from, so it
+              becomes YOUR specialist over time. Unlock-gated, premium-priced. */}
+          {(!paymentsLive || unlock?.unlocked) && (
+            <div className="agentdash-dossier">
+              <span className="agentdash-images-hd">
+                ⬡ CITIZEN DOSSIER{paymentsLive && dossierHexCost > 0 ? ` · ${dossierHexCost.toLocaleString()}⬡` : ""}
+              </span>
+              <p className="agentdash-images-sub">
+                Tell your citizen about you &amp; your project. It keeps a private file and reads it on every
+                future job — so it becomes <em>your</em> specialist, not a generic chatbot.
+              </p>
+              <textarea
+                className="agentdash-brief"
+                rows={4}
+                placeholder="Who you are, what you're building, your audience, your voice, what 'good' looks like…"
+                value={dossierText}
+                onChange={(e) => setDossierText(e.target.value)}
+                disabled={dossierBusy}
+              />
+              <button
+                className="btn btn-primary agentdash-go"
+                type="button"
+                disabled={dossierBusy || !dossierText.trim()}
+                onClick={doDossier}
+              >
+                <span className="ttl">{dossierBusy ? "SAVING TO MEMORY…" : "⬡ UPDATE DOSSIER →"}</span>
+              </button>
+              {dossierErr && <p className="agentdash-err">{dossierErr}</p>}
+              {dossierOut && (
+                <div className="agentdash-image-out">
+                  <span className="agentdash-image-cap">WHAT YOUR CITIZEN NOW KNOWS</span>
+                  <pre className="agentdash-text">{dossierOut}</pre>
                 </div>
               )}
             </div>

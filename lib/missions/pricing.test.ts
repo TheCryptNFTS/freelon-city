@@ -4,7 +4,7 @@ import { priceUsdFor, PAYMENT_WALLET, MISSION_DISCLAIMER } from "@/lib/missions/
 describe("reshaped pricing (moat-only paid)", () => {
   it("paid = moat missions only", () => {
     expect(priceUsdFor("deploy-citizen")).toBe(5);
-    expect(priceUsdFor("feud")).toBe(6);
+    expect(priceUsdFor("feud")).toBe(0); // feud removed 2026-06-05 (no UI, unregistered)
     expect(priceUsdFor("strategy")).toBe(12); // Fix My Launch
     expect(priceUsdFor("risk")).toBe(12);
     expect(priceUsdFor("dossier")).toBe(19);
