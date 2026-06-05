@@ -144,8 +144,10 @@ export async function generateCitizenScene(args: {
 }): Promise<ImageGenResult> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return { ok: false, error: "no_api_key" };
+  // Exactly one of scene/style (contract enforcement — never both/neither).
+  if (!!args.styleKey === !!args.sceneKey) return { ok: false, error: "bad_render_args" };
   const isStyle = !!args.styleKey;
-  const renderKey = isStyle ? args.styleKey! : args.sceneKey ?? "";
+  const renderKey = isStyle ? args.styleKey! : args.sceneKey!;
   if (isStyle ? !isValidStyle(renderKey) : !isValidScene(renderKey)) {
     return { ok: false, error: isStyle ? "invalid_style" : "invalid_scene" };
   }

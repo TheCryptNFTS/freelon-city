@@ -34,9 +34,14 @@ function utcDay(): string {
 }
 
 function clientIp(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for") || "";
-  const ip = (xff.split(",")[0] || "").trim() || (req.headers.get("x-real-ip") || "").trim();
-  return ip; // "" when we can't determine it (don't bucket everyone together)
+  // Use the PLATFORM-trusted client IP, NOT the left-most x-forwarded-for value
+  // (that one is attacker-supplied — a spoofed XFF would get a fresh 1/day bucket
+  // every request). Vercel sets x-real-ip / x-vercel-forwarded-for to the real edge
+  // client; fall back to the RIGHT-most XFF hop (closest to our proxy). (red-team H3)
+  const real = (req.headers.get("x-real-ip") || req.headers.get("x-vercel-forwarded-for") || "").trim();
+  if (real) return real;
+  const xff = (req.headers.get("x-forwarded-for") || "").split(",").map((s) => s.trim()).filter(Boolean);
+  return xff.length ? xff[xff.length - 1] : ""; // right-most = closest trusted hop
 }
 
 export async function POST(req: Request) {
@@ -81,12 +86,13 @@ export async function POST(req: Request) {
     if (claimedDayKey && hasUpstash) { try { await upstash(["DEL", claimedDayKey]); } catch { /* best-effort */ } }
   };
 
-  // Cost guard: count this against the global free $ budget + kill-switch.
-  const { agentsKilled, consumeFreeRun, refundFreeRun, RUN_COST_CENTS } = await import("@/lib/missions/budget");
+  // Cost guard: count this against the SEPARATE demo $ budget (so demo abuse can't
+  // starve owners' free runs) + kill-switch. (red-team H4)
+  const { agentsKilled, consumeDemoRun, refundDemoRun, RUN_COST_CENTS } = await import("@/lib/missions/budget");
   if (agentsKilled()) {
     return NextResponse.json({ error: "offline", message: "The agents are briefly offline. Back shortly." }, { status: 503 });
   }
-  const budget = await consumeFreeRun(RUN_COST_CENTS.text);
+  const budget = await consumeDemoRun(RUN_COST_CENTS.text);
   if (!budget.ok) {
     await releaseDay();
     return NextResponse.json(
@@ -98,7 +104,7 @@ export async function POST(req: Request) {
   const citizen = getCitizen(tokenId);
   const mission = getMission("strategy");
   if (!citizen || !mission) {
-    await refundFreeRun(RUN_COST_CENTS.text);
+    await refundDemoRun(RUN_COST_CENTS.text);
     await releaseDay();
     return NextResponse.json({ error: "unavailable" }, { status: 503 });
   }
@@ -117,13 +123,13 @@ export async function POST(req: Request) {
   try {
     const output = await mission.resolve(ctx);
     if (!output.ok) {
-      await refundFreeRun(RUN_COST_CENTS.text);
+      await refundDemoRun(RUN_COST_CENTS.text);
       await releaseDay(); // a failed demo must not burn the visitor's one daily try
       return NextResponse.json({ error: "no_output", message: "The agent couldn't complete that — try again." }, { status: 502 });
     }
     return NextResponse.json({ ok: true, demo: true, title: output.title, body: output.body });
   } catch {
-    await refundFreeRun(RUN_COST_CENTS.text);
+    await refundDemoRun(RUN_COST_CENTS.text);
     await releaseDay();
     return NextResponse.json({ error: "failed", message: "The agent couldn't be reached — try again." }, { status: 502 });
   }

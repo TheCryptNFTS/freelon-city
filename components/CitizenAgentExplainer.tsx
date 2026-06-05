@@ -47,7 +47,7 @@ export function CitizenAgentExplainer() {
             Headline: <em>your AI content co-pilot</em>.”
           </p>
           <div className="agent-demo-agent">
-            <strong>Your citizen:</strong>
+            <strong>The agent:</strong>
             <p><strong>Verdict —</strong> “AI co-pilot” is dead language; you sound like 1,000 other tools. Your real wedge: <em>“Turn one founder brain-dump into 30 days of founder-led X content.”</em></p>
             <p><strong>Weak:</strong> the promise triggers “will it sound like me / is it AI slop?” — handle that objection in the headline.</p>
             <p><strong>5 hooks · 5 ready posts · next 3 actions · brutal red-team notes →</strong></p>

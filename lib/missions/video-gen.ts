@@ -40,6 +40,20 @@ export type VideoGenResult =
   | { ok: true; url: string; filename: string }
   | { ok: false; error: string };
 
+/** fetch with a hard per-request timeout (Vercel kills the function if a single
+ *  fetch hangs forever; the poll deadline alone can't interrupt an in-flight call). */
+async function fetchT(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: c.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+const MAX_VIDEO_BYTES = 60 * 1024 * 1024; // 60 MB cap on the re-host download
+
 /**
  * Generate a short clip for a citizen. Returns a public Blob mp4 URL.
  * Polls the Replicate prediction up to ~timeoutMs (default 8 min).
@@ -61,7 +75,7 @@ export async function generateCitizenVideo(args: {
   //    we pass the citizen's hosted art as the init image (Replicate fetches URLs).
   let getUrl: string;
   try {
-    const res = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
+    const res = await fetchT(`https://api.replicate.com/v1/models/${model}/predictions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Prefer: "wait=1" },
       body: JSON.stringify({
@@ -71,7 +85,7 @@ export async function generateCitizenVideo(args: {
           prompt: `FREELON CITY citizen #${id4(args.citizen.id)}: ${style.desc}. Keep the character identical; animate subtly. Looping, premium, dark cinematic.`,
         },
       }),
-    });
+    }, 65_000); // Prefer:wait can hold up to ~60s
     if (!res.ok) return { ok: false, error: `replicate_${res.status}` };
     const j = (await res.json()) as { status?: string; output?: unknown; urls?: { get?: string } };
     // With Prefer:wait the prediction may already be done; else poll urls.get.
@@ -88,7 +102,7 @@ export async function generateCitizenVideo(args: {
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 3000));
     try {
-      const pr = await fetch(getUrl, { headers: { Authorization: `Bearer ${token}` } });
+      const pr = await fetchT(getUrl, { headers: { Authorization: `Bearer ${token}` } }, 15_000);
       if (!pr.ok) continue;
       const pj = (await pr.json()) as { status?: string; output?: unknown };
       if (pj.status === "succeeded") {
@@ -102,21 +116,37 @@ export async function generateCitizenVideo(args: {
   return { ok: false, error: "timeout" };
 }
 
-/** Replicate output is usually a URL string or an array of URLs — grab the first. */
+/** Replicate output shape varies by model — URL string, array of URLs, or a
+ *  nested object ({video|url}) / object-array. Probe the common shapes. */
 function pickVideoUrl(output: unknown): string | null {
-  if (typeof output === "string" && output.startsWith("http")) return output;
-  if (Array.isArray(output) && typeof output[0] === "string" && output[0].startsWith("http")) return output[0];
+  const isUrl = (s: unknown): s is string => typeof s === "string" && s.startsWith("http");
+  if (isUrl(output)) return output;
+  if (Array.isArray(output)) {
+    if (isUrl(output[0])) return output[0];
+    const o0 = output[0] as Record<string, unknown> | undefined;
+    if (o0 && (isUrl(o0.url) || isUrl(o0.video))) return (o0.url ?? o0.video) as string;
+  }
+  if (output && typeof output === "object") {
+    const o = output as Record<string, unknown>;
+    if (isUrl(o.video)) return o.video as string;
+    if (isUrl(o.url)) return o.url as string;
+  }
   return null;
 }
 
-/** Fetch the provider's mp4 and re-host it on Vercel Blob (public). */
+/** Fetch the provider's mp4 and re-host it on Vercel Blob (public). Timeout +
+ *  size-capped so a slow/huge download can't hang the function past the platform
+ *  limit (which would kill it BEFORE the route can refund the 4000⬡). */
 async function store(providerUrl: string, tokenId: number, styleKey: string): Promise<VideoGenResult> {
   try {
-    const vr = await fetch(providerUrl);
+    const vr = await fetchT(providerUrl, {}, 60_000);
     if (!vr.ok) return { ok: false, error: `fetch_video_${vr.status}` };
-    const bytes = Buffer.from(await vr.arrayBuffer());
+    const len = Number(vr.headers.get("content-length") || 0);
+    if (len > MAX_VIDEO_BYTES) return { ok: false, error: "video_too_large" };
+    const buf = Buffer.from(await vr.arrayBuffer());
+    if (buf.byteLength > MAX_VIDEO_BYTES) return { ok: false, error: "video_too_large" };
     const filename = `video/${id4(tokenId)}-${styleKey}-${Date.now()}.mp4`;
-    const blob = await put(filename, bytes, { access: "public", contentType: "video/mp4" });
+    const blob = await put(filename, buf, { access: "public", contentType: "video/mp4" });
     return { ok: true, url: blob.url, filename };
   } catch (e) {
     return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };

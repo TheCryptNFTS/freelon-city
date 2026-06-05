@@ -95,7 +95,7 @@ export function WalletScanner() {
         });
         cityNotice({
           title: CANON.RECEIVED,
-          body: `Citizen #${id.toString().padStart(4, "0")} carries your alignment`,
+          body: `#${id.toString().padStart(4, "0")} is your tribe's face — an example, not owned`,
         });
       }
     } finally {

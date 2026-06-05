@@ -172,7 +172,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // the citizen UNLOCKED (the one-time ETH gate, which dropped bonus HEX in the
   // wallet) — but the run itself is now paid in HEX, not a separate credit pool.
   let premiumHexSpent = 0; // HEX charged for this premium run (refunded on failure)
+  let premiumBudgetCents = 0; // premium $-pool charge for this run (refunded on failure)
   if (unlockGated) {
+    // PROVIDER GUARD — never debit HEX for a render we can't actually perform
+    // (image needs OpenAI, video needs Replicate). Checked BEFORE any charge, like
+    // the kill-switch — avoids the debit-then-refund dance the red-team flagged.
+    if (mission.id === "deploy-citizen" && !process.env.OPENAI_API_KEY) {
+      return NextResponse.json({ error: "image_unavailable", message: "Image generation is briefly unavailable — nothing was charged." }, { status: 503 });
+    }
+    if (mission.id === "deploy-video" && !process.env.REPLICATE_API_TOKEN) {
+      return NextResponse.json({ error: "video_unavailable", message: "Video is coming soon — not switched on yet. Nothing was charged." }, { status: 503 });
+    }
     const { isUnlocked } = await import("@/lib/missions/unlock-store");
     if (!(await isUnlocked(cid))) {
       return NextResponse.json(
@@ -180,11 +190,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 402 },
       );
     }
+    // PREMIUM $-BUDGET BACKSTOP — premium runs are HEX-paid, but HEX is faucet-fed,
+    // so bound the founder's daily premium COGS up front. Consumed before the model
+    // call; refunded if the run fails. (Economy red-team C1/C2: premium had no $ cap.)
+    const { consumePremiumRun, refundPremiumRun, PREMIUM_COST_CENTS } = await import("@/lib/missions/budget");
+    const premCents = mission.id === "deploy-video" ? PREMIUM_COST_CENTS.video : mission.id === "deploy-citizen" ? PREMIUM_COST_CENTS.image : PREMIUM_COST_CENTS.text;
+    const pbud = await consumePremiumRun(premCents);
+    if (!pbud.ok) {
+      return NextResponse.json(
+        { error: "premium_capacity", message: pbud.reason === "killed" ? "The agents are briefly offline. Back shortly." : "Premium agents hit today's capacity — back at UTC midnight. Your ⬡ was not spent." },
+        { status: 503 },
+      );
+    }
+    premiumBudgetCents = premCents;
     const { premiumHexFor } = await import("@/lib/economy-constants");
     const cost = premiumHexFor(mission.id);
     if (cost > 0) {
       const rec = await getWalletHex(wallet);
       if (rec.balance < cost) {
+        await refundPremiumRun(premiumBudgetCents); premiumBudgetCents = 0;
         return NextResponse.json(
           { error: "insufficient_hex", required: cost, balance: rec.balance, message: `This run costs ${cost}⬡. Earn more ⬡, or unlock to top up.` },
           { status: 402 },
@@ -196,6 +220,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           note: `Premium: ${mission.title} on #${String(cid).padStart(4, "0")} (-${cost}⬡)`,
         });
       } catch (e) {
+        await refundPremiumRun(premiumBudgetCents); premiumBudgetCents = 0;
         if (e instanceof InsufficientHexError) {
           return NextResponse.json({ error: "insufficient_hex", required: cost }, { status: 402 });
         }
@@ -336,13 +361,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }).catch(() => {});
   }
   if (!output.ok) {
+    // A failed premium run never happened → give the premium $-pool charge back so
+    // a no-output run doesn't eat the daily premium budget.
+    if (premiumBudgetCents > 0) {
+      const { refundPremiumRun } = await import("@/lib/missions/budget");
+      await refundPremiumRun(premiumBudgetCents).catch(() => {});
+    }
     // Premium mission failed → give the spent HEX back (no output, no charge).
-    // The holder can just run again.
+    // The holder can just run again. A FAILED refund is logged (red-team: a silently
+    // lost refund on the priciest lever is the worst holder-trust bug).
     if (premiumHexSpent > 0) {
       await creditWalletHex(wallet, premiumHexSpent, {
         kind: "manual",
         note: `Refund: ${mission.title} on #${String(cid).padStart(4, "0")} (+${premiumHexSpent}⬡)`,
-      }).catch(() => {});
+      }).catch((e) =>
+        import("@/lib/missions/ops-log").then((m) => m.recordError(`refund:${mission.id}`, e, { tokenId: cid, wallet })).catch(() => {}),
+      );
       return NextResponse.json(
         { error: "mission_failed", message: output.error || "No output — your ⬡ was refunded. Try again.", retryable: true },
         { status: 502 },
@@ -391,18 +425,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     category === "professional" && typeof output.meta?.focus === "string"
       ? output.meta.focus
       : undefined;
-  const result = await applyMission({
-    tokenId: cid,
-    missionTitle: mission.title,
-    outputTitle: output.title,
-    skill: mission.gate.skill,
-    rewardXp: mission.rewardXp,
-    costBurned: mission.cost,
-    civSlug: citizen.civilization,
-    focusHint,
-    // Only professional work advances the class/track-record (same gate as focus).
-    countsTowardClass: category === "professional",
-  });
+  // The holder is ALREADY charged at this point. If progression persistence throws
+  // (e.g. Upstash blip), we must STILL deliver the output they paid for — never
+  // charge-without-delivery. Fall back to the pre-run progress and log it. (H2 fix)
+  let result: Awaited<ReturnType<typeof applyMission>>;
+  try {
+    result = await applyMission({
+      tokenId: cid,
+      missionTitle: mission.title,
+      outputTitle: output.title,
+      skill: mission.gate.skill,
+      rewardXp: mission.rewardXp,
+      costBurned: mission.cost,
+      civSlug: citizen.civilization,
+      focusHint,
+      // Only professional work advances the class/track-record (same gate as focus).
+      countsTowardClass: category === "professional",
+    });
+  } catch (e) {
+    import("@/lib/missions/ops-log").then((m) => m.recordError(`applyMission:${mission.id}`, e, { tokenId: cid, wallet })).catch(() => {});
+    result = { xpGained: 0, leveledUp: false, progress } as Awaited<ReturnType<typeof applyMission>>;
+  }
   await recordRun(mission.id, mission.cost).catch(() => {});
 
   // AGENT NOTIFICATIONS (best-effort, deduped, never block the response):

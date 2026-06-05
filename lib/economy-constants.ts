@@ -218,7 +218,8 @@ export const PREMIUM_HEX: Record<string, number> = {
   dossier: 2500,
   "deploy-citizen": 800, // image generation
   "deploy-video": 4000, // video generation — the most expensive lever
-  feud: 600,
+  // NOTE: feud is NOT here — it settles on the ETH path (pricing.ts), not unlock-gated
+  // HEX. A PREMIUM_HEX["feud"] entry would be dead config + a mischarge trap. (red-team H1)
 };
 
 /** HEX granted per unlock "run" — the bonus dropped in the holder's wallet when
