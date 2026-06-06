@@ -78,21 +78,34 @@ const LOCK = (addr: string) => `freelon:walletHex:lock:${addr.toLowerCase()}`;
  * already tiny), and a missing Upstash falls straight through to the in-memory
  * map (single-process, no race). The premium $-budget pool still backstops COGS.
  */
-async function withWalletLock<T>(addr: string, fn: () => Promise<T>): Promise<T> {
+async function withWalletLock<T>(
+  addr: string,
+  fn: () => Promise<T>,
+  failClosed = false,
+): Promise<T> {
   if (!hasUpstash) return fn();
   const key = LOCK(addr);
+  let acquired = false;
   for (let i = 0; i < 5; i++) {
     try {
-      if ((await upstash(["SET", key, "1", "NX", "EX", "3"])) === "OK") break;
+      if ((await upstash(["SET", key, "1", "NX", "EX", "3"])) === "OK") { acquired = true; break; }
     } catch {
+      // Lock-infra error. For a debit (failClosed) we must NOT proceed unlocked —
+      // a concurrent read-modify-write would double-spend; reject and let the
+      // caller retry. For a credit, proceeding loses at most one credit, so fall
+      // through (preserves prior best-effort behaviour).
+      if (failClosed) throw new WalletBusyError(addr);
       break;
     }
     await new Promise((r) => setTimeout(r, 60 + i * 30));
   }
+  // Never won the lock. Debits fail closed (no double-spend); credits proceed.
+  if (!acquired && failClosed) throw new WalletBusyError(addr);
   try {
     return await fn();
   } finally {
-    await upstash(["DEL", key]).catch(() => {});
+    // Only release a lock we actually took — never DEL another holder's lock.
+    if (acquired) await upstash(["DEL", key]).catch(() => {});
   }
 }
 
@@ -248,6 +261,21 @@ export async function listWalletHexRecords(limit = 500): Promise<WalletHex[]> {
  * Compatible with `Error` semantics — existing `catch (e: unknown)`
  * sites that just propagate or stringify the error still work.
  */
+/**
+ * Thrown by debitWalletHex when the per-wallet lock could not be acquired, so
+ * the debit refused to proceed rather than risk a concurrent double-spend. This
+ * is a TRANSIENT condition — the caller should surface a "busy, retry" (503),
+ * not a hard failure. Distinct from InsufficientHexError (a real shortfall).
+ */
+export class WalletBusyError extends Error {
+  readonly address: string;
+  constructor(addr: string) {
+    super(`wallet_busy: could not lock wallet ${addr} for a debit`);
+    this.name = "WalletBusyError";
+    this.address = addr;
+  }
+}
+
 export class InsufficientHexError extends Error {
   readonly balance: number;
   readonly requested: number;
@@ -277,5 +305,5 @@ export async function debitWalletHex(
     if (rec.events.length > 50) rec.events.length = 50;
     await setWalletHex(rec);
     return rec;
-  });
+  }, /* failClosed */ true);
 }
