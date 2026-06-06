@@ -149,8 +149,9 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         ) : (
           <>
             <p className="agentdash-locked-msg">
-              Connect the wallet that holds this citizen (button top-right) to run it — pick a task, give it a
-              brief, and it does the work. Don&apos;t own one yet?
+              To run this agent you need to <strong>own this FREELON</strong> and unlock it (a one-time
+              payment that turns the agent on). Connect the holding wallet (button top-right) to start.
+              Don&apos;t own one yet?
             </p>
             <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
               <span className="ttl">GET A CITIZEN ↗</span>
@@ -235,7 +236,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-citizen".`);
           continue;
         }
-        if (res.ok && d?.ok && d.output?.kind === "image") {
+        if (res.ok && d?.ok && d.output?.meta?.kind === "image" && d.output?.body) {
           setImgOut({ url: d.output.body, label });
           refreshAgent();
         } else {
@@ -269,7 +270,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-video".`);
           continue;
         }
-        if (res.ok && d?.ok && d.output?.kind === "video") {
+        if (res.ok && d?.ok && d.output?.meta?.kind === "video" && d.output?.body) {
           setVidOut({ url: d.output.body, label });
           refreshAgent();
         } else {

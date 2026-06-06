@@ -7503,6 +7503,19 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .home-close__cta { display: flex; gap: var(--s-3); flex-wrap: wrap; justify-content: center; }
 
 /* ── Citizen page: collapsed collector/NFT details (2026-06-04) ── */
+/* Collapsed "how it works" block on the citizen page — keeps the pitch one click
+   away so an owner isn't walled off from unlock/run. */
+.citizen-howto { margin: var(--s-4) 0; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg-2); }
+.citizen-howto > summary {
+  list-style: none; cursor: pointer; user-select: none; padding: 14px 16px;
+  font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); transition: color 0.15s;
+}
+.citizen-howto > summary:hover { color: var(--gold-bright); }
+.citizen-howto > summary::-webkit-details-marker { display: none; }
+.citizen-howto[open] > summary { border-bottom: 1px solid var(--line); }
+.citizen-howto .agent-explainer { padding: 16px; }
+
 .collector-details { margin-top: var(--s-5); border-top: 1px solid var(--line); }
 .collector-summary {
   list-style: none; cursor: pointer; user-select: none;

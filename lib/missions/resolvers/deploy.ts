@@ -53,8 +53,8 @@ export async function deployResolver(ctx: MissionContext): Promise<MissionOutput
       body: "",
       error:
         result.error === "timeout"
-          ? "The render timed out — nothing was charged. Try again."
-          : "The citizen could not be deployed right now — try again shortly.",
+          ? "The render timed out — your ⬡ was not charged. Try again."
+          : `The render didn't complete (${result.error || "unknown"}) — your ⬡ was not charged. Try again shortly.`,
     };
   }
 

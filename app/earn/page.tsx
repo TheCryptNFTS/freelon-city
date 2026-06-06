@@ -125,14 +125,14 @@ export default async function EarnPage() {
           marginBottom: "var(--s-5)",
         }}
       >
-        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE LEDGER</span>
+        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ EARN HEX</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(40px, 7vw, 72px)", lineHeight: 0.9, margin: "12px 0 14px", letterSpacing: "-0.02em" }}>
-          What should you<br/>
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>do right now?</em>
+          Earn <em style={{ color: "var(--gold)", fontStyle: "normal" }}>⬡ HEX</em><br/>
+          for free.
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, maxWidth: 540 }}>
-          You hold citizens. You&apos;re a carrier. The city pays you in hex for doing work — not for sitting.
-          Below: one urgent action, one daily habit, one slow burn. Pick whichever fits the moment.
+          ⬡ is the city&apos;s credit — earn it free by showing up and sharing, then spend it to run your
+          agent&apos;s jobs. Three ways below: one quick, one daily, one slow burn.
         </p>
       </section>
 

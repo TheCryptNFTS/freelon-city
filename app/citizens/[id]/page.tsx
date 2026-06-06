@@ -214,9 +214,17 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               who owns it · level · role · status · what it's done · how to use it.
               The résumé card does that; SEE IT WORK (proof) and the run panel
               follow it. */}
-          <CitizenResume tokenId={tid} />
-          <CitizenAgentExplainer />
+          {/* UNLOCK / USE FIRST (2026-06-06): owners landed below a wall of
+              explainer and had to scroll to find the unlock. The dashboard (the
+              activate + run surface) now leads; the résumé follows; the full
+              "how it works" pitch is one click away in a collapsed block so the
+              page isn't a wall. */}
           <CitizenAgentDashboard citizenId={tid} />
+          <CitizenResume tokenId={tid} />
+          <details className="citizen-howto">
+            <summary>New here? How a FREELON agent works · what you pay →</summary>
+            <CitizenAgentExplainer />
+          </details>
           {/* Proof CTA — the public work-log, right after the agent block. */}
           <div className="worklog-cta-row">
             <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>

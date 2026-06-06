@@ -11,6 +11,11 @@ import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// The LLM/image calls can take 30–60s. Without this the function is killed at
+// Vercel's ~10–15s default BEFORE the resolver's own timeout can return clean
+// JSON — so the client hangs on "Working…" forever. Give the function room to
+// return a real result or a clean timeout error. (image/video resolvers cap at 60s.)
+export const maxDuration = 60;
 
 const MAX_INPUT = 600;
 
