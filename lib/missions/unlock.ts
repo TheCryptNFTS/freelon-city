@@ -130,6 +130,7 @@ export const UNLOCK_GATED_ABILITIES = new Set<string>([
   "strategy", // deep "Fix My Launch"
   "risk", // Red Team
   "dossier", // the memory moat
+  "crew", // two of your citizens collaborate — owned-only + premium-priced
   "deploy-citizen", // image generation
   "deploy-video", // video generation (premium tier)
 ]);

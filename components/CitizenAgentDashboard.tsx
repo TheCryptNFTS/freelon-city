@@ -66,6 +66,13 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [dossierBusy, setDossierBusy] = useState(false);
   const [dossierOut, setDossierOut] = useState<string | null>(null);
   const [dossierErr, setDossierErr] = useState<string | null>(null);
+  // Crew (the "hold more than one" product) — two of your citizens collaborate.
+  const [crewHexCost, setCrewHexCost] = useState(0);
+  const [crewPartner, setCrewPartner] = useState("");
+  const [crewBrief, setCrewBrief] = useState("");
+  const [crewBusy, setCrewBusy] = useState(false);
+  const [crewOut, setCrewOut] = useState<string | null>(null);
+  const [crewErr, setCrewErr] = useState<string | null>(null);
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [brief, setBrief] = useState("");
@@ -101,6 +108,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         if (typeof d.imageHexCost === "number") setImageHexCost(d.imageHexCost);
         if (typeof d.videoHexCost === "number") setVideoHexCost(d.videoHexCost);
         if (typeof d.dossierHexCost === "number") setDossierHexCost(d.dossierHexCost);
+        if (typeof d.crewHexCost === "number") setCrewHexCost(d.crewHexCost);
         setVideoEnabled(!!d.videoEnabled);
         const first = d.abilities.find((a: AbilityView) => a.primary) ?? d.abilities[0];
         if (first) { setAbilityId(first.id); setTaskKey(first.tasks[0]?.key ?? ""); }
@@ -317,6 +325,42 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       setDossierErr((e as Error).message || "Couldn't update the dossier.");
     } finally {
       setDossierBusy(false);
+    }
+  }
+
+  /** Run a CREW BRIEF — this citizen + another one YOU OWN collaborate on a brief.
+   *  Premium pay/sign flow; input is "<partnerTokenId> <brief>". The server
+   *  verifies you own the partner (a failed check refunds the ⬡). */
+  async function doCrew() {
+    const partner = crewPartner.trim().replace(/^#/, "");
+    if (crewBusy || !/^\d{1,4}$/.test(partner) || !crewBrief.trim()) return;
+    setCrewBusy(true); setCrewErr(null); setCrewOut(null);
+    const base: Record<string, unknown> = { missionId: "crew", input: `${partner} ${crewBrief.trim()}` };
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { ...base, ...creds } : base),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "crew".`);
+          continue;
+        }
+        if (res.ok && d?.ok && d.output?.body) {
+          setCrewOut(d.output.body);
+          refreshAgent();
+        } else {
+          setCrewErr(d?.message || d?.error || "Couldn't run the crew — your ⬡ was not spent on a failed run.");
+        }
+        return;
+      }
+    } catch (e) {
+      setCrewErr((e as Error).message || "Couldn't run the crew.");
+    } finally {
+      setCrewBusy(false);
     }
   }
 
@@ -877,6 +921,54 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                 <div className="agentdash-image-out">
                   <span className="agentdash-image-cap">WHAT YOUR CITIZEN NOW KNOWS</span>
                   <pre className="agentdash-text">{dossierOut}</pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* CREW — the "hold more than one" job. This citizen + another you OWN
+              collaborate on one brief, each from its class. Server verifies you
+              hold the partner (a failed check refunds the ⬡). */}
+          {(!paymentsLive || unlock?.unlocked) && (
+            <div className="agentdash-dossier">
+              <span className="agentdash-images-hd">
+                ⬡ RUN A CREW{paymentsLive && crewHexCost > 0 ? ` · ${crewHexCost.toLocaleString()}⬡` : ""}
+              </span>
+              <p className="agentdash-images-sub">
+                Team this citizen with <em>another FREELON you own</em> — they work one brief together, each
+                from its specialty. A crew does what one agent can&apos;t.
+              </p>
+              <input
+                className="agentdash-brief"
+                type="text"
+                inputMode="numeric"
+                placeholder="Partner token # (a FREELON you own, e.g. 404)"
+                value={crewPartner}
+                onChange={(e) => setCrewPartner(e.target.value)}
+                disabled={crewBusy}
+                style={{ marginBottom: 8 }}
+              />
+              <textarea
+                className="agentdash-brief"
+                rows={3}
+                placeholder="The brief for the two of them — e.g. 'design a 3-step welcome flow for my app'"
+                value={crewBrief}
+                onChange={(e) => setCrewBrief(e.target.value)}
+                disabled={crewBusy}
+              />
+              <button
+                className="btn btn-primary agentdash-go"
+                type="button"
+                disabled={crewBusy || !/^#?\d{1,4}$/.test(crewPartner.trim()) || !crewBrief.trim()}
+                onClick={doCrew}
+              >
+                <span className="ttl">{crewBusy ? "ASSEMBLING CREW…" : "⬡ RUN CREW →"}</span>
+              </button>
+              {crewErr && <p className="agentdash-err">{crewErr}</p>}
+              {crewOut && (
+                <div className="agentdash-image-out">
+                  <span className="agentdash-image-cap">CREW OUTPUT</span>
+                  <pre className="agentdash-text">{crewOut}</pre>
                 </div>
               )}
             </div>

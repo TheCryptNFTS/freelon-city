@@ -14,18 +14,20 @@ function ctx(input: string): MissionContext {
   return { citizen, progress: empty(1337), input, walletAddress: "0x", paid: false };
 }
 
-describe("social missions — versus + crew are UNregistered (2026-06-05)", () => {
-  it("are NOT in the catalog (no UI + no pay gate → would run free; removed)", () => {
-    // The viral multi-citizen missions were pulled from the catalog so a direct
-    // API POST can't run them on the free path. The mission route rejects any id
-    // not in the registry with `unknown_mission`. The resolvers stay on disk for
-    // when the feature ships with a real UI + price (see catalog.ts note).
+describe("multi-citizen missions — crew re-registered SAFE, versus/feud still out (2026-06-06)", () => {
+  it("crew IS registered (owned-only + premium); versus + feud stay UNregistered", () => {
+    // crew was re-registered 2026-06-06 but SAFE this time: owned-only (the
+    // resolver verifies you hold the partner) + premium (unlock-gated + HEX-priced
+    // via UNLOCK_GATED_ABILITIES + PREMIUM_HEX), so it can't run on the free path.
+    // feud + versus stay out until they ship with a UI + owned-only gate.
+    const crew = getMission("crew");
+    expect(crew).toBeTruthy();
+    expect(crew!.category).toBe("professional");
     expect(getMission("versus")).toBeNull();
-    expect(getMission("crew")).toBeNull();
     expect(getMission("feud")).toBeNull();
     const ids = listMissions().map((m) => m.id);
+    expect(ids).toContain("crew");
     expect(ids).not.toContain("versus");
-    expect(ids).not.toContain("crew");
     expect(ids).not.toContain("feud");
   });
 });

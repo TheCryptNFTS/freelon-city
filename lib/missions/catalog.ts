@@ -14,6 +14,7 @@ import { ECONOMY } from "@/lib/economy-constants";
 import { deployResolver } from "@/lib/missions/resolvers/deploy";
 import { deployVideoResolver } from "@/lib/missions/resolvers/deploy-video";
 import { dossierResolver } from "@/lib/missions/resolvers/dossier";
+import { crewResolver } from "@/lib/missions/resolvers/crew";
 import { makeAbilityResolver } from "@/lib/missions/abilities/ability";
 import { ABILITY_DEFS } from "@/lib/missions/abilities";
 
@@ -75,12 +76,25 @@ registerMission({
   resolve: dossierResolver,
 });
 
-// NOTE: the multi-citizen "viral" missions (feud / versus / crew) were removed
-// from the catalog (2026-06-05). They had no dashboard UI and no payment gate,
-// so as registered missions they were reachable only by a direct API POST and
-// would have run on the FREE path (no unlock, no ETH) — a quiet COGS leak. The
-// resolvers remain on disk; re-register here when the viral feature ships with
-// a real UI + price.
+// CREW — the "hold more than one" product (re-registered 2026-06-06, SAFE this
+// time). Your citizens collaborate on one brief, each from its class angle. Now
+// it's OWNED-ONLY (the resolver verifies you hold the partner citizen) + premium
+// (unlock-gated + HEX-priced), so it can't run free and it rewards owning a crew.
+// feud / versus stay UNregistered (no UI, no owned-only gate yet).
+registerMission({
+  id: "crew",
+  title: "Crew Brief",
+  tagline: "Two of your FREELONs work one brief together — each from its specialty.",
+  description:
+    "Name another FREELON you own (token #) and a brief. Your two agents collaborate on one output, each bringing its class — a team does work one can't. (Both must be yours.)",
+  cost: 0,
+  gate: { skill: "content", minLevel: 1 },
+  rewardXp: ECONOMY.MISSION_XP_T1,
+  outputKind: "ai",
+  inputMode: "prompt", // input = "<otherTokenId> <brief>"
+  category: "professional",
+  resolve: crewResolver,
+});
 
 // THE SIX MONEY-WORK ABILITIES — Content / Strategy / Sales / Research / Design /
 // Risk. FREE/internal for now (cost 0). Input = "taskKey: brief". Each trains

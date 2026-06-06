@@ -15,6 +15,7 @@ import { modelFor } from "@/lib/missions/models";
 import { getCitizen } from "@/lib/citizens";
 import { deriveSpec } from "@/lib/specialization";
 import { getProgress } from "@/lib/progression-store";
+import { verifyOwnership } from "@/lib/owner-of";
 
 function id4(n: number): string {
   return n.toString().padStart(4, "0");
@@ -48,6 +49,22 @@ export async function crewResolver(ctx: MissionContext): Promise<MissionOutput> 
   const other = getCitizen(otherId);
   if (!other) {
     return { ok: false, title: "Citizen not found", body: "", error: "Couldn't find that citizen." };
+  }
+
+  // OWNED-ONLY: a crew is FREELONs YOU hold — this is the "reason to own more
+  // than one" driver, and it stops anyone crewing with citizens they don't own.
+  // The route already verified the primary (running) citizen; here we verify the
+  // PARTNER. A failed/unknown check returns ok:false → the route refunds the ⬡,
+  // so nothing is charged for a blocked crew. (Admin/test runs without a real
+  // wallet skip the on-chain check.)
+  if (/^0x[a-f0-9]{40}$/.test((ctx.walletAddress || "").toLowerCase())) {
+    const v = await verifyOwnership(otherId, ctx.walletAddress);
+    if (v.status === "not-owner") {
+      return { ok: false, title: "Crew must be yours", body: "", error: `Your crew has to be FREELONs you own — you don't hold #${id4(otherId)}.` };
+    }
+    if (v.status !== "owner") {
+      return { ok: false, title: "Couldn't verify your crew", body: "", error: `Couldn't confirm you own #${id4(otherId)} right now — your ⬡ was not charged. Try again.` };
+    }
   }
 
   const persona = buildPersona(ctx.citizen, ctx.progress);
