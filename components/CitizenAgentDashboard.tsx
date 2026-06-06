@@ -233,6 +233,10 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               alt={`${exampleWork.style} — Citizen #${exampleWork.tokenId.toString().padStart(4, "0")}`}
               className="agentdash-example-img"
               loading="lazy"
+              // Stored transform URLs can go dead (deleted/expired); a broken-image
+              // glyph in the cold gate looks worse than nothing, so self-hide the
+              // whole figure on load failure (matches the "self-hides" intent).
+              onError={() => setExampleWork(null)}
             />
             <span className="agentdash-example-meta">
               &ldquo;{exampleWork.style}&rdquo; · made by Citizen #{exampleWork.tokenId.toString().padStart(4, "0")}
