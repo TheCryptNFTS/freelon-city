@@ -28,6 +28,7 @@ import { rarityRank } from "@/lib/rarity";
 import { getCitizenMeta, type CitizenMeta } from "@/lib/citizen-meta";
 import { tweetTribute, tweetIntent } from "@/lib/share";
 import { getGhost, getRescue } from "@/lib/ghost-store";
+import { getAgentHistory } from "@/lib/agent-history";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -87,9 +88,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
   // Daily check-in (today's line if already generated) + level rank — both cheap,
   // both fail-quiet so they never block the profile render.
-  const [todayCheckIn, levelRank] = await Promise.all([
+  const [todayCheckIn, levelRank, agentWorkCount] = await Promise.all([
     getCheckIn(tid).catch(() => null),
     getRankByLevel(tid).catch(() => null),
+    // Only surface the "VIEW PUBLIC WORK LOG" button when the log actually has
+    // entries — otherwise it dead-ends on the "No public work yet" empty state
+    // (true for any citizen without real holder activity). Fail-quiet to 0.
+    getAgentHistory(tid).then((h) => h.length).catch(() => 0),
   ]);
 
   const rank = rarityRank(tid);
@@ -229,12 +234,16 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <summary>New here? How a FREELON agent works · what you pay →</summary>
             <CitizenAgentExplainer />
           </details>
-          {/* Proof CTA — the public work-log, right after the agent block. */}
-          <div className="worklog-cta-row">
-            <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>
-              <span className="ttl">VIEW PUBLIC WORK LOG →</span>
-            </Link>
-          </div>
+          {/* Proof CTA — the public work-log, right after the agent block. Shown
+              only when the log has real entries; otherwise it would dead-end on
+              the empty "No public work yet" state. */}
+          {agentWorkCount > 0 && (
+            <div className="worklog-cta-row">
+              <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>
+                <span className="ttl">VIEW PUBLIC WORK LOG →</span>
+              </Link>
+            </div>
+          )}
           {/* The agent's OWN record (level/skills/memory) stays with the agent
               journey — BEFORE lore/traits. (2026-06-04 reorder: keep the agent
               story unbroken; lore + NFT traits come after.) */}
