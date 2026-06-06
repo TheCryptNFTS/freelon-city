@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
+import { HeroAtmosphere } from "@/components/HeroAtmosphere";
 import { CitizenShowcase } from "@/components/CitizenShowcase";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
 import TransformsWall from "@/components/TransformsWall";
@@ -63,6 +64,9 @@ export default function Home() {
             a trailer (components/HeroVideo.tsx) to replace it with motion.
             Everything below sits in one centered column over it. */}
         <HeroVideo />
+        {/* Motion-tier upgrade (2026-06-06): aurora field + pointer-reactive
+            signal glow over the dark city. Asset-free, reduced-motion safe. */}
+        <HeroAtmosphere />
         <div className="hero-landing__inner">
           {/* Live identity greeting — wallet-aware. For known viewers
               the page transforms into a personal experience (civ color,
