@@ -747,44 +747,6 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
             </div>
           )}
 
-          {/* DOSSIER — the MOAT product. The citizen keeps a private, persistent
-              file on the holder that every future mission reads from, so it
-              becomes YOUR specialist over time. Unlock-gated, premium-priced. */}
-          {(!paymentsLive || unlock?.unlocked) && (
-            <div className="agentdash-dossier">
-              <span className="agentdash-images-hd">
-                ⬡ CITIZEN DOSSIER{paymentsLive && dossierHexCost > 0 ? ` · ${dossierHexCost.toLocaleString()}⬡` : ""}
-              </span>
-              <p className="agentdash-images-sub">
-                Tell your citizen about you &amp; your project. It keeps a private file and reads it on every
-                future job — so it becomes <em>your</em> specialist, not a generic chatbot.
-              </p>
-              <textarea
-                className="agentdash-brief"
-                rows={4}
-                placeholder="Who you are, what you're building, your audience, your voice, what 'good' looks like…"
-                value={dossierText}
-                onChange={(e) => setDossierText(e.target.value)}
-                disabled={dossierBusy}
-              />
-              <button
-                className="btn btn-primary agentdash-go"
-                type="button"
-                disabled={dossierBusy || !dossierText.trim()}
-                onClick={doDossier}
-              >
-                <span className="ttl">{dossierBusy ? "SAVING TO MEMORY…" : "⬡ UPDATE DOSSIER →"}</span>
-              </button>
-              {dossierErr && <p className="agentdash-err">{dossierErr}</p>}
-              {dossierOut && (
-                <div className="agentdash-image-out">
-                  <span className="agentdash-image-cap">WHAT YOUR CITIZEN NOW KNOWS</span>
-                  <pre className="agentdash-text">{dossierOut}</pre>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* GENERATE IMAGE — branded scene render (deploy-citizen). Shown when the
               agent is unlocked (or in free test mode). Each render is signed +
               HEX-priced like any premium run, hosted on Blob, and stamped with the
@@ -877,6 +839,45 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                     </div>
                   )}
                 </>
+              )}
+            </div>
+          )}
+
+          {/* DOSSIER — the moat. Moved BELOW the image studio (2026-06-06): a
+              freshly-unlocked owner should hit the fun, instant transform first,
+              not a "write about yourself" textarea. The memory is what makes it
+              compound, so it sits right under the studio as the deeper next step. */}
+          {(!paymentsLive || unlock?.unlocked) && (
+            <div className="agentdash-dossier">
+              <span className="agentdash-images-hd">
+                ⬡ CITIZEN DOSSIER{paymentsLive && dossierHexCost > 0 ? ` · ${dossierHexCost.toLocaleString()}⬡` : ""}
+              </span>
+              <p className="agentdash-images-sub">
+                Tell your citizen about you &amp; your project. It keeps a private file and reads it on every
+                future job — so it becomes <em>your</em> specialist, not a generic chatbot.
+              </p>
+              <textarea
+                className="agentdash-brief"
+                rows={4}
+                placeholder="Who you are, what you're building, your audience, your voice, what 'good' looks like…"
+                value={dossierText}
+                onChange={(e) => setDossierText(e.target.value)}
+                disabled={dossierBusy}
+              />
+              <button
+                className="btn btn-primary agentdash-go"
+                type="button"
+                disabled={dossierBusy || !dossierText.trim()}
+                onClick={doDossier}
+              >
+                <span className="ttl">{dossierBusy ? "SAVING TO MEMORY…" : "⬡ UPDATE DOSSIER →"}</span>
+              </button>
+              {dossierErr && <p className="agentdash-err">{dossierErr}</p>}
+              {dossierOut && (
+                <div className="agentdash-image-out">
+                  <span className="agentdash-image-cap">WHAT YOUR CITIZEN NOW KNOWS</span>
+                  <pre className="agentdash-text">{dossierOut}</pre>
+                </div>
               )}
             </div>
           )}
