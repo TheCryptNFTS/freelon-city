@@ -7136,6 +7136,23 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 /* Locked dashboard state (non-owner / disconnected) — keeps a visible DO. */
 .agentdash-locked { text-align: left; }
 .agentdash-locked-msg { margin: var(--s-3) 0 var(--s-3); font-size: 13px; color: var(--ink-2); line-height: 1.55; max-width: 56ch; }
+.agentdash-locked-cta { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+/* Cold-visitor proof: one real transform shown inline in the locked gate. */
+.agentdash-example { margin: var(--s-3) 0 var(--s-4); max-width: 320px; }
+.agentdash-example-cap { display: block; font-family: var(--mono2); font-size: var(--t-mono-xxs); letter-spacing: var(--tr-mono); text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.agentdash-example-img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--bg-2); }
+.agentdash-example-meta { display: block; margin-top: 8px; font-family: var(--mono2); font-size: var(--t-mono-sm); letter-spacing: 0.06em; color: var(--ink-dim); }
+
+/* Cold-visitor LIVE demo (flag-gated): curated briefs → one real agent turn. */
+.agentdash-demo { margin: var(--s-3) 0 var(--s-4); padding: var(--s-3); border: 1px solid var(--gold); border-radius: var(--r-2); background: linear-gradient(135deg, rgba(200,170,100,0.06), rgba(0,0,0,0.25)); }
+.agentdash-demo-cap { display: block; font-family: var(--mono2); font-size: var(--t-mono-xxs); letter-spacing: var(--tr-mono); text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+.agentdash-demo-briefs { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.agentdash-demo-brief { font-size: var(--t-mono-sm); }
+.agentdash-demo-err { margin-top: 10px; font-family: var(--mono2); font-size: var(--t-mono-sm); color: var(--ink-dim); }
+.agentdash-demo-out { margin: 12px 0 0; padding: var(--s-3); border: 1px solid var(--line); border-radius: var(--r-2); background: var(--bg-2); }
+.agentdash-demo-out-cap { display: block; font-family: var(--mono2); font-size: var(--t-mono-xxs); letter-spacing: var(--tr-mono); text-transform: uppercase; color: var(--ink-dim); margin-bottom: 8px; }
+.agentdash-demo-out-body { margin: 0; white-space: pre-wrap; line-height: 1.55; }
+.agentdash-demo-out-note { display: block; margin-top: 10px; font-family: var(--mono2); font-size: var(--t-mono-xxs); letter-spacing: 0.06em; color: var(--gold); }
 
 /* ─── AGENT DASHBOARD (owner-only: pick ability → task → run) ─── */
 .agentdash {
@@ -7505,6 +7522,13 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
   letter-spacing: 0.02em; color: var(--ink); margin: 0 0 var(--s-5);
 }
 .home-close__cta { display: flex; gap: var(--s-3); flex-wrap: wrap; justify-content: center; }
+.home-close__note {
+  margin: var(--s-4) auto 0; max-width: 46ch;
+  font-family: var(--mono2); font-size: var(--t-mono-sm); line-height: 1.6;
+  letter-spacing: 0.02em; color: var(--ink-dim);
+}
+.home-close__note a { color: var(--ink-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
+.home-close__note a:hover { color: var(--gold); border-color: var(--gold); }
 
 /* ── Citizen page: collapsed collector/NFT details (2026-06-04) ── */
 /* "Your crew" panel — the reason to hold more than one (role coverage + gaps). */

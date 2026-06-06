@@ -87,6 +87,22 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [err, setErr] = useState<string | null>(null);
   const [followUp, setFollowUp] = useState(""); // multi-turn refine instruction
   const [copied, setCopied] = useState(false);
+  // Cold-visitor proof (2026-06-06): one REAL, public transform shown inline in
+  // the locked gate, so a non-owner arriving from "SEE AN AGENT" sees actual
+  // agent output without a wallet or spend. Same source as the homepage
+  // TransformsWall (/api/transforms); self-hides when the feed is empty.
+  const [exampleWork, setExampleWork] = useState<{ tokenId: number; url: string; style: string } | null>(null);
+
+  // LIVE no-wallet demo (2026-06-06, flag-gated OFF via AGENT_DEMO_LIVE). When
+  // the founder switches it on, a logged-out visitor can run ONE real agent turn
+  // from a curated brief — the comprehension hook. demoBriefs stays null/empty
+  // (and the whole block hides) unless the route reports live:true, so OFF is the
+  // default both server- and client-side. No wallet, no spend by the visitor, no
+  // writes to the citizen.
+  const [demoBriefs, setDemoBriefs] = useState<{ id: string; label: string }[]>([]);
+  const [demoBusy, setDemoBusy] = useState<string | null>(null); // briefId while running
+  const [demoOut, setDemoOut] = useState<{ brief: string; output: string } | null>(null);
+  const [demoErr, setDemoErr] = useState<string | null>(null);
 
   // Unlock flow (engaged when paymentsLive && a premium ability is picked on a
   // not-yet-unlocked citizen). One ETH payment → finite signal-credit pool.
@@ -124,6 +140,60 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     return () => { cancelled = true; };
   }, [o.isOwner, citizenId]);
 
+  // Fetch one real example transform for the cold-visitor gate (non-owners).
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/transforms", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        const first = Array.isArray(d?.transforms) ? d.transforms[0] : null;
+        if (first?.url) setExampleWork({ tokenId: first.tokenId, url: first.url, style: first.style });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // Probe whether the LIVE no-wallet demo is switched on (AGENT_DEMO_LIVE). The
+  // route returns { live:false } when off, so demoBriefs stays empty and the
+  // demo block never renders. Only fetched for non-owners (the gate audience).
+  useEffect(() => {
+    if (o.isOwner) return;
+    let cancelled = false;
+    fetch(`/api/citizens/${citizenId}/demo`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        if (d?.live && Array.isArray(d.briefs)) setDemoBriefs(d.briefs);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [o.isOwner, citizenId]);
+
+  /** Run ONE curated no-wallet demo brief against the real agent. No wallet, no
+   *  spend by the visitor, no writes — the server bounds cost + rate. */
+  async function runDemo(briefId: string) {
+    if (demoBusy) return;
+    setDemoBusy(briefId); setDemoErr(null); setDemoOut(null);
+    try {
+      const res = await fetch(`/api/citizens/${citizenId}/demo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ briefId }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d?.ok && typeof d.output === "string") {
+        setDemoOut({ brief: d.brief ?? "", output: d.output });
+      } else {
+        setDemoErr(d?.message || "The signal dropped. Try again.");
+      }
+    } catch {
+      setDemoErr("Couldn't reach the agent. Try again.");
+    } finally {
+      setDemoBusy(null);
+    }
+  }
+
   /** Refetch agent state (e.g. after unlocking, to pick up credits). */
   async function refreshAgent() {
     try {
@@ -151,26 +221,87 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     return (
       <section className="agentdash agentdash-locked" id="run">
         <span className="kicker">⬡ RUN THIS AGENT</span>
+        {/* Real proof FIRST (2026-06-06): a non-owner sees actual agent output
+            before the gate copy, so "SEE AN AGENT" pays off without a wallet.
+            Self-hides when the transforms feed is empty. */}
+        {exampleWork && (
+          <figure className="agentdash-example">
+            <figcaption className="agentdash-example-cap">⬡ EXAMPLE · real output from a FREELON agent</figcaption>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={exampleWork.url}
+              alt={`${exampleWork.style} — Citizen #${exampleWork.tokenId.toString().padStart(4, "0")}`}
+              className="agentdash-example-img"
+              loading="lazy"
+            />
+            <span className="agentdash-example-meta">
+              &ldquo;{exampleWork.style}&rdquo; · made by Citizen #{exampleWork.tokenId.toString().padStart(4, "0")}
+            </span>
+          </figure>
+        )}
+        {/* LIVE no-wallet demo (flag-gated). Hidden entirely unless the route
+            reported live:true. Lets a cold visitor watch THIS citizen reason now,
+            no wallet, before any buy ask. */}
+        {demoBriefs.length > 0 && (
+          <div className="agentdash-demo">
+            <span className="agentdash-demo-cap">⬡ TRY IT LIVE · run this agent now, no wallet</span>
+            <div className="agentdash-demo-briefs">
+              {demoBriefs.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className="btn btn-secondary agentdash-demo-brief"
+                  onClick={() => runDemo(b.id)}
+                  disabled={!!demoBusy}
+                >
+                  {demoBusy === b.id ? "Running…" : b.label}
+                </button>
+              ))}
+            </div>
+            {demoErr && <p className="agentdash-demo-err">{demoErr}</p>}
+            {demoOut && (
+              <figure className="agentdash-demo-out">
+                {demoOut.brief && <figcaption className="agentdash-demo-out-cap">{demoOut.brief}</figcaption>}
+                <p className="agentdash-demo-out-body">{demoOut.output}</p>
+                <span className="agentdash-demo-out-note">Live output · own this FREELON to keep going.</span>
+              </figure>
+            )}
+          </div>
+        )}
         {h.address ? (
           <>
             <p className="agentdash-locked-msg">
               You&apos;re connected, but this wallet doesn&apos;t hold this citizen — so you can&apos;t run its
               agent. Own it to train it and build its résumé.
             </p>
-            <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
-              <span className="ttl">OWN THIS CITIZEN ↗</span>
-            </a>
+            <div className="agentdash-locked-cta">
+              <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
+                <span className="ttl">OWN THIS CITIZEN ↗</span>
+              </a>
+              {/* See-it-work proof BEFORE the buy — the public work log is the real
+                  output this agent has produced (handles its own empty state). */}
+              <a className="btn btn-secondary agentdash-go" href={`/citizens/${citizenId}/log`}>
+                <span className="ttl">SEE WHAT IT&apos;S DONE →</span>
+              </a>
+            </div>
           </>
         ) : (
           <>
             <p className="agentdash-locked-msg">
               To run this agent you need to <strong>own this FREELON</strong> and unlock it (a one-time
               payment that turns the agent on). Connect the holding wallet (button top-right) to start.
-              Don&apos;t own one yet?
+              Want proof first? See the real work it&apos;s already produced.
             </p>
-            <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
-              <span className="ttl">GET A CITIZEN ↗</span>
-            </a>
+            <div className="agentdash-locked-cta">
+              {/* Cold visitor (no wallet) lands here from "SEE AN AGENT". Lead with
+                  the proof path so the promise pays off, not a bare buy wall. */}
+              <a className="btn btn-primary agentdash-go" href={`/citizens/${citizenId}/log`}>
+                <span className="ttl">SEE WHAT IT&apos;S DONE →</span>
+              </a>
+              <a className="btn btn-secondary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
+                <span className="ttl">GET A CITIZEN ↗</span>
+              </a>
+            </div>
           </>
         )}
       </section>
