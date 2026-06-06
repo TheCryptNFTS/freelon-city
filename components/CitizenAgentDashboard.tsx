@@ -140,8 +140,8 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   if (o.error && h.address) {
     return (
       <section className="agentdash" id="run">
-        <span className="kicker">⬡ YOUR AGENT</span>
-        <p className="agentdash-err">⬡ SIGNAL DISRUPTED · couldn&apos;t verify ownership · retry.</p>
+        <span className="kicker">⬡ THIS AGENT</span>
+        <p className="agentdash-err">⬡ SIGNAL DISRUPTED · the city couldn&apos;t read the chain to check ownership · retry in a moment.</p>
       </section>
     );
   }
