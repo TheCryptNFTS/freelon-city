@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { getCitizen } from "@/lib/citizens";
 import { getTier } from "@/lib/agent-tier-store";
+import { awakenKeyForTier } from "@/lib/economy-constants";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +28,8 @@ export async function GET(req: Request) {
   return NextResponse.json({
     tokenId: cid,
     awakened: rec?.awakened ?? false,
-    awakenTier: rec?.awakenTier ?? 0,
+    // The store keeps a NUMBER (1/2); clients + public API expect the KEY.
+    awakenTier: rec?.awakened ? awakenKeyForTier(rec.awakenTier) : null,
     awakenedAt: rec?.awakenedAt ?? 0,
     awakenBlock: rec?.awakenBlock ?? 0,
   });

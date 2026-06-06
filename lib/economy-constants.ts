@@ -299,6 +299,15 @@ export function awakenTier(key: string): AwakenTier | null {
 }
 
 /**
+ * Map a stored numeric awaken tier (1=spark, 2=signal) back to its string key.
+ * The off-chain store persists the NUMBER; every client + the public API expects
+ * the KEY ("spark"/"signal"). Returns null for 0/unknown (= not awakened).
+ */
+export function awakenKeyForTier(tier: number | null | undefined): AwakenTierKey | null {
+  return AWAKEN_TIERS.find((t) => t.tier === tier)?.key ?? null;
+}
+
+/**
  * Convert an ETH decimal string ("0.015") to a wei bigint WITHOUT float math.
  * Mirrors viem's parseEther semantics (18 decimals, truncates extra precision)
  * but is self-contained so the price constants never go through Number(). Throws

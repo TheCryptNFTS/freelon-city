@@ -2,6 +2,7 @@ import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { publicJson, publicOptions, publicCors, parseTokenId } from "@/lib/public-api";
 import { getAgentRecord, agentRegistryAddress } from "@/lib/onchain/agent-registry";
 import { getTier } from "@/lib/agent-tier-store";
+import { awakenKeyForTier } from "@/lib/economy-constants";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -44,7 +45,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   // `awakenedAt` here is epoch MS (vs the registry's unix seconds).
   const offchainAwaken = {
     awakened: pending?.awakened ?? false,
-    awakenTier: pending?.awakenTier ?? 0,
+    // Store keeps a NUMBER (1/2); emit the KEY ("spark"/"signal") for parity
+    // with /api/agent/awaken/status and what clients expect. null = not awakened.
+    awakenTier: pending?.awakened ? awakenKeyForTier(pending.awakenTier) : null,
     awakenedAt: pending?.awakenedAt ?? 0,
   };
 

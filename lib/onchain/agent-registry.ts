@@ -196,5 +196,12 @@ export async function recordEvolutionOnChain(
     functionName: "recordEvolution",
     args: [BigInt(tokenId), tier, historyRoot],
   });
+  // Wait for the tx to actually mine and SUCCEED before reporting the hash.
+  // The caller stamps onChainTier off this return value, so returning on mere
+  // submission would let a later revert/drop leave the ledger thinking it was
+  // anchored. Return null on a reverted/failed receipt so the caller does NOT
+  // mark it on-chain and the next batch retries the delta.
+  const receipt = await client.waitForTransactionReceipt({ hash });
+  if (receipt.status !== "success") return null;
   return hash;
 }
