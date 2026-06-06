@@ -282,28 +282,35 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
                 <span className="ttl">OWN THIS CITIZEN ↗</span>
               </a>
-              {/* See-it-work proof BEFORE the buy — the public work log is the real
-                  output this agent has produced (handles its own empty state). */}
-              <a className="btn btn-secondary agentdash-go" href={`/citizens/${citizenId}/log`}>
-                <span className="ttl">SEE WHAT IT&apos;S DONE →</span>
+              {/* Secondary points at the live collection, not this citizen's work
+                  log — that log is empty until a holder runs real jobs, so it was a
+                  dead-end secondary (fixed 2026-06-06). Proof already shows inline. */}
+              <a className="btn btn-secondary agentdash-go" href="/citizens">
+                <span className="ttl">BROWSE ALL 4040 →</span>
               </a>
             </div>
           </>
         ) : (
           <>
+            {/* Cold visitor (no wallet) lands here from "SEE AN AGENT". The proof
+                pays off INLINE above (the real example output) — so the CTA is the
+                next step, not a link to the per-citizen work log, which is empty for
+                a citizen with no real holder activity yet (a dead-end that broke the
+                "see proof" promise, 2026-06-06). Buy is the move now, with the soft
+                /start landing for NFT-newcomers (mirrors the homepage buy-handoff). */}
             <p className="agentdash-locked-msg">
-              To run this agent you need to <strong>own this FREELON</strong> and unlock it (a one-time
-              payment that turns the agent on). Connect the holding wallet (button top-right) to start.
-              Want proof first? See the real work it&apos;s already produced.
+              {exampleWork
+                ? "That's a real agent output — no wallet, no hand-editing. "
+                : "FREELON agents make real work — no hand-editing. "}
+              Own a FREELON and you run one yourself: transform it into any style, give it real jobs, and build a
+              record only you control. New to NFTs? The 2-minute guide walks you through getting one.
             </p>
             <div className="agentdash-locked-cta">
-              {/* Cold visitor (no wallet) lands here from "SEE AN AGENT". Lead with
-                  the proof path so the promise pays off, not a bare buy wall. */}
-              <a className="btn btn-primary agentdash-go" href={`/citizens/${citizenId}/log`}>
-                <span className="ttl">SEE WHAT IT&apos;S DONE →</span>
+              <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
+                <span className="ttl">OWN A FREELON ↗</span>
               </a>
-              <a className="btn btn-secondary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
-                <span className="ttl">GET A CITIZEN ↗</span>
+              <a className="btn btn-secondary agentdash-go" href="/start">
+                <span className="ttl">NEW TO NFTS? START HERE →</span>
               </a>
             </div>
           </>
