@@ -48,7 +48,8 @@ export function Footer() {
           <ul>
             <li><Link href="/archive">Archive</Link></li>
             <li><Link href="/civilizations">Civilizations</Link></li>
-            <li><Link href="/combat-archives">Combat Archives</Link></li>
+            <li><Link href="/play">Play</Link></li>
+            <li><Link href="/crypt-tcg">Crypt TCG</Link></li>
             <li><Link href="/canon">Canon</Link></li>
             <li><Link href="/shop">Shop</Link></li>
             <li><Link href="/start">Start</Link></li>
