@@ -18,6 +18,7 @@ import {
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import { ArcadeTutorial } from "@/components/ArcadeTutorial";
+import { abbreviateAmount, formatSignal } from "@/lib/money-format";
 
 /**
  * Restore the Signal — v2, the ONE shared city.
@@ -56,23 +57,11 @@ type WalletView = {
 };
 type Leader = { address: string; contributed: number; structures: number };
 
-/** City-signal glyph. Deliberately NOT ⬡ — that hexagon means real, withdrawable
- *  HEX everywhere else on the site. City signal is an isolated in-game score that
- *  can only build structures, so it gets its own diamond mark to kill the "I have
- *  250B HEX" confusion. */
-const SIG = "◇";
-
-function fmt(n: number): string {
-  if (!Number.isFinite(n)) return "0";
-  if (n < 1000) return n.toFixed(n < 10 && n % 1 !== 0 ? 1 : 0);
-  const units = ["", "K", "M", "B", "T"];
-  let u = 0;
-  while (n >= 1000 && u < units.length - 1) {
-    n /= 1000;
-    u++;
-  }
-  return n.toFixed(2) + units[u];
-}
+/** Bare-number formatting (no glyph) — progress bars, "x / y" thresholds, rates.
+ *  Currency amounts that carry a glyph go through formatSignal() instead, which
+ *  fuses the ◇ mark so a signal balance can never be drawn with the ⬡ HEX mark.
+ *  Both share lib/money-format's abbreviation, so nothing shifts visually. */
+const fmt = abbreviateAmount;
 
 function shortAddr(a: string): string {
   return `0x${a.slice(2, 6)}…${a.slice(-4)}`;
@@ -385,7 +374,7 @@ export function RestoreSignal() {
               <>
                 {" "}You added{" "}
                 <strong style={{ color: "var(--gold-bright)" }}>
-                  {fmt(wallet.contributed)} {SIG}
+                  {formatSignal(wallet.contributed)}
                 </strong>{" "}
                 to the signal.
               </>
@@ -501,7 +490,7 @@ export function RestoreSignal() {
               marginBottom: rank.next ? 8 : 0,
             }}
           >
-            {fmt(wallet?.contributed ?? 0)} {SIG} CONTRIBUTED · PART OF {litCount}/10 LIT
+            {formatSignal(wallet?.contributed ?? 0)} CONTRIBUTED · PART OF {litCount}/10 LIT
             {total > 0 && (wallet?.contributed ?? 0) > 0 && (
               <span style={{ color: "var(--ink-fade)" }}>
                 {" "}· {((wallet!.contributed / total) * 100).toFixed((wallet!.contributed / total) * 100 < 1 ? 2 : 1)}% OF THE CITY&apos;S SIGNAL
@@ -556,7 +545,7 @@ export function RestoreSignal() {
                   textAlign: "right",
                 }}
               >
-                {fmt(Math.max(0, rank.next.at - (wallet?.contributed ?? 0)))} {SIG} TO {rank.next.title.toUpperCase()}
+                {formatSignal(Math.max(0, rank.next.at - (wallet?.contributed ?? 0)))} TO {rank.next.title.toUpperCase()}
               </div>
             </>
           )}
@@ -586,7 +575,7 @@ export function RestoreSignal() {
         >
           <span>
             THE CITY KEPT WORKING — YOU BANKED{" "}
-            <strong style={{ color: "var(--neon-cyan)" }}>{fmt(offlineGain)} {SIG}</strong>
+            <strong style={{ color: "var(--neon-cyan)" }}>{formatSignal(offlineGain)}</strong>
             {ownRate > 0 && (
               <span style={{ color: "var(--ink-fade)" }}> · {fmt(ownRate)}/SEC ONLINE</span>
             )}
@@ -633,7 +622,7 @@ export function RestoreSignal() {
             textShadow: "0 0 24px rgba(0,217,184,.35)",
           }}
         >
-          {fmt(total)} {SIG}
+          {formatSignal(total)}
         </div>
         {wallet && (
           <div
@@ -645,7 +634,7 @@ export function RestoreSignal() {
               marginTop: 6,
             }}
           >
-            YOUR SHARE {fmt(wallet.contributed)} {SIG} · YOU MAKE {fmt(ownRate)}/SEC
+            YOUR SHARE {formatSignal(wallet.contributed)} · YOU MAKE {fmt(ownRate)}/SEC
           </div>
         )}
       </div>
@@ -701,7 +690,7 @@ export function RestoreSignal() {
           {address ? (
             <>
               YOUR SPENDABLE SIGNAL:{" "}
-              <strong style={{ color: "var(--neon-cyan)" }}>{fmt(display)} {SIG}</strong>
+              <strong style={{ color: "var(--neon-cyan)" }}>{formatSignal(display)}</strong>
             </>
           ) : (
             "CONNECT OR SYNC A WALLET TO BUILD"
@@ -805,7 +794,7 @@ export function RestoreSignal() {
                   color: afford ? "var(--neon-cyan)" : "var(--ink-fade)",
                 }}
               >
-                {fmt(cost)} {SIG}
+                {formatSignal(cost)}
               </div>
             </button>
           );
@@ -899,7 +888,7 @@ export function RestoreSignal() {
             <div
               key={c.slug}
               className={`relic-card scan-card city-skyline__plate${lit ? " is-lit" : ""}${isNext ? " is-next" : ""}`}
-              title={`${c.name} · ${fmt(c.at)} ${SIG}`}
+              title={`${c.name} · ${formatSignal(c.at)}`}
               style={
                 {
                   "--civ": c.color,
@@ -1060,7 +1049,7 @@ export function RestoreSignal() {
                     {String(i + 1).padStart(2, "0")} · {shortAddr(t.address)}
                     {me ? " · YOU" : ""}
                   </span>
-                  <span>{fmt(t.contributed)} {SIG}</span>
+                  <span>{formatSignal(t.contributed)}</span>
                 </div>
               );
             })}

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useHolder } from "@/lib/useHolder";
+import { HEX_GLYPH } from "@/lib/money-format";
 
 /**
  * Persistent hex balance pill shown in the header when a wallet is connected.
@@ -45,7 +46,7 @@ export function HeaderHexPill() {
       className="header-hex-pill"
       title="Wallet hex balance"
     >
-      <span className="hp-icon">⬡</span>
+      <span className="hp-icon">{HEX_GLYPH}</span>
       <span className="hp-balance">{hex.toLocaleString()}</span>
     </Link>
   );
