@@ -1,0 +1,230 @@
+{
+  "contract": "FreelonHistoryRegistry",
+  "compiler": "solc 0.8.28",
+  "optimizer": {
+    "enabled": true,
+    "runs": 200
+  },
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "NotOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ZeroAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ZeroRoot",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "epoch",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "root",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "timestamp",
+          "type": "uint64"
+        }
+      ],
+      "name": "RootAnchored",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "root",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        }
+      ],
+      "name": "anchor",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "epoch",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "anchorCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "anchors",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "root",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint64",
+          "name": "timestamp",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latest",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "root",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint64",
+          "name": "timestamp",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "epoch",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "root",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "leaf",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "proof",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "verify",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052348015600e575f5ffd5b505f80546001600160a01b0319163390811782556040519091907f8934ce4adea8d9ce0d714d2c22b86790e41b7731c84b926fbbdc1d40ff6533c9908290a36106618061005a5f395ff3fe608060405234801561000f575f5ffd5b506004361061007a575f3560e01c806352bfe7891161005857806352bfe789146100ef5780638da5cb5b146101205780638f5bae2e1461014a578063f2fde38b1461015d575f5ffd5b80633423e5481461007e57806334f96c8c146100a6578063368b733e146100b8575b5f5ffd5b61009161008c36600461050f565b610172565b60405190151581526020015b60405180910390f35b6001545b60405190815260200161009d565b6100cb6100c636600461058e565b610213565b6040805193845267ffffffffffffffff90921660208401529082015260600161009d565b6100f7610251565b6040805194855267ffffffffffffffff909316602085015291830152606082015260800161009d565b5f54610132906001600160a01b031681565b6040516001600160a01b03909116815260200161009d565b6100aa6101583660046105a5565b610303565b61017061016b3660046105c5565b610465565b005b5f83815b83811015610207575f858583818110610191576101916105f2565b905060200201359050808311156101d1576040805160208101839052908101849052606001604051602081830303815290604052805190602001206101fc565b6040805160208101859052908101829052606001604051602081830303815290604052805190602001205b925050600101610176565b50909414949350505050565b60018181548110610222575f80fd5b5f91825260209091206003909102018054600182015460029092015490925067ffffffffffffffff9091169083565b6001545f908190819081908061029a5760405162461bcd60e51b815260206004820152600a6024820152696e6f20616e63686f727360b01b604482015260640160405180910390fd5b5f60016102a78184610606565b815481106102b7576102b76105f2565b905f5260205f2090600302019050805f0154816001015f9054906101000a900467ffffffffffffffff1682600201546001856102f39190610606565b9550955095509550505090919293565b5f80546001600160a01b0316331461032e576040516330cd747160e01b815260040160405180910390fd5b8261034c5760405163b263ae7360e01b815260040160405180910390fd5b50600180546040805160608101825285815267ffffffffffffffff428181166020840190815283850188815286880188555f979097529251600386027fb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf681019190915592517fb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf7840180549190931667ffffffffffffffff199091161790915593517fb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf890910155519091849183917fa85acc108576de0e22f72760dd025891b0128f354be16eb280d634b0aeef0389916104579187825267ffffffffffffffff16602082015260400190565b60405180910390a392915050565b5f546001600160a01b0316331461048f576040516330cd747160e01b815260040160405180910390fd5b6001600160a01b0381166104b65760405163d92e233d60e01b815260040160405180910390fd5b5f80546040516001600160a01b03808516939216917f8934ce4adea8d9ce0d714d2c22b86790e41b7731c84b926fbbdc1d40ff6533c991a35f80546001600160a01b0319166001600160a01b0392909216919091179055565b5f5f5f5f60608587031215610522575f5ffd5b8435935060208501359250604085013567ffffffffffffffff811115610546575f5ffd5b8501601f81018713610556575f5ffd5b803567ffffffffffffffff81111561056c575f5ffd5b8760208260051b8401011115610580575f5ffd5b949793965060200194505050565b5f6020828403121561059e575f5ffd5b5035919050565b5f5f604083850312156105b6575f5ffd5b50508035926020909101359150565b5f602082840312156105d5575f5ffd5b81356001600160a01b03811681146105eb575f5ffd5b9392505050565b634e487b7160e01b5f52603260045260245ffd5b8181038181111561062557634e487b7160e01b5f52601160045260245ffd5b9291505056fea2646970667358221220c9b5482e0d19b40df187b1977aad5692b22fe531cbc2bd0feaf50a0b0b95e04364736f6c634300081c0033"
+}
