@@ -41,6 +41,16 @@ export async function POST(req: Request) {
   const rl = await limit(req, "agent-evolve", { max: 4, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
 
+  // Feature flag — parked as "coming soon" until the on-chain metadata migration
+  // (setBaseURI) is done. Refuse BEFORE any auth/charge/render so no ⬡ can be
+  // spent and no image rendered while the feature is off. Flip EVOLVE_LIVE=true.
+  if (process.env.EVOLVE_LIVE !== "true") {
+    return NextResponse.json(
+      { error: "coming_soon", message: "Art evolution is coming soon." },
+      { status: 410 },
+    );
+  }
+
   // CSRF: same-origin only. Wallet auth is enforced below via signature.
   const { isSameOrigin } = await import("@/lib/x-session");
   if (!isSameOrigin(req)) {

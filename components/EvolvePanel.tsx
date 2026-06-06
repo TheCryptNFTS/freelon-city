@@ -26,6 +26,7 @@ type Status = {
   canEvolve: boolean;
   nextTier: number | null;
   reason: string | null;
+  comingSoon?: boolean;
 };
 type EvolveResult = { ok: boolean; evolved: boolean; tier: number | null; evolvedImageUrl: string | null; message?: string; error?: string };
 type RevertResult = { ok: boolean; evolved: boolean; message?: string; error?: string };
@@ -173,7 +174,7 @@ export function EvolvePanel({ citizenId }: Props) {
   return (
     <section className="agentdash" id="evolve">
       <div className="agentdash-hd">
-        <span className="kicker">⬡ EVOLVE THIS CITIZEN&apos;S ART</span>
+        <span className="kicker">⬡ EVOLVE THIS CITIZEN&apos;S ART{status.comingSoon ? " · COMING SOON" : ""}</span>
         {status.evolved && status.tier != null && (
           <span className="agentdash-credits" title="This citizen's art is awakened. Your original is always preserved.">
             ⬡ AWAKENED · TIER {status.tier}

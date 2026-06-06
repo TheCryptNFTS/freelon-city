@@ -27,6 +27,19 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "invalid tokenId" }, { status: 400 });
   }
 
+  // Feature flag — art evolution is parked as "coming soon" until the on-chain
+  // metadata migration (setBaseURI) is done. Flip EVOLVE_LIVE=true to turn it on.
+  if (process.env.EVOLVE_LIVE !== "true") {
+    return NextResponse.json({
+      tokenId,
+      comingSoon: true,
+      canEvolve: false,
+      evolved: false,
+      tier: 0,
+      reason: "Art evolution is coming soon.",
+    });
+  }
+
   const [evo, unlocked, progress] = await Promise.all([
     getEvolution(tokenId),
     isUnlocked(tokenId),
