@@ -221,6 +221,38 @@ export function ascensionCost(tier: number): number {
   return ASCENSION_TIERS[tier - 1];
 }
 
+// ─── EVOLVE (opt-in, revertable art evolution) — 2026-06-06 ─────────────────
+// A holder BURNS ⬡ to EVOLVE an awakened citizen's DISPLAYED art as its agent
+// levels up. This is ADDITIVE + REVERTABLE: the original anchored art is always
+// the source of truth (never stored-over), and evolving only ADDS an `image`
+// override on the dynamic metadata that the holder can turn off at any time.
+// Like ASCENSION it is a pure HEX SINK — NEVER an ETH/real-money charge.
+//
+// Three evolve tiers, each a stronger on-brand visual upgrade (added aura/glow,
+// then awakened-form intensity). Priced in the same band as ASCENSION so an
+// evolve is a real commitment. Index 0 = Tier 1 … index 2 = Tier 3.
+export const EVOLVE_TIERS = [5_000, 12_000, 30_000] as const;
+
+/** Highest evolve tier a citizen can reach. */
+export const EVOLVE_MAX_TIER = EVOLVE_TIERS.length;
+
+/** Minimum citizen LEVEL required to evolve INTO a given tier (gate). Tier 1
+ *  needs level 5, tier 2 level 15, tier 3 level 30 — evolution tracks training. */
+export const EVOLVE_LEVEL_GATE = [5, 15, 30] as const;
+
+/** ⬡ cost to evolve a citizen's art INTO the given tier (1..EVOLVE_MAX_TIER).
+ *  Returns 0 for an out-of-range tier (caller treats 0 as "no such tier"). */
+export function evolveCost(tier: number): number {
+  if (!Number.isInteger(tier) || tier < 1 || tier > EVOLVE_TIERS.length) return 0;
+  return EVOLVE_TIERS[tier - 1];
+}
+
+/** Minimum citizen level required to evolve into `tier` (Infinity if no such tier). */
+export function evolveLevelGate(tier: number): number {
+  if (!Number.isInteger(tier) || tier < 1 || tier > EVOLVE_LEVEL_GATE.length) return Infinity;
+  return EVOLVE_LEVEL_GATE[tier - 1];
+}
+
 /** Convert ETH amount to hex using the canonical peg. */
 export function ethToHex(eth: number): number {
   if (!isFinite(eth) || eth <= 0) return 0;

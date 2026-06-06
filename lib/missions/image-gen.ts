@@ -240,6 +240,90 @@ export async function generateCitizenScene(args: {
   }
 }
 
+// ─── EVOLVE — opt-in, revertable art evolution — 2026-06-06 ─────────────────
+// Reuses this exact pipeline (fetch real art → gpt-image-1.5 edit → stamp →
+// Blob) to render a TIER-APPROPRIATE on-brand UPGRADE of the citizen's own art.
+// Identity is non-negotiable (same figure, hex face, civ palette, iconic at
+// thumbnail) — evolution only INTENSIFIES the awakened form, it never replaces
+// the character. The strength scales with the evolve tier.
+const EVOLVE_TIER_DESC: Record<number, string> = {
+  1: "a subtle awakening — add a faint living aura and a gentle rim of light around the figure, the hex face glowing a touch brighter. Restrained, premium, barely-there.",
+  2: "an ascended form — a stronger radiant aura, energy motes drifting upward, the hex face burning bright as a key light, faint geometric glyphs orbiting the silhouette.",
+  3: "a fully awakened apex form — a commanding halo of signal-energy, volumetric light streaming from the hex face, crackling geometric power and a luminous corona, monumental and iconic.",
+};
+
+/** Build the EVOLVE prompt: keep identity locked, intensify the awakened form by
+ *  tier. Same identity-lock-FIRST discipline as buildImagePrompt. */
+function buildEvolvePrompt(citizen: Citizen, tier: number): string {
+  const upgrade = EVOLVE_TIER_DESC[tier] ?? EVOLVE_TIER_DESC[1];
+  return [
+    "Keep the figure in the reference image EXACTLY: its faceted sculptural head/helm, the glowing",
+    "geometric HEX symbol where a face would be, its robes, its exact colour palette and materials.",
+    "Do NOT add a human face, eyes, hair, or turn it into a person or cartoon. Same character, same silhouette, same pose.",
+    `This is FREELON CITY citizen #${id4(citizen.id)} (${citizen.civilization}, ${citizen.tier}).`,
+    `EVOLVE it — keep the SAME character and background but elevate it: ${upgrade}`,
+    "Premium dark cinematic render, the hex glowing as a key light source. Collector-grade, readable at thumbnail size. Square 1:1.",
+  ].join(" ");
+}
+
+/**
+ * Render an EVOLVED version of a citizen's own art for the opt-in evolution
+ * feature. Tier drives how strong the visual upgrade is. Returns a public Blob
+ * URL (branded), exactly like generateCitizenScene. Provider-guarded: returns
+ * { ok:false, error:"no_api_key" } if OPENAI_API_KEY is unset (caller 503s
+ * BEFORE charging ⬡).
+ */
+export async function generateEvolvedArt(args: {
+  citizen: Citizen;
+  tier: number;
+  timeoutMs?: number;
+}): Promise<ImageGenResult> {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return { ok: false, error: "no_api_key" };
+  const tier = Math.max(1, Math.floor(args.tier));
+
+  const ref = await fetchRefArt(args.citizen.id);
+  if (!ref) return { ok: false, error: "reference_art_missing" };
+
+  const prompt = buildEvolvePrompt(args.citizen, tier);
+  const form = new FormData();
+  form.append("model", MODEL);
+  form.append("prompt", prompt);
+  form.append("size", "1024x1024");
+  form.append("quality", "high");
+  form.append("image", new Blob([new Uint8Array(ref)], { type: "image/jpeg" }), `${id4(args.citizen.id)}.jpg`);
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 90_000);
+  try {
+    const res = await fetch(OPENAI_IMAGE_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+      signal: controller.signal,
+    });
+    if (!res.ok) return { ok: false, error: `openai_${res.status}` };
+    const j = (await res.json()) as { data?: { b64_json?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
+    const b64 = j.data?.[0]?.b64_json;
+    if (!b64) return { ok: false, error: "empty_image" };
+
+    const filename = `evolve/${id4(args.citizen.id)}-t${tier}-${Date.now()}.png`;
+    const { stampSignature } = await import("@/lib/missions/image-stamp");
+    const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id);
+    let blob;
+    try {
+      blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
+    } catch (e) {
+      return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
+    }
+    return { ok: true, url: blob.url, filename, promptTokens: j.usage?.input_tokens, imageTokens: j.usage?.output_tokens };
+  } catch (e) {
+    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /** Fetch a citizen's hosted reference art (timeout-guarded). */
 async function fetchRefArt(id: number): Promise<Buffer | null> {
   try {
