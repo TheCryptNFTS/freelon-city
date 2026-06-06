@@ -126,6 +126,19 @@ function buildTransformPrompt(citizen: Citizen, styleDesc: string): string {
   ].join(" ");
 }
 
+/** Prompt for a CREW transform — BOTH citizens (from the two reference images)
+ *  reimagined together as a duo in one style. Preserves each one's identity. */
+function buildCrewTransformPrompt(a: Citizen, b: Citizen, styleDesc: string): string {
+  return [
+    `Combine the TWO characters from the reference images into ONE square scene, both reimagined as ${styleDesc}.`,
+    "CRITICAL: keep BOTH recognizably themselves — preserve each one's glowing geometric HEX where a face would be,",
+    "its robe/hood shape and its colour palette. Do NOT add human faces, eyes, or hair to either.",
+    "Pose them together as a duo/crew, side by side, interacting naturally, sharing one cohesive background and matching dramatic light.",
+    `Character one is FREELON CITY citizen #${id4(a.id)} (${a.civilization}); character two is #${id4(b.id)} (${b.civilization}).`,
+    "Premium render, collector-grade, both clearly readable at thumbnail size. Square 1:1.",
+  ].join(" ");
+}
+
 export type ImageGenResult =
   | { ok: true; url: string; filename: string; promptTokens?: number; imageTokens?: number }
   | { ok: false; error: string };
@@ -220,6 +233,78 @@ export async function generateCitizenScene(args: {
       promptTokens: j.usage?.input_tokens,
       imageTokens: j.usage?.output_tokens,
     };
+  } catch (e) {
+    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** Fetch a citizen's hosted reference art (timeout-guarded). */
+async function fetchRefArt(id: number): Promise<Buffer | null> {
+  try {
+    const c = new AbortController();
+    const rt = setTimeout(() => c.abort(), 15_000);
+    const res = await fetch(imageUrl(id), { signal: c.signal }).finally(() => clearTimeout(rt));
+    if (!res.ok) return null;
+    return Buffer.from(await res.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * GROUP TRANSFORM — render TWO owned citizens together in one branded style image.
+ * The "hold more than one" visual product. Same pipeline as generateCitizenScene
+ * (allowlisted style key, branded + uploaded to Blob), but two reference images.
+ */
+export async function generateCrewTransform(args: {
+  citizenA: Citizen;
+  citizenB: Citizen;
+  styleKey: string;
+  timeoutMs?: number;
+}): Promise<ImageGenResult> {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return { ok: false, error: "no_api_key" };
+  if (!isValidStyle(args.styleKey)) return { ok: false, error: "invalid_style" };
+
+  const a = await fetchRefArt(args.citizenA.id);
+  const b = await fetchRefArt(args.citizenB.id);
+  if (!a || !b) return { ok: false, error: "reference_art_missing" };
+
+  const prompt = buildCrewTransformPrompt(args.citizenA, args.citizenB, STYLES[args.styleKey].desc);
+  const form = new FormData();
+  form.append("model", MODEL);
+  form.append("prompt", prompt);
+  form.append("size", "1024x1024");
+  form.append("quality", "medium");
+  form.append("image[]", new Blob([new Uint8Array(a)], { type: "image/jpeg" }), `${id4(args.citizenA.id)}.jpg`);
+  form.append("image[]", new Blob([new Uint8Array(b)], { type: "image/jpeg" }), `${id4(args.citizenB.id)}.jpg`);
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 60_000);
+  try {
+    const res = await fetch(OPENAI_IMAGE_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+      signal: controller.signal,
+    });
+    if (!res.ok) return { ok: false, error: `openai_${res.status}` };
+    const j = (await res.json()) as { data?: { b64_json?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
+    const b64 = j.data?.[0]?.b64_json;
+    if (!b64) return { ok: false, error: "empty_image" };
+
+    const filename = `deploy/crew-${id4(args.citizenA.id)}-${id4(args.citizenB.id)}-${args.styleKey}-${Date.now()}.png`;
+    const { stampSignature } = await import("@/lib/missions/image-stamp");
+    const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizenA.id);
+    let blob;
+    try {
+      blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
+    } catch (e) {
+      return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
+    }
+    return { ok: true, url: blob.url, filename, promptTokens: j.usage?.input_tokens, imageTokens: j.usage?.output_tokens };
   } catch (e) {
     return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
   } finally {

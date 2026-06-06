@@ -15,6 +15,7 @@ import { deployResolver } from "@/lib/missions/resolvers/deploy";
 import { deployVideoResolver } from "@/lib/missions/resolvers/deploy-video";
 import { dossierResolver } from "@/lib/missions/resolvers/dossier";
 import { crewResolver } from "@/lib/missions/resolvers/crew";
+import { deployCrewResolver } from "@/lib/missions/resolvers/deploy-crew";
 import { makeAbilityResolver } from "@/lib/missions/abilities/ability";
 import { ABILITY_DEFS } from "@/lib/missions/abilities";
 
@@ -94,6 +95,24 @@ registerMission({
   inputMode: "prompt", // input = "<otherTokenId> <brief>"
   category: "professional",
   resolve: crewResolver,
+});
+
+// GROUP TRANSFORM — the VISUAL "hold more than one": two FREELONs you own rendered
+// together in one branded style image. Owned-only (resolver verifies the partner)
+// + premium image-priced + unlock-gated. Reuses the image pipeline (two refs).
+registerMission({
+  id: "deploy-crew",
+  title: "Group Transform",
+  tagline: "Two of your FREELONs in one branded image.",
+  description:
+    "Name another FREELON you own (token #) and a style — render the two of them together in one shareable, branded image. (Both must be yours.)",
+  cost: 0,
+  gate: { skill: "design", minLevel: 1 },
+  rewardXp: ECONOMY.MISSION_XP_T1,
+  outputKind: "ai",
+  inputMode: "prompt", // input = "<otherTokenId> <styleKey>"
+  category: "cosmetic",
+  resolve: deployCrewResolver,
 });
 
 // THE SIX MONEY-WORK ABILITIES — Content / Strategy / Sales / Research / Design /

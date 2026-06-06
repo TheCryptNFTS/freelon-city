@@ -53,6 +53,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const videoHexCost = premiumHexFor("deploy-video");
   const dossierHexCost = premiumHexFor("dossier");
   const crewHexCost = premiumHexFor("crew");
+  const groupImageHexCost = premiumHexFor("deploy-crew");
   // Video only offered when a provider is actually configured (keyless-safe UX).
   const videoEnabled = !!process.env.REPLICATE_API_TOKEN;
   return NextResponse.json({
@@ -69,6 +70,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     videoHexCost,
     dossierHexCost,
     crewHexCost,
+    groupImageHexCost,
     videoEnabled,
     history,
   });

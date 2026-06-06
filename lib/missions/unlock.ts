@@ -131,6 +131,7 @@ export const UNLOCK_GATED_ABILITIES = new Set<string>([
   "risk", // Red Team
   "dossier", // the memory moat
   "crew", // two of your citizens collaborate — owned-only + premium-priced
+  "deploy-crew", // group transform — two owned citizens in one image
   "deploy-citizen", // image generation
   "deploy-video", // video generation (premium tier)
 ]);
@@ -142,5 +143,5 @@ export function requiresUnlock(missionId: string): boolean {
 
 /** Is this an image mission (counts against the image quota, not the message quota)? */
 export function isImageMission(missionId: string): boolean {
-  return missionId === "deploy-citizen";
+  return missionId === "deploy-citizen" || missionId === "deploy-crew";
 }

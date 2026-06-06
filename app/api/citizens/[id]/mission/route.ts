@@ -182,7 +182,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // PROVIDER GUARD — never debit HEX for a render we can't actually perform
     // (image needs OpenAI, video needs Replicate). Checked BEFORE any charge, like
     // the kill-switch — avoids the debit-then-refund dance the red-team flagged.
-    if (mission.id === "deploy-citizen" && !process.env.OPENAI_API_KEY) {
+    if ((mission.id === "deploy-citizen" || mission.id === "deploy-crew") && !process.env.OPENAI_API_KEY) {
       return NextResponse.json({ error: "image_unavailable", message: "Image generation is briefly unavailable — nothing was charged." }, { status: 503 });
     }
     if (mission.id === "deploy-video" && !process.env.REPLICATE_API_TOKEN) {
@@ -199,7 +199,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // so bound the founder's daily premium COGS up front. Consumed before the model
     // call; refunded if the run fails. (Economy red-team C1/C2: premium had no $ cap.)
     const { consumePremiumRun, refundPremiumRun, PREMIUM_COST_CENTS } = await import("@/lib/missions/budget");
-    const premCents = mission.id === "deploy-video" ? PREMIUM_COST_CENTS.video : mission.id === "deploy-citizen" ? PREMIUM_COST_CENTS.image : PREMIUM_COST_CENTS.text;
+    const premCents = mission.id === "deploy-video" ? PREMIUM_COST_CENTS.video : (mission.id === "deploy-citizen" || mission.id === "deploy-crew") ? PREMIUM_COST_CENTS.image : PREMIUM_COST_CENTS.text;
     const pbud = await consumePremiumRun(premCents);
     if (!pbud.ok) {
       return NextResponse.json(
@@ -291,7 +291,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { RUN_COST_CENTS } = await import("@/lib/missions/budget");
     runCostCents = mission.id === "deploy-video"
       ? RUN_COST_CENTS.video
-      : mission.id === "deploy-citizen"
+      : (mission.id === "deploy-citizen" || mission.id === "deploy-crew")
       ? RUN_COST_CENTS.image
       : RUN_COST_CENTS.text;
     const budget = await consumeFreeRun(runCostCents);

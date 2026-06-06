@@ -73,6 +73,12 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [crewBusy, setCrewBusy] = useState(false);
   const [crewOut, setCrewOut] = useState<string | null>(null);
   const [crewErr, setCrewErr] = useState<string | null>(null);
+  // Group transform (deploy-crew) — two of your citizens in one branded image.
+  const [groupImageHexCost, setGroupImageHexCost] = useState(0);
+  const [groupPartner, setGroupPartner] = useState("");
+  const [groupBusy, setGroupBusy] = useState<string | null>(null); // styleKey while rendering
+  const [groupOut, setGroupOut] = useState<{ url: string; label: string } | null>(null);
+  const [groupErr, setGroupErr] = useState<string | null>(null);
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [brief, setBrief] = useState("");
@@ -109,6 +115,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         if (typeof d.videoHexCost === "number") setVideoHexCost(d.videoHexCost);
         if (typeof d.dossierHexCost === "number") setDossierHexCost(d.dossierHexCost);
         if (typeof d.crewHexCost === "number") setCrewHexCost(d.crewHexCost);
+        if (typeof d.groupImageHexCost === "number") setGroupImageHexCost(d.groupImageHexCost);
         setVideoEnabled(!!d.videoEnabled);
         const first = d.abilities.find((a: AbilityView) => a.primary) ?? d.abilities[0];
         if (first) { setAbilityId(first.id); setTaskKey(first.tasks[0]?.key ?? ""); }
@@ -361,6 +368,41 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       setCrewErr((e as Error).message || "Couldn't run the crew.");
     } finally {
       setCrewBusy(false);
+    }
+  }
+
+  /** GROUP TRANSFORM (deploy-crew) — render this citizen + another you OWN together
+   *  in one branded style image. Premium pay/sign flow; input "<partner> <styleKey>". */
+  async function doGroupTransform(styleKey: string, styleLabel: string) {
+    const partner = groupPartner.trim().replace(/^#/, "");
+    if (groupBusy || !/^\d{1,4}$/.test(partner)) return;
+    setGroupBusy(styleKey); setGroupErr(null); setGroupOut(null);
+    const base: Record<string, unknown> = { missionId: "deploy-crew", input: `${partner} ${styleKey}` };
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { ...base, ...creds } : base),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-crew".`);
+          continue;
+        }
+        if (res.ok && d?.ok && d.output?.meta?.kind === "image" && d.output?.body) {
+          setGroupOut({ url: d.output.body, label: styleLabel });
+          refreshAgent();
+        } else {
+          setGroupErr(d?.message || d?.error || "Couldn't make the group transform — your ⬡ was not spent on a failed render.");
+        }
+        return;
+      }
+    } catch (e) {
+      setGroupErr((e as Error).message || "Couldn't make the group transform.");
+    } finally {
+      setGroupBusy(null);
     }
   }
 
@@ -969,6 +1011,58 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                 <div className="agentdash-image-out">
                   <span className="agentdash-image-cap">CREW OUTPUT</span>
                   <pre className="agentdash-text">{crewOut}</pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* GROUP TRANSFORM (deploy-crew) — two of your citizens in one branded
+              image. Owned-only + premium-priced. Shown when styles are available. */}
+          {styles.length > 0 && (!paymentsLive || unlock?.unlocked) && (
+            <div className="agentdash-images">
+              <span className="agentdash-images-hd">
+                ⬡ GROUP TRANSFORM{paymentsLive && groupImageHexCost > 0 ? ` · ${groupImageHexCost.toLocaleString()}⬡ EACH` : ""}
+              </span>
+              <p className="agentdash-images-sub">
+                Put this citizen and <em>another FREELON you own</em> in one branded image — pick a style.
+              </p>
+              <input
+                className="agentdash-brief"
+                type="text"
+                inputMode="numeric"
+                placeholder="Partner token # (a FREELON you own, e.g. 404)"
+                value={groupPartner}
+                onChange={(e) => setGroupPartner(e.target.value)}
+                disabled={!!groupBusy}
+                style={{ marginBottom: 8 }}
+              />
+              <div className="agentdash-scenes">
+                {styles.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    className="agentdash-scene"
+                    disabled={!!groupBusy || !/^#?\d{1,4}$/.test(groupPartner.trim())}
+                    onClick={() => doGroupTransform(s.key, s.label)}
+                  >
+                    {groupBusy === s.key ? "Rendering…" : s.label}
+                  </button>
+                ))}
+              </div>
+              {groupErr && <p className="agentdash-err">{groupErr}</p>}
+              {groupOut && (
+                <div className="agentdash-image-out">
+                  <span className="agentdash-image-cap">{groupOut.label}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={groupOut.url} alt={groupOut.label} className="agentdash-image-img" />
+                  <div className="agentdash-image-actions">
+                    <button
+                      type="button"
+                      className="btn btn-primary agentdash-outbtn"
+                      onClick={() => window.open(buildImageShareIntent({ tokenId: citizenId, styleLabel: groupOut.label, imageUrl: groupOut.url }), "_blank", "noopener,noreferrer")}
+                    >⬡ SHARE ON X →</button>
+                    <a className="btn agentdash-outbtn" href={groupOut.url} target="_blank" rel="noreferrer">OPEN FULL SIZE ↗</a>
+                  </div>
                 </div>
               )}
             </div>

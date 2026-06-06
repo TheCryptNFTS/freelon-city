@@ -217,6 +217,7 @@ export const PREMIUM_HEX: Record<string, number> = {
   risk: 1500,
   dossier: 2500,
   crew: 2000, // two of YOUR citizens collaborate — owned-only, more than a solo run
+  "deploy-crew": 1200, // group transform — two owned citizens in one image (two refs)
   "deploy-citizen": 800, // image generation
   "deploy-video": 4000, // video generation — the most expensive lever
   // NOTE: feud is NOT here — it settles on the ETH path (pricing.ts), not unlock-gated
