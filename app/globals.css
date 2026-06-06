@@ -7503,6 +7503,13 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .home-close__cta { display: flex; gap: var(--s-3); flex-wrap: wrap; justify-content: center; }
 
 /* ── Citizen page: collapsed collector/NFT details (2026-06-04) ── */
+/* "Your crew" panel — the reason to hold more than one (role coverage + gaps). */
+.your-stable { margin: var(--s-4) 0; padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg-2); }
+.your-stable-sub { font-family: var(--mono2); font-size: 13px; color: var(--ink-2); line-height: 1.6; margin: 8px 0 12px; }
+.your-stable-roles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.your-stable-role { font-family: var(--mono2); font-size: 11px; letter-spacing: 0.08em; padding: 5px 10px; border-radius: 999px; border: 1px dashed var(--line-2); color: var(--ink-dim); }
+.your-stable-role.is-have { border-style: solid; border-color: var(--gold-deep); color: var(--gold); }
+
 /* Collapsed "how it works" block on the citizen page — keeps the pitch one click
    away so an owner isn't walled off from unlock/run. */
 .citizen-howto { margin: var(--s-4) 0; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg-2); }

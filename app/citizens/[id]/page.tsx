@@ -17,6 +17,7 @@ import { CitizenCheckIn } from "@/components/CitizenCheckIn";
 import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
 import { CitizenAgentDashboard } from "@/components/CitizenAgentDashboard";
+import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
 import { getRankByLevel } from "@/lib/progression-store";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
@@ -220,6 +221,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               "how it works" pitch is one click away in a collapsed block so the
               page isn't a wall. */}
           <CitizenAgentDashboard citizenId={tid} />
+          {/* "Your crew" — reason to hold more than one: each citizen specializes
+              into one class, so this surfaces the holder's role coverage + gaps. */}
+          <YourStable />
           <CitizenResume tokenId={tid} />
           <details className="citizen-howto">
             <summary>New here? How a FREELON agent works · what you pay →</summary>
