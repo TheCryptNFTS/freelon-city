@@ -16,6 +16,10 @@ type TransformEntry = { tokenId: number; url: string; style: string; ts: number 
 
 export default function TransformsWall({ limit = 12 }: { limit?: number }) {
   const [items, setItems] = useState<TransformEntry[]>([]);
+  // Stored transform URLs can go dead (deleted/expired). A wall of broken-image
+  // glyphs looks worse than no wall, so drop any entry whose image fails to load
+  // and self-hide the whole section once every remaining entry is dead.
+  const [dead, setDead] = useState<Record<string, true>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -32,7 +36,8 @@ export default function TransformsWall({ limit = 12 }: { limit?: number }) {
     };
   }, [limit]);
 
-  if (items.length === 0) return null; // cold-start: show nothing rather than an empty frame
+  const live = items.filter((t) => !dead[`${t.tokenId}-${t.ts}`]);
+  if (live.length === 0) return null; // cold-start or all-dead: show nothing, never a broken frame
 
   return (
     <section className="transforms-wall reveal">
@@ -41,7 +46,7 @@ export default function TransformsWall({ limit = 12 }: { limit?: number }) {
         Real transforms owners made from their own citizens. Yours could be next.
       </p>
       <div className="transforms-wall-grid">
-        {items.map((t) => {
+        {live.map((t) => {
           const id4 = t.tokenId.toString().padStart(4, "0");
           return (
             <Link
@@ -51,7 +56,12 @@ export default function TransformsWall({ limit = 12 }: { limit?: number }) {
               title={`#${id4} · ${t.style}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={t.url} alt={`FREELON #${id4} — ${t.style}`} loading="lazy" />
+              <img
+                src={t.url}
+                alt={`FREELON #${id4} — ${t.style}`}
+                loading="lazy"
+                onError={() => setDead((p) => ({ ...p, [`${t.tokenId}-${t.ts}`]: true }))}
+              />
               <span className="transforms-wall-cap">#{id4} · {t.style}</span>
             </Link>
           );
