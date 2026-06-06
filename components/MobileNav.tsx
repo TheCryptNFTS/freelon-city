@@ -28,10 +28,10 @@ const GROUPS: NavGroup[] = [
   {
     heading: null,                                          // primary CTA, ungrouped
     links: [
-      // 2026-05-31 ruthless cut — primary action is now Own a Freelon
-      // (OpenSea), mirroring desktop. /sync kept just below as a secondary
-      // entry so returning holders still reach the city.
-      { href: "https://opensea.io/collection/freelons", label: "⬡ OWN A FREELON", gold: true },
+      // 2026-06-06 dedup — primary mirrors desktop + hero: SEE AN AGENT (try
+      // first). Own a Freelon is the secondary just below (still one tap away).
+      { href: "/citizens/1", label: "⬡ SEE AN AGENT", gold: true },
+      { href: "https://opensea.io/collection/freelons", label: "Own a Freelon" },
     ],
   },
   {

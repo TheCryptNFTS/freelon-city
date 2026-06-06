@@ -233,7 +233,7 @@ export function WalletConnect() {
   // their wallet page (gallery, civ breakdown, hex log, portfolio).
   // Non-holders go to /sync; error state is a retry button.
   const badgeHref = isHolder
-    ? `/wallet/${addr.toLowerCase()}`
+    ? `/wallet/${addr.toLowerCase()}#citizens`
     : status === "non-holder"
       ? `/sync?h=${addr.slice(0, 8)}`
       : null;

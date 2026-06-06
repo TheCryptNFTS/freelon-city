@@ -520,9 +520,9 @@ export default async function WalletPage({
         )}
       </section>
 
-      <section className="wallet-gallery">
+      <section className="wallet-gallery" id="citizens">
         <h2 className="kicker">
-          ⬡ CITIZEN GALLERY{" "}
+          ⬡ YOUR CITIZENS · RUN AN AGENT{" "}
           <span className="gallery-count">
             {balance > 0 ? `· ${balance}` : ""}
           </span>
@@ -540,7 +540,9 @@ export default async function WalletPage({
                 : imageUrl(tid);
               return (
                 <li key={tid} className="wallet-grid-item">
-                  <Link href={`/citizens/${tid}`}>
+                  {/* Deep-link straight to the run surface (#run) so a connected
+                      holder is one click from running, not parked on a photo. */}
+                  <Link href={`/citizens/${tid}#run`}>
                     <span
                       className="wgi-frame"
                       style={{ borderColor: color }}
@@ -549,6 +551,7 @@ export default async function WalletPage({
                       <img src={src} alt={`#${id4}`} loading="lazy" />
                     </span>
                     <span className="wgi-id">#{id4}</span>
+                    <span className="wgi-run">RUN AGENT →</span>
                   </Link>
                 </li>
               );

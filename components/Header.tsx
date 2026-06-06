@@ -30,7 +30,11 @@ export function Header() {
           <Link href="/citizens" className="nav-link nav-start">FREELONS</Link>
           <Link href="/earn" className="nav-link">Earn HEX</Link>
           <HeaderArchives />
-          <a href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer" className="btn btn-primary btn-sm nav-sync">Own a Freelon</a>
+          {/* Primary aligns with the HERO (try-first), not OpenSea. "Own a Freelon"
+              already fires in the homepage close + footer + mobile nav — having it
+              ALSO as the gold header button made buy compete with the hero's
+              "see an agent" and put OpenSea on screen 4× (2026-06-06 dedup). */}
+          <Link href="/citizens/1" className="btn btn-primary btn-sm nav-sync">See an Agent</Link>
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>

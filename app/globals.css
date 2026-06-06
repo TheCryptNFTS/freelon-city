@@ -3388,6 +3388,10 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .wallet-grid-item .wgi-frame img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
 .wallet-grid-item:hover .wgi-frame img { transform: scale(1.04); }
 .wallet-grid-item .wgi-id { display: block; text-align: center; font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; color: var(--ink-dim); padding-top: 6px; }
+/* RUN AGENT affordance — makes each owned tile read as a runnable agent, not a
+   portfolio thumbnail. Gold + clearer on hover. */
+.wallet-grid-item .wgi-run { display: block; text-align: center; font-family: var(--mono2); font-size: 9px; letter-spacing: 0.16em; color: var(--gold); padding-top: 3px; opacity: 0.75; transition: opacity 0.15s; }
+.wallet-grid-item:hover .wgi-run { opacity: 1; }
 .wallet-overflow { display: inline-block; margin-top: var(--s-4); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(200,170,100,0.3); }
 .wallet-overflow:hover { border-color: var(--gold); }
 .wallet-empty { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em; color: var(--ink-dim); padding: var(--s-5) 0; }

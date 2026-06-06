@@ -83,9 +83,9 @@ export default function Home() {
           </p>
           <p className="hero-landing__rhythm">Make it yours. Transform it. Train it. Trade it.</p>
 
-          {/* ONE primary action (TRY — experience the agent), then OWN as the
-              secondary, then EARN as a tertiary text link. Value before purchase,
-              and consistent with the closing CTA below. */}
+          {/* ONE primary (SEE AN AGENT — experience it first), OWN secondary.
+              EARN HEX lives in the header; the closing CTA repeats OWN at the buy
+              moment. Deduped 2026-06-06 (each action appears once per surface). */}
           <div className="hero-landing__cta hero-cta-row">
             <Link className="btn btn-primary btn-lg" href="/citizens/1">
               <span className="ttl">SEE AN AGENT →</span>
@@ -93,9 +93,6 @@ export default function Home() {
             <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
               <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
             </a>
-            <Link className="btn btn-ghost btn-lg" href="/earn">
-              <span className="ttl">EARN HEX →</span>
-            </Link>
           </div>
           <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
 
@@ -148,7 +145,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <Link className="btn btn-primary" href="/citizens/1"><span className="ttl">SEE AN AGENT →</span></Link>
       </section>
 
       {/* CITIZEN SHOWCASE — the homepage finally shows the product. A
@@ -170,13 +166,16 @@ export default function Home() {
           re-add its section + matching import (history: git + components/_archive). */}
       <section className="home-close reveal">
         <p className="home-close__line">4,040 characters. Make one yours. See what it becomes.</p>
+        {/* The close is the BUY moment (after the showcase) — OWN is primary here,
+            mirroring the hero where SEE AN AGENT is primary. Try at the top, buy
+            at the bottom. */}
         <div className="home-close__cta">
-          <Link className="btn btn-primary btn-lg" href="/citizens/1">
-            <span className="ttl">SEE AN AGENT →</span>
-          </Link>
-          <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+          <a className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
             <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
           </a>
+          <Link className="btn btn-secondary btn-lg" href="/citizens/1">
+            <span className="ttl">SEE AN AGENT →</span>
+          </Link>
         </div>
       </section>
     </div>
