@@ -41,10 +41,12 @@ const GROUPS: NavGroup[] = [
       { href: "/earn",      label: "Earn HEX" },
     ],
   },
-  // 2026-06-04 EXPLORE — mirrors the HeaderArchives "Explore ▾" dropdown:
-  // get-started + the game branch + city + lore, in that order. Start / Play /
-  // Dashboard were demoted from the top bar into "Get started". Keep in sync
-  // with HeaderArchives.tsx (one IA, two renderers).
+  // 2026-06-06 EXPLORE de-sprawl — mirrors the trimmed HeaderArchives "Explore ▾"
+  // dropdown (12→10 items, 4→3 groups). Dropped "Connect wallet" (/sync —
+  // redundant with the wallet button; page still linked from ~20 surfaces);
+  // folded "branches" into "The city"; Crypt TCG demoted to last with a "· soon"
+  // cue (reconstruction-unstable placeholder); /archive moved into Lore. Keep in
+  // sync with HeaderArchives.tsx (one IA, two renderers).
   {
     heading: "GET STARTED",
     links: [
@@ -54,26 +56,20 @@ const GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: "THE BRANCHES",
-    links: [
-      { href: "/crypt-tcg",   label: "Crypt TCG" },
-      { href: "/collections", label: "Collections" },
-    ],
-  },
-  {
     heading: "THE CITY",
     links: [
       { href: "/civilizations", label: "Factions" },
+      { href: "/collections",   label: "Collections" },
       { href: "/transmissions", label: "Community wall" },
-      { href: "/archive",       label: "The Archive" },
-      { href: "/sync",          label: "Connect wallet" },
       { href: "/shop",          label: "Shop" },
+      { href: "/crypt-tcg",     label: "Crypt TCG · soon" },
     ],
   },
   {
     heading: "LORE",
     links: [
       { href: "/canon",     label: "Story & glossary" },
+      { href: "/archive",   label: "Other Signals" },
       { href: "/tribute",   label: "Honorees" },
     ],
   },

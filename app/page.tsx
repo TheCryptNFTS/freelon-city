@@ -177,6 +177,15 @@ export default function Home() {
             <span className="ttl">SEE AN AGENT →</span>
           </Link>
         </div>
+        {/* 2026-06-06 buy-handoff polish — OWN A FREELON jumps straight to
+            OpenSea, which lands NFT-curious newcomers cold. One line sets the
+            expectation (wallet needed, secured on Ethereum) and points the
+            unsure to the 2-minute guide instead of bouncing. No price/return
+            claims (copy-safety). */}
+        <p className="home-close__note">
+          Opens OpenSea · secured on Ethereum · a crypto wallet is needed to collect.{" "}
+          <Link href="/start">New to this? Start here →</Link>
+        </p>
       </section>
     </div>
   );

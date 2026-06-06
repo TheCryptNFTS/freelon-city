@@ -34,10 +34,16 @@ type Group = { heading: string; items: Item[] };
 // tail now grouped Holder / City / Lore. The /combat-archives page
 // itself is untouched — only its nav placement changed.
 const GROUPS: Group[] = [
-  // 2026-06-04 EXPLORE dropdown (founder AGENTS-FIRST restructure): the top nav
-  // is now just FREELONS / Earn HEX / Explore ▾. This menu holds everything that
-  // is NOT the product front door. "Get started" leads (Start / Play / Dashboard
-  // were demoted from the top bar), then the branches, the city, and the lore.
+  // 2026-06-06 EXPLORE de-sprawl (founder: "too much stuff / too hard to
+  // understand" — the #1 complaint). Cut from 4 groups × 12 items → 3 × 10:
+  //   · Dropped "Connect wallet" (/sync) — redundant with the permanent
+  //     WalletConnect button + HeaderHexPill in the top bar. The page itself
+  //     stays live and is linked from ~20 in-content surfaces.
+  //   · Folded the 2-item "branches" group INTO "The city" — one fewer divider,
+  //     and Crypt TCG sits LAST with a "· soon" cue (it's still the
+  //     reconstruction-unstable placeholder — see app/crypt-tcg/page.tsx).
+  //   · Moved /archive ("Other Signals") down into Lore, where its
+  //     provenance/other-collections framing reads better than under "city".
   // Keep in sync with MobileNav.tsx (one IA, two renderers).
   {
     heading: "Get started",
@@ -48,26 +54,20 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    heading: "The branches",
-    items: [
-      { href: "/crypt-tcg",   label: "Crypt TCG" },          // the card game (was top-nav)
-      { href: "/collections", label: "Collections" },        // the 6-collection index
-    ],
-  },
-  {
     heading: "The city",
     items: [
       { href: "/civilizations", label: "Factions" },         // absorbs castes / shapes
+      { href: "/collections",   label: "Collections" },      // the 6-collection index
       { href: "/transmissions", label: "Community wall" },
-      { href: "/archive",       label: "The Archive" },
-      { href: "/sync",          label: "Connect wallet" },
       { href: "/shop",          label: "Shop" },
+      { href: "/crypt-tcg",     label: "Crypt TCG · soon" }, // demoted: reconstruction-unstable placeholder, last + soft "soon" cue
     ],
   },
   {
     heading: "Lore",
     items: [
       { href: "/canon",     label: "Story & glossary" },     // absorbs lexicon / names / secrets / roadmap / manifesto / origin
+      { href: "/archive",   label: "Other Signals" },        // the other collections as universe layers (provenance)
       { href: "/tribute",   label: "Honorees" },             // moved LOWER — clout-borrowing risk
     ],
   },
