@@ -201,6 +201,26 @@ export const ECONOMY = {
   DEFENDER_BONUS_PCT_CAP: 25,
 } as const;
 
+// ─── ASCENSION (agent training sink) — 2026-06-06 ───────────────────────────
+// On-chain agent "training": a holder BURNS ⬡ to advance an awakened citizen's
+// agent tier in the FreelonAgentRegistry. This is a pure HEX SINK (deflation) —
+// NEVER an ETH/real-money charge (house rule: training is a burn, not a sale).
+// The on-chain evolution itself is recorded later by the project (onlyOwner
+// recordEvolution); the holder only pays the ⬡ here.
+//
+// Three tiers, priced FAR above the daily earn rate (DAILY_CLAIM 10⬡) so a tier
+// is a real commitment, and stepped so each tier costs meaningfully more than
+// the last. Index 0 = Tier 1, index 1 = Tier 2, index 2 = Tier 3. Costs sit in
+// the same band as the ASCENSION shop category (1000-10000⬡) for consistency.
+export const ASCENSION_TIERS = [2_500, 7_500, 20_000] as const;
+
+/** ⬡ cost to ascend an agent INTO the given tier (1..ASCENSION_TIERS.length).
+ *  Returns 0 for an out-of-range tier (caller treats 0 as "no such tier"). */
+export function ascensionCost(tier: number): number {
+  if (!Number.isInteger(tier) || tier < 1 || tier > ASCENSION_TIERS.length) return 0;
+  return ASCENSION_TIERS[tier - 1];
+}
+
 /** Convert ETH amount to hex using the canonical peg. */
 export function ethToHex(eth: number): number {
   if (!isFinite(eth) || eth <= 0) return 0;

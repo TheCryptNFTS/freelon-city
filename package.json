@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "deploy:agent-registry": "node scripts/deploy-agent-registry.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.53.1",

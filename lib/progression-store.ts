@@ -422,6 +422,33 @@ export async function seedProgress(args: {
   }
 }
 
+/**
+ * Append a single entry to a citizen's memory log without touching XP/skills.
+ * Used by side-channel events that record on the citizen's public history but
+ * aren't a job/mission run (e.g. an ASCENSION ⬡ burn). Newest-first, capped,
+ * lock-guarded like the other mutators. Timestamp defaults to now.
+ */
+export async function addCitizenMemory(
+  tokenId: number,
+  entry: Omit<MemoryEntry, "timestamp"> & { timestamp?: number },
+): Promise<void> {
+  const gotLock = await acquireLock(tokenId);
+  try {
+    const rec = await getProgress(tokenId);
+    rec.memoryLog.unshift({
+      type: entry.type,
+      description: entry.description,
+      xpChange: entry.xpChange,
+      signalChange: entry.signalChange,
+      timestamp: entry.timestamp ?? Date.now(),
+    });
+    if (rec.memoryLog.length > MEMORY_CAP) rec.memoryLog.length = MEMORY_CAP;
+    await setProgress(rec);
+  } finally {
+    if (gotLock) await releaseLock(tokenId);
+  }
+}
+
 export type LeaderboardMetric = "level" | "rep" | "jobs";
 
 export type LeaderboardRow = { tokenId: number; value: number };

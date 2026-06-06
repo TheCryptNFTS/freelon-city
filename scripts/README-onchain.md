@@ -43,3 +43,58 @@ curl -X POST "https://www.freeloncity.com/api/admin/anchor/save?key=$ADMIN_SEED_
   "newer work pending next anchor" (the `current:false` flag) — honest by design.
 - Re-anchor on whatever cadence makes sense (weekly, or before a sale push).
 - All compute is read-only; the ONLY chain write is `anchor-history.mjs --send`.
+
+---
+
+# Agent registry — awaken + training-tier (runbook)
+
+A SECOND side-contract, `contracts/FreelonAgentRegistry.sol`, gives each citizen
+an on-chain agent identity. Two writes:
+- `awaken(tokenId, agentURI)` — HOLDER-signed, gated by `ownerOf` on the sealed
+  NFT. Binds the token to its agent profile URI. This is the "connect" primitive
+  other apps resolve.
+- `recordEvolution(tokenId, tier, historyRoot)` — PROJECT-signed (onlyOwner).
+  Anchors a citizen's paid training tier (the ⬡ Ascension sink) on-chain.
+
+## One-time: deploy the registry
+Precompiled artifact is committed at `scripts/artifacts/FreelonAgentRegistry.json`
+(solc 0.8.28, optimized). The constructor takes the sealed FREELON address.
+
+```bash
+# 1. Dry run — prints constructor arg + bytecode size, sends nothing:
+npm run deploy:agent-registry
+
+# 2. Broadcast the deploy (one mainnet tx). Needs ETH_RPC_URL +
+#    AGENT_REGISTRY_OWNER_KEY (the wallet that will OWN the registry):
+node scripts/deploy-agent-registry.mjs --send
+```
+
+Deploy to **Sepolia first** to sanity-check `awaken` / `recordEvolution` /
+`getAgent` if you want (point ETH_RPC_URL at a testnet, change the chain in the
+script). Then mainnet.
+
+## After deploy: set env, then redeploy the app
+```
+AGENT_REGISTRY_ADDRESS=0x...             # server reads (getAgent, recordEvolution)
+NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS=0x... # client Awaken button
+AGENT_REGISTRY_OWNER_KEY=0x...           # owner key for recordEvolution batch
+```
+Until these are set everything degrades gracefully: the Awaken button reads
+"coming soon", the public `/api/v1/citizens/:id/agent` reports `registryLive:false`,
+and holders can still BURN ⬡ to ascend (queued as pending).
+
+## Flush paid ascensions on-chain (repeatable)
+Holders burn ⬡ via `/api/agent/ascend` → recorded as a PENDING tier. To anchor
+the pending tiers on-chain (project-signed batch):
+```bash
+curl -X POST https://www.freeloncity.com/api/admin/evolve \
+  -H "X-Admin-Token: $ADMIN_PREFLIGHT_TOKEN"
+```
+Dry-run `{wrote:0, reason:"registry not live"}` until the env above is set; then
+it broadcasts one `recordEvolution` per pending citizen and stamps `onChainTier`.
+
+## Notes
+- ⬡ Ascension is a HEX SINK only (deflation / floor support) — never an ETH/real-
+  money charge. The on-chain write is the PROJECT recording the tier, not the
+  holder paying gas.
+- Wording: "awakened / anchored / verifiable", never "immutable".

@@ -17,6 +17,7 @@ import { CitizenCheckIn } from "@/components/CitizenCheckIn";
 import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
 import { CitizenAgentDashboard } from "@/components/CitizenAgentDashboard";
+import { AwakenButton } from "@/components/AwakenButton";
 import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
 import { getRankByLevel } from "@/lib/progression-store";
@@ -226,6 +227,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               "how it works" pitch is one click away in a collapsed block so the
               page isn't a wall. */}
           <CitizenAgentDashboard citizenId={tid} />
+          {/* AWAKEN — owner-only on-chain agent anchor (FreelonAgentRegistry).
+              Self-hides for non-owners; shows a disabled "coming soon" until the
+              registry is deployed (NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS unset). */}
+          <AwakenButton citizenId={tid} />
           {/* "Your crew" — reason to hold more than one: each citizen specializes
               into one class, so this surfaces the holder's role coverage + gaps. */}
           <YourStable />
