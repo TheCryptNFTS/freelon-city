@@ -213,8 +213,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               → then the record. (Restructured 2026-06-03: the page used to open
               on an empty stat block; now a stranger gets it in one line.) */}
           <p className="agent-lede">
-            This NFT is an <strong>AI agent</strong> — it works for you, remembers you, and becomes more
-            useful the more you train it.
+            This NFT is an <strong>AI character you own</strong> — it remembers you, builds a work
+            history that stays with the NFT, and grows as you train it.
           </p>
           {/* RÉSUMÉ LEADS (2026-06-03 founder brief): the first screen must answer
               who owns it · level · role · status · what it's done · how to use it.

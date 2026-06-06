@@ -83,6 +83,10 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [brief, setBrief] = useState("");
+  // Set true the moment an activation (not a recharge) confirms, so the
+  // dashboard can greet a brand-new owner with a guided first run instead of
+  // silently dropping them into the generic picker.
+  const [justActivated, setJustActivated] = useState(false);
   const [busy, setBusy] = useState(false);
   const [output, setOutput] = useState<{ kind: string; body: string; title: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -641,6 +645,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       if (res.status === 425) { setPayNote("Payment received — waiting for confirmations…"); await sleep(5000); continue; }
       if (res.ok && d.ok) {
         trackEvent("activation_paid", { kind: payKind, tier: unlock?.tier ?? "unknown" });
+        if (payKind === "activate") setJustActivated(true);
         setPayNote(null); resetPay();
         await refreshAgent();
         setErr(null);
@@ -821,6 +826,46 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         <p className="agentdash-loading">Loading your agent…</p>
       ) : (
         <>
+          {/* FIRST RUN — the activation payoff moment. Activation already dropped
+              bonus ⬡ in the wallet (and the cheap abilities are free); this turns
+              that silent grant into a guided first job so a brand-new owner runs
+              something the instant they pay, instead of facing a blank picker. No
+              new currency or grant — pure onboarding over the bonus they have. */}
+          {!locked && justActivated && history.length === 0 && (
+            <div className="agentdash-firstrun">
+              <span className="kicker">⬡ ACTIVATED · YOUR AGENT IS AWAKE</span>
+              <p className="agentdash-firstrun-line">
+                You&apos;ve got bonus ⬡ to spend — your first job is on us. Pick one and run it now:
+              </p>
+              <div className="agentdash-firstrun-row">
+                {["content", "strategy", "research"].map((id) => {
+                  const a = abilities.find((x) => x.id === id);
+                  if (!a) return null;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className="agentdash-firstrun-btn"
+                      onClick={() => {
+                        setAbilityId(a.id);
+                        setTaskKey(a.tasks[0]?.key ?? "");
+                        setBrief(STARTERS[id] ?? "");
+                        setOutput(null); setErr(null); resetPay();
+                        setJustActivated(false);
+                        setTimeout(() => document.querySelector(".agentdash-run")?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+                      }}
+                    >
+                      {a.label} →
+                    </button>
+                  );
+                })}
+              </div>
+              <button type="button" className="agentdash-firstrun-skip" onClick={() => setJustActivated(false)}>
+                or explore on my own
+              </button>
+            </div>
+          )}
+
           {/* Ability picker — a locked preview (dimmed, non-interactive) until the
               citizen is activated; the locked hero above drives the unlock. */}
           {locked && <span className="agentdash-lockpreview-lbl">⬡ WHAT YOU UNLOCK</span>}

@@ -7656,6 +7656,29 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 }
 .agentdash-resume:hover { background: rgba(200,170,100,0.12); border-color: var(--gold); }
 
+/* FIRST RUN — post-activation guided first job (the payoff moment) */
+.agentdash-firstrun {
+  margin: 6px 0 22px; padding: 20px 20px 16px; text-align: center;
+  border: 1px solid var(--gold-deep); border-radius: 14px;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(200,170,100,0.10), rgba(10,11,16,0.4));
+}
+.agentdash-firstrun .kicker { color: var(--gold); }
+.agentdash-firstrun-line { margin: 10px auto 14px; max-width: 460px; font-family: var(--mono2); font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+.agentdash-firstrun-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.agentdash-firstrun-btn {
+  padding: 10px 16px; border: 1px solid var(--gold-deep); border-radius: 8px;
+  background: rgba(200,170,100,0.08); cursor: pointer;
+  font-family: var(--mono2); font-size: 12.5px; letter-spacing: 0.04em;
+  color: var(--gold-bright); transition: background .15s, border-color .15s;
+}
+.agentdash-firstrun-btn:hover { background: rgba(200,170,100,0.16); border-color: var(--gold); }
+.agentdash-firstrun-skip {
+  display: inline-block; margin-top: 14px; background: none; border: none; cursor: pointer;
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-fade);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.agentdash-firstrun-skip:hover { color: var(--ink-2); }
+
 /* TRY IT FREE — public demo (the taste before the wall) */
 .demo-try { margin: 18px 0 8px; padding: 18px 18px 16px; border: 1px solid var(--gold-deep); border-radius: 10px; background: rgba(200,170,100,0.05); }
 .demo-try-h { display: block; font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); }
