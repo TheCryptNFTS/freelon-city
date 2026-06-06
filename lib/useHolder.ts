@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createPublicClient, http, fallback } from "viem";
 import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
+import { VIEWER_ADDR_EVENT } from "@/lib/viewer-cookie";
 
 /**
  * DISCORD BUG · 2026-05-24 — @Nevarest reported the PFP studio said
@@ -122,6 +123,20 @@ export function useHolder(): HolderState {
       return Math.max(rpcBal, svrBal);
     }
 
+    // Resolve a specific address into holder state (or clear when null). Used by
+    // the initial mount AND by the live connect/disconnect listeners below.
+    async function applyAddr(addr: string | null) {
+      if (cancelled) return;
+      if (!addr) { setAddress(null); setBalance(null); setLoading(false); return; }
+      const a = addr.toLowerCase();
+      setAddress(a);
+      setLoading(true);
+      const bal = await resolveBalance(a);
+      if (cancelled) return;
+      setBalance(bal);
+      setLoading(false);
+    }
+
     (async () => {
       // Source 1: window.ethereum
       let addr: string | null = null;
@@ -135,14 +150,36 @@ export function useHolder(): HolderState {
       if (!addr) addr = readAddrCookie();
       if (cancelled) return;
       if (!addr) { setLoading(false); return; }
-      setAddress(addr);
-      const bal = await resolveBalance(addr);
-      if (cancelled) return;
-      setBalance(bal);
-      setLoading(false);
+      await applyAddr(addr);
     })();
 
-    return () => { cancelled = true; };
+    // REACTIVITY (the fix for "I connected but it still says connect"): this hook
+    // used to read the wallet ONCE at mount and never update. If you connected
+    // AFTER the page loaded — which is the normal flow — the dashboard never knew,
+    // stayed on the not-owner gate, and every run/transform button failed. Now we
+    // re-resolve when the shared viewer-address broadcast fires (every connect
+    // path routes through viewer-cookie's stamp/clear) and when the wallet's own
+    // accounts change.
+    function onViewerAddr(e: Event) {
+      const detail = (e as CustomEvent).detail as string | null;
+      void applyAddr(detail ?? readAddrCookie());
+    }
+    function onAccountsChanged(accs: unknown) {
+      const list = accs as string[];
+      void applyAddr(list && list[0] ? String(list[0]) : readAddrCookie());
+    }
+    let detach: (() => void) | undefined;
+    if (typeof window !== "undefined") {
+      window.addEventListener(VIEWER_ADDR_EVENT, onViewerAddr);
+      const eth = window.ethereum as { on?: (e: string, cb: (a: unknown) => void) => void; removeListener?: (e: string, cb: (a: unknown) => void) => void } | undefined;
+      eth?.on?.("accountsChanged", onAccountsChanged);
+      detach = () => {
+        window.removeEventListener(VIEWER_ADDR_EVENT, onViewerAddr);
+        eth?.removeListener?.("accountsChanged", onAccountsChanged);
+      };
+    }
+
+    return () => { cancelled = true; detach?.(); };
   }, []);
 
   return { loading, address, balance, isHolder: (balance ?? 0) > 0 };

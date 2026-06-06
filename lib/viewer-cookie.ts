@@ -16,6 +16,15 @@
 const COOKIE = "freelon_addr";
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
+/** Broadcast a viewer-address change so reactive hooks (useHolder) pick up a
+ *  connect/disconnect WITHOUT a page reload. Every connect path already routes
+ *  through stamp/clear below, so this is the single source of truth. */
+export const VIEWER_ADDR_EVENT = "freelon:addr";
+function broadcastAddr(addr: string | null): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(VIEWER_ADDR_EVENT, { detail: addr }));
+}
+
 /** Registrable domain to scope to, or "" off-prod (host-only). */
 function cookieDomain(): string {
   if (typeof document === "undefined") return "";
@@ -31,6 +40,7 @@ export function stampViewerAddr(addr: string): void {
   if (typeof document === "undefined") return;
   const v = addr.toLowerCase();
   document.cookie = `${COOKIE}=${encodeURIComponent(v)}; path=/; max-age=${MAX_AGE}; samesite=lax${cookieDomain()}`;
+  broadcastAddr(v);
 }
 
 /**
@@ -43,4 +53,5 @@ export function clearViewerAddr(): void {
   if (typeof document === "undefined") return;
   document.cookie = `${COOKIE}=; path=/; max-age=0; samesite=lax${cookieDomain()}`;
   document.cookie = `${COOKIE}=; path=/; max-age=0; samesite=lax`;
+  broadcastAddr(null);
 }
