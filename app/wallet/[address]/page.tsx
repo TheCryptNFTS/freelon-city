@@ -210,7 +210,10 @@ export async function generateMetadata({
   };
 }
 
-const MAX_GALLERY = 24;
+// Show the holder's WHOLE fleet on-site (lazy-loaded), not a 24-tile teaser that
+// punted the rest to OpenSea — a holder's home should keep their citizens here.
+// Capped high only to bound pathological wallets (tokens are already ≤500).
+const MAX_GALLERY = 200;
 
 export default async function WalletPage({
   params,
@@ -372,19 +375,13 @@ export default async function WalletPage({
           state. Carrier health stays on the page but moves below as a
           smaller status strip. */}
       <section className="wallet-stats">
+        {/* One value, not two — NET WORTH and the old "PORTFOLIO VALUE" were the
+            identical balance×floor figure printed twice (read as a bug). */}
         <div className="wallet-stat">
           <span className="ws-label">FREELON NET WORTH</span>
           <span className="ws-value">{netWorth.toFixed(4)} ETH</span>
           <span className="ws-sub">
-            {balance} citizen{balance !== 1 ? "s" : ""} · floor{" "}
-            {floor.toFixed(4)} ETH
-          </span>
-        </div>
-        <div className="wallet-stat">
-          <span className="ws-label">PORTFOLIO VALUE</span>
-          <span className="ws-value">{(balance * floor).toFixed(4) } ETH</span>
-          <span className="ws-sub">
-            {balance} × {floor.toFixed(4)} ETH floor
+            {balance} citizen{balance !== 1 ? "s" : ""} × {floor.toFixed(4)} ETH floor
           </span>
         </div>
         <div className="wallet-stat">
