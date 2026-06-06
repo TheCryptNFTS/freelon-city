@@ -56,6 +56,12 @@ type WalletView = {
 };
 type Leader = { address: string; contributed: number; structures: number };
 
+/** City-signal glyph. Deliberately NOT ⬡ — that hexagon means real, withdrawable
+ *  HEX everywhere else on the site. City signal is an isolated in-game score that
+ *  can only build structures, so it gets its own diamond mark to kill the "I have
+ *  250B HEX" confusion. */
+const SIG = "◇";
+
 function fmt(n: number): string {
   if (!Number.isFinite(n)) return "0";
   if (n < 1000) return n.toFixed(n < 10 && n % 1 !== 0 ? 1 : 0);
@@ -81,8 +87,8 @@ function shortAddr(a: string): string {
  */
 const RESTORER_RANKS = [
   { at: 0, title: "Dark Citizen", glyph: "·" },
-  { at: 50, title: "First Spark", glyph: "⬡" },
-  { at: 1_000, title: "Signal Hand", glyph: "⬡" },
+  { at: 50, title: "First Spark", glyph: "◇" },
+  { at: 1_000, title: "Signal Hand", glyph: "◇" },
   { at: 15_000, title: "Relay Keeper", glyph: "✦" },
   { at: 200_000, title: "Grid Warden", glyph: "✦" },
   { at: 2_500_000, title: "Architect of Light", glyph: "★" },
@@ -351,7 +357,7 @@ export function RestoreSignal() {
               marginBottom: 10,
             }}
           >
-            ⬡ SIGNAL FULLY RESTORED
+            ◇ SIGNAL FULLY RESTORED
           </div>
           <div
             style={{
@@ -379,7 +385,7 @@ export function RestoreSignal() {
               <>
                 {" "}You added{" "}
                 <strong style={{ color: "var(--gold-bright)" }}>
-                  {fmt(wallet.contributed)} ⬡
+                  {fmt(wallet.contributed)} {SIG}
                 </strong>{" "}
                 to the signal.
               </>
@@ -495,7 +501,7 @@ export function RestoreSignal() {
               marginBottom: rank.next ? 8 : 0,
             }}
           >
-            {fmt(wallet?.contributed ?? 0)} ⬡ CONTRIBUTED · PART OF {litCount}/10 LIT
+            {fmt(wallet?.contributed ?? 0)} {SIG} CONTRIBUTED · PART OF {litCount}/10 LIT
             {total > 0 && (wallet?.contributed ?? 0) > 0 && (
               <span style={{ color: "var(--ink-fade)" }}>
                 {" "}· {((wallet!.contributed / total) * 100).toFixed((wallet!.contributed / total) * 100 < 1 ? 2 : 1)}% OF THE CITY&apos;S SIGNAL
@@ -550,7 +556,7 @@ export function RestoreSignal() {
                   textAlign: "right",
                 }}
               >
-                {fmt(Math.max(0, rank.next.at - (wallet?.contributed ?? 0)))} ⬡ TO {rank.next.title.toUpperCase()}
+                {fmt(Math.max(0, rank.next.at - (wallet?.contributed ?? 0)))} {SIG} TO {rank.next.title.toUpperCase()}
               </div>
             </>
           )}
@@ -580,7 +586,7 @@ export function RestoreSignal() {
         >
           <span>
             THE CITY KEPT WORKING — YOU BANKED{" "}
-            <strong style={{ color: "var(--neon-cyan)" }}>{fmt(offlineGain)} ⬡</strong>
+            <strong style={{ color: "var(--neon-cyan)" }}>{fmt(offlineGain)} {SIG}</strong>
             {ownRate > 0 && (
               <span style={{ color: "var(--ink-fade)" }}> · {fmt(ownRate)}/SEC ONLINE</span>
             )}
@@ -627,7 +633,7 @@ export function RestoreSignal() {
             textShadow: "0 0 24px rgba(0,217,184,.35)",
           }}
         >
-          {fmt(total)} ⬡
+          {fmt(total)} {SIG}
         </div>
         {wallet && (
           <div
@@ -639,7 +645,7 @@ export function RestoreSignal() {
               marginTop: 6,
             }}
           >
-            YOUR SHARE {fmt(wallet.contributed)} ⬡ · YOU MAKE {fmt(ownRate)}/SEC
+            YOUR SHARE {fmt(wallet.contributed)} {SIG} · YOU MAKE {fmt(ownRate)}/SEC
           </div>
         )}
       </div>
@@ -695,12 +701,25 @@ export function RestoreSignal() {
           {address ? (
             <>
               YOUR SPENDABLE SIGNAL:{" "}
-              <strong style={{ color: "var(--neon-cyan)" }}>{fmt(display)} ⬡</strong>
+              <strong style={{ color: "var(--neon-cyan)" }}>{fmt(display)} {SIG}</strong>
             </>
           ) : (
             "CONNECT OR SYNC A WALLET TO BUILD"
           )}
         </span>
+        {address && (
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 9,
+              letterSpacing: "0.16em",
+              color: "var(--ink-fade)",
+              marginTop: 6,
+            }}
+          >
+            ◇ SIGNAL IS IN-GAME BUILD CREDIT · NOT ⬡ HEX · CAN&apos;T BE CASHED OUT
+          </div>
+        )}
       </div>
 
       {msg && (
@@ -786,7 +805,7 @@ export function RestoreSignal() {
                   color: afford ? "var(--neon-cyan)" : "var(--ink-fade)",
                 }}
               >
-                {fmt(cost)} ⬡
+                {fmt(cost)} {SIG}
               </div>
             </button>
           );
@@ -880,7 +899,7 @@ export function RestoreSignal() {
             <div
               key={c.slug}
               className={`relic-card scan-card city-skyline__plate${lit ? " is-lit" : ""}${isNext ? " is-next" : ""}`}
-              title={`${c.name} · ${fmt(c.at)} ⬡`}
+              title={`${c.name} · ${fmt(c.at)} ${SIG}`}
               style={
                 {
                   "--civ": c.color,
@@ -1041,7 +1060,7 @@ export function RestoreSignal() {
                     {String(i + 1).padStart(2, "0")} · {shortAddr(t.address)}
                     {me ? " · YOU" : ""}
                   </span>
-                  <span>{fmt(t.contributed)} ⬡</span>
+                  <span>{fmt(t.contributed)} {SIG}</span>
                 </div>
               );
             })}
@@ -1067,7 +1086,7 @@ export function RestoreSignal() {
           title="Restore the Signal"
           accent="var(--neon-magenta)"
           steps={[
-            { glyph: "⬡", text: "The city went dark at 404. Bring nodes online to generate signal over time." },
+            { glyph: "◇", text: "The city went dark at 404. Bring nodes online to generate signal over time." },
             { glyph: "✦", text: "Spend signal to power up nodes — each upgrade compounds the city's output." },
             { glyph: "∞", text: "It's one shared city. Light all ten civilizations back up; holders compound faster." },
           ]}
