@@ -24,6 +24,22 @@ export type AgentTier = {
   /** Total ⬡ ever burned ascending this citizen (audit trail). */
   hexBurned: number;
   updatedAt: number;
+
+  // ─── AWAKEN (ETH-paid activation) — 2026-06-06 ────────────────────────────
+  // "ETH wakes the agent, HEX trains it." These fields record the ONE-TIME ETH
+  // awakening, verified against the project wallet. They are independent of the
+  // ⬡ training fields above (tier/onChainTier/hexBurned). The ETH tx hash +
+  // block IS the verifiable on-chain proof; no project key signs anything here.
+  /** True once the holder has paid ETH to awaken this agent. */
+  awakened?: boolean;
+  /** Awaken tier paid for: 1 = spark, 2 = signal. 0/undefined = not awakened. */
+  awakenTier?: number;
+  /** Epoch ms the awaken payment was confirmed. */
+  awakenedAt?: number;
+  /** Ethereum block the awaken payment landed in (the anchor). */
+  awakenBlock?: number;
+  /** Exact wei paid for the awaken (audit trail, string — bigint not JSON-safe). */
+  paidWei?: string;
 };
 
 const KEY = (tokenId: number) => `freelon:agenttier:v1:${tokenId}`;
@@ -108,4 +124,30 @@ export async function markOnChain(tokenId: number, onChainTier: number): Promise
   const rec = await getTier(tokenId);
   rec.onChainTier = Math.max(rec.onChainTier, onChainTier);
   await setTier(rec);
+}
+
+/**
+ * Mark a citizen AWAKENED after a verified ETH payment. Keeps all existing
+ * (⬡-training) fields untouched. Idempotent on the awaken tier via Math.max so
+ * a re-confirm or a spark→signal upgrade never downgrades a higher awaken tier.
+ * Returns the stored record. The caller has ALREADY verified + deduped the tx.
+ */
+export async function recordAwaken(args: {
+  tokenId: number;
+  awakenTier: number;
+  awakenedAt: number;
+  awakenBlock: number;
+  paidWei: string;
+}): Promise<AgentTier> {
+  const rec = await getTier(args.tokenId);
+  const nextTier = Math.max(rec.awakenTier ?? 0, args.awakenTier);
+  rec.awakened = true;
+  rec.awakenTier = nextTier;
+  // Stamp the metadata from this payment (always advance time; record the block
+  // and wei for THIS confirmation so the audit trail reflects the latest paid tx).
+  rec.awakenedAt = rec.awakenedAt ? Math.min(rec.awakenedAt, args.awakenedAt) : args.awakenedAt;
+  rec.awakenBlock = args.awakenBlock;
+  rec.paidWei = args.paidWei;
+  await setTier(rec);
+  return rec;
 }

@@ -253,4 +253,63 @@ export function premiumHexFor(missionId: string): number {
   return PREMIUM_HEX[missionId] ?? 0;
 }
 
+// ─── AWAKEN (ETH-priced agent activation) — 2026-06-06 ──────────────────────
+// House rule: "ETH wakes the agent, HEX trains it." AWAKEN is the ONE-TIME ETH
+// payment that turns a held FREELON into an active AI agent at a chosen tier.
+// This is the project's real revenue. Training/jobs after awakening are paid in
+// ⬡ (see ASCENSION_TIERS / PREMIUM_HEX) — never charged here again.
+//
+// Prices are authored as ETH strings and converted to WEI via a bigint-safe
+// helper (string parse, NOT float math) so the on-chain exact-amount check is
+// never off by a rounding error. Only two tiers for v1.
+//   - spark  (tier 1): wakes the agent — basic memory + jobs
+//   - signal (tier 2): the main tier — better output, longer memory, public résumé
+export type AwakenTierKey = "spark" | "signal";
+
+export type AwakenTier = {
+  key: AwakenTierKey;
+  /** 1 = spark, 2 = signal. Stored alongside the off-chain awaken record. */
+  tier: number;
+  label: string;
+  /** Canonical price as an ETH decimal string (source of truth). */
+  eth: string;
+  blurb: string;
+};
+
+export const AWAKEN_TIERS: readonly AwakenTier[] = [
+  {
+    key: "spark",
+    tier: 1,
+    label: "Spark Awaken",
+    eth: "0.005",
+    blurb: "Wakes the agent — basic memory and jobs.",
+  },
+  {
+    key: "signal",
+    tier: 2,
+    label: "Signal Awaken",
+    eth: "0.015",
+    blurb: "Better output, longer memory, and a public résumé.",
+  },
+] as const;
+
+/** Look up an awaken tier by key (case-sensitive), or null if not a v1 tier. */
+export function awakenTier(key: string): AwakenTier | null {
+  return AWAKEN_TIERS.find((t) => t.key === key) ?? null;
+}
+
+/**
+ * Convert an ETH decimal string ("0.015") to a wei bigint WITHOUT float math.
+ * Mirrors viem's parseEther semantics (18 decimals, truncates extra precision)
+ * but is self-contained so the price constants never go through Number(). Throws
+ * on a malformed string so a bad tier price fails loud, not silently to 0.
+ */
+export function ethStringToWei(eth: string): bigint {
+  const s = eth.trim();
+  if (!/^\d+(\.\d+)?$/.test(s)) throw new Error(`bad_eth_amount:${eth}`);
+  const [whole, frac = ""] = s.split(".");
+  const fracPadded = (frac + "0".repeat(18)).slice(0, 18);
+  return BigInt(whole) * 1_000_000_000_000_000_000n + BigInt(fracPadded || "0");
+}
+
 export type EconomyKey = keyof typeof ECONOMY;

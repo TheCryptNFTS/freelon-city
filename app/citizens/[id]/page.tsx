@@ -18,6 +18,7 @@ import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
 import { CitizenAgentDashboard } from "@/components/CitizenAgentDashboard";
 import { AwakenButton } from "@/components/AwakenButton";
+import { AwakenBadge } from "@/components/AwakenBadge";
 import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
 import { getRankByLevel } from "@/lib/progression-store";
@@ -206,6 +207,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               ⬡ ALIGNED TO {alignedCivDef.name.toUpperCase()}
             </div>
           )}
+          {/* Awaken status pill near the name — reads /api/agent/awaken/status. */}
+          <div><AwakenBadge citizenId={tid} /></div>
 
           {/* THE AGENT LEADS — 2026-06-03: the whole pitch ("your NFT is an AI
               agent") now sits at the TOP of the citizen page, above the lore.

@@ -39,16 +39,28 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   // the on-chain evolution is anchored). Fail-quiet to a zeroed record.
   const pending = await getTier(tokenId).catch(() => null);
 
+  // Off-chain AWAKEN state (ETH-paid activation). Independent of the on-chain
+  // registry record — the awaken ETH tx hash + block is the verifiable anchor.
+  // `awakenedAt` here is epoch MS (vs the registry's unix seconds).
+  const offchainAwaken = {
+    awakened: pending?.awakened ?? false,
+    awakenTier: pending?.awakenTier ?? 0,
+    awakenedAt: pending?.awakenedAt ?? 0,
+  };
+
   if (!record) {
-    // Not awakened (or registry not deployed). Still report any paid tier the
-    // holder has queued so the dashboard reflects their training spend.
+    // Not awakened on-chain (or registry not deployed). Still report any paid
+    // tier the holder has queued AND the off-chain ETH-awaken state so the
+    // dashboard reflects their spend. `awakened` reflects the ETH awaken here
+    // since there is no on-chain record.
     return publicJson({
       tokenId,
-      awakened: false,
       registryLive,
       tier: 0,
       pendingTier: pending?.tier ?? 0,
       hexBurned: pending?.hexBurned ?? 0,
+      // awakened / awakenTier / awakenedAt come from the off-chain ETH awaken.
+      ...offchainAwaken,
     });
   }
 
@@ -56,9 +68,14 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     ...record,
     tokenId,
     registryLive,
-    // The off-chain paid tier may run ahead of the on-chain `tier` until the
-    // next admin evolve batch anchors it.
+    // Awakened if EITHER the registry says so or the holder paid ETH off-chain.
+    awakened: record.awakened || offchainAwaken.awakened,
+    // The off-chain paid (training) tier may run ahead of the on-chain `tier`.
     pendingTier: Math.max(record.tier, pending?.tier ?? 0),
     hexBurned: pending?.hexBurned ?? 0,
+    // Distinct off-chain ETH-awaken fields (separate from the registry `tier`/
+    // `awakenedAt` carried by the spread record).
+    awakenTier: offchainAwaken.awakenTier,
+    awakenedAt: offchainAwaken.awakenedAt,
   });
 }
