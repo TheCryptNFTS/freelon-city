@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { markCode0404 } from "@/lib/secrets-store";
+import { trackEvent } from "@/lib/track";
 
 // Listens for the sequence "0404" typed anywhere on the site.
 // When triggered, fires a brief on-screen transmission overlay and persists
@@ -29,11 +30,7 @@ export function EasterEggCode() {
         buf = "";
         markCode0404();
         setFlash(true);
-        try {
-          if (typeof window !== "undefined" && (window as unknown as { plausible?: (e: string) => void }).plausible) {
-            (window as unknown as { plausible?: (e: string) => void }).plausible!("Easter Egg 0404");
-          }
-        } catch {}
+        try { trackEvent("easter_egg_0404"); } catch {}
         // Auto-hide
         setTimeout(() => setFlash(false), 4400);
       }

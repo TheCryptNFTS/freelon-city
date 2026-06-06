@@ -31,7 +31,7 @@ export default function Privacy() {
         <li><strong>Public Ethereum RPC</strong> — for verifying wallet holder status.</li>
         <li><strong>Fontshare</strong> — for serving Tanker, Cabinet Grotesk, and Satoshi typefaces.</li>
         <li><strong>Vercel</strong> — for hosting.</li>
-        <li><strong>Plausible</strong> — privacy-friendly, cookieless analytics. No personal data, no cross-site tracking, no profiles.</li>
+        <li><strong>Vercel Web Analytics</strong> — privacy-friendly, cookieless analytics. No personal data, no cross-site tracking, no profiles.</li>
       </ul>
       <p>Each third party has its own privacy practices. We do not control them.</p>
 

@@ -133,8 +133,10 @@ const config: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              // Next.js inlines a hydration script; allow inline + eval for now (tighten later with nonces)
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io",
+              // Next.js inlines a hydration script; allow inline + eval for now (tighten later with nonces).
+              // Vercel Web Analytics serves its script + event endpoint same-origin
+              // (/_vercel/insights/*), so 'self' covers it — no external host needed.
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               // 2026-05-28: added Google Fonts hosts — Space Mono loads from
               // fonts.googleapis.com (CSS) + fonts.gstatic.com (font files).
               // Without these the link was silently CSP-blocked in prod and
@@ -159,7 +161,7 @@ const config: NextConfig = {
               // every check fell through to llamarpc/ankr and produced flaky
               // "not a holder" false-negatives. Allowlist them so the reliable
               // Alchemy primary + the full fallback chain can actually connect.
-              "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth-mainnet.g.alchemy.com https://eth.llamarpc.com https://ethereum.publicnode.com https://ethereum-rpc.publicnode.com https://eth.drpc.org https://rpc.ankr.com https://*.upstash.io https://api.x.com https://plausible.io",
+              "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth-mainnet.g.alchemy.com https://eth.llamarpc.com https://ethereum.publicnode.com https://ethereum-rpc.publicnode.com https://eth.drpc.org https://rpc.ankr.com https://*.upstash.io https://api.x.com",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self' https://twitter.com https://x.com",

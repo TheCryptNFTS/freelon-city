@@ -1,21 +1,14 @@
-// Custom-event tracking — thin wrapper over Plausible.
+// Custom-event tracking — thin wrapper over Vercel Web Analytics.
 //
-// Plausible's script.js exposes window.plausible() once it loads. We define
-// the standard queue stub so events fired before the script is ready (or when
-// the script is disabled because NEXT_PUBLIC_PLAUSIBLE_DOMAIN is unset) are
-// simply queued and harmlessly dropped — never a thrown error. No cookies, no
-// personal data: pass only coarse, non-identifying props.
-type EventProps = Record<string, string | number | boolean>;
+// Vercel's track() is a no-op in dev and only sends in production; it's safe to
+// call from any client component. No cookies, no personal data: pass only
+// coarse, non-identifying props. Keeping this wrapper means the 3 call sites
+// (wallet_connected, activation_paid, run_started) never import the vendor
+// directly — the analytics backend stays swappable.
+import { track } from "@vercel/analytics";
+
+type EventProps = Record<string, string | number | boolean | null>;
 
 export function trackEvent(name: string, props?: EventProps): void {
-  if (typeof window === "undefined") return;
-  const w = window as unknown as {
-    plausible?: ((n: string, o?: { props?: EventProps }) => void) & { q?: unknown[] };
-  };
-  w.plausible =
-    w.plausible ||
-    function (...args: unknown[]) {
-      (w.plausible!.q = w.plausible!.q || []).push(args);
-    };
-  w.plausible(name, props ? { props } : undefined);
+  track(name, props);
 }
