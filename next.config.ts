@@ -151,7 +151,15 @@ const config: NextConfig = {
               // explorer renders these in <video>, so the media must be
               // allowlisted or it falls back to default-src and is blocked.
               "media-src 'self' blob: https://*.seadn.io",
-              "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth.llamarpc.com https://ethereum.publicnode.com https://rpc.ankr.com https://*.upstash.io https://api.x.com https://plausible.io",
+              // 2026-06-06: client-side ownership checks (useHolder /
+              // useOwnsCitizen / WalletConnect) read NEXT_PUBLIC_ETH_RPC_URL
+              // (Alchemy) then fall back to a 4-RPC chain. The Alchemy host and
+              // two of those fallbacks (publicnode's eth-rpc host, drpc) were
+              // NOT in connect-src, so the browser silently CSP-blocked them —
+              // every check fell through to llamarpc/ankr and produced flaky
+              // "not a holder" false-negatives. Allowlist them so the reliable
+              // Alchemy primary + the full fallback chain can actually connect.
+              "connect-src 'self' https://api.opensea.io https://gateway.pinata.cloud https://cloudflare-eth.com https://eth-mainnet.public.blastapi.io https://eth-mainnet.g.alchemy.com https://eth.llamarpc.com https://ethereum.publicnode.com https://ethereum-rpc.publicnode.com https://eth.drpc.org https://rpc.ankr.com https://*.upstash.io https://api.x.com https://plausible.io",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self' https://twitter.com https://x.com",
