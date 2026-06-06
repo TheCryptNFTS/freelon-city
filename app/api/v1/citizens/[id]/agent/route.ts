@@ -2,7 +2,7 @@ import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { publicJson, publicOptions, publicCors, parseTokenId } from "@/lib/public-api";
 import { getAgentRecord, agentRegistryAddress } from "@/lib/onchain/agent-registry";
 import { getTier } from "@/lib/agent-tier-store";
-import { awakenKeyForTier } from "@/lib/economy-constants";
+import { isUnlocked } from "@/lib/missions/unlock-store";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -36,34 +36,22 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 
   const registryLive = agentRegistryAddress() !== null;
   const record = await getAgentRecord(tokenId);
-  // Pending/paid tier from the off-chain queue (training burns recorded before
-  // the on-chain evolution is anchored). Fail-quiet to a zeroed record.
+  // Pending/paid training tier from the off-chain queue (HEX Ascension burns
+  // recorded before the on-chain evolution is anchored). Fail-quiet.
   const pending = await getTier(tokenId).catch(() => null);
-
-  // Off-chain AWAKEN state (ETH-paid activation). Independent of the on-chain
-  // registry record — the awaken ETH tx hash + block is the verifiable anchor.
-  // `awakenedAt` here is epoch MS (vs the registry's unix seconds).
-  const offchainAwaken = {
-    awakened: pending?.awakened ?? false,
-    // Store keeps a NUMBER (1/2); emit the KEY ("spark"/"signal") for parity
-    // with /api/agent/awaken/status and what clients expect. null = not awakened.
-    awakenTier: pending?.awakened ? awakenKeyForTier(pending.awakenTier) : null,
-    awakenedAt: pending?.awakenedAt ?? 0,
-  };
+  // "awakened" = the citizen has been ACTIVATED via the canonical rarity UNLOCK
+  // (the single ETH activation — see app/api/citizens/[id]/unlock). The on-chain
+  // registry record, when present, is an optional identity binding on top.
+  const activated = await isUnlocked(tokenId).catch(() => false);
 
   if (!record) {
-    // Not awakened on-chain (or registry not deployed). Still report any paid
-    // tier the holder has queued AND the off-chain ETH-awaken state so the
-    // dashboard reflects their spend. `awakened` reflects the ETH awaken here
-    // since there is no on-chain record.
     return publicJson({
       tokenId,
       registryLive,
+      awakened: activated,
       tier: 0,
       pendingTier: pending?.tier ?? 0,
       hexBurned: pending?.hexBurned ?? 0,
-      // awakened / awakenTier / awakenedAt come from the off-chain ETH awaken.
-      ...offchainAwaken,
     });
   }
 
@@ -71,14 +59,10 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     ...record,
     tokenId,
     registryLive,
-    // Awakened if EITHER the registry says so or the holder paid ETH off-chain.
-    awakened: record.awakened || offchainAwaken.awakened,
+    // Awakened if the citizen is unlocked OR has an on-chain registry binding.
+    awakened: record.awakened || activated,
     // The off-chain paid (training) tier may run ahead of the on-chain `tier`.
     pendingTier: Math.max(record.tier, pending?.tier ?? 0),
     hexBurned: pending?.hexBurned ?? 0,
-    // Distinct off-chain ETH-awaken fields (separate from the registry `tier`/
-    // `awakenedAt` carried by the spread record).
-    awakenTier: offchainAwaken.awakenTier,
-    awakenedAt: offchainAwaken.awakenedAt,
   });
 }
