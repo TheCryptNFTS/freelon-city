@@ -7601,6 +7601,13 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 }
 .home-close__note a { color: var(--ink-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
 .home-close__note a:hover { color: var(--gold); border-color: var(--gold); }
+.home-close__community {
+  margin: var(--s-3) auto 0;
+  font-family: var(--mono2); font-size: var(--t-mono-xs); line-height: 1.6;
+  letter-spacing: var(--tr-mono); text-transform: uppercase; color: var(--ink-dim);
+}
+.home-close__community a { color: var(--ink-2); white-space: nowrap; }
+.home-close__community a:hover { color: var(--gold); }
 
 /* ── Citizen page: collapsed collector/NFT details (2026-06-04) ── */
 /* "Your crew" panel — the reason to hold more than one (role coverage + gaps). */

@@ -60,8 +60,8 @@ export default function StartPage() {
             margin: "10px 0 14px",
           }}
         >
-          FREELON CITY is built around<br />
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>4,040 trainable AI agents.</em>
+          FREELON CITY is 4,040<br />
+          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>AI characters you own.</em>
         </h1>
         <p
           style={{
@@ -73,9 +73,9 @@ export default function StartPage() {
           }}
         >
           Here&apos;s the whole thing in one line: <strong style={{ color: "var(--ink)" }}>own a FREELON,
-          unlock its agent, and put it to work</strong> — it does jobs for you, remembers your project,
-          and builds a work history that stays with the NFT. (Prefer to look around free first? You
-          can — scroll down.)
+          then train it and put it to work</strong> — transform it into any style, give it real jobs,
+          and everything it learns becomes a work history that stays with the NFT when you sell.
+          (Prefer to look around free first? You can — scroll down.)
         </p>
       </section>
 
@@ -224,9 +224,9 @@ export default function StartPage() {
           {TOTAL.toLocaleString()} citizens for free (see the section below).
         </Box>
         <Box>
-          <Strong color="var(--gold)">To put an agent to work — yes.</Strong> Owning a FREELON and unlocking it
-          is what gets you the agent: it does real jobs for you, remembers your project, and builds a work
-          history that stays with the NFT. That&apos;s the product.
+          <Strong color="var(--gold)">To own a trained character — yes.</Strong> Owning a FREELON and unlocking it
+          gives you the agent: a character you transform, put to work on real jobs, and grow — its skills and
+          work history stay with the NFT when you sell. That&apos;s the product.
         </Box>
       </Section>
 

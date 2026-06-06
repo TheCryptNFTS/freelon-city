@@ -190,6 +190,15 @@ export default function Home() {
           Opens OpenSea · secured on Ethereum · a crypto wallet is needed to collect.{" "}
           <Link href="/start">New to this? Start here →</Link>
         </p>
+        {/* 2026-06-06 — community front door. The site had no path to the
+            holders' room from the homepage; owners and the merely-curious both
+            land here, so the closing surface is where the invite belongs. */}
+        <p className="home-close__community">
+          Talk to the city:{" "}
+          <a href="https://discord.gg/xcK3E8nCB8" target="_blank" rel="noreferrer">Discord ↗</a>
+          {" · "}
+          <a href="https://x.com/freeloncity" target="_blank" rel="noreferrer">X ↗</a>
+        </p>
       </section>
     </div>
   );

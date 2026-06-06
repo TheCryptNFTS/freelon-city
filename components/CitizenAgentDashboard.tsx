@@ -6,6 +6,7 @@ import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
 import { openseaUrl } from "@/lib/constants";
 import ShareAgentOutput from "@/components/ShareAgentOutput";
 import { buildImageShareIntent } from "@/lib/share-agent";
+import { trackEvent } from "@/lib/track";
 
 type Task = { key: string; label: string };
 type AbilityView = { id: string; label: string; blurb: string; skill: string; tasks: Task[]; primary: boolean; premium: boolean; hexCost: number };
@@ -343,6 +344,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
    *  just run. Handles the one-time wallet-auth signature. */
   async function doRun() {
     if (!ability || !taskKey || !brief.trim()) return;
+    trackEvent("run_started", { ability: ability.id, premium: !!ability.premium });
     setBusy(true); setErr(null); setOutput(null);
     const input = `${taskKey}: ${brief.trim()}`;
     const base: Record<string, unknown> = { missionId: ability.id, input };
@@ -638,6 +640,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       }
       if (res.status === 425) { setPayNote("Payment received — waiting for confirmations…"); await sleep(5000); continue; }
       if (res.ok && d.ok) {
+        trackEvent("activation_paid", { kind: payKind, tier: unlock?.tier ?? "unknown" });
         setPayNote(null); resetPay();
         await refreshAgent();
         setErr(null);

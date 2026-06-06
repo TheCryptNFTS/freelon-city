@@ -40,6 +40,11 @@ export function Footer() {
                 X ↗
               </a>
             </li>
+            <li>
+              <a href="https://discord.gg/xcK3E8nCB8" target="_blank" rel="noreferrer">
+                Discord ↗
+              </a>
+            </li>
           </ul>
         </div>
 

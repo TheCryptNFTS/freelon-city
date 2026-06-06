@@ -5,6 +5,7 @@ import { createPublicClient, http, fallback } from "viem";
 import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
 import { stampViewerAddr, clearViewerAddr } from "@/lib/viewer-cookie";
+import { trackEvent } from "@/lib/track";
 
 // Last-connected wallet from the persisted cookie. Used to re-hydrate the
 // connected UI on load when the injected provider isn't reporting an account
@@ -184,6 +185,7 @@ export function WalletConnect() {
       const accs = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
       if (accs && accs[0]) {
         setAddr(accs[0]);
+        trackEvent("wallet_connected");
         await checkHolder(accs[0]);
       }
     } catch (e) {

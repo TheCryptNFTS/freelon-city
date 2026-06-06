@@ -7,7 +7,7 @@ export default function Privacy() {
   return (
     <LegalShell title="Privacy" updated="2026-05-21">
       <h2>1. The short version.</h2>
-      <p>We do not maintain accounts. We do not collect emails. We do not run analytics that profile you. The little data we do touch is described below.</p>
+      <p>We do not maintain accounts. We do not collect emails. We use only privacy-friendly, cookieless analytics that count anonymous page visits and a few product events (like &quot;a wallet connected&quot;) — never anything that profiles or identifies you. The little data we do touch is described below.</p>
 
       <h2>2. What runs on your device.</h2>
       <ul>
@@ -20,6 +20,8 @@ export default function Privacy() {
       <ul>
         <li><strong>HTTP request logs</strong> — IP address, user agent, path, and timestamp. Retained by our hosting provider (Vercel) for standard durations. Used for security and debugging.</li>
         <li><strong>OpenSea proxy responses</strong> — we relay OpenSea&apos;s public collection stats. We cache results for 5 minutes. We do not log who requested them.</li>
+        <li><strong>Citizen progress</strong> — when a FREELON is given jobs, the resulting progress (its level, reputation, skills, and a short capped log of past jobs) is stored on our server keyed to the <em>token ID of the NFT</em> — not to you, your wallet, or an account. It belongs to the token and travels with it: whoever holds that FREELON sees the same record. There is no person behind it to identify.</li>
+        <li><strong>City activity counters</strong> — anonymous gameplay state (daily claims, streaks, signal balances) used to run the city, not to profile you.</li>
       </ul>
 
       <h2>4. Third parties we touch.</h2>
@@ -29,6 +31,7 @@ export default function Privacy() {
         <li><strong>Public Ethereum RPC</strong> — for verifying wallet holder status.</li>
         <li><strong>Fontshare</strong> — for serving Tanker, Cabinet Grotesk, and Satoshi typefaces.</li>
         <li><strong>Vercel</strong> — for hosting.</li>
+        <li><strong>Plausible</strong> — privacy-friendly, cookieless analytics. No personal data, no cross-site tracking, no profiles.</li>
       </ul>
       <p>Each third party has its own privacy practices. We do not control them.</p>
 
