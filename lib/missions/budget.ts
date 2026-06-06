@@ -59,29 +59,6 @@ export function agentsKilled(): boolean {
   return v === "1" || v === "off" || v === "true";
 }
 
-/**
- * PUBLIC NO-WALLET DEMO — default OFF. The cold-visitor demo lets a logged-out,
- * wallet-less visitor watch ONE real agent run (comprehension hook). Every run
- * spends OUR money on the cheap model, so this stays dark until the founder
- * flips AGENT_DEMO_LIVE=1. Three independent bounds protect spend when it IS on:
- * the kill-switch (above), a SEPARATE tiny daily $ pool (demoBudgetCents, default
- * $3), and a strict per-IP rate limit at the route. Defaulting OFF means an
- * accidental deploy never opens a public spend faucet.
- */
-export function demoLive(): boolean {
-  const v = (process.env.AGENT_DEMO_LIVE ?? "").trim().toLowerCase();
-  return v === "1" || v === "on" || v === "true";
-}
-
-/** The public-demo daily $ ceiling, in CENTS. Tiny + independent of the owner
- *  pool so a public demo can never drain the free-owner budget. Override with
- *  AGENT_DEMO_BUDGET_USD (default $3). */
-function demoBudgetCents(): number {
-  const usd = Number(process.env.AGENT_DEMO_BUDGET_USD);
-  const dollars = Number.isFinite(usd) && usd > 0 ? usd : 3;
-  return Math.round(dollars * 100);
-}
-
 /** The day's free-spend ceiling, in CENTS. */
 function dailyBudgetCents(): number {
   const usd = Number(process.env.AGENT_DAILY_BUDGET_USD);
@@ -159,13 +136,6 @@ async function refundTo(key: string, costCents: number): Promise<void> {
 // FREE owner runs (cheap model). Own pool.
 export const consumeFreeRun = (c: number = RUN_COST_CENTS.text) => consumeFrom(`freelon:budget:cents:${utcDay()}`, dailyBudgetCents(), c);
 export const refundFreeRun = (c: number = RUN_COST_CENTS.text) => refundTo(`freelon:budget:cents:${utcDay()}`, c);
-
-// PUBLIC NO-WALLET DEMO pool (re-added 2026-06-06 for the flag-gated cold-visitor
-// demo). Its OWN tiny daily $ ceiling, separate from the free-owner pool, so a
-// public demo can never eat the owner budget. Only ever drawn when AGENT_DEMO_LIVE
-// is on (the route checks demoLive() first).
-export const consumeDemoRun = (c: number = RUN_COST_CENTS.text) => consumeFrom(`freelon:budget:demo:${utcDay()}`, demoBudgetCents(), c);
-export const refundDemoRun = (c: number = RUN_COST_CENTS.text) => refundTo(`freelon:budget:demo:${utcDay()}`, c);
 
 // PREMIUM (HEX-paid) runs — bounds the founder's daily premium COGS regardless of
 // HEX supply (the "premium has no $ cap" leak from the economy red-team). (C1/C2 backstop)

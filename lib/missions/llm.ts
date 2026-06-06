@@ -29,6 +29,11 @@ export type LlmResult =
   | { ok: true; text: string; usage?: { prompt: number; completion: number } }
   | { ok: false; error: string };
 
+// Hard ceiling on agent output length. Clamps every run (paid or free) so no
+// response can balloon into a wall of text — keeps outputs tight and bounds
+// generation latency + token cost. Adjust to taste.
+const OUTPUT_TOKEN_CEILING = 900;
+
 export async function citizenReason(args: {
   system: string;
   user: string;
@@ -59,7 +64,7 @@ export async function citizenReason(args: {
           { role: "system", content: args.system },
           { role: "user", content: args.user },
         ],
-        max_tokens: args.maxTokens,
+        max_tokens: Math.min(args.maxTokens, OUTPUT_TOKEN_CEILING),
         temperature: 0.8,
       }),
     });
