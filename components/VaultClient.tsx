@@ -26,8 +26,8 @@ const CONFIGURED_RPC =
   process.env.NEXT_PUBLIC_RPC_URL ||
   null;
 const FALLBACK_RPCS = [
-  "https://eth.llamarpc.com",
-  "https://rpc.ankr.com/eth",
+  "https://eth-pokt.nodies.app",
+  "https://eth.rpc.blxrbdn.com",
   "https://ethereum-rpc.publicnode.com",
   "https://eth.drpc.org",
 ];

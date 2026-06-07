@@ -86,8 +86,8 @@ async function pingRpc(): Promise<LiveCheck> {
   const configured = process.env.ETH_RPC_URL || process.env.NEXT_PUBLIC_ETH_RPC_URL;
   const urls = [
     ...(configured ? [configured] : []),
-    "https://eth.llamarpc.com",
-    "https://rpc.ankr.com/eth",
+    "https://eth-pokt.nodies.app",
+    "https://eth.rpc.blxrbdn.com",
     "https://ethereum-rpc.publicnode.com",
     "https://eth.drpc.org",
   ];

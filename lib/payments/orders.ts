@@ -24,8 +24,8 @@ import { PAYMENT_WALLET, priceUsdFor } from "@/lib/missions/pricing";
 
 const CONFIGURED_RPC = process.env.ETH_RPC_URL || process.env.NEXT_PUBLIC_ETH_RPC_URL || null;
 const PUBLIC_FALLBACKS = [
-  "https://eth.llamarpc.com",
-  "https://rpc.ankr.com/eth",
+  "https://eth-pokt.nodies.app",
+  "https://eth.rpc.blxrbdn.com",
   "https://ethereum-rpc.publicnode.com",
   "https://eth.drpc.org",
 ];

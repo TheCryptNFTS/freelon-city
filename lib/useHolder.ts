@@ -39,8 +39,8 @@ const ABI = [
 // returns a stale block.
 const CONFIGURED = process.env.NEXT_PUBLIC_ETH_RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || null;
 const FALLBACKS = [
-  "https://eth.llamarpc.com",
-  "https://rpc.ankr.com/eth",
+  "https://eth-pokt.nodies.app",
+  "https://eth.rpc.blxrbdn.com",
   "https://ethereum-rpc.publicnode.com",
   "https://eth.drpc.org",
 ];

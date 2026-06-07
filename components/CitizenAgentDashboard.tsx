@@ -737,6 +737,12 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               <button className="btn btn-primary agentdash-lockhero-cta" type="button" disabled={busy} onClick={getUnlockQuote}>
                 <span className="ttl">⬡ UNLOCK · {unlock?.priceEth} ETH →</span>
               </button>
+              {/* Pre-empt the "why isn't it the price I saw?" confusion (Discord,
+                  Ddn): activation price is set by this citizen's rarity, so it
+                  differs per FREELON — and you can only activate ones you own. */}
+              <p className="agentdash-lockhero-why">
+                Price is set by this citizen&apos;s rarity — rarer FREELONS cost more to activate. You can only activate ones you own.
+              </p>
               {err && <p className="agentdash-err">{err}</p>}
             </>
           ) : payPanel}
