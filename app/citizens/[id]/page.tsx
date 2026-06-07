@@ -359,18 +359,25 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 background: `linear-gradient(135deg, ${color}10, rgba(0,0,0,0.4))`,
               }}
             >
-              <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
-                <span className="kicker" style={{ color }}>⬡ CITIZEN SCORE · RARITY + ACTIVITY</span>
+              <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 6 }}>
+                <span className="kicker" style={{ color }}>⬡ CITY STANDING · COLLECTOR RANK</span>
                 {valueCard.civRank && (
                   <span
                     className="kicker"
                     style={{ color, fontWeight: 700, letterSpacing: "0.22em" }}
-                    title={`Rank by value among all ${valueCard.civRank.outOf} ${civ?.name ?? ""} citizens`}
+                    title={`Standing among all ${valueCard.civRank.outOf} ${civ?.name ?? ""} citizens`}
                   >
                     #{valueCard.civRank.rank} / {valueCard.civRank.outOf} · {civ?.name?.toUpperCase()}
                   </span>
                 )}
               </header>
+              {/* 2026-06-07 copy-safety: this is an in-city collector standing
+                  (rarity + how active the citizen has been), NOT a price, market
+                  value, or investment signal. Stated explicitly so the score
+                  never reads as a return/appreciation claim next to the agent. */}
+              <p style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", lineHeight: 1.5, margin: "0 0 12px" }}>
+                A fun in-city standing — not a price, market value, or investment signal.
+              </p>
               <div style={{ display: "flex", alignItems: "baseline", gap: 16, flexWrap: "wrap" }}>
                 <span
                   style={{
@@ -384,7 +391,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   {valueCard.computed.value}
                 </span>
                 <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", letterSpacing: "0.22em" }}>
-                  / 1000
+                  / 1000 pts
                 </span>
                 <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", letterSpacing: "0.14em" }}>
                   · {valueCard.stats.hex.toLocaleString()} ⬡ accumulated
@@ -465,7 +472,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   textTransform: "uppercase",
                 }}
               >
-                <li>SALE · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.salePts}/400</strong></li>
+                <li>TRADES · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.salePts}/400</strong></li>
                 <li>RARITY · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.rarityPts}/300</strong></li>
                 <li>HEX · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.hexPts}/200</strong></li>
                 <li>HELD · <strong style={{ color: "var(--ink-2)" }}>{valueCard.computed.breakdown.holdPts}/100</strong></li>
