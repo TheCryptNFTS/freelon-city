@@ -16,11 +16,14 @@ import styles from "./AgentWorkspace.module.css";
  *   - GET  /api/citizens/[id]/agent            → abilities, scenes, unlock, history
  *   - POST /api/citizens/[id]/mission          → run a text/image job
  *   - GET  /api/wallet/[address]/hex           → ⬡ balance
- * Threads are the conversational layer and live in localStorage (the durable
- * per-NFT record — history, dossier, images, level — already lives server-side
- * and is shown in the right pane). Signatures are cached per ability, since the
- * signed message names the mission, so a holder signs once per ability, not per
- * message.
+ * Threads are the conversational layer. They live in localStorage by default
+ * (instant, no-wallet), and a holder can opt into a wallet-signed server BACKUP
+ * (/api/threads) so their chats survive a browser clear / new device and follow
+ * the wallet across devices — private to that wallet, never leaked on resale.
+ * The durable per-NFT record (history, dossier, images, level) already lives
+ * server-side and is shown in the right pane. Signatures are cached per ability,
+ * since the signed message names the mission, so a holder signs once per
+ * ability, not per message.
  * ────────────────────────────────────────────────────────────────────────── */
 
 type Eth = { request: (a: { method: string; params?: unknown[] }) => Promise<unknown> };
@@ -82,6 +85,22 @@ type Props = {
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
+/** Cached signatures stay valid for this long before we transparently re-sign
+ *  (replay-protection window — matches the server's accept window). */
+const SIG_WINDOW_MS = 30 * 60 * 1000;
+
+/** Union two thread lists by id; the newer updatedAt wins. Used to merge the
+ *  server backup with whatever is on this device so a holder who chatted on
+ *  another device sees both, newest first. */
+function mergeThreads(a: Thread[], b: Thread[]): Thread[] {
+  const byId = new Map<string, Thread>();
+  for (const t of [...a, ...b]) {
+    const ex = byId.get(t.id);
+    if (!ex || (t.updatedAt ?? 0) > (ex.updatedAt ?? 0)) byId.set(t.id, t);
+  }
+  return Array.from(byId.values()).sort((x, y) => (y.updatedAt ?? 0) - (x.updatedAt ?? 0));
+}
+
 export function AgentWorkspace(props: Props) {
   const { tokenId, name, art, tier, civName, color } = props;
   const id4 = String(tokenId).padStart(4, "0");
@@ -109,8 +128,10 @@ export function AgentWorkspace(props: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [syncState, setSyncState] = useState<"off" | "syncing" | "on" | "error">("off");
 
   const sigCache = useRef<Record<string, { signature: string; ts: number }>>({});
+  const syncSig = useRef<{ signature: string; ts: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   /* ── Load saved threads ──────────────────────────────────────────────── */
@@ -144,6 +165,62 @@ export function AgentWorkspace(props: Props) {
   useEffect(() => {
     if (activeId) { try { localStorage.setItem(activeKey, activeId); } catch {} }
   }, [activeId, activeKey]);
+
+  /* ── Cross-device thread sync (opt-in, wallet-signed) ────────────────────
+   * localStorage is the always-on default. This is the DURABLE backup: a
+   * holder signs once to back their chats up to their wallet, so they survive
+   * a browser clear / new device and follow the wallet across devices. The
+   * blob is private to the wallet (signature-gated server-side), so it never
+   * leaks to the next owner on a resale. Signature is timestamp-bound + cached,
+   * so an active session signs ~once per 30 min, not per save. */
+  async function signSync(): Promise<{ address: string; signature: string; ts: number } | null> {
+    const e = eth();
+    if (!e || !address) return null;
+    const now = Date.now();
+    if (syncSig.current && now - syncSig.current.ts < SIG_WINDOW_MS) {
+      return { address, signature: syncSig.current.signature, ts: syncSig.current.ts };
+    }
+    const ts = now;
+    const message = `Sync my FREELON workspace threads for ${subjectKey} at ${ts}.`;
+    const signature = (await e.request({ method: "personal_sign", params: [message, address] })) as string;
+    syncSig.current = { signature, ts };
+    return { address, signature, ts };
+  }
+  async function enableSync() {
+    if (!address) { connect(); return; }
+    setSyncState("syncing");
+    try {
+      const creds = await signSync();
+      if (!creds) { setSyncState("error"); return; }
+      const q = new URLSearchParams({ subject: subjectKey, address: creds.address, signature: creds.signature, ts: String(creds.ts) });
+      const res = await fetch(`/api/threads?${q.toString()}`);
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d?.ok && d.blob && Array.isArray(d.blob.threads)) {
+        setThreads((local) => mergeThreads(local, d.blob.threads as Thread[]));
+      }
+      setSyncState("on");
+    } catch {
+      setSyncState("error");
+    }
+  }
+  // Auto-save (debounced) once sync is enabled. Reuses the cached signature, so
+  // no popup per save.
+  useEffect(() => {
+    if (syncState !== "on" || !address || !threads.length) return;
+    const h = setTimeout(async () => {
+      try {
+        const creds = await signSync();
+        if (!creds) return;
+        await fetch("/api/threads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subject: subjectKey, address: creds.address, signature: creds.signature, ts: creds.ts, threads, activeId }),
+        });
+      } catch {/* keep local copy regardless */}
+    }, 1500);
+    return () => clearTimeout(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, activeId, syncState, address, subjectKey]);
 
   /* ── Load agent data (public) ────────────────────────────────────────── */
   const loadAgent = useCallback(async () => {
@@ -234,7 +311,6 @@ export function AgentWorkspace(props: Props) {
   // window (SIG_WINDOW_MS), then we transparently re-sign. FREELONS messages
   // carry NO timestamp — their cached signature stays valid indefinitely, so
   // the money-path UX is unchanged (no per-run wallet popups).
-  const SIG_WINDOW_MS = 30 * 60 * 1000;
   async function sign(missionId: string): Promise<{ address: string; signature: string; ts: number }> {
     const e = eth();
     if (!e || !address) throw new Error("Connect your wallet first.");
@@ -360,6 +436,34 @@ export function AgentWorkspace(props: Props) {
           ))}
         </div>
         <div className={styles.sideFoot}>
+          <button
+            type="button"
+            onClick={enableSync}
+            disabled={syncState === "syncing"}
+            title="Back up your chats to your wallet so they follow you to any device. Private to your wallet."
+            style={{
+              width: "100%",
+              marginBottom: 10,
+              padding: "8px 10px",
+              background: "transparent",
+              border: `1px solid ${syncState === "on" ? "var(--gold, #E9C984)" : "var(--line-2, #2a2a2a)"}`,
+              color: syncState === "on" ? "var(--gold, #E9C984)" : "var(--ink-2, #aaa)",
+              borderRadius: 8,
+              fontFamily: "var(--mono2)",
+              fontSize: 10.5,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              cursor: syncState === "syncing" ? "default" : "pointer",
+            }}
+          >
+            {syncState === "on"
+              ? "⬡ Synced to wallet"
+              : syncState === "syncing"
+              ? "Syncing…"
+              : syncState === "error"
+              ? "Sync failed · retry"
+              : "⬡ Back up chats to wallet"}
+          </button>
           <span className={styles.brand}>⬡ FREELON CITY</span>
         </div>
       </aside>
