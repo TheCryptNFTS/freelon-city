@@ -277,7 +277,7 @@ export default function StartPage() {
       <Section title="Your daily 60 seconds" collapsible>
         <Box>
           <Ul>
-            <Li>Claim your <strong>+{ECONOMY.DAILY_CLAIM} ⬡</strong> on /carrier</Li>
+            <Li>Claim your <strong>+{ECONOMY.DAILY_CLAIM} ⬡</strong> daily on your <Link href="/sync#carrier" style={{ color: "var(--gold)" }}>claim page</Link></Li>
             <Li>Look for the city&apos;s latest X post and reply to it — the first 10 replies in 30 min earn double hex</Li>
             <Li>Glance at /dashboard to see the city&apos;s pulse</Li>
           </Ul>
@@ -330,7 +330,7 @@ export default function StartPage() {
       <Section title="Questions people actually ask" collapsible>
         <Faq q="Why didn't my post credit me hex?">
           Posting on X doesn&apos;t auto-credit — you need to either (a) reply to a city post (and be one of the first 10 in 30 min),
-          or (b) hit the daily CLAIM button after sharing. Going to your <Link href="/sync#carrier" style={{ color: "var(--gold)" }}>carrier page</Link> and pressing CLAIM is what does it.
+          or (b) hit the daily CLAIM button after sharing. Going to your <Link href="/sync#carrier" style={{ color: "var(--gold)" }}>claim page</Link> and pressing CLAIM is what does it.
         </Faq>
         <Faq q="Is hex worth real money?">
           No. Hex is city credits — usable to name citizens, realign, post transmissions, and unlock things on the site.

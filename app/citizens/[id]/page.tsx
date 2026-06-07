@@ -225,18 +225,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               activate + run surface) now leads; the résumé follows; the full
               "how it works" pitch is one click away in a collapsed block so the
               page isn't a wall. */}
+          {/* THE ONE HERO — 2026-06-07 newcomer-overwhelm fix (founder: "every
+              page is too complex"). The agent card is the SINGLE focal element;
+              everything below it is collapsed so a newcomer who lands here from
+              "See an Agent" sees one clear thing to do, not a wall of panels. */}
           <CitizenAgentDashboard citizenId={tid} />
-          {/* Opt-in, revertable art evolution — owner-only (self-hides otherwise),
-              sits right under the dashboard so an owner finds it in the agent flow. */}
-          <EvolvePanel citizenId={tid} />
-          {/* "Your crew" — reason to hold more than one: each citizen specializes
-              into one class, so this surfaces the holder's role coverage + gaps. */}
-          <YourStable />
-          <CitizenResume tokenId={tid} />
-          <details className="citizen-howto">
-            <summary>New here? How a FREELON agent works · what you pay →</summary>
-            <CitizenAgentExplainer />
-          </details>
           {/* Proof CTA — the public work-log, right after the agent block. Shown
               only when the log has real entries; otherwise it would dead-end on
               the empty "No public work yet" state. */}
@@ -247,10 +240,19 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               </Link>
             </div>
           )}
-          {/* The agent's OWN record (level/skills/memory) stays with the agent
-              journey — BEFORE lore/traits. (2026-06-04 reorder: keep the agent
-              story unbroken; lore + NFT traits come after.) */}
-          <CitizenProgressPanel tokenId={tid} />
+          {/* RÉSUMÉ & RECORD — collapsed. The résumé + the detailed level/skill/
+              memory record are reference, not the lead; one tap away so they don't
+              stack two open panels under the hero. */}
+          <details className="collector-details">
+            <summary className="collector-summary">Résumé &amp; record</summary>
+            <CitizenResume tokenId={tid} />
+            <CitizenProgressPanel tokenId={tid} />
+          </details>
+          {/* HOW IT WORKS — collapsed explainer for newcomers. */}
+          <details className="citizen-howto">
+            <summary>New here? How a FREELON agent works · what you pay →</summary>
+            <CitizenAgentExplainer />
+          </details>
 
           {/* COLLECTOR & NFT DETAILS — 2026-06-04 newcomer-path simplification
               (founder: "the try-an-agent page is too much"). Everything below the
@@ -260,6 +262,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               only wrapped — so owner tools still work once expanded. */}
           <details className="collector-details">
             <summary className="collector-summary">Collector &amp; NFT details</summary>
+
+          {/* Owner tools — self-hide for non-owners, so for a newcomer this is
+              invisible; grouped here so they never wall the agent flow above. */}
+          <EvolvePanel citizenId={tid} />
+          <YourStable />
 
           {identity && (
             <div className="identity-block">
@@ -473,10 +480,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           />
           </details>
 
+          {/* OpenSea lives once on this page now — the BUY button in NEXT SIGNAL
+              below. This row is share/listing/tribute only (2026-06-07 dedup). */}
           <div className="cta-row ui-cta-row">
-            <a className="btn" href={openseaUrl(tid)} target="_blank" rel="noreferrer">
-              <span className="ttl">VIEW ON OPENSEA ↗</span>
-            </a>
             <Link className="btn" href={`/citizens/${tid}/card`}>
               <span className="ttl">SHAREABLE LISTING CARD →</span>
             </Link>
