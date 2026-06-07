@@ -200,16 +200,15 @@ export default function SyncPage() {
         }}
       >
         <div className="carrier-hero">
-          <span className="kicker">⬡ CARRIER PROTOCOL · HOLD THE SIGNAL</span>
+          <span className="kicker">⬡ DAILY CLAIM · EARN ⬡ BY SHOWING UP</span>
           <h2>
-            Holders own citizens<br />
-            <em>Carriers hold the signal</em>
+            Claim ⬡ every day<br />
+            <em>just for being active</em>
           </h2>
           <p className="lead">
-            We&apos;re building the city together. Sign in with X, relay today&apos;s
-            signal, claim your hex. Every post resets the 14-day decay timer and keeps
-            your passive baseline alive. Skip too many days and the meter pauses until
-            you carry again.
+            Sign in with X, share today&apos;s post, and claim your free ⬡. Do it most days
+            and your background ⬡ keeps ticking; skip too many and it pauses until you come
+            back. (&ldquo;Carrier&rdquo; is just the city&apos;s word for an active holder.)
           </p>
         </div>
         <CarrierClient />
