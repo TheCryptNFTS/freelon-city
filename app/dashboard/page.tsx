@@ -69,8 +69,9 @@ export default async function Dashboard() {
         <span className="kicker">⬡ PULSE · LIVE FROM THE CITY</span>
         <h1>The <em>numbers</em></h1>
         <p className="lead">
-          The whole market in one place — floor, holders, hex flow, trait heat,
-          snipes, civ wars, top earners. Live.
+          Live stats for the collection — floor price, who holds what, and how ⬡
+          moves through the city. For holders who want the data; if you&apos;re new,{" "}
+          <Link href="/citizens/1" style={{ color: "var(--gold)" }}>see an agent first</Link>.
         </p>
       </section>
 
@@ -105,6 +106,15 @@ export default async function Dashboard() {
           <HexIndex />
         </div>
 
+        {/* 2026-06-07 density (dashboard scored 4/10 — densest page): the
+            Overview led with 10 stacked widgets. The focal reads (holder map,
+            civ value, your stake, city stats, hex index) stay open above; the
+            receipts grid + the four feeds below fold into one tap so the page
+            opens as a scannable summary, not a wall. The dedicated #heat /
+            #snipes / #earners sections below still carry the full detail. */}
+        <details className="collector-details" style={{ marginTop: "var(--s-4)" }}>
+          <summary className="collector-summary">Full economy breakdown · receipts, top citizens, red signals, sales</summary>
+
         {/* City receipts — hex aggregates folded from /numbers. */}
         <div className="dash-receipts">
           <span className="kicker">⬡ CITY RECEIPTS · HEX ECONOMY</span>
@@ -135,6 +145,7 @@ export default async function Dashboard() {
         <div className="dash-grid">
           <LiveSalesFeed />
         </div>
+        </details>
       </section>
 
       {/* ── HEAT ← app/heat ── */}
