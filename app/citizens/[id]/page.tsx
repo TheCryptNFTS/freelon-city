@@ -16,7 +16,6 @@ import { CitizenMissionsBoard } from "@/components/CitizenMissionsBoard";
 import { CitizenCheckIn } from "@/components/CitizenCheckIn";
 import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
-import { CitizenAgentDashboard } from "@/components/CitizenAgentDashboard";
 import { ActivationProof } from "@/components/ActivationProof";
 import { EvolvePanel } from "@/components/EvolvePanel";
 import YourStable from "@/components/YourStable";
@@ -236,11 +235,15 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               activate + run surface) now leads; the résumé follows; the full
               "how it works" pitch is one click away in a collapsed block so the
               page isn't a wall. */}
-          {/* THE ONE HERO — 2026-06-07 newcomer-overwhelm fix (founder: "every
-              page is too complex"). The agent card is the SINGLE focal element;
-              everything below it is collapsed so a newcomer who lands here from
-              "See an Agent" sees one clear thing to do, not a wall of panels. */}
-          <CitizenAgentDashboard citizenId={tid} />
+          {/* THE ONE HERO — 2026-06-07 workspace front door (founder: clicking a
+              citizen "should open up like ChatGPT or Claude"). The profile stays
+              as the public/shareable page; the single focal action opens the full
+              agent workspace — chat, image, history, all in one place. */}
+          <Link href={`/agent/${tid}`} className="workspace-open-cta" style={{ ["--accent" as string]: color }}>
+            <span className="wo-kicker">YOUR AGENT WORKSPACE</span>
+            <span className="wo-title">Open the workspace →</span>
+            <span className="wo-sub">Chat, generate, and build a permanent work history — all in one place, like opening ChatGPT or Claude.</span>
+          </Link>
           {/* Proof CTA — the public work-log, right after the agent block. Shown
               only when the log has real entries; otherwise it would dead-end on
               the empty "No public work yet" state. */}

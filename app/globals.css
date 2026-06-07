@@ -7205,6 +7205,36 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 }
 .agent-lede strong { color: var(--gold); }
 
+/* Workspace front door (2026-06-07) — the single hero action on the citizen
+   profile. Opens /agent/[id], the full ChatGPT/Claude-style agent workspace. */
+.workspace-open-cta {
+  display: block; margin: var(--s-5) 0; padding: 22px 24px;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--gold)) 45%, #2a2a30);
+  border-radius: 14px; text-decoration: none;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent, var(--gold)) 14%, transparent), transparent 60%),
+    linear-gradient(180deg, #161620, #101016);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 30px rgba(0,0,0,0.35);
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.workspace-open-cta:hover {
+  border-color: color-mix(in srgb, var(--accent, var(--gold)) 75%, #2a2a30);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 14px 38px rgba(0,0,0,0.45);
+}
+.workspace-open-cta .wo-kicker {
+  display: block; font-family: var(--mono2); font-size: 10.5px; letter-spacing: 0.22em;
+  color: var(--accent, var(--gold)); margin-bottom: 8px;
+}
+.workspace-open-cta .wo-title {
+  display: block; font-size: clamp(20px, 2.6vw, 26px); font-weight: 700;
+  color: var(--ink); letter-spacing: -0.01em; line-height: 1.1;
+}
+.workspace-open-cta .wo-sub {
+  display: block; margin-top: 8px; font-size: 13.5px; line-height: 1.5;
+  color: var(--ink-2); max-width: 56ch;
+}
+
 /* Locked dashboard state (non-owner / disconnected) — keeps a visible DO. */
 .agentdash-locked { text-align: left; }
 .agentdash-locked-msg { margin: var(--s-3) 0 var(--s-3); font-size: 13px; color: var(--ink-2); line-height: 1.55; max-width: 56ch; }
