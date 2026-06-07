@@ -173,6 +173,12 @@ export default function Citizens() {
         </div>
       </section>
 
+      {/* 2026-06-07 density (browse scored 6/10 — four stacked grids before the
+          actual browser): the curated Honoraries + Legendaries grids fold into
+          one tap so the page flows hero → top agents → the 1/1s → [curated] →
+          browse, instead of four equal gridwalls. */}
+      <details className="collector-details citizens-section">
+        <summary className="collector-summary">Curated · the 35 Honoraries &amp; the Legendaries</summary>
       <section className="citizens-section reveal">
         <header className="sec-head">
           <span className="kicker">35 ELEVATED CITIZENS</span>
@@ -218,6 +224,7 @@ export default function Citizens() {
           })}
         </div>
       </section>
+      </details>
 
       {/* Mass browser below curated. Anchor target for the hero "BROWSE ALL"
           link so users who specifically want the filter UI can jump down. */}
