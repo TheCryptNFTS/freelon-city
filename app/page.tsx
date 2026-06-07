@@ -7,6 +7,7 @@ import { CitizenShowcase } from "@/components/CitizenShowcase";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
 import TransformsWall from "@/components/TransformsWall";
 import { ActivationProof } from "@/components/ActivationProof";
+import { ReturningOwnerNudge } from "@/components/ReturningOwnerNudge";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -98,6 +99,12 @@ export default function Home() {
             </a>
           </div>
           <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
+
+          {/* Returning-owner nudge — catches a buyer who came back + connected,
+              routing them to unlock (closes the buy→unlock gap). Holders only. */}
+          <div style={{ marginTop: "var(--s-3)" }}>
+            <ReturningOwnerNudge />
+          </div>
 
           {/* Activation proof — the see→own bridge. Real paid unlocks as social
               proof; self-hides until at least one exists. 2026-06-07. */}
