@@ -17,6 +17,7 @@ import { CitizenCheckIn } from "@/components/CitizenCheckIn";
 import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
 import { CitizenAgentDashboard } from "@/components/CitizenAgentDashboard";
+import { ActivationProof } from "@/components/ActivationProof";
 import { EvolvePanel } from "@/components/EvolvePanel";
 import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
@@ -222,6 +223,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <p className="agent-lede" style={{ color: "var(--ink-dim)", fontSize: 13 }}>
             Unlock it once with ETH to switch the agent on — yours forever, even if you sell — then spend ⬡ to give it jobs.
           </p>
+          {/* Social proof — real strangers have already unlocked. Self-hides at 0. */}
+          <div style={{ margin: "var(--s-3) 0" }}>
+            <ActivationProof compact />
+          </div>
           {/* RÉSUMÉ LEADS (2026-06-03 founder brief): the first screen must answer
               who owns it · level · role · status · what it's done · how to use it.
               The résumé card does that; SEE IT WORK (proof) and the run panel

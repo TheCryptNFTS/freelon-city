@@ -6,6 +6,7 @@ import { HeroAtmosphere } from "@/components/HeroAtmosphere";
 import { CitizenShowcase } from "@/components/CitizenShowcase";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
 import TransformsWall from "@/components/TransformsWall";
+import { ActivationProof } from "@/components/ActivationProof";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -97,6 +98,12 @@ export default function Home() {
             </a>
           </div>
           <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
+
+          {/* Activation proof — the see→own bridge. Real paid unlocks as social
+              proof; self-hides until at least one exists. 2026-06-07. */}
+          <div style={{ marginTop: "var(--s-3)" }}>
+            <ActivationProof />
+          </div>
 
           {/* Lore flavour, now SECONDARY (below the value prop + actions). */}
           <span className="term-badge flicker" style={{ marginTop: "var(--s-5)" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
