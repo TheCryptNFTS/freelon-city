@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { Token, Facet } from "@/lib/collections-data";
 
 /**
@@ -21,12 +22,16 @@ export function CollectionBrowser({
   chain,
   contract,
   accent,
+  agentSlug = null,
 }: {
   tokens: Token[];
   facets: Facet[];
   chain: string;
   contract: string;
   accent: string;
+  /** When set, the collection is agentic — each card opens its agent workspace
+   *  (with a small OpenSea corner link) instead of linking straight to OpenSea. */
+  agentSlug?: string | null;
 }) {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState<Record<string, string>>({});
@@ -164,38 +169,69 @@ export function CollectionBrowser({
       </div>
 
       <div className="results-grid">
-        {showing.map((t) => (
-          <a
-            key={t.id}
-            href={`https://opensea.io/assets/${chain}/${contract}/${t.id}`}
-            target="_blank"
-            rel="noreferrer"
-            className="result-cell scan-card"
-            style={{ "--civ": accent, position: "relative" } as React.CSSProperties}
-          >
-            {/\.(mp4|webm|mov)(\?|$)/i.test(t.img) ? (
-              // Some collections (Emile) are video-only on-chain — no still
-              // exists, so render the looping record itself.
-              <video
-                src={t.img}
-                muted
-                loop
-                playsInline
-                autoPlay
-                preload="metadata"
-                aria-label={t.name}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={t.img} alt={t.name} loading="lazy" />
-            )}
+        {showing.map((t) => {
+          const media = /\.(mp4|webm|mov)(\?|$)/i.test(t.img) ? (
+            // Some collections (Emile) are video-only on-chain — no still
+            // exists, so render the looping record itself.
+            <video
+              src={t.img}
+              muted
+              loop
+              playsInline
+              autoPlay
+              preload="metadata"
+              aria-label={t.name}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={t.img} alt={t.name} loading="lazy" />
+          );
+          const meta = (
             <div className="meta">
               <div className="id">#{t.id}</div>
               <div className="sub">{t.name}</div>
             </div>
-          </a>
-        ))}
+          );
+          const osHref = `https://opensea.io/assets/${chain}/${contract}/${t.id}`;
+          const cellStyle = { "--civ": accent, position: "relative" } as React.CSSProperties;
+
+          // Agentic collection → card opens the agent workspace; a small corner
+          // link still reaches OpenSea for trading.
+          if (agentSlug) {
+            return (
+              <div key={t.id} className="result-cell scan-card" style={cellStyle}>
+                <Link href={`/agent/c/${agentSlug}/${t.id}`} className="cell-link" aria-label={`Open ${t.name}`}>
+                  {media}
+                  {meta}
+                </Link>
+                <a
+                  href={osHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="cell-os"
+                  aria-label="View on OpenSea"
+                  title="View on OpenSea"
+                  onClick={(e) => e.stopPropagation()}
+                >↗</a>
+              </div>
+            );
+          }
+          // Non-agentic (the trading-card game) → straight to OpenSea.
+          return (
+            <a
+              key={t.id}
+              href={osHref}
+              target="_blank"
+              rel="noreferrer"
+              className="result-cell scan-card"
+              style={cellStyle}
+            >
+              {media}
+              {meta}
+            </a>
+          );
+        })}
       </div>
 
       {filtered.length === 0 && (

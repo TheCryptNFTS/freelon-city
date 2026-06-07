@@ -1731,6 +1731,18 @@ a { color: inherit; text-decoration: none; }
 .result-cell .meta { padding: 8px 10px; }
 .result-cell .id { font-family: var(--mono2); font-size: 11px; color: var(--gold); }
 .result-cell .sub { font-family: var(--mono2); font-size: 9px; color: var(--ink-dim); letter-spacing: 0.16em; margin-top: 3px; }
+/* Agentic collection card: the whole cell opens the agent workspace, with a
+   small OpenSea corner badge for trading. */
+.result-cell .cell-link { display: block; text-decoration: none; color: inherit; }
+.result-cell .cell-os {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: 5px; background: rgba(0,0,0,0.55); color: var(--ink-2);
+  font-size: 12px; line-height: 1; text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.12); opacity: 0; transition: opacity .15s ease, color .15s ease;
+}
+.result-cell:hover .cell-os { opacity: 1; }
+.result-cell .cell-os:hover { color: var(--gold); border-color: var(--civ, var(--gold)); }
 .load-more { display: flex; justify-content: center; margin-top: 32px; }
 .load-more button {
   background: transparent; border: 1px solid var(--gold); color: var(--gold);

@@ -7,6 +7,7 @@ import {
   buildFacets,
 } from "@/lib/collections-data";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
+import { isAgenticCollection } from "@/lib/agent-subject";
 import { CollectionBrowser } from "@/components/CollectionBrowser";
 
 // Static params for the five connected collections. Their token data is
@@ -32,6 +33,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   const facets = buildFacets(data.tokens);
   const floors = await getFloors([slug]);
   const floor = formatFloor(floors[slug]);
+  // Every connected collection EXCEPT the trading-card game is agentic — its
+  // tokens open an AI agent workspace. The TCG keeps the plain OpenSea link.
+  const agentSlug = isAgenticCollection(slug) ? slug : null;
 
   return (
     <div className="citizens-page">
@@ -43,8 +47,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <p className="lead">{meta.blurb}</p>
         <p className="lead" style={{ fontFamily: "var(--mono2)", fontSize: 13, letterSpacing: "0.04em" }}>
           {data.total.toLocaleString()} records on {data.chain === "ape_chain" ? "ApeChain" : "Ethereum"}
-          {floor ? ` · floor ${floor}` : ""}. Browse the full set below, or open any
-          record on OpenSea to trade.
+          {floor ? ` · floor ${floor}` : ""}. {agentSlug
+            ? "Own one? Open it to talk to its agent — every record is an AI character you can chat with."
+            : "Browse the full set below, or open any record on OpenSea to trade."}
         </p>
         <div className="ui-cta-row" style={{ marginTop: "var(--s-3)" }}>
           <a
@@ -72,6 +77,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
           chain={data.chain}
           contract={data.contract}
           accent={meta.statusColor}
+          agentSlug={agentSlug}
         />
       </section>
     </div>

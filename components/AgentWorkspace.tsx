@@ -74,6 +74,10 @@ type Props = {
   doctrine: string;
   color: string;
   headline: string | null;
+  /** Sister-collection slug. Omitted/"freelons" → the flagship FREELONS agent
+   *  (rich abilities/images/unlock). Any other agentic slug → a sister agent
+   *  (chat-only, free) served by /api/agents/[slug]/[id]. */
+  slug?: string;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -81,8 +85,15 @@ const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(
 export function AgentWorkspace(props: Props) {
   const { tokenId, name, art, tier, civName, color } = props;
   const id4 = String(tokenId).padStart(4, "0");
-  const threadsKey = `freelon:ws:threads:${tokenId}`;
-  const activeKey = `freelon:ws:active:${tokenId}`;
+  // Sister collections (any agentic slug ≠ freelons) are served by a separate,
+  // shape-compatible endpoint and namespace their local threads by slug so they
+  // never collide with a FREELONS citizen of the same tokenId.
+  const slug = props.slug && props.slug !== "freelons" ? props.slug : null;
+  const subjectKey = slug ? `${slug}:${tokenId}` : `${tokenId}`;
+  const agentUrl = slug ? `/api/agents/${slug}/${tokenId}` : `/api/citizens/${tokenId}/agent`;
+  const missionUrl = slug ? `/api/agents/${slug}/${tokenId}` : `/api/citizens/${tokenId}/mission`;
+  const threadsKey = `freelon:ws:threads:${subjectKey}`;
+  const activeKey = `freelon:ws:active:${subjectKey}`;
 
   const [address, setAddress] = useState<string | null>(null);
   const [agent, setAgent] = useState<AgentData | null>(null);
@@ -137,13 +148,13 @@ export function AgentWorkspace(props: Props) {
   /* ── Load agent data (public) ────────────────────────────────────────── */
   const loadAgent = useCallback(async () => {
     try {
-      const res = await fetch(`/api/citizens/${tokenId}/agent`);
+      const res = await fetch(agentUrl);
       const d: AgentData = await res.json();
       setAgent(d);
       setAbilityId((prev) => prev || d.abilities.find((a) => a.primary)?.id || d.abilities[0]?.id || "");
       setSceneKey((prev) => prev || d.scenes[0]?.key || "");
     } catch {/* keep UI usable */}
-  }, [tokenId]);
+  }, [agentUrl]);
   useEffect(() => { loadAgent(); }, [loadAgent]);
 
   /* ── Default task when ability changes ───────────────────────────────── */
@@ -222,7 +233,9 @@ export function AgentWorkspace(props: Props) {
     const e = eth();
     if (!e || !address) throw new Error("Connect your wallet first.");
     if (sigCache.current[missionId]) return { address, signature: sigCache.current[missionId] };
-    const message = `I am deploying FREELON CITY citizen #${tokenId} on mission "${missionId}".`;
+    const message = slug
+      ? `I am deploying ${slug} #${tokenId} on mission "${missionId}".`
+      : `I am deploying FREELON CITY citizen #${tokenId} on mission "${missionId}".`;
     const signature = (await e.request({ method: "personal_sign", params: [message, address] })) as string;
     sigCache.current[missionId] = signature;
     return { address, signature };
@@ -233,7 +246,7 @@ export function AgentWorkspace(props: Props) {
     const base: Record<string, unknown> = { missionId, input };
     let creds: { address: string; signature: string } | null = null;
     for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await fetch(`/api/citizens/${tokenId}/mission`, {
+      const res = await fetch(missionUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(creds ? { ...base, ...creds } : base),
@@ -317,7 +330,7 @@ export function AgentWorkspace(props: Props) {
       {/* ── LEFT: threads ─────────────────────────────────────────────── */}
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
         <div className={styles.sideHead}>
-          <Link href={`/citizens/${tokenId}`} className={styles.back}>← Citizen</Link>
+          <Link href={slug ? `/collections/${slug}` : `/citizens/${tokenId}`} className={styles.back}>← {slug ? "Collection" : "Citizen"}</Link>
           <button className={styles.newBtn} onClick={newThread}>+ New chat</button>
         </div>
         <div className={styles.threadList}>
