@@ -82,6 +82,62 @@ export function runsPerCitizenPerDay(): number {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 25;
 }
 
+/**
+ * Per-subject / per-wallet DAILY RUN CAP (count-based, atomic). The global $
+ * budget above bounds TOTAL free spend, but without a per-key cap a single cheap
+ * sister token (or wallet) could claim the whole day's pool and deny everyone
+ * else. This caps how many free runs ONE key may take per UTC day. INCR is
+ * atomic so concurrent calls can't slip past; the first write sets a 25h TTL so
+ * the counter self-clears. releaseDaily() gives the slot back when a run fails.
+ */
+const dayCountMem = new Map<string, number>();
+export async function claimDaily(key: string, max: number): Promise<boolean> {
+  const ttl = 25 * 60 * 60;
+  if (hasUpstash) {
+    try {
+      const n = Number(await upstash(["INCR", key]));
+      if (n === 1) await upstash(["EXPIRE", key, String(ttl)]).catch(() => {});
+      if (n > max) {
+        await upstash(["DECR", key]).catch(() => {});
+        return false;
+      }
+      return true;
+    } catch {
+      /* fall through to in-memory */
+    }
+  }
+  const cur = dayCountMem.get(key) ?? 0;
+  if (cur >= max) return false;
+  dayCountMem.set(key, cur + 1);
+  return true;
+}
+export async function releaseDaily(key: string): Promise<void> {
+  if (hasUpstash) {
+    try {
+      await upstash(["DECR", key]);
+      return;
+    } catch {
+      /* fall through */
+    }
+  }
+  const cur = dayCountMem.get(key) ?? 0;
+  if (cur > 0) dayCountMem.set(key, cur - 1);
+}
+
+/** Free chat runs ONE sister token may take per UTC day. Override with
+ *  AGENT_SISTER_TOKEN_RUNS_PER_DAY. Bounds a single token's slice of the pool. */
+export function sisterTokenRunsPerDay(): number {
+  const n = Number(process.env.AGENT_SISTER_TOKEN_RUNS_PER_DAY);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 30;
+}
+/** Free chat runs ONE wallet may take per UTC day across all sister tokens it
+ *  holds. Override with AGENT_SISTER_WALLET_RUNS_PER_DAY. Stops a whale wallet
+ *  from monopolizing the free pool via many cheap tokens. */
+export function sisterWalletRunsPerDay(): number {
+  const n = Number(process.env.AGENT_SISTER_WALLET_RUNS_PER_DAY);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 60;
+}
+
 export type BudgetVerdict =
   | { ok: true; usedCents: number; capCents: number }
   | { ok: false; reason: "killed" | "cap"; usedCents: number; capCents: number };

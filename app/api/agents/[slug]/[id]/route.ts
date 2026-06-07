@@ -132,14 +132,42 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   input = input.replace(/^talk:\s*/i, "").trim();
   if (!input) return NextResponse.json({ error: "input_required" }, { status: 400 });
 
-  // 7. Kill-switch + FREE daily $-budget (cheap text). Charged before the model
-  //    call, refunded on failure — identical guard to the FREELONS free tier.
-  const { agentsKilled, consumeFreeRun, refundFreeRun, RUN_COST_CENTS } = await import("@/lib/missions/budget");
+  // 7. Kill-switch + per-key daily run caps + FREE daily $-budget (cheap text).
+  const {
+    agentsKilled, consumeFreeRun, refundFreeRun, RUN_COST_CENTS,
+    claimDaily, releaseDaily, sisterTokenRunsPerDay, sisterWalletRunsPerDay,
+  } = await import("@/lib/missions/budget");
   if (agentsKilled()) {
     return NextResponse.json({ error: "agents_offline", message: "The agents are briefly offline for maintenance. Back shortly." }, { status: 503 });
   }
+
+  // 7a. PER-KEY DAILY CAP — the global $-budget bounds TOTAL free spend, but
+  //     without this a single cheap sister token (or one whale wallet holding
+  //     many) could drain the whole day's pool and deny everyone, including
+  //     FREELONS holders. Cap per-token AND per-wallet; release both on failure.
+  const day = new Date().toISOString().slice(0, 10);
+  const tokenDayKey = `freelon:sister:tok:${slug}:${tid}:${day}`;
+  const walletDayKey = `freelon:sister:wal:${address}:${day}`;
+  if (!(await claimDaily(tokenDayKey, sisterTokenRunsPerDay()))) {
+    return NextResponse.json(
+      { error: "token_daily_limit", message: "This token hit today's free chat limit. Resets at UTC midnight." },
+      { status: 429 },
+    );
+  }
+  if (!(await claimDaily(walletDayKey, sisterWalletRunsPerDay()))) {
+    await releaseDaily(tokenDayKey);
+    return NextResponse.json(
+      { error: "wallet_daily_limit", message: "Your wallet hit today's free chat limit. Resets at UTC midnight." },
+      { status: 429 },
+    );
+  }
+
+  //     Charged before the model call, refunded on failure — identical guard to
+  //     the FREELONS free tier.
   const bud = await consumeFreeRun(RUN_COST_CENTS.text);
   if (!bud.ok) {
+    await releaseDaily(tokenDayKey);
+    await releaseDaily(walletDayKey);
     return NextResponse.json(
       { error: "daily_capacity", message: "The agents hit today's free capacity — back at UTC midnight." },
       { status: 503 },
@@ -151,6 +179,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   const result = await citizenReason({ system, user: input, maxTokens, timeoutMs: 30_000 });
   if (!result.ok) {
     await refundFreeRun(RUN_COST_CENTS.text);
+    await releaseDaily(tokenDayKey);
+    await releaseDaily(walletDayKey);
     return NextResponse.json(
       { error: "agent_failed", message: "The agent couldn't complete that — nothing was charged." },
       { status: 502 },
