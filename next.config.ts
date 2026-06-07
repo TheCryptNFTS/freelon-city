@@ -57,7 +57,7 @@ const config: NextConfig = {
 
       // Holder / wallet cluster → /sync (connect · signal · passport · vault · carrier)
       { source: "/signal",   destination: "/sync#signal",   permanent: true },
-      { source: "/passport", destination: "/sync#passport", permanent: true },
+      { source: "/passport", destination: "/sync", permanent: true },
       { source: "/vault",    destination: "/sync#vault",    permanent: true },
       { source: "/carrier",  destination: "/sync#carrier",  permanent: true },
 

@@ -351,12 +351,11 @@ export default async function EarnPage() {
         <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)", fontFamily: "var(--mono2)" }}>
           You&apos;re a carrier. Carriers do work.
         </p>
+        {/* CLAIM lives once now — the primary button in "② TODAY" above. This
+            closer points onward to the live city (2026-06-07 dedup). */}
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/dashboard">
             <span className="ttl">VIEW LIVE SIGNALS →</span>
-          </Link>
-          <Link className="btn btn-secondary" href="/carrier">
-            <span className="ttl">CLAIM TODAY&apos;S {ECONOMY.DAILY_CLAIM} ⬡ →</span>
           </Link>
         </div>
       </section>

@@ -41,7 +41,6 @@ export const metadata: Metadata = {
 const SUBNAV: Array<{ id: string; label: string }> = [
   { id: "connect", label: "CONNECT" },
   { id: "signal", label: "SIGNAL" },
-  { id: "passport", label: "PASSPORT" },
   { id: "vault", label: "VAULT" },
   { id: "carrier", label: "CARRIER" },
 ];
@@ -176,19 +175,10 @@ export default function SyncPage() {
         <SignalUniverse />
       </section>
 
-      {/* ── PASSPORT — identity landing (was /passport) ── */}
-      <section id="passport" className="sync-section sync-passport">
-        <span className="kicker">⬡ PASSPORT</span>
-        <h2 className="sync-passport__h">
-          Every wallet <em>carries a passport.</em>
-        </h2>
-        <p className="sync-passport__body">
-          The city issues no passport on its own. It reads the one your wallet
-          already carries — the citizens, signals, and artefacts recorded in
-          your address. Connect above to reveal yours; the passport resolves
-          for the address you sync.
-        </p>
-      </section>
+      {/* PASSPORT prose interstitial removed 2026-06-07 (founder: "too complex").
+          It had no action — just a heading + "connect above" paragraph that
+          restated the Connect section. The real per-address passport lives at
+          /passport/[address]; the bare /passport redirect now lands on /sync. */}
 
       {/* ── VAULT — safe batch transfer (was /vault) ── */}
       <section id="vault" className="sync-section">
