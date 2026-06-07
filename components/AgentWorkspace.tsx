@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { FramedAgent } from "./FramedAgent";
 import styles from "./AgentWorkspace.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -492,11 +493,18 @@ export function AgentWorkspace(props: Props) {
         <div className={styles.transcript} ref={scrollRef}>
           {!active || active.messages.length === 0 ? (
             <div className={styles.empty}>
-              <img src={art} alt={name} className={styles.emptyArt} />
-              <h2>{name}</h2>
-              {props.headline && <p className={styles.emptyLede}>{props.headline}</p>}
+              <FramedAgent
+                art={art}
+                civColor={color}
+                size={208}
+                alt={name}
+                name={name}
+                stamp={`#${id4} · ${agent?.className ?? civName} · LV ${agent?.level ?? 1}`}
+                priority
+              />
+              {props.headline && <p className={styles.emptyLede} style={{ marginTop: 14 }}>{props.headline}</p>}
               <p className={styles.emptyHint}>
-                An AI agent you own. Give it a brief below — it remembers your work and grows as you train it.
+                An AI character you own. Give it a brief below — it remembers your work and grows as you train it.
               </p>
               <div className={styles.starters}>
                 {(agent?.abilities ?? []).slice(0, 4).map((a) => (
@@ -536,27 +544,49 @@ export function AgentWorkspace(props: Props) {
             {(agent?.scenes?.length ?? 0) > 0 && (
               <button className={`${styles.modeBtn} ${mode === "image" ? styles.modeOn : ""}`} onClick={() => setMode("image")}>Image</button>
             )}
-            {mode === "chat" && curAbility && (
-              <div className={styles.selectors}>
-                <select className={styles.sel} value={abilityId} onChange={(e) => setAbilityId(e.target.value)}>
-                  {agent?.abilities.map((a) => <option key={a.id} value={a.id}>{a.label}{a.premium ? ` · ${a.hexCost ?? 0}⬡` : ""}</option>)}
-                </select>
-                {curAbility.tasks.length > 1 && (
-                  <select className={styles.sel} value={taskKey} onChange={(e) => setTaskKey(e.target.value)}>
-                    {curAbility.tasks.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
-                  </select>
-                )}
+          </div>
+          {mode === "chat" && curAbility && (agent?.abilities.length ?? 0) > 1 && (
+              <div className={styles.chipRow}>
+                {agent?.abilities.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    className={`${styles.chip} ${a.id === abilityId ? styles.chipOn : ""}`}
+                    onClick={() => setAbilityId(a.id)}
+                  >
+                    {a.label}{a.premium ? <span className={styles.chipCost}>{a.hexCost ?? 0}⬡</span> : null}
+                  </button>
+                ))}
+              </div>
+            )}
+            {mode === "chat" && curAbility && curAbility.tasks.length > 1 && (
+              <div className={styles.chipRow}>
+                {curAbility.tasks.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    className={`${styles.chip} ${t.key === taskKey ? styles.chipOn : ""}`}
+                    onClick={() => setTaskKey(t.key)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
               </div>
             )}
             {mode === "image" && (
-              <div className={styles.selectors}>
-                <select className={styles.sel} value={sceneKey} onChange={(e) => setSceneKey(e.target.value)}>
-                  {agent?.scenes.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-                </select>
-                {agent?.imageHexCost ? <span className={styles.costHint}>{agent.imageHexCost}⬡</span> : null}
+              <div className={styles.chipRow}>
+                {agent?.scenes.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    className={`${styles.chip} ${s.key === sceneKey ? styles.chipOn : ""}`}
+                    onClick={() => setSceneKey(s.key)}
+                  >
+                    {s.label}{agent?.imageHexCost ? <span className={styles.chipCost}>{agent.imageHexCost}⬡</span> : null}
+                  </button>
+                ))}
               </div>
             )}
-          </div>
           {mode === "chat" ? (
             <div className={styles.inputRow}>
               <textarea
@@ -587,7 +617,9 @@ export function AgentWorkspace(props: Props) {
       {/* ── RIGHT: citizen info ───────────────────────────────────────── */}
       <aside className={`${styles.info} ${infoOpen ? styles.open : ""}`}>
         <button className={styles.infoClose} onClick={() => setInfoOpen(false)} aria-label="Close">×</button>
-        <img src={art} alt={name} className={styles.infoArt} />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
+          <FramedAgent art={art} civColor={color} size={244} alt={name} />
+        </div>
         <div className={styles.infoName}>{name}</div>
         <div className={styles.infoMeta}>#{id4} · {tier} · {civName}</div>
         <div className={styles.statRow}>

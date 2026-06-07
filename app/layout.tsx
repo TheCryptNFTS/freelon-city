@@ -13,6 +13,7 @@ import { CityNotice } from "@/components/CityNotice";
 import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
+import { ChromeGate } from "@/components/ChromeGate";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.freeloncity.com"),
@@ -78,6 +79,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>
+        {/* Global chrome is hidden on the full-screen agent-workspace routes
+            (see ChromeGate) so the Header/Footer can't bleed through the
+            workspace shell. */}
+        <ChromeGate>
         <Header />
         {/* Lore-framed status banner — only renders when the city is in
             measurable collapse. 2026-05-28 LCP fix: this is an async server
@@ -98,8 +103,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             components/CityFeedTicker.tsx if a reskinned status line is ever
             wanted, but it no longer renders site-wide. */}
         <FourOFourEvent />
+        </ChromeGate>
         <main id="main">{children}</main>
+        <ChromeGate>
         <Footer />
+        </ChromeGate>
         <ScrollReveal />
         <Spotlight />
         <Analytics />

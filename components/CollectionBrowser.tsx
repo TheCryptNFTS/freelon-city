@@ -205,6 +205,22 @@ export function CollectionBrowser({
                   {media}
                   {meta}
                 </Link>
+                <span
+                  aria-hidden
+                  title="Open this agent"
+                  style={{
+                    position: "absolute", top: 8, left: 8, zIndex: 2,
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "2px 7px", borderRadius: 999,
+                    background: "rgba(8,8,10,0.72)", border: `1px solid ${accent}`,
+                    color: accent, fontFamily: "var(--mono2)", fontSize: 8.5,
+                    fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <span style={{ width: 4, height: 4, borderRadius: "50%", background: accent }} />
+                  Agent
+                </span>
                 <a
                   href={osHref}
                   target="_blank"

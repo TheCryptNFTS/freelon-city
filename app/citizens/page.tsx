@@ -6,6 +6,7 @@ import { PfpSection } from "@/components/citizens/PfpSection";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import Link from "next/link";
+import { topAgentHref } from "@/lib/featured-agent";
 
 export const metadata = { title: "FREELONS · Trainable AI Agents" };
 
@@ -20,8 +21,10 @@ const ONE_TAGS: Record<number, { slug: string; sub: string }> = {
   4040: { slug: "the-final-signal", sub: "ONE OF ONE · THE THRONE" },
 };
 
-export default function Citizens() {
+export default async function Citizens() {
   const all = getAllCitizens();
+  // Smart "SEE AN AGENT" — the current top-trained agent, not always #0001.
+  const seeAgentHref = await topAgentHref();
   const ones = all.filter((c) => c.tier === "One of One");
   const honoraries = all.filter((c) => c.tier === "Honorary");
   const legendaries = all.filter((c) => c.tier === "Legendary").slice(0, 12);
@@ -113,10 +116,10 @@ export default function Citizens() {
             (the #1 friction point: "My Citizen" used to dead-end at a lookup). */}
         <p style={{ marginTop: "var(--s-4)" }}>
           <Link
-            href="/citizens/1"
+            href={seeAgentHref}
             className="btn btn-primary"
           >
-            <span className="ttl">SEE AN AGENT · OPEN #0001 →</span>
+            <span className="ttl">SEE AN AGENT →</span>
           </Link>
         </p>
         {/* Jump link to the folded PFP studio (2026-05-31). */}

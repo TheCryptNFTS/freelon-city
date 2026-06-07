@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { COLLECTION_META, loadCollection } from "@/lib/collections-data";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
+import { isAgenticCollection } from "@/lib/agent-subject";
+import { SignalInventoryPanel } from "@/components/SignalInventory";
+import { GraveyardSection } from "@/components/archive/GraveyardSection";
 
 export const metadata = {
-  title: "Collections",
-  description: "Every collection in the FREELON CITY universe — browse each one's full set on-site.",
+  title: "The Universe · Collections",
+  description: "Every collection in the FREELON CITY universe — each token is an AI agent you can open and chat with.",
 };
 
 // Some collections' first on-chain record is video-only (Emile is .mp4),
@@ -57,21 +60,28 @@ export default async function CollectionsIndex() {
       img: covers[slug]?.img || "",
       total: covers[slug]?.total || 0,
       onsite: true,
+      agentic: isAgenticCollection(slug),
     })),
   ];
+  // Freelons leads and is agentic (its citizens are the flagship agents).
+  cards[0] = { ...cards[0], agentic: true } as typeof cards[0] & { agentic: boolean };
 
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "var(--s-6) auto", padding: "0 var(--pad)" }}>
       <header style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE UNIVERSE · ALL COLLECTIONS</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 1, margin: "12px 0 8px" }}>
-          Every signal, <em style={{ color: "var(--gold)", fontStyle: "normal" }}>browsable.</em>
+          Every record is a <em style={{ color: "var(--gold)", fontStyle: "normal" }}>living agent.</em>
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 680 }}>
-          Six collections, one city. Each one now has its own on-site explorer —
-          search and filter the full set, then trade on OpenSea.
+          Six collections, one city. Own a token and open it to talk to its agent — every
+          record is an AI character you can chat with. Search the full set on-site, trade on OpenSea.
         </p>
       </header>
+
+      {/* Wallet ownership terminal across the connected collections (folded in
+          from the former /archive). */}
+      <SignalInventoryPanel />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gridAutoRows: "1fr", gap: "var(--s-3)" }}>
         {cards.map((c) => {
@@ -102,6 +112,23 @@ export default async function CollectionsIndex() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={c.img} alt={`${c.title} record`} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "saturate(0.85) contrast(1.02)" }} />
                   )}
+                  {(c as { agentic?: boolean }).agentic && (
+                    <span
+                      title="Every token here is an AI agent you can chat with"
+                      style={{
+                        position: "absolute", top: 8, left: 8,
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        padding: "3px 9px", borderRadius: 999,
+                        background: "rgba(8,8,10,0.72)", backdropFilter: "blur(4px)",
+                        border: "1px solid var(--gold)", color: "var(--gold)",
+                        fontFamily: "var(--mono2)", fontSize: 9.5, fontWeight: 700,
+                        letterSpacing: "0.2em", textTransform: "uppercase",
+                      }}
+                    >
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--gold)", boxShadow: "0 0 6px var(--gold)" }} />
+                      Agent
+                    </span>
+                  )}
                 </div>
                 <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: c.statusColor, fontWeight: 700 }}>
                   <span>● {c.status}</span>
@@ -110,13 +137,28 @@ export default async function CollectionsIndex() {
                 <h3 style={{ fontFamily: "var(--display)", fontSize: 22, lineHeight: 1.1, margin: 0, color: "var(--ink)" }}>{c.title}</h3>
                 <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>{c.blurb}</p>
                 <span style={{ marginTop: "auto", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)" }}>
-                  BROWSE {c.total.toLocaleString()} →
+                  {(c as { agentic?: boolean }).agentic ? "MEET THE AGENTS →" : `BROWSE ${c.total.toLocaleString()} →`}
                 </span>
               </article>
             </Link>
           );
         })}
       </div>
+
+      {/* PROVENANCE — the anti-rug moat, folded in from the former /archive. */}
+      <section className="archive-page__provenance" style={{ marginTop: "var(--s-6)" }}>
+        <span className="archive-page__provenanceKicker">
+          ⬡ ONE ARCHITECT · ONE WALLET · ONE SIGNAL
+        </span>
+        <p className="archive-page__provenanceText">
+          Every collection in this universe was minted from the same architect&apos;s
+          wallet. The signals were never rugged — they were unfinished coordinates.
+          FREELON CITY is the place they finally connect.
+        </p>
+      </section>
+
+      {/* THE GRAVEYARD — abandoned citizens, folded in from the former /archive. */}
+      <GraveyardSection />
     </div>
   );
 }

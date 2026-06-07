@@ -7,7 +7,8 @@ import { CitizenShowcase } from "@/components/CitizenShowcase";
 import { HeroMarketStat } from "@/components/HeroMarketStat";
 import TransformsWall from "@/components/TransformsWall";
 import { ActivationProof } from "@/components/ActivationProof";
-import { ReturningOwnerNudge } from "@/components/ReturningOwnerNudge";
+import { YourAgentsRail } from "@/components/YourAgentsRail";
+import { topAgentHref } from "@/lib/featured-agent";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -49,7 +50,11 @@ export const dynamic = "force-dynamic";
 // (archive strip), the ten-civilizations grid, the pull quote, the on-chain
 // block. To restore one to the homepage, re-add its <section> + matching import.
 
-export default function Home() {
+export default async function Home() {
+  // Smart "SEE AN AGENT" — point at the current top-trained agent's identity
+  // page (not always citizen #1) so the highest-traffic CTA showcases a real
+  // specialized agent. Holder-aware override happens in the Header.
+  const seeAgentHref = await topAgentHref();
   return (
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */
@@ -75,6 +80,11 @@ export default function Home() {
               handle, citizen count, hex balance). */}
           <IdentityGreeting />
 
+          {/* Connected-holder home — a real "YOUR AGENTS" rail (their own citizen
+              art, framed, linking into each agent) instead of the old tiny strip.
+              Renders nothing for non-holders, so the newcomer pitch below leads. */}
+          <YourAgentsRail />
+
           {/* 2026-06-03 FREELONS-FIRST FUNNEL (founder restructure): the product
               value prop is the FIRST thing, in plain words a newcomer gets in
               ~10 seconds. Lore moved below. Three actions only. The structured
@@ -84,14 +94,14 @@ export default function Home() {
             FREELONS are 4,040 <strong>AI characters you own</strong>.
           </h1>
           <p className="hero-landing__tag">
-            It&apos;s yours — turn it into anything, give it real jobs, and it remembers everything you build
-            together. The character, the training, and the whole history travel with the NFT.
+            A character you own and train — it remembers everything you build together.
+            The character, the training, and the whole history travel with the NFT.
           </p>
           {/* ONE primary (SEE AN AGENT — experience it first), OWN secondary.
               EARN HEX lives in the header; the closing CTA repeats OWN at the buy
               moment. Deduped 2026-06-06 (each action appears once per surface). */}
           <div className="hero-landing__cta hero-cta-row">
-            <Link className="btn btn-primary btn-lg" href="/citizens/1">
+            <Link className="btn btn-primary btn-lg" href={seeAgentHref}>
               <span className="ttl">SEE AN AGENT →</span>
             </Link>
             <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
@@ -99,12 +109,6 @@ export default function Home() {
             </a>
           </div>
           <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
-
-          {/* Returning-owner nudge — catches a buyer who came back + connected,
-              routing them to unlock (closes the buy→unlock gap). Holders only. */}
-          <div style={{ marginTop: "var(--s-3)" }}>
-            <ReturningOwnerNudge />
-          </div>
 
           {/* Activation proof — the see→own bridge. Real paid unlocks as social
               proof; self-hides until at least one exists. 2026-06-07. */}
@@ -177,7 +181,7 @@ export default function Home() {
           <a className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
             <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
           </a>
-          <Link className="btn btn-secondary btn-lg" href="/citizens/1">
+          <Link className="btn btn-secondary btn-lg" href={seeAgentHref}>
             <span className="ttl">SEE AN AGENT →</span>
           </Link>
         </div>

@@ -94,7 +94,7 @@ const config: NextConfig = {
       // Social / archive / product folds
       { source: "/patrons",   destination: "/tribute#patrons",   permanent: true },
       { source: "/architect", destination: "/tribute#architect", permanent: true },
-      { source: "/graveyard", destination: "/archive#graveyard", permanent: true },
+      { source: "/graveyard", destination: "/collections#graveyard", permanent: true },
       { source: "/pfp",       destination: "/citizens#pfp",      permanent: true },
       { source: "/daily",     destination: "/play#daily",        permanent: true },
       // 2026-06-03 IA: Combat Archives renamed to the plain "Crypt TCG".

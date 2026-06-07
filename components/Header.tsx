@@ -4,6 +4,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { WalletConnect } from "@/components/WalletConnect";
 import { HeaderHexPill } from "@/components/HeaderHexPill";
 import { HeaderArchives } from "@/components/HeaderArchives";
+import { HeaderSeeAgent } from "@/components/HeaderSeeAgent";
 
 /**
  * Site header. Primary nav trimmed to 4 items (Start / Citizens / The
@@ -34,7 +35,7 @@ export function Header() {
               already fires in the homepage close + footer + mobile nav — having it
               ALSO as the gold header button made buy compete with the hero's
               "see an agent" and put OpenSea on screen 4× (2026-06-06 dedup). */}
-          <Link href="/citizens/1" className="btn btn-primary btn-sm nav-sync">See an Agent</Link>
+          <HeaderSeeAgent />
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>
