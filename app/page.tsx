@@ -118,9 +118,9 @@ export default function Home() {
         <ol className="how-steps">
           {[
             "Own a FREELON — it's your character",
+            "Unlock its agent with a one-time ETH payment",
             "Transform it, and give it real jobs",
             "It earns XP and remembers you",
-            "It develops a role",
             "Its work history grows",
             "Keep it — or sell it later as a trained character",
           ].map((s, i) => (

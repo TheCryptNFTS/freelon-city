@@ -75,7 +75,7 @@ export default function PlayHub() {
           Three ways into <em>the signal</em>.
         </h1>
         <p className="lead">
-          The free hook. The holder loop. The daily ritual. Pick a door.
+          Three free mini-games — the free hook, the holder loop, the daily ritual. Pick a door.
         </p>
         <p
           className="lead"

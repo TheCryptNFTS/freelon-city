@@ -67,7 +67,7 @@ export default async function Dashboard() {
       <CityFeedTicker />
       <section className="dashboard-hero">
         <span className="kicker">⬡ PULSE · LIVE FROM THE CITY</span>
-        <h1>The <em>numbers</em></h1>
+        <h1>The city&apos;s <em>live numbers</em></h1>
         <p className="lead">
           Live stats for the collection — floor price, who holds what, and how ⬡
           moves through the city. For holders who want the data; if you&apos;re new,{" "}

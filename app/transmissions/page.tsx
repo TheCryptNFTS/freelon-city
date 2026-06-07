@@ -48,9 +48,8 @@ export default async function TransmissionsPage({
           Citizens send their own<br /><em style={{ color: "var(--gold)", fontStyle: "normal" }}>signal</em>.
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", maxWidth: 540, lineHeight: 1.6 }}>
-          Carriers transmit images + captions, aligned with a civ.
-          Signals are free. Boosts amplify. Top transmissions earn hex.
-          The city remembers what moves through it.
+          Post an image + caption to the city feed. 100 ⬡ to send; the best one each week earns 5,000 ⬡.
+          (⬡ is the free city credit you earn by showing up — not real money.)
         </p>
       </section>
 

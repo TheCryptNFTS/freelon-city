@@ -73,7 +73,7 @@ export default function StartPage() {
           }}
         >
           Here&apos;s the whole thing in one line: <strong style={{ color: "var(--ink)" }}>own a FREELON,
-          then train it and put it to work</strong> — transform it into any style, give it real jobs,
+          unlock its agent with ETH, then train it and put it to work</strong> — transform it into any style, give it real jobs,
           and everything it learns becomes a work history that stays with the NFT when you sell.
         </p>
         {/* 2026-06-07 de-dupe (founder: "too complex"): the standalone "JUST WANT

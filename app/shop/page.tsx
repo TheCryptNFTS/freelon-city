@@ -52,7 +52,8 @@ export default function ShopPage() {
         <p className="lead">
           Physical fragments from FREELON CITY. Carrier garments, sealed
           objects, and archive pieces tied to the world forming around the
-          missing HEX. Spent in <strong>⬡ hex</strong>.
+          missing HEX. Paid in <strong>⬡ hex</strong> — the free city credit you
+          earn by showing up, not real money.
         </p>
       </section>
 
