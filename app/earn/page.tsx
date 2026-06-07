@@ -270,6 +270,13 @@ export default async function EarnPage() {
           <h2 style={{ fontFamily: "var(--display)", fontSize: 24, marginBottom: 12, letterSpacing: "-0.01em" }}>
             Trade. Sell. Burn. Climb.
           </h2>
+          {/* 2026-06-07 density: the 6 long-game earning rows are reference a
+              newcomer can't act on right now — folded behind a tap so Horizon 3
+              leads with its headline + CTA (mirrors the BURN fold below). */}
+          <details>
+            <summary style={{ cursor: "pointer", fontFamily: "var(--mono2)", fontSize: 12, color: "#A989C7", letterSpacing: "0.1em", marginBottom: 12 }}>
+              ▾ SEE ALL SIX LONG-GAME EARNERS
+            </summary>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <span>
@@ -314,6 +321,7 @@ export default async function EarnPage() {
               <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+5,000 ⬡ + 10% boost royalties</span>
             </li>
           </ul>
+          </details>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
             <Link href="/transmissions" className="btn btn-primary">
               <span className="ttl">⬡ TRANSMIT YOUR SIGNAL →</span>
