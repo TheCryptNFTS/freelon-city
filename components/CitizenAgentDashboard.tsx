@@ -516,6 +516,10 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
 
   /** Get an exact-ETH quote to ACTIVATE (one-time) or RECHARGE (refill) this agent. */
   async function getUnlockQuote() {
+    // Funnel instrumentation: the quote is the start of the pay intent. Paired
+    // with activation_paid, this measures quote→pay drop-off (where unlock
+    // conversion leaks). 2026-06-07.
+    trackEvent("unlock_quote_started", { kind: payKind, tier: unlock?.tier ?? "unknown" });
     setBusy(true); setErr(null); setPayNote(null); setPayStep("quoting");
     try {
       let creds: { address: string; signature: string } | null = null;
