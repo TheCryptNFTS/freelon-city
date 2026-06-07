@@ -216,6 +216,12 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             This NFT is an <strong>AI character you own</strong> — it remembers you, builds a work
             history that stays with the NFT, and grows as you train it.
           </p>
+          {/* Unlock primer (2026-06-07): state the whole loop — including the one
+              paid step — in one line before the dashboard, so the ETH unlock isn't
+              a surprise. Comprehension ceiling-raiser. */}
+          <p className="agent-lede" style={{ color: "var(--ink-dim)", fontSize: 13 }}>
+            Unlock it once with ETH to switch the agent on — yours forever, even if you sell — then spend ⬡ to give it jobs.
+          </p>
           {/* RÉSUMÉ LEADS (2026-06-03 founder brief): the first screen must answer
               who owns it · level · role · status · what it's done · how to use it.
               The résumé card does that; SEE IT WORK (proof) and the run panel
@@ -514,7 +520,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       <section style={{ marginTop: "var(--s-5)", maxWidth: "var(--maxw)", margin: "var(--s-5) auto 0", padding: "0 var(--pad)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <a className="btn btn-primary" href={openseaUrl(tid)} target="_blank" rel="noreferrer"><span className="ttl">BUY ON OPENSEA ↗</span></a>
+          {/* 2026-06-07: demoted to secondary. The agent dashboard above is the
+              page's single primary — for an owner it's UNLOCK, for a non-owner its
+              locked hero already drives the OpenSea buy. A second gold BUY here
+              made two competing primaries. */}
+          <a className="btn btn-secondary" href={openseaUrl(tid)} target="_blank" rel="noreferrer"><span className="ttl">BUY ON OPENSEA ↗</span></a>
           <Link className="btn btn-secondary" href={`/civilizations/${c.civilization}`}><span className="ttl">EXPLORE {civ?.name?.toUpperCase()} →</span></Link>
           <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
         </div>
