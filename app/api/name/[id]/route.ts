@@ -73,7 +73,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const verdict = await verifyOwnership(cid, address);
   if (verdict.status === "unknown") {
     return NextResponse.json(
-      { error: "⬡ SIGNAL DISRUPTED · the city couldn't read your chain credentials · retry" },
+      { error: "⬡ SIGNAL WEAK · couldn't reach the chain just now · wait a moment and retry. Your ownership is safe on-chain." },
       { status: 503 },
     );
   }

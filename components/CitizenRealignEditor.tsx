@@ -67,7 +67,7 @@ export function CitizenRealignEditor({ citizenId, tier, originalCiv, currentReal
       <section className="realign-editor">
         <span className="kicker">⬡ HOLDER · REALIGN CITIZEN #{id4}</span>
         <p className="name-msg name-err">
-          ⬡ SIGNAL DISRUPTED · the city couldn&apos;t read your chain credentials · retry
+          ⬡ SIGNAL WEAK · couldn&apos;t reach the chain just now · wait a moment and retry. Your ownership is safe on-chain.
         </p>
       </section>
     );

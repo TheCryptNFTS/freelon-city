@@ -26,7 +26,7 @@ export function CitizenJobsBoard({ citizenId }: Props) {
       <section className="jobs-board">
         <span className="kicker">⬡ HOLDER · JOBS · #{id4}</span>
         <p className="jobs-msg jobs-err">
-          ⬡ SIGNAL DISRUPTED · the city couldn&apos;t read your chain credentials · retry
+          ⬡ SIGNAL WEAK · couldn&apos;t reach the chain to load your citizens just now · wait a moment and retry. Your ownership is safe on-chain.
         </p>
       </section>
     );
@@ -100,7 +100,7 @@ export function CitizenJobsBoard({ citizenId }: Props) {
       // Errors.
       setStates((s) => ({ ...s, [job.id]: "err" }));
       if (res.status === 503) {
-        setErrText("⬡ SIGNAL DISRUPTED · couldn't verify ownership · retry.");
+        setErrText("⬡ SIGNAL WEAK · couldn't reach the chain to confirm ownership just now · wait a moment and retry.");
       } else if (res.status === 403) {
         setErrText("You no longer own this citizen.");
       } else {

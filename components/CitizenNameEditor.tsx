@@ -35,7 +35,7 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
       <section className="name-editor">
         <span className="kicker">⬡ HOLDER · NAME CITIZEN #{id4}</span>
         <p className="name-msg name-err">
-          ⬡ SIGNAL DISRUPTED · the city couldn&apos;t read your chain credentials · retry
+          ⬡ SIGNAL WEAK · couldn&apos;t reach the chain just now · wait a moment and retry. Your ownership is safe on-chain.
         </p>
       </section>
     );
