@@ -148,6 +148,7 @@ export function CitizenRealignEditor({ citizenId, tier, originalCiv, currentReal
     <section className="realign-editor">
       <span className="kicker">⬡ HOLDER · REALIGN CITIZEN #{id4}</span>
       <h4>Civilization Realignment</h4>
+      <p className="cooldown-note">Change which civilization (tribe) this FREELON belongs to. Costs ⬡.</p>
 
       {realignment && (
         <p className="cooldown-note">
