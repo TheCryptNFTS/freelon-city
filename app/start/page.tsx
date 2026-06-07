@@ -75,54 +75,19 @@ export default function StartPage() {
           Here&apos;s the whole thing in one line: <strong style={{ color: "var(--ink)" }}>own a FREELON,
           then train it and put it to work</strong> — transform it into any style, give it real jobs,
           and everything it learns becomes a work history that stays with the NFT when you sell.
-          (Prefer to look around free first? You can — scroll down.)
         </p>
-      </section>
-
-      {/* ── DO THIS ONE THING ──
-         2026-05-31: the single first action, above everything. Munch's
-         core note was "if they have to do too much to get anywhere they
-         give up." So before the 9 sections, one card, one button. The
-         detail below is optional — this is the whole ask for a newcomer. */}
-      <section
-        style={{
-          marginBottom: "var(--s-6)",
-          padding: "var(--s-4) var(--s-4)",
-          border: "1px solid var(--gold)",
-          borderTop: "3px solid var(--gold-bright)",
-          background: "var(--tint-gold)",
-          borderRadius: 14,
-          textAlign: "center",
-        }}
-      >
-        <span className="kicker" style={{ color: "var(--gold-bright)" }}>⬡ JUST WANT TO START?</span>
-        <h2
-          style={{
-            fontFamily: "var(--display)",
-            fontSize: "clamp(24px, 4vw, 34px)",
-            lineHeight: 1.05,
-            letterSpacing: "-0.015em",
-            margin: "10px 0 6px",
-          }}
-        >
-          Do one thing: <em style={{ color: "var(--gold)", fontStyle: "normal" }}>see an agent work.</em>
-        </h2>
-        <p
-          style={{
-            fontFamily: "var(--mono2)",
-            fontSize: 13,
-            color: "var(--ink-2)",
-            lineHeight: 1.6,
-            maxWidth: 480,
-            margin: "0 auto var(--s-3)",
-          }}
-        >
-          Open a real FREELON and see what its agent does — no wallet needed. Everything below is
-          optional reading for when you want it.
-        </p>
-        <Link className="btn btn-primary" href="/citizens/1">
-          <span className="ttl">SEE AN AGENT →</span>
-        </Link>
+        {/* 2026-06-07 de-dupe (founder: "too complex"): the standalone "JUST WANT
+            TO START?" gold box duplicated this hero with the same SEE AN AGENT
+            button. Folded its one action into the hero so the page opens on ONE
+            focal box, not two. No wallet needed to look. */}
+        <div style={{ marginTop: "var(--s-4)", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <Link className="btn btn-primary btn-lg" href="/citizens/1">
+            <span className="ttl">SEE AN AGENT →</span>
+          </Link>
+          <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)" }}>
+            no wallet needed · everything below is optional reading
+          </span>
+        </div>
       </section>
 
       {/* ── 30-SECOND VERSION ──
@@ -217,18 +182,9 @@ export default function StartPage() {
         </Faq>
       </Section>
 
-      {/* ── DO I NEED TO BUY? ── */}
-      <Section title="Do I need to buy one?" collapsible>
-        <Box>
-          <Strong color="#7AE08D">To look around — no.</Strong> You can sync, earn ⬡, and browse all{" "}
-          {TOTAL.toLocaleString()} citizens for free (see the section below).
-        </Box>
-        <Box>
-          <Strong color="var(--gold)">To own a trained character — yes.</Strong> Owning a FREELON and unlocking it
-          gives you the agent: a character you transform, put to work on real jobs, and grow — its skills and
-          work history stay with the NFT when you sell. That&apos;s the product.
-        </Box>
-      </Section>
+      {/* "Do I need to buy?" section removed 2026-06-07 — its content (look
+          around free vs. own to get the agent) is already covered by "The four
+          steps" below + the "Prefer to look around free first?" section. */}
 
       {/* ── THE FOUR STEPS (agent-first) ── */}
       <Section title="The four steps">

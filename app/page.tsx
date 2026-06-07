@@ -85,8 +85,6 @@ export default function Home() {
             It&apos;s yours — turn it into anything, give it real jobs, and it remembers everything you build
             together. The character, the training, and the whole history travel with the NFT.
           </p>
-          <p className="hero-landing__rhythm">Make it yours. Transform it. Train it. Trade it.</p>
-
           {/* ONE primary (SEE AN AGENT — experience it first), OWN secondary.
               EARN HEX lives in the header; the closing CTA repeats OWN at the buy
               moment. Deduped 2026-06-06 (each action appears once per surface). */}
@@ -109,21 +107,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── WHY OWN A FREELON? — the money explanation, in plain words, right
-          under the hero. Filetree styling matches the brand's terminal voice.
-          Copy is deliberately careful: "more useful / more desirable", visible
-          work history, trained vs blank — no investment / appreciation claims. */}
-      <section className="why-own reveal">
-        <span className="kicker">⬡ WHY OWN A FREELON?</span>
-        <ul className="filetree">
-          <li>It&apos;s yours — a character no one else has</li>
-          <li>Transform it into any style — robot, statue, anime — ready to share</li>
-          <li>It remembers you and your project, so every job gets sharper</li>
-          <li>Put it to work — writing, strategy, research, red-team</li>
-          <li>Everything it learns becomes a visible work history</li>
-          <li>The character and its history travel with the NFT when you sell</li>
-        </ul>
-      </section>
+      {/* "Why own a FREELON?" section removed 2026-06-07 (founder: "too complex")
+          — it restated the hero tag AND "How it works" below as a third copy of
+          the same value prop. The hero says it once; How It Works shows the loop. */}
 
       {/* ── HOW IT WORKS — the loop in six steps + the six roles a FREELON can
           grow into. */}
