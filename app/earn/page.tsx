@@ -134,12 +134,23 @@ export default async function EarnPage() {
           ⬡ is the city&apos;s credit — earn it free by showing up and sharing, then spend it to run your
           agent&apos;s jobs. Three ways below: one quick, one daily, one slow burn.
         </p>
+        {/* 2026-06-07 funnel: tie earned HEX back to the product so /earn feeds
+            the loop instead of being a dead-end sink. */}
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", lineHeight: 1.6, maxWidth: 540, marginTop: 10 }}>
+          New here? ⬡ is the fuel — you spend it running an unlocked FREELON&apos;s agent.{" "}
+          <Link href="/citizens/1" style={{ color: "var(--gold)" }}>See an agent first →</Link>
+        </p>
       </section>
 
       {/* ── HORIZON 1: RIGHT NOW ───────────────────────────────────── */}
       <section style={{ marginBottom: "var(--s-6)" }}>
         <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "var(--s-3)", gap: 12, flexWrap: "wrap" }}>
           <span className="kicker" style={{ color: "#FF5A4D" }}>① RIGHT NOW · 5 MINUTES</span>
+          {/* Plain-English gloss for the degen vocabulary below (content audit:
+              "snipe / red signal / sweep" were undefined on a newcomer surface). */}
+          <span style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.02em", width: "100%", order: 3, marginTop: 4 }}>
+            ⬡ A &ldquo;red signal&rdquo; = a FREELON listed cheap (below floor). Buy one, hold it a few days, earn ⬡.
+          </span>
           {hasLive && (
             <span
               style={{
