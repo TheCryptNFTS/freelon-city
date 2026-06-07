@@ -12,11 +12,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Play · FREELON CITY Arcade",
   description:
-    "Six ways into the signal. Match the hex, sweep the corrupted floor, restore the dark city, crack the daily frequency, wage the weekly civ war, decode the transmission. Prototype arcade for FREELON CITY.",
+    "Three ways into the signal. Match the hex, restore the dark city, crack the daily frequency. Prototype arcade for FREELON CITY.",
   openGraph: {
     title: "FREELON CITY ARCADE",
     description:
-      "Six ways into the signal. Match the hex, sweep the floor, restore the city, crack the frequency, wage the civ war, decode the transmission.",
+      "Three ways into the signal. Match the hex, restore the city, crack the daily frequency.",
     images: [
       { url: "/api/og/play?t=THE%20ARCADE&k=PLAY%20THE%20SIGNAL", width: 1200, height: 630 },
     ],
@@ -34,6 +34,11 @@ export const metadata: Metadata = {
 // games were, so they played them wrong or bounced. Naming the familiar
 // genre up front (Wordle / Bejeweled / idle clicker) lets people pattern-
 // match in seconds instead of decoding the lore first.
+// 2026-06-07 de-sprawl (founder: "too much stuff"): the hub now surfaces the
+// THREE games with distinct, clear roles — the free hook, the holder loop, the
+// daily ritual. The other prototypes (sweep / reckoning / cipher) still work by
+// direct URL but are no longer listed here so the arcade reads as one clear
+// door with a few games, not a wall of six near-identical prototypes.
 const GAMES = [
   {
     href: "/play/hex-match",
@@ -59,30 +64,6 @@ const GAMES = [
     blurb:
       "One hidden code a day. Guess it; the dots tell you how close you are. Crack it within your tries. No clues to unlock — pure deduction, same puzzle for everyone, shareable on X.",
     accent: "var(--gold-bright)",  },
-  {
-    href: "/play/sweep",
-    kicker: "ARCADE · NO WALLET",
-    title: "Sweep Run",
-    genre: "Reflex arcade — tap fast",
-    blurb:
-      "The floor is corrupting. Sweep the dead signals before they take the grid — but spare the living. A pure reflex hit. Beat your best, share the score.",
-    accent: "var(--neon-cyan)",  },
-  {
-    href: "/play/reckoning",
-    kicker: "WEEKLY · HOLDER WAR",
-    title: "The Reckoning",
-    genre: "Weekly team war (king-of-the-hill)",
-    blurb:
-      "Ten civilizations, one crown a week. Burn hex to muster for your side — your citizens amplify the signal. The leading civ when the week ends is crowned, and the city remembers.",
-    accent: "var(--neon-magenta)",  },
-  {
-    href: "/play/cipher",
-    kicker: "ARG · LORE",
-    title: "The Cipher",
-    genre: "Puzzle hunt / ARG",
-    blurb:
-      "Five fragments of a lost transmission, scattered across the lore. Decode each to reassemble what the city was trying to say.",
-    accent: "var(--gold-bright)",  },
 ];
 
 export default function PlayHub() {
@@ -91,18 +72,17 @@ export default function PlayHub() {
       <section className="manifesto-hero">
         <span className="kicker">⬡ FREELON CITY · ARCADE · PROTOTYPE</span>
         <h1>
-          Six ways into <em>the signal</em>.
+          Three ways into <em>the signal</em>.
         </h1>
         <p className="lead">
-          The free hook. The reflex run. The holder loop. The daily ritual. The
-          weekly war. The community hunt. Pick a door.
+          The free hook. The holder loop. The daily ritual. Pick a door.
         </p>
         <p
           className="lead"
           style={{ fontSize: 13, opacity: 0.7, marginTop: 8 }}
         >
-          Six separate games — each one stands alone. None of them unlocks
-          another, and nothing here hides clues for the others.
+          Each one stands alone — none unlocks another, and nothing here hides
+          clues for the others.
         </p>
       </section>
 

@@ -58,19 +58,15 @@ const GROUPS: NavGroup[] = [
   {
     heading: "THE CITY",
     links: [
-      { href: "/civilizations", label: "Factions" },
       { href: "/collections",   label: "Collections" },
       { href: "/transmissions", label: "Community wall" },
       { href: "/shop",          label: "Shop" },
-      { href: "/crypt-tcg",     label: "Crypt TCG · soon" },
     ],
   },
   {
     heading: "LORE",
     links: [
       { href: "/canon",     label: "Story & glossary" },
-      { href: "/archive",   label: "Other Signals" },
-      { href: "/tribute",   label: "Honorees" },
     ],
   },
 ];

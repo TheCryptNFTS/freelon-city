@@ -56,19 +56,15 @@ const GROUPS: Group[] = [
   {
     heading: "The city",
     items: [
-      { href: "/civilizations", label: "Factions" },         // absorbs castes / shapes
       { href: "/collections",   label: "Collections" },      // the 6-collection index
       { href: "/transmissions", label: "Community wall" },
       { href: "/shop",          label: "Shop" },
-      { href: "/crypt-tcg",     label: "Crypt TCG · soon" }, // demoted: reconstruction-unstable placeholder, last + soft "soon" cue
     ],
   },
   {
     heading: "Lore",
     items: [
-      { href: "/canon",     label: "Story & glossary" },     // absorbs lexicon / names / secrets / roadmap / manifesto / origin
-      { href: "/archive",   label: "Other Signals" },        // the other collections as universe layers (provenance)
-      { href: "/tribute",   label: "Honorees" },             // moved LOWER — clout-borrowing risk
+      { href: "/canon",     label: "Story & glossary" },     // absorbs lexicon / names / secrets / roadmap / manifesto / origin / factions
     ],
   },
 ];
