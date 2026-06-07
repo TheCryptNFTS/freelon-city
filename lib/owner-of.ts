@@ -90,6 +90,55 @@ export type OwnershipVerdict =
   | { status: "unknown" };
 
 /**
+ * Slug-aware OpenSea fallback for SISTER collections. Asks OpenSea v2 for the
+ * wallet's NFTs in this collection and checks whether the claimed tokenId is
+ * among them. Deliberately CONFIRM-ONLY: it returns true only on a positive
+ * match, never a denial — OpenSea can lag a chain transfer by minutes, so a
+ * miss is treated as "couldn't confirm", not "doesn't own". This exists so a
+ * real holder isn't locked out by a griefable 503 when the sister RPC is
+ * flooded (H1); it can only ever upgrade "unknown" → "owner". */
+async function ownedViaOpenSea(tokenId: number, wallet: string, slug: string): Promise<boolean> {
+  const apiKey = process.env.OPENSEA_API_KEY;
+  if (!apiKey) return false;
+  const c = collectionBySlug(slug);
+  if (!c) return false;
+  const want = String(tokenId);
+  const contract = c.contract.toLowerCase();
+  let next: string | null = null;
+  const MAX_PAGES = 3; // up to 600 of this collection's NFTs in the wallet
+  for (let page = 0; page < MAX_PAGES; page++) {
+    try {
+      const u = new URL(`https://api.opensea.io/api/v2/chain/${c.chain}/account/${wallet}/nfts`);
+      u.searchParams.set("collection", slug);
+      u.searchParams.set("limit", "200");
+      if (next) u.searchParams.set("next", next);
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 5_000);
+      const r = await fetch(u.toString(), {
+        headers: { "X-API-KEY": apiKey, accept: "application/json" },
+        signal: ctrl.signal,
+        next: { revalidate: 60 },
+      });
+      clearTimeout(to);
+      if (!r.ok) return false;
+      const d = (await r.json()) as {
+        nfts?: Array<{ contract?: string; identifier?: string }>;
+        next?: string | null;
+      };
+      const hit = (d.nfts || []).some(
+        (n) => (n.contract || "").toLowerCase() === contract && String(n.identifier) === want,
+      );
+      if (hit) return true;
+      next = d.next ?? null;
+      if (!next) return false;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
  * Server-side multi-source ownership check.
  *
  * Tries RPC ownerOf first (4-RPC fallback). If that fails, cross-checks
@@ -112,10 +161,14 @@ export async function verifyOwnership(
       : { status: "not-owner", actualOwner: onChainOwner };
   }
 
-  // Source 2: OpenSea-backed wallet/tokens fallback — FREELONS-only (the helper
-  // is bound to the flagship contract). For sister collections a failed RPC
-  // yields "unknown" (a safe retry state), never a false denial.
-  if (slug !== DEFAULT_SLUG) return { status: "unknown" };
+  // Source 2 (sisters): slug-aware OpenSea CONFIRM-ONLY fallback. When the
+  // sister RPC fails, a real holder can still be granted via OpenSea so a
+  // flooded RPC can't grief them into a 503 (H1). A miss stays "unknown"
+  // (safe retry), never a false denial.
+  if (slug !== DEFAULT_SLUG) {
+    if (await ownedViaOpenSea(tokenId, wallet, slug)) return { status: "owner" };
+    return { status: "unknown" };
+  }
   try {
     const tokens = await getWalletTokens(wallet, 200);
     if (tokens && Array.isArray(tokens.tokenIds)) {

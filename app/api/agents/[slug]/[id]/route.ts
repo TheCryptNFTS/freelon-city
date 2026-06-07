@@ -89,11 +89,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     input?: string;
     address?: string;
     signature?: string;
+    ts?: number;
   };
 
   // 4. Auth — wallet signature only (sisters have no x-session path). Message is
-  //    slug-namespaced and reconstructed here, so the signature can't be replayed
-  //    onto the FREELONS routes (different message string).
+  //    slug-namespaced AND timestamp-bound, so the signature can't be replayed
+  //    onto the FREELONS routes (different message string) and a captured
+  //    signature is only replayable within SIG_WINDOW_MS, not forever (M1).
   if (!body.address || !body.signature) {
     return NextResponse.json({ error: "auth_required" }, { status: 401 });
   }
@@ -101,8 +103,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   if (!/^0x[a-f0-9]{40}$/.test(address)) {
     return NextResponse.json({ error: "invalid address" }, { status: 400 });
   }
+  // Timestamp must be present and within the accept window. A stale/missing ts
+  // returns auth_required so the client re-signs with a fresh timestamp.
+  const SIG_WINDOW_MS = 30 * 60 * 1000;
+  const ts = Number(body.ts);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() - ts) > SIG_WINDOW_MS) {
+    return NextResponse.json({ error: "auth_required" }, { status: 401 });
+  }
   const missionId = (body.missionId ?? "talk").trim() || "talk";
-  const message = `I am deploying ${slug} #${tid} on mission "${missionId}".`;
+  const message = `I am deploying ${slug} #${tid} on mission "${missionId}" at ${ts}.`;
   let sigOk = false;
   try {
     sigOk = await verifyMessage({

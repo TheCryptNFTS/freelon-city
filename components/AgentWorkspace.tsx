@@ -110,7 +110,7 @@ export function AgentWorkspace(props: Props) {
   const [infoOpen, setInfoOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
 
-  const sigCache = useRef<Record<string, string>>({});
+  const sigCache = useRef<Record<string, { signature: string; ts: number }>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   /* ── Load saved threads ──────────────────────────────────────────────── */
@@ -229,22 +229,32 @@ export function AgentWorkspace(props: Props) {
   }
 
   /* ── Sign (cached per mission) ───────────────────────────────────────── */
-  async function sign(missionId: string): Promise<{ address: string; signature: string }> {
+  // Sisters bind a timestamp into the signed message (replay protection): a
+  // cached signature is reused only while it's inside the server's accept
+  // window (SIG_WINDOW_MS), then we transparently re-sign. FREELONS messages
+  // carry NO timestamp — their cached signature stays valid indefinitely, so
+  // the money-path UX is unchanged (no per-run wallet popups).
+  const SIG_WINDOW_MS = 30 * 60 * 1000;
+  async function sign(missionId: string): Promise<{ address: string; signature: string; ts: number }> {
     const e = eth();
     if (!e || !address) throw new Error("Connect your wallet first.");
-    if (sigCache.current[missionId]) return { address, signature: sigCache.current[missionId] };
+    const cached = sigCache.current[missionId];
+    if (cached && (!slug || Date.now() - cached.ts < SIG_WINDOW_MS)) {
+      return { address, signature: cached.signature, ts: cached.ts };
+    }
+    const ts = Date.now();
     const message = slug
-      ? `I am deploying ${slug} #${tokenId} on mission "${missionId}".`
+      ? `I am deploying ${slug} #${tokenId} on mission "${missionId}" at ${ts}.`
       : `I am deploying FREELON CITY citizen #${tokenId} on mission "${missionId}".`;
     const signature = (await e.request({ method: "personal_sign", params: [message, address] })) as string;
-    sigCache.current[missionId] = signature;
-    return { address, signature };
+    sigCache.current[missionId] = { signature, ts };
+    return { address, signature, ts };
   }
 
   /* ── Run a mission (text or image), with auth retry ──────────────────── */
   async function runMission(missionId: string, input: string): Promise<{ ok: boolean; output?: { body: string; meta?: { kind?: string } }; error?: string; level?: number; balance?: number }> {
     const base: Record<string, unknown> = { missionId, input };
-    let creds: { address: string; signature: string } | null = null;
+    let creds: { address: string; signature: string; ts: number } | null = null;
     for (let attempt = 0; attempt < 2; attempt++) {
       const res = await fetch(missionUrl, {
         method: "POST",
