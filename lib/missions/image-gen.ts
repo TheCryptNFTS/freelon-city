@@ -194,7 +194,10 @@ export async function generateCitizenScene(args: {
   );
 
   const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 60_000);
+  // 240s default leaves ~60s headroom under the route's 300s ceiling for the
+  // reference fetch, signature stamp, and Blob upload — so a real overrun aborts
+  // cleanly (→ refundable "timeout") instead of the platform killing the function.
+  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 240_000);
   try {
     const res = await fetch(OPENAI_IMAGE_URL, {
       method: "POST",
@@ -294,7 +297,7 @@ export async function generateEvolvedArt(args: {
   form.append("image", new Blob([new Uint8Array(ref)], { type: "image/jpeg" }), `${id4(args.citizen.id)}.jpg`);
 
   const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 90_000);
+  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 240_000);
   try {
     const res = await fetch(OPENAI_IMAGE_URL, {
       method: "POST",
@@ -366,7 +369,7 @@ export async function generateCrewTransform(args: {
   form.append("image[]", new Blob([new Uint8Array(b)], { type: "image/jpeg" }), `${id4(args.citizenB.id)}.jpg`);
 
   const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 60_000);
+  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 240_000);
   try {
     const res = await fetch(OPENAI_IMAGE_URL, {
       method: "POST",

@@ -15,6 +15,9 @@ import { generateEvolvedArt } from "@/lib/missions/image-gen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Produces a high-quality gpt-image-1.5 render (slow). Without this the function
+// is killed long before the render returns. 300s = Vercel Pro max.
+export const maxDuration = 300;
 
 /**
  * POST /api/agent/evolve — EVOLVE a citizen's DISPLAYED art (opt-in, revertable).
