@@ -631,18 +631,18 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       <div className="agentdash-pay-hd">
         <span className="kicker">
           {payKind === "recharge"
-            ? `⬡ RECHARGE · ${unlock?.tier?.toUpperCase()}`
-            : `⬡ ACTIVATE YOUR AGENT · ${unlock?.tier?.toUpperCase()}`}
+            ? `⬡ TOP UP RUNS · ${unlock?.tier?.toUpperCase()}`
+            : `⬡ UNLOCK YOUR AGENT · ${unlock?.tier?.toUpperCase()}`}
         </span>
         <button type="button" className="agentdash-pay-cancel" onClick={resetPay} disabled={busy}>CANCEL</button>
       </div>
       {payKind === "recharge" ? (
         <p className="agentdash-pay-note">
-          Your agent is already activated — this just adds more bonus ⬡. You only pay the one-time activation once.
+          Your agent is already unlocked — this just adds more bonus ⬡. You only pay the one-time unlock once.
         </p>
       ) : (
         <p className="agentdash-pay-note">
-          Activates every ability — write, strategy, research, red-team, dossier &amp; branded image generation — <strong>forever</strong>, and drops <strong>bonus ⬡</strong> in your wallet. Less than a month of ChatGPT. Activation + training history stay with the FREELON when it changes hands.
+          Unlocks every ability — write, strategy, research, red-team, dossier &amp; branded image generation — <strong>forever</strong>, and drops <strong>bonus ⬡</strong> in your wallet. Less than a month of ChatGPT. The unlock + training history stay with the FREELON when it changes hands.
         </p>
       )}
       {payStep === "quoting" && <p className="agentdash-pay-note">Getting the price…</p>}
@@ -666,7 +666,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
             disabled={busy || !accepted || payStep === "confirming"}
             onClick={payUnlock}
           >
-            <span className="ttl">{payStep === "confirming" ? (payKind === "recharge" ? "RECHARGING…" : "ACTIVATING…") : `PAY ${quote.amountEth} ETH & ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
+            <span className="ttl">{payStep === "confirming" ? (payKind === "recharge" ? "TOPPING UP…" : "UNLOCKING…") : `PAY ${quote.amountEth} ETH & ${payKind === "recharge" ? "TOP UP" : "UNLOCK"} →`}</span>
           </button>
           <div className="agentdash-pay-manual">
             <span className="agentdash-pay-manual-lbl">Already sent it yourself? Paste the transaction hash:</span>
@@ -683,7 +683,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               disabled={busy || !accepted || !/^0x[a-fA-F0-9]{64}$/.test(txInput)}
               onClick={() => claimUnlock(txInput)}
             >
-              <span className="ttl">{busy ? "VERIFYING…" : `I'VE PAID — ${payKind === "recharge" ? "RECHARGE" : "ACTIVATE"} →`}</span>
+              <span className="ttl">{busy ? "VERIFYING…" : `I'VE PAID — ${payKind === "recharge" ? "TOP UP" : "UNLOCK"} →`}</span>
             </button>
           </div>
         </>
@@ -724,7 +724,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           <span className="agentdash-lockhero-eye" aria-hidden>⬡</span>
           <h3 className="agentdash-lockhero-h">UNLOCK YOUR CITIZEN</h3>
           <p className="agentdash-lockhero-sub">
-            This FREELON&apos;s AI agent is sleeping. Activate it to put it to work — writing, strategy,
+            This FREELON&apos;s AI agent is sleeping. Unlock it to put it to work — writing, strategy,
             research, red-team &amp; branded image generation — and it remembers everything you build together.
           </p>
           {payStep === "idle" ? (
@@ -732,7 +732,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               <div className="agentdash-lockhero-price">
                 <span className="agentdash-lockhero-tier">{unlock?.tier ?? "—"}</span>
                 <span className="agentdash-lockhero-eth">{unlock?.priceEth ?? "…"} ETH</span>
-                <span className="agentdash-lockhero-note">one-time · activates forever · + bonus ⬡</span>
+                <span className="agentdash-lockhero-note">one-time · unlocks forever · + bonus ⬡</span>
               </div>
               <button className="btn btn-primary agentdash-lockhero-cta" type="button" disabled={busy} onClick={getUnlockQuote}>
                 <span className="ttl">⬡ UNLOCK · {unlock?.priceEth} ETH →</span>
@@ -741,7 +741,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                   Ddn): activation price is set by this citizen's rarity, so it
                   differs per FREELON — and you can only activate ones you own. */}
               <p className="agentdash-lockhero-why">
-                Price is set by this citizen&apos;s rarity — rarer FREELONS cost more to activate. You can only activate ones you own.
+                Price is set by this citizen&apos;s rarity — rarer FREELONS cost more to unlock. You can only unlock ones you own.
               </p>
               {err && <p className="agentdash-err">{err}</p>}
             </>
@@ -760,7 +760,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               new currency or grant — pure onboarding over the bonus they have. */}
           {!locked && justActivated && history.length === 0 && (
             <div className="agentdash-firstrun">
-              <span className="kicker">⬡ ACTIVATED · YOUR AGENT IS AWAKE</span>
+              <span className="kicker">⬡ UNLOCKED · YOUR AGENT IS AWAKE</span>
               <p className="agentdash-firstrun-line">
                 You&apos;ve got bonus ⬡ to spend — your first job is on us. Pick one and run it now:
               </p>

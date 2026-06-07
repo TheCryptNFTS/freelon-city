@@ -176,8 +176,8 @@ export function EvolvePanel({ citizenId }: Props) {
       <div className="agentdash-hd">
         <span className="kicker">⬡ EVOLVE THIS CITIZEN&apos;S ART{status.comingSoon ? " · COMING SOON" : ""}</span>
         {status.evolved && status.tier != null && (
-          <span className="agentdash-credits" title="This citizen's art is awakened. Your original is always preserved.">
-            ⬡ AWAKENED · TIER {status.tier}
+          <span className="agentdash-credits" title="This citizen's art is evolved. Your original is always preserved.">
+            ⬡ EVOLVED · TIER {status.tier}
           </span>
         )}
       </div>
@@ -193,7 +193,7 @@ export function EvolvePanel({ citizenId }: Props) {
       {!status.evolved && status.canEvolve && (
         <div className="agentdash-images">
           <p className="agentdash-images-sub">
-            Optional &amp; additive: awaken your citizen&apos;s art at its current tier. It&apos;s fully
+            Optional &amp; additive: evolve your citizen&apos;s art at its current tier. It&apos;s fully
             <strong> revertable</strong> — your original is always preserved.
           </p>
           <p className="agentdash-images-sub">
@@ -216,7 +216,7 @@ export function EvolvePanel({ citizenId }: Props) {
       {status.evolved && (
         <div className="agentdash-images">
           <p className="agentdash-images-sub">
-            Your citizen&apos;s art is awakened. <strong>Your original is always preserved</strong> — revert any time.
+            Your citizen&apos;s art is evolved. <strong>Your original is always preserved</strong> — revert any time.
           </p>
           {toggle}
           <figure className="agentdash-image-out">
