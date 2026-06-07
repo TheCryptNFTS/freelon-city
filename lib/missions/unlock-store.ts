@@ -201,6 +201,77 @@ export type UnlockStatus = {
   grantPerUnlock: number;
 };
 
+export type ActivationsSummary = {
+  /** Distinct citizens ever activated (the real paid-activation count). */
+  activatedCount: number;
+  /** Sum of priceEthPaid across all activation records (gross ETH from unlocks). */
+  totalEthPaid: number;
+  /** Newest activations first, capped for display. */
+  recent: { tokenId: number; tier: string; priceEthPaid: number; unlockedAt: number; txHash: string }[];
+};
+
+/**
+ * Scan the unlock ledger (freelon:unlock:v2:*) and summarise real activations.
+ * This is the app's own record of who paid to activate — the count + gross ETH.
+ * Mirrors the SCAN+MGET pattern in wallet-hex-store.listWalletHexRecords, with a
+ * hard wall-clock budget so a busy Upstash can't blow the function timeout.
+ */
+export async function listActivations(limit = 5000): Promise<ActivationsSummary> {
+  const empty: ActivationsSummary = { activatedCount: 0, totalEthPaid: 0, recent: [] };
+  const summarise = (recs: UnlockRecord[]): ActivationsSummary => {
+    const active = recs.filter((r) => r && r.activated);
+    const recent = [...active]
+      .sort((a, b) => b.unlockedAt - a.unlockedAt)
+      .slice(0, 20)
+      .map((r) => ({ tokenId: r.tokenId, tier: r.tier, priceEthPaid: r.priceEthPaid, unlockedAt: r.unlockedAt, txHash: r.lastTxHash }));
+    return {
+      activatedCount: active.length,
+      totalEthPaid: active.reduce((s, r) => s + (Number(r.priceEthPaid) || 0), 0),
+      recent,
+    };
+  };
+
+  if (!hasUpstash) return summarise(Array.from(mem.unlocks.values()));
+
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL!;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
+    const pattern = "freelon:unlock:v2:*";
+    const keys: string[] = [];
+    let cursor = "0";
+    let pages = 0;
+    const startedAt = Date.now();
+    const HARD_BUDGET_MS = 5000;
+    do {
+      if (Date.now() - startedAt > HARD_BUDGET_MS) break;
+      const res = await fetch(
+        `${url}/SCAN/${encodeURIComponent(cursor)}/MATCH/${encodeURIComponent(pattern)}/COUNT/1000`,
+        { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+      );
+      if (!res.ok) break;
+      const j = (await res.json()) as { result: [string, string[]] };
+      cursor = j.result[0];
+      for (const k of j.result[1]) keys.push(k);
+      pages++;
+      if (keys.length >= limit || pages > 12) break;
+    } while (cursor !== "0");
+
+    if (keys.length === 0) return empty;
+    const mgetUrl = `${url}/MGET/${keys.map((k) => encodeURIComponent(k)).join("/")}`;
+    const mr = await fetch(mgetUrl, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+    if (!mr.ok) return empty;
+    const mj = (await mr.json()) as { result: (string | null)[] };
+    const recs: UnlockRecord[] = [];
+    for (const raw of mj.result) {
+      if (!raw) continue;
+      try { recs.push(JSON.parse(raw) as UnlockRecord); } catch { /* skip bad record */ }
+    }
+    return summarise(recs);
+  } catch {
+    return empty;
+  }
+}
+
 /** Read-only status for the dashboard meter + activate/recharge CTA. */
 export async function unlockStatus(tokenId: number): Promise<UnlockStatus> {
   const tier = unlockTierFor(getCitizen(tokenId)?.tier);
