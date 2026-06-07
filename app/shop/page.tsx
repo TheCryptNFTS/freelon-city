@@ -69,9 +69,11 @@ export default function ShopPage() {
 
       <section style={{ marginTop: "var(--s-6)", padding: "0 var(--pad)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
+        {/* 2026-06-07 funnel: shop is a HEX sink off the core loop — repoint its
+            primary back to the product so a non-owner doesn't dead-end here. */}
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <Link className="btn btn-primary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
-          <Link className="btn btn-secondary" href="/archive"><span className="ttl">READ THE ARCHIVE →</span></Link>
+          <Link className="btn btn-primary" href="/citizens/1"><span className="ttl">DON&apos;T OWN A FREELON? SEE AN AGENT →</span></Link>
+          <Link className="btn btn-secondary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
         </div>
       </section>
     </div>

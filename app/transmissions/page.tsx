@@ -133,9 +133,11 @@ export default async function TransmissionsPage({
 
       <section style={{ marginTop: "var(--s-7)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
+        {/* 2026-06-07 funnel: loop a non-owner back to the product before the
+            secondary lore/earn links. */}
         <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
-          <Link className="btn btn-secondary" href="/civilizations">
-            <span className="ttl">PICK YOUR CIV →</span>
+          <Link className="btn btn-primary" href="/citizens/1">
+            <span className="ttl">DON&apos;T OWN ONE? SEE AN AGENT →</span>
           </Link>
           <Link className="btn btn-secondary" href="/earn">
             <span className="ttl">THE LEDGER →</span>

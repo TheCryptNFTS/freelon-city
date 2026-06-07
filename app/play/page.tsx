@@ -202,6 +202,17 @@ export default function PlayHub() {
       >
         PROTOTYPES · SCORES + PROGRESS SAVED LOCALLY · NOT YET ON-CHAIN
       </p>
+
+      {/* 2026-06-07 funnel: the arcade has no own/unlock path — loop a visitor
+          back to the real product so play isn't a dead-end door. */}
+      <section style={{ marginTop: 40, textAlign: "center" }}>
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", marginBottom: 14 }}>
+          These are toys. The real thing is a FREELON you own and train.
+        </p>
+        <Link className="btn btn-primary" href="/citizens/1">
+          <span className="ttl">SEE AN AGENT →</span>
+        </Link>
+      </section>
     </div>
   );
 }

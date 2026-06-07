@@ -160,11 +160,13 @@ export default function SyncPage() {
               justifyContent: "center",
             }}
           >
-            <Link className="btn btn-primary" href="/dashboard">
-              <span className="ttl">VIEW YOUR DASHBOARD →</span>
+            {/* 2026-06-07 funnel: after connecting, point toward the product
+                (own → unlock an agent), not the stats wall. */}
+            <Link className="btn btn-primary" href="/citizens">
+              <span className="ttl">YOUR FREELONS · UNLOCK ONE →</span>
             </Link>
-            <Link className="btn btn-secondary" href="/transmissions">
-              <span className="ttl">THE CITY WALL →</span>
+            <Link className="btn btn-secondary" href="/dashboard">
+              <span className="ttl">VIEW YOUR DASHBOARD →</span>
             </Link>
           </div>
         </div>
