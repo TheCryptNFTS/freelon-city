@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FramedAgent } from "./FramedAgent";
+import { WorkspaceUnlock } from "./WorkspaceUnlock";
 import styles from "./AgentWorkspace.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -411,6 +412,10 @@ export function AgentWorkspace(props: Props) {
   const gallery = (agent?.history ?? []).filter((h) => h.kind === "image");
   const textWork = (agent?.history ?? []).filter((h) => h.kind === "text");
   const cssVars = { "--accent": color } as React.CSSProperties;
+  // FREELONS only: when payments are live and this citizen isn't unlocked yet,
+  // surface the ETH unlock in the CENTER of the workspace (the pay flow that was
+  // orphaned when the old dashboard was unmounted). Sisters have no unlock yet.
+  const showUnlock = !slug && !!agent?.paymentsLive && !agent?.unlock?.unlocked;
 
   return (
     <div className={styles.shell} style={cssVars}>
@@ -513,6 +518,17 @@ export function AgentWorkspace(props: Props) {
                   </button>
                 ))}
               </div>
+              {showUnlock && (
+                <WorkspaceUnlock
+                  citizenId={tokenId}
+                  address={address}
+                  accent={color}
+                  tier={agent?.unlock?.tier}
+                  priceEth={agent?.unlock?.priceEth}
+                  onConnect={connect}
+                  onUnlocked={() => { loadAgent(); if (address) loadHex(address); }}
+                />
+              )}
             </div>
           ) : (
             active.messages.map((m) => (
@@ -629,10 +645,15 @@ export function AgentWorkspace(props: Props) {
         </div>
 
         {agent && agent.paymentsLive && !agent.unlock.unlocked ? (
-          <Link href={`/citizens/${tokenId}`} className={styles.unlockCta}>
+          <button
+            type="button"
+            className={styles.unlockCta}
+            style={{ textAlign: "left", width: "100%", cursor: "pointer" }}
+            onClick={() => { setInfoOpen(false); newThread(); }}
+          >
             <strong>Locked</strong>
-            <span>Unlock with ETH to switch on premium jobs →</span>
-          </Link>
+            <span>Unlock with ETH to switch on premium abilities →</span>
+          </button>
         ) : agent && agent.unlock.unlocked ? (
           <div className={styles.activated}>⬡ Activated{agent.unlock.credits ? ` · ${agent.unlock.credits} runs` : ""}</div>
         ) : null}
