@@ -5,6 +5,7 @@
  * the pitch even before connecting a wallet.
  */
 
+import Link from "next/link";
 import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
 
 // The six practical agent skills (must match lib/missions/abilities/*). Ordered
@@ -19,7 +20,7 @@ const ABILITIES = [
   { label: "The Closer", blurb: "sharpens your pitch, DMs & landing copy" },
 ];
 
-export function CitizenAgentExplainer() {
+export function CitizenAgentExplainer({ tokenId }: { tokenId: number }) {
   return (
     <section className="agent-explainer">
       {/* HOW IT WORKS — the plain "what is this / how do I play" the community kept
@@ -87,10 +88,12 @@ export function CitizenAgentExplainer() {
         <span className="agent-demo-foot">A chatbot starts over every time. Yours doesn&apos;t.</span>
       </div>
 
-      {/* THE DO — the single obvious next action, scrolls to the run dashboard. */}
-      <a className="btn btn-primary agent-explainer-cta" href="#run">
+      {/* THE DO — the single obvious next action, opens the agent workspace
+          (the one home for training/chat). Was a dead #run anchor after the
+          owner dashboard moved into the workspace. */}
+      <Link className="btn btn-primary agent-explainer-cta" href={`/agent/${tokenId}`}>
         <span className="ttl">RUN THIS AGENT →</span>
-      </a>
+      </Link>
 
       <p className="agent-explainer-lead">
         It&apos;s yours — a character you can turn into anything, that remembers what you build together and

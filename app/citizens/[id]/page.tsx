@@ -272,7 +272,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           {/* NEW HERE — how a FREELON agent works + what you pay, collapsed. */}
           <details className="citizen-howto">
             <summary>New here? How a FREELON agent works · what you pay →</summary>
-            <CitizenAgentExplainer />
+            <CitizenAgentExplainer tokenId={tid} />
           </details>
 
           {/* Share / listing / tribute. Buying lives once below in NEXT SIGNAL. */}

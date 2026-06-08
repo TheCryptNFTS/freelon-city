@@ -12,8 +12,13 @@ export const metadata = {
 
 // Some collections' first on-chain record is video-only (Emile is .mp4),
 // which can't render in an <img>. Pin those to a local still mirror.
+// Pin covers to the re-treated local stills so /collections reads as the same
+// gold-on-dark family as /demo (the on-chain first-token art is bright/off-brand
+// for these three: emile is video-only, crypt/oogies are the original bright bg).
 const COVER_OVERRIDE: Record<string, string> = {
   emile0x1908: "/og/art/emile.png",
+  "the-crypt-official": "/og/art/crypt.png",
+  oogies: "/og/art/oogies.png",
 };
 
 // One representative token per collection for the cover art (first record).
