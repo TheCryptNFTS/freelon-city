@@ -68,10 +68,10 @@ async function editToB64(
           "HTTP-Referer": "https://www.freeloncity.com",
           "X-Title": "FREELON CITY",
         },
-        body: JSON.stringify({ model, modalities: ["image", "text"], messages: [{ role: "user", content }] }),
+        body: JSON.stringify({ model, modalities: ["image", "text"], messages: [{ role: "user", content }], stream: false }),
         signal: controller.signal,
       });
-      if (!res.ok) return { ok: false, error: `openrouter_${res.status}` };
+      if (!res.ok) return { ok: false, error: `openrouter_${res.status}:${(await res.text().catch(() => "")).slice(0, 100)}` };
       const j = (await res.json()) as {
         choices?: { message?: { images?: { image_url?: { url?: string } }[] } }[];
         usage?: { prompt_tokens?: number; completion_tokens?: number };
@@ -105,7 +105,11 @@ async function editToB64(
     if (!b64) return { ok: false, error: "empty_image" };
     return { ok: true, b64, usage: { input: j.usage?.input_tokens, output: j.usage?.output_tokens } };
   } catch (e) {
-    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
+    if ((e as Error).name === "AbortError") return { ok: false, error: "timeout" };
+    // Surface the real cause (undici puts the reason in .cause.code) so a
+    // connection-level failure isn't an opaque "fetch_failed".
+    const cause = (e as { cause?: { code?: string } }).cause?.code;
+    return { ok: false, error: `fetch_failed:${cause || (e as Error).message || ""}`.slice(0, 100) };
   } finally {
     clearTimeout(t);
   }
