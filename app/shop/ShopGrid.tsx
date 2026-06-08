@@ -10,6 +10,18 @@ import { useViewerAddr } from "@/lib/use-viewer";
 type SoldMap = Record<string, number>;
 
 const ALL = "ALL";
+const FAVS = "FAVS";
+const FAV_KEY = "freelon::shop::favs::v1";
+
+function shareItem(i: ShopItem) {
+  const url = `https://www.freeloncity.com/shop`;
+  const text = `${i.name} — ${i.tier} · ${i.cost.toLocaleString()} ⬡ in the FREELON CITY shop\n${url}`;
+  if (typeof navigator !== "undefined" && navigator.share) {
+    navigator.share({ title: i.name, text, url }).catch(() => {});
+  } else {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  }
+}
 
 export function ShopGrid() {
   const [carrier, setCarrier] = useState<CarrierState | null>(null);
@@ -31,6 +43,23 @@ export function ShopGrid() {
   // modal shows cost + remaining balance + a CONFIRM BURN button;
   // only that button calls /api/shop/buy.
   const [pendingItem, setPendingItem] = useState<ShopItem | null>(null);
+  // Favourites — a quick local wishlist (no wallet needed). Persisted in
+  // localStorage; a FAVS filter shows just the starred items.
+  const [favs, setFavs] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(FAV_KEY);
+      if (raw) setFavs(new Set(JSON.parse(raw) as string[]));
+    } catch {}
+  }, []);
+  function toggleFav(id: string) {
+    setFavs((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      try { localStorage.setItem(FAV_KEY, JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  }
 
   // 2026-05-26 polish: confirm-burn modal needed proper a11y. ESC
   // dismisses (the comment promised it but the handler was missing),
@@ -88,8 +117,9 @@ export function ShopGrid() {
 
   const visible = useMemo<ShopItem[]>(() => {
     if (filter === ALL) return ITEMS;
+    if (filter === FAVS) return ITEMS.filter((i) => favs.has(i.id));
     return ITEMS.filter((i) => i.category === filter);
-  }, [filter]);
+  }, [filter, favs]);
 
   const ownedItems = useMemo<ShopItem[]>(() => {
     return ITEMS.filter((i) => owned.has(i.id));
@@ -191,7 +221,10 @@ export function ShopGrid() {
           </h2>
           <div className="shop-grid">
             {ownedItems.map((i) => (
-              <article key={`owned-${i.id}`} className="shop-item owned">
+              <article key={`owned-${i.id}`} className="shop-item owned" style={{ position: "relative" }}>
+                <div className="shop-card-actions">
+                  <button type="button" className="shop-share" aria-label={`Share ${i.name}`} onClick={() => shareItem(i)}>↗</button>
+                </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="shop-img" src={`/shop/${i.id}.webp`} alt={i.name} loading="lazy" />
                 <span className="cat">{i.category}</span>
@@ -212,6 +245,11 @@ export function ShopGrid() {
         <button className={filter === ALL ? "active" : ""} onClick={() => setFilter(ALL)}>
           ALL · {ITEMS.length}
         </button>
+        {favs.size > 0 && (
+          <button className={filter === FAVS ? "active" : ""} onClick={() => setFilter(FAVS)}>
+            ★ FAVS · {favs.size}
+          </button>
+        )}
         {CATEGORIES.map((c) => {
           const n = ITEMS.filter((i) => i.category === c).length;
           return (
@@ -401,8 +439,28 @@ export function ShopGrid() {
             disabled = true;
           }
 
+          const isFav = favs.has(i.id);
           return (
-            <article key={i.id} className={`shop-item${isOwned ? " owned" : ""}`}>
+            <article key={i.id} className={`shop-item${isOwned ? " owned" : ""}`} style={{ position: "relative" }}>
+              <div className="shop-card-actions">
+                <button
+                  type="button"
+                  className={`shop-fav${isFav ? " on" : ""}`}
+                  aria-label={isFav ? "Remove from favourites" : "Add to favourites"}
+                  aria-pressed={isFav}
+                  onClick={() => toggleFav(i.id)}
+                >
+                  {isFav ? "★" : "☆"}
+                </button>
+                <button
+                  type="button"
+                  className="shop-share"
+                  aria-label={`Share ${i.name}`}
+                  onClick={() => shareItem(i)}
+                >
+                  ↗
+                </button>
+              </div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className="shop-img" src={`/shop/${i.id}.webp`} alt={i.name} loading="lazy" />
               <span className="cat">{i.category}{i.civ ? ` · ${i.civ.toUpperCase()}` : ""}</span>
