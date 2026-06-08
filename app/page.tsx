@@ -129,18 +129,18 @@ export default async function Home() {
           — it restated the hero tag AND "How it works" below as a third copy of
           the same value prop. The hero says it once; How It Works shows the loop. */}
 
-      {/* ── HOW IT WORKS — the loop in six steps + the six roles a FREELON can
-          grow into. */}
+      {/* ── HOW IT WORKS — the loop in four steps + the six roles a FREELON can
+          grow into. Compressed 6→4 (2026-06-08) to cut newcomer cognitive load:
+          the train/earn/history beats are one step now, so the loop reads in one
+          glance instead of six near-identical lines. */}
       <section className="how-it-works reveal">
         <span className="kicker">⬡ HOW IT WORKS</span>
         <ol className="how-steps">
           {[
             "Own a FREELON — it's your character",
             "Unlock its agent with a one-time ETH payment",
-            "Transform it, and give it real jobs",
-            "It earns XP and remembers you",
-            "Its work history grows",
-            "Keep it — or sell it later as a trained character",
+            "Train it — give it jobs; it earns XP, remembers you, and builds a history",
+            "Keep it or sell it — the character and its whole history travel with the NFT",
           ].map((s, i) => (
             <li key={i}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
           ))}
