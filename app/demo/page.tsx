@@ -1,6 +1,7 @@
 import { getCollectionToken } from "@/lib/collection-persona";
 import { FREELON_DEMO_DISPLAY } from "@/lib/demo-freelon";
 import { DemoChat, type DemoAgent } from "@/components/DemoChat";
+import { ReferralBeacon } from "@/components/ReferralBeacon";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,7 @@ export default function DemoPage() {
         </p>
       </header>
 
+      <ReferralBeacon />
       <DemoChat agents={agents} />
     </div>
   );

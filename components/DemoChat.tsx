@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FramedAgent } from "@/components/FramedAgent";
+import { ClaimForm } from "@/components/ClaimForm";
 import { trackEvent } from "@/lib/track";
 
 export type DemoAgent = {
@@ -289,8 +290,12 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
               <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 20 }}>
                 A <strong style={{ color: "var(--ink)" }}>FREELON</strong> is the same kind of mind — except it&apos;s{" "}
                 <strong style={{ color: "var(--ink)" }}>yours</strong>: it remembers every conversation, levels up as you
-                train it, and the whole history travels with the NFT.
+                train it, and the whole history travels with the NFT. Want one? Leave your email and we&apos;ll
+                get you set up.
               </p>
+              {/* On-site reservation (replaces the old invisible OpenSea hand-off,
+                  where conversion died and we learned nothing). Non-binding. */}
+              <ClaimForm slug={agent.slug} accent="var(--gold)" />
               <a
                 href={OPENSEA}
                 target="_blank"
@@ -298,19 +303,15 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                 onClick={() => trackEvent("opensea_click", { from: "demo_wall" })}
                 style={{
                   display: "inline-block",
+                  marginTop: 16,
                   fontFamily: "var(--mono2)",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  color: "var(--bg)",
-                  background: "var(--gold)",
-                  padding: "13px 26px",
-                  borderRadius: 10,
-                  textDecoration: "none",
+                  fontSize: 11,
+                  letterSpacing: "0.1em",
+                  color: "var(--ink-dim)",
+                  textDecoration: "underline",
                 }}
               >
-                Own a Freelon →
+                or buy one now on OpenSea →
               </a>
             </div>
           )}
