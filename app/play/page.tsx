@@ -66,6 +66,24 @@ const GAMES = [
     accent: "var(--gold-bright)",  },
 ];
 
+// GUARD THE POT — the marquee spectacle. Deliberately NOT a permanent 4th card:
+// the hub was de-sprawled to three on 2026-06-07 ("too much stuff"). It only
+// surfaces here when the round is actually LIVE (GUARD_POT_LIVE=true), so the
+// default arcade stays the clean three-door layout and this appears as an event,
+// not as more permanent clutter.
+const GUARD_CARD = {
+  href: "/play/guard",
+  kicker: "EVENT · LIVE NOW",
+  title: "Guard the Pot",
+  genre: "Like Freysa (beat the AI)",
+  blurb:
+    "One FREELON guards a sealed vault. Pay an escalating ⬡ fee to send it a message and try to convince it to release the prize. One winner cracks the vault.",
+  accent: "var(--gold-bright)",
+};
+
+const VISIBLE_GAMES =
+  process.env.GUARD_POT_LIVE === "true" ? [GUARD_CARD, ...GAMES] : GAMES;
+
 export default function PlayHub() {
   return (
     <div className="manifesto">
@@ -101,7 +119,7 @@ export default function PlayHub() {
           margin: "32px auto 0",
         }}
       >
-        {GAMES.map((g) => (
+        {VISIBLE_GAMES.map((g) => (
           <Link
             key={g.href}
             href={g.href}

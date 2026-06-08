@@ -15,7 +15,8 @@ export type GameKind =
   | "proof"
   | "sweep"
   | "reckoning"
-  | "cipher";
+  | "cipher"
+  | "guard";
 
 // The six signal-civilization gem colours, mirrored from HexMatch.tsx.
 const GEMS = ["#00B8FF", "#FF3A2D", "#4CFF7A", "#B85CFF", "#FF5CB4", "#FFD24A"];
@@ -260,6 +261,50 @@ export function GamePreview({
             style={{ filter: "drop-shadow(0 0 6px #FFD24A)" }}
           />
         </g>
+      </svg>
+    );
+  }
+
+  if (kind === "guard") {
+    // A sealed vault: a big hex "door" with a keyhole and a glowing ⬡ prize,
+    // escalating fee bars climbing on the right — the adversarial pot.
+    const bars = [22, 34, 48, 66, 90];
+    return (
+      <svg {...common}>
+        <defs>
+          <radialGradient id="gv-glow" cx="38%" cy="50%" r="60%">
+            <stop offset="0%" stopColor={accent} stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#0c0e15" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <rect width="320" height="150" fill="#0c0e15" />
+        <rect width="320" height="150" fill="url(#gv-glow)" />
+        {/* vault door */}
+        <polygon
+          points="120,18 175,40 175,110 120,132 65,110 65,40"
+          fill="#161a24"
+          stroke={accent}
+          strokeWidth="2"
+          style={{ filter: `drop-shadow(0 0 6px ${accent})` }}
+        />
+        {/* keyhole */}
+        <circle cx="120" cy="68" r="11" fill={accent} opacity="0.9" />
+        <rect x="116" y="74" width="8" height="20" fill={accent} opacity="0.9" />
+        <text x="120" y="74" fontSize="13" fill="#0c0e15" textAnchor="middle" dominantBaseline="middle">⬡</text>
+        {/* escalating fee bars */}
+        {bars.map((h, i) => (
+          <rect
+            key={i}
+            x={210 + i * 20}
+            y={120 - h}
+            width={13}
+            height={h}
+            rx={2}
+            fill={accent}
+            opacity={0.4 + i * 0.12}
+            style={{ filter: `drop-shadow(0 0 3px ${accent})` }}
+          />
+        ))}
       </svg>
     );
   }

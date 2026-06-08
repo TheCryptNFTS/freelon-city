@@ -6,6 +6,10 @@
       "schedule": "4 4 * * *"
     },
     {
+      "path": "/api/cron/agent-transmission",
+      "schedule": "17 16 * * *"
+    },
+    {
       "path": "/api/cron/sweep-bounty",
       "schedule": "*/15 * * * *"
     },

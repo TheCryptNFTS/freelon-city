@@ -353,4 +353,33 @@ export function ethStringToWei(eth: string): bigint {
   return BigInt(whole) * 1_000_000_000_000_000_000n + BigInt(fracPadded || "0");
 }
 
+// ─── GUARD THE POT (public adversarial spectacle) — 2026-06-08 ──────────────
+// One flagship FREELON agent guards a prize. Players pay an ESCALATING ⬡ fee to
+// send it one message trying to convince it to release. EVERY fee is 100% BURNED
+// (pure sink — the pot is NEVER paid back out in ⬡). The PRIZE is EXTERNAL to the
+// ⬡ economy (founder-seeded ETH or a non-money grant), so a winner can never
+// drain ⬡ and two colluding wallets can't wash-trade a pot back to themselves —
+// the only thing a paid attempt does to the ⬡ supply is shrink it. Shipped dark
+// behind GUARD_POT_LIVE; the prize/public launch is a founder switch.
+export const GUARD_POT = {
+  BASE_FEE: 100, // ⬡ cost of the first attempt of a round
+  // Each attempt multiplies the fee by 1.0150 (basis points / 10_000). Escalation
+  // is the drama AND the natural rate-limit: the pot gets harder to attack as it
+  // heats up. Integer ⬡ throughout (guardPotFee rounds).
+  FEE_GROWTH_BP: 10_150,
+  FEE_MAX: 10_000, // ceiling so the fee can't escalate out of all reach
+  BURN_PCT: 100, // entry ⬡ is fully burned — NEVER redistributed (sink-not-source)
+  PER_WALLET_DAILY_CAP: 20, // attempts per wallet per UTC day (anti-spam / anti-grief)
+  GLOBAL_DAILY_CAP: 2_000, // total attempts/day across everyone — bounds LLM cost
+  MAX_MESSAGE_CHARS: 1_000,
+} as const;
+
+/** ⬡ fee for the next attempt given how many have already been made this round
+ *  (0-based). Geometric escalation, clamped to FEE_MAX. */
+export function guardPotFee(attemptsSoFar: number): number {
+  const n = Math.max(0, Math.floor(attemptsSoFar));
+  const grown = GUARD_POT.BASE_FEE * Math.pow(GUARD_POT.FEE_GROWTH_BP / 10_000, n);
+  return Math.min(GUARD_POT.FEE_MAX, Math.round(grown));
+}
+
 export type EconomyKey = keyof typeof ECONOMY;

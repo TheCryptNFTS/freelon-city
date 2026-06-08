@@ -90,11 +90,11 @@ export default async function Home() {
               ecosystem lives in its own section further down, not as competing
               chips up here. */}
           <h1 className="hero-landing__h1">
-            FREELONS are 4,040 <strong>AI characters you own</strong>.
+            Where memory becomes <strong>character</strong>.
           </h1>
           <p className="hero-landing__tag">
-            A character you own and train — it remembers everything you build together.
-            The character, the training, and the whole history travel with the NFT.
+            4,040 AI characters you own and train — yours remembers everything you build
+            together, and the whole history travels with the NFT.
           </p>
           {/* ONE primary (SEE AN AGENT — experience it first), OWN secondary.
               EARN HEX lives in the header; the closing CTA repeats OWN at the buy
