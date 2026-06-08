@@ -27,6 +27,7 @@ import { rarityRank } from "@/lib/rarity";
 import { getCitizenMeta, type CitizenMeta } from "@/lib/citizen-meta";
 import { tweetTribute, tweetIntent } from "@/lib/share";
 import { getAgentHistory } from "@/lib/agent-history";
+import { unlockStatus } from "@/lib/missions/unlock-store";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -101,11 +102,15 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // Daily check-in (today's line if already generated) + level rank + whether
   // the public work-log has entries — all cheap, all fail-quiet so they never
   // block the profile render.
-  const [todayCheckIn, levelRank, agentWorkCount] = await Promise.all([
+  const [todayCheckIn, levelRank, agentWorkCount, activation] = await Promise.all([
     getCheckIn(tid).catch(() => null),
     getRankByLevel(tid).catch(() => null),
     getAgentHistory(tid).then((h) => h.length).catch(() => 0),
+    unlockStatus(tid).catch(() => null),
   ]);
+  // An ACTIVATED citizen (paid ETH unlock) gets a visible "awakened" glow on its
+  // portrait — a reward for the owner + a sell ("the lit ones are alive").
+  const isActivated = activation?.unlocked === true;
 
   const rank = rarityRank(tid);
   const meta = await Promise.race<CitizenMeta>([
@@ -119,9 +124,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     <div className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
       <article className="citizen-grid">
         <aside className="citizen-image">
-          <div className="img-shell relic-card">
+          <div className={`img-shell relic-card${isActivated ? " is-activated" : ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imageUrl(tid)} alt={c.name} />
+            {isActivated && <span className="activated-glyph" aria-label="Activated agent">⬡ AWAKENED</span>}
           </div>
           <div className="img-meta">
             <span className="big-id">#{id4}</span>
