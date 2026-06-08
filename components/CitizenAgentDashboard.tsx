@@ -149,6 +149,16 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   }, []);
 
 
+  // Restore a brief stashed right before a wallet-bound X sign-in redirect
+  // (signOrThrow round-trip), so the holder doesn't lose what they typed.
+  useEffect(() => {
+    try {
+      const k = `freelon:brief:${citizenId}`;
+      const saved = sessionStorage.getItem(k);
+      if (saved) { setBrief(saved); sessionStorage.removeItem(k); }
+    } catch { /* ignore */ }
+  }, [citizenId]);
+
   /** Refetch agent state (e.g. after unlocking, to pick up credits). */
   async function refreshAgent() {
     try {
@@ -253,10 +263,19 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const needsUnlock = needsActivate || needsRecharge; // either starts the pay flow
   const payKind: "activate" | "recharge" = needsRecharge ? "recharge" : "activate";
 
-  /** Sign the given message if the server demands wallet auth (no bound session). */
+  /** Prove ownership to the server when there's no bound session. Prefer a wallet
+   *  signature; if no injected wallet is present (desktop without an extension,
+   *  paste-an-address visitors), fall back to binding this wallet to an X sign-in
+   *  so the server session covers future runs — instead of dead-ending. */
   async function signOrThrow(message: string): Promise<{ address: string; signature: string }> {
-    if (!window.ethereum) throw new Error("Open this page in your wallet's browser (a signature is required).");
     if (!h.address) throw new Error("Connect your wallet first.");
+    if (!window.ethereum) {
+      // Stash the brief so it survives the OAuth round-trip, then take them to
+      // the wallet-bound X sign-in (the other auth path the server accepts).
+      try { sessionStorage.setItem(`freelon:brief:${citizenId}`, brief); } catch { /* ignore */ }
+      window.location.href = `/api/x/start?bind=${encodeURIComponent(h.address)}`;
+      throw new Error("Taking you to a one-time X sign-in so this wallet can deploy missions…");
+    }
     const signature = (await window.ethereum.request({ method: "personal_sign", params: [message, h.address] })) as string;
     return { address: h.address, signature };
   }
