@@ -10,6 +10,9 @@ import { imageUrl } from "@/lib/constants";
 
 export async function TopAgents({ limit = 8 }: { limit?: number }) {
   const agents = await topTrainedAgents(limit).catch(() => []);
+  // "Awakened" glow on activated agents — one cheap fail-quiet set fetch.
+  const { listActivatedTokenIds } = await import("@/lib/missions/unlock-store");
+  const activatedIds = await listActivatedTokenIds().catch(() => new Set<number>());
 
   return (
     <section className="citizens-section reveal topagents">
@@ -30,16 +33,18 @@ export async function TopAgents({ limit = 8 }: { limit?: number }) {
             const color = civilizationColor(c?.civilization ?? "");
             const id4 = a.tokenId.toString().padStart(4, "0");
             const sub = a.tunedFor ? `tuned for ${a.tunedFor}` : a.trackRecord;
+            const activated = activatedIds.has(a.tokenId);
             return (
               <Link
                 key={a.tokenId}
                 href={`/citizens/${a.tokenId}`}
-                className="topagent-card"
+                className={`topagent-card${activated ? " is-activated" : ""}`}
                 style={{ ["--civ" as string]: color }}
               >
                 <div className="img-frame">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={imageUrl(a.tokenId)} alt={c?.name ?? `#${id4}`} loading="lazy" />
+                  {activated && <span className="cc-awakened" aria-label="Activated agent">⬡</span>}
                 </div>
                 <div className="meta">
                   <span className="id">#{id4}{a.demo && <span className="ta-demo"> · EXAMPLE</span>}</span>

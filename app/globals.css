@@ -2344,6 +2344,33 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .citizen-image .img-shell.is-activated { animation: none; }
 }
+
+/* ACTIVATED glow on GRID/LEADERBOARD cards — compact version of the profile
+   glow: gold rim + breathing halo + a small ⬡ corner glyph. Applied to the
+   reusable CitizenCard + the TopAgents leaderboard card. Gold-only, pure CSS. */
+.citizen-card-link.is-activated,
+.topagent-card.is-activated {
+  border-color: var(--gold) !important;
+  border-top-color: var(--gold) !important;
+  animation: awaken-breathe-card 3.6s ease-in-out infinite;
+}
+.topagent-card.is-activated .img-frame { position: relative; }
+.citizen-card-link.is-activated .cc-awakened,
+.topagent-card.is-activated .cc-awakened {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 3px;
+  font-size: 11px; line-height: 1; color: var(--bg); background: var(--gold);
+  box-shadow: 0 2px 8px -2px color-mix(in oklab, var(--gold), transparent 40%);
+}
+@keyframes awaken-breathe-card {
+  0%, 100% { box-shadow: 0 0 14px -8px color-mix(in oklab, var(--gold), transparent 30%), 0 0 0 1px color-mix(in oklab, var(--gold), transparent 70%); }
+  50%      { box-shadow: 0 0 26px -6px color-mix(in oklab, var(--gold), transparent 10%), 0 0 0 1px color-mix(in oklab, var(--gold), transparent 50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .citizen-card-link.is-activated,
+  .topagent-card.is-activated { animation: none; }
+}
 .citizen-image .img-meta {
   display: flex; justify-content: space-between; align-items: baseline;
   margin-top: var(--s-3); padding: 0 var(--s-1);

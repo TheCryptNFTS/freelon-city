@@ -272,6 +272,57 @@ export async function listActivations(limit = 5000): Promise<ActivationsSummary>
   }
 }
 
+/**
+ * The SET of tokenIds that are ACTIVATED — for the "awakened" glow on citizen
+ * grids/leaderboards. One SCAN+MGET for the whole page (not N per-card reads),
+ * and the activated set is tiny, so this is cheap. Fail-quiet: returns an empty
+ * set on any error so a grid never breaks over a glow.
+ */
+export async function listActivatedTokenIds(limit = 5000): Promise<Set<number>> {
+  const out = new Set<number>();
+  if (!hasUpstash) {
+    for (const r of mem.unlocks.values()) if (r.activated) out.add(r.tokenId);
+    return out;
+  }
+  try {
+    const url = process.env.UPSTASH_REDIS_REST_URL!;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
+    const keys: string[] = [];
+    let cursor = "0";
+    let pages = 0;
+    const startedAt = Date.now();
+    const HARD_BUDGET_MS = 5000;
+    do {
+      if (Date.now() - startedAt > HARD_BUDGET_MS) break;
+      const res = await fetch(
+        `${url}/SCAN/${encodeURIComponent(cursor)}/MATCH/${encodeURIComponent("freelon:unlock:v2:*")}/COUNT/1000`,
+        { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+      );
+      if (!res.ok) break;
+      const j = (await res.json()) as { result: [string, string[]] };
+      cursor = j.result[0];
+      for (const k of j.result[1]) keys.push(k);
+      pages++;
+      if (keys.length >= limit || pages > 12) break;
+    } while (cursor !== "0");
+    if (keys.length === 0) return out;
+    const mgetUrl = `${url}/MGET/${keys.map((k) => encodeURIComponent(k)).join("/")}`;
+    const mr = await fetch(mgetUrl, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+    if (!mr.ok) return out;
+    const mj = (await mr.json()) as { result: (string | null)[] };
+    for (const raw of mj.result) {
+      if (!raw) continue;
+      try {
+        const rec = JSON.parse(raw) as UnlockRecord;
+        if (rec.activated) out.add(rec.tokenId);
+      } catch { /* skip bad record */ }
+    }
+    return out;
+  } catch {
+    return out;
+  }
+}
+
 /** Read-only status for the dashboard meter + activate/recharge CTA. */
 export async function unlockStatus(tokenId: number): Promise<UnlockStatus> {
   const tier = unlockTierFor(getCitizen(tokenId)?.tier);

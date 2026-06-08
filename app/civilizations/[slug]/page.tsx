@@ -64,6 +64,10 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     ...citizens.filter((x) => x.tier === "Legendary").slice(0, 8),
     ...citizens.filter((x) => x.tier === "Epic").slice(0, 12),
   ].slice(0, 24);
+  // Activated agents get the "awakened" glow — one cheap fail-quiet set fetch
+  // for the whole grid (not per-card).
+  const { listActivatedTokenIds } = await import("@/lib/missions/unlock-store");
+  const activatedIds = await listActivatedTokenIds().catch(() => new Set<number>());
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -268,7 +272,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="terminal text-[var(--color-gold)] text-xs tracking-[0.3em]">FEATURED CITIZENS</div>
         <h2 className="mt-2 text-2xl font-light mb-8">The faces of the {c.doctrine} doctrine</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {featured.map((cit) => <CitizenCard key={cit.id} citizen={cit} size="sm" />)}
+          {featured.map((cit) => <CitizenCard key={cit.id} citizen={cit} size="sm" activated={activatedIds.has(cit.id)} />)}
         </div>
       </section>
 

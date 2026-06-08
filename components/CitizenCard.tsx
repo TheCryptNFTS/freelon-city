@@ -3,13 +3,13 @@ import { Citizen, civilizationColor } from "@/lib/citizens";
 import { imageUrl } from "@/lib/constants";
 import { GhostedMask } from "@/components/GhostedMask";
 
-export function CitizenCard({ citizen, size = "md" }: { citizen: Citizen; size?: "sm" | "md" | "lg" }) {
+export function CitizenCard({ citizen, size = "md", activated = false }: { citizen: Citizen; size?: "sm" | "md" | "lg"; activated?: boolean }) {
   const color = civilizationColor(citizen.civilization);
   const id4 = citizen.id.toString().padStart(4, "0");
   return (
     <Link
       href={`/citizens/${citizen.id}`}
-      className="block group rounded-lg overflow-hidden border border-white/5 bg-[var(--color-bg-lifted)] hover:border-[color-mix(in_oklab,var(--color-gold),transparent_50%)] transition-colors"
+      className={`citizen-card-link block group rounded-lg overflow-hidden border border-white/5 bg-[var(--color-bg-lifted)] hover:border-[color-mix(in_oklab,var(--color-gold),transparent_50%)] transition-colors${activated ? " is-activated" : ""}`}
       style={{ borderTopColor: color, borderTopWidth: 2 }}
     >
       <div className="relative aspect-square bg-black">
@@ -22,6 +22,7 @@ export function CitizenCard({ citizen, size = "md" }: { citizen: Citizen; size?:
             className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
           />
         </GhostedMask>
+        {activated && <span className="cc-awakened" aria-label="Activated agent">⬡</span>}
       </div>
       <div className="p-3">
         <div className="terminal text-xs text-[var(--color-gold)]">#{id4}</div>
