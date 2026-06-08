@@ -3,7 +3,6 @@ import Image from "next/image";
 import { MobileNav } from "@/components/MobileNav";
 import { WalletConnect } from "@/components/WalletConnect";
 import { HeaderHexPill } from "@/components/HeaderHexPill";
-import { HeaderArchives } from "@/components/HeaderArchives";
 import { HeaderSeeAgent } from "@/components/HeaderSeeAgent";
 
 /**
@@ -23,19 +22,15 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          {/* 2026-06-04 AGENTS-FIRST nav (founder: "agents are the main thing").
-              The top bar is now just the product + the free hook + one Explore
-              menu: FREELONS → Earn HEX → Explore ▾. Start / Play / Dashboard
-              moved INTO Explore ▾ (they're not the front door). FREELONS (the
-              trainable agents) is the gold pillar. Primary action: Own a Freelon. */}
+          {/* 2026-06-08 RADICAL CONDENSE (founder: "drop the 45 pages, keep it
+              really simple"). Nav cut to the spine: the product (FREELONS), the
+              collections-as-roles, and the free hook (See an Agent). Earn HEX +
+              the Explore ▾ dropdown (Play / Shop / Community / Lore / Dashboard)
+              were removed from the front door — those pages still exist by URL but
+              are off the newcomer's critical path. The whole site is now:
+              own → see an agent → chat. */}
           <Link href="/citizens" className="nav-link nav-start">FREELONS</Link>
           <Link href="/collections" className="nav-link">Collections</Link>
-          <Link href="/earn" className="nav-link">Earn HEX</Link>
-          <HeaderArchives />
-          {/* Primary aligns with the HERO (try-first), not OpenSea. "Own a Freelon"
-              already fires in the homepage close + footer + mobile nav — having it
-              ALSO as the gold header button made buy compete with the hero's
-              "see an agent" and put OpenSea on screen 4× (2026-06-06 dedup). */}
           <HeaderSeeAgent />
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>

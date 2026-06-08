@@ -24,51 +24,25 @@ type NavGroup = { heading: string | null; links: NavLink[] };
 // with the newcomer's path (New? · Play) the same way the laptop nav
 // does; Combat Archives + Shop live under CITY. One source of truth in
 // spirit — edit both files together when the IA changes.
+// 2026-06-08 RADICAL CONDENSE (founder: "drop the 45 pages, keep it really
+// simple") — the mobile sheet is now the spine only, mirroring the trimmed
+// desktop nav. Cut from 5 groups → 2: the free hook + buy, then the product +
+// collections + onboarding. Earn HEX, Play, Community wall, Shop, Lore were
+// pulled from the sheet (pages still exist by URL, off the newcomer's path).
 const GROUPS: NavGroup[] = [
   {
     heading: null,                                          // primary CTA, ungrouped
     links: [
-      // 2026-06-06 dedup — primary mirrors desktop + hero: SEE AN AGENT (try
-      // first). Own a Freelon is the secondary just below (still one tap away).
       { href: "/demo", label: "⬡ SEE AN AGENT", gold: true },
       { href: "https://opensea.io/collection/freelons", label: "Own a Freelon" },
     ],
   },
   {
-    heading: null,                                          // top-nav parity block — AGENTS-FIRST
+    heading: null,                                          // the spine
     links: [
       { href: "/citizens",  label: "FREELONS", gold: true },
       { href: "/collections", label: "Collections" },
-      { href: "/earn",      label: "Earn HEX" },
-    ],
-  },
-  // 2026-06-06 EXPLORE de-sprawl — mirrors the trimmed HeaderArchives "Explore ▾"
-  // dropdown (12→10 items, 4→3 groups). Dropped "Connect wallet" (/sync —
-  // redundant with the wallet button; page still linked from ~20 surfaces);
-  // folded "branches" into "The city"; Crypt TCG demoted to last with a "· soon"
-  // cue (reconstruction-unstable placeholder); /archive moved into Lore. Keep in
-  // sync with HeaderArchives.tsx (one IA, two renderers).
-  {
-    // 2026-06-08 — Dashboard pulled from the newcomer "Get started" group (it's
-    // market analytics, not onboarding; still reachable from ~13 in-content
-    // links). Mirrors HeaderArchives.tsx — keep the two renderers in sync.
-    heading: "GET STARTED",
-    links: [
       { href: "/start",     label: "New here? Start" },
-      { href: "/play",      label: "Play" },
-    ],
-  },
-  {
-    heading: "THE CITY",
-    links: [
-      { href: "/transmissions", label: "Community wall" },
-      { href: "/shop",          label: "Shop" },
-    ],
-  },
-  {
-    heading: "LORE",
-    links: [
-      { href: "/canon",     label: "Story & glossary" },
     ],
   },
 ];

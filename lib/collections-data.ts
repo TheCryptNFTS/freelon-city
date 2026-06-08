@@ -45,7 +45,7 @@ export const COLLECTION_META: Record<
     title: "The Crypt",
     status: "RECOVERED",
     statusColor: "var(--state-active)",
-    kicker: "DEAD SIGNALS · ANCIENT RECORDS",
+    kicker: "THE DEAD ONES · ANCIENT RECORDS",
     blurb:
       "Dead signals. Forgotten identities. Ancient records recovered beneath the city — the first signals the HEX ever caught.",
   },
@@ -61,7 +61,7 @@ export const COLLECTION_META: Record<
     title: "OOGIES",
     status: "FRAGMENT",
     statusColor: "var(--state-unstable)",
-    kicker: "ANCIENT SIGNAL SPECIES",
+    kicker: "THE WILD ONES · ANCIENT SPECIES",
     blurb:
       "An ancient signal species. They heard the HEX before the city existed — fragments of a civilization that predates the collapse.",
   },
@@ -69,7 +69,7 @@ export const COLLECTION_META: Record<
     title: "Emile",
     status: "DECAYING",
     statusColor: "var(--state-surge)",
-    kicker: "PRESERVED MEMORY FRAGMENTS",
+    kicker: "THE EMOTIONAL ONES · MEMORY FRAGMENTS",
     blurb:
       "Memory fragments preserved before the signal collapse. Each Emile is a frozen instant — an emotion, a tool, a path not taken.",
   },
@@ -77,7 +77,7 @@ export const COLLECTION_META: Record<
     title: "SMILES Collapse",
     status: "SEALED",
     statusColor: "var(--state-warning)",
-    kicker: "A FAILED CONTROL SYSTEM",
+    kicker: "THE LOST ONES · A FAILED CONTROL SYSTEM",
     blurb:
       "A failed emotional control system. 99% of the supply was destroyed in the collapse; only the sealed survivors remain in the record.",
   },

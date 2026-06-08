@@ -49,16 +49,16 @@ export function Footer() {
         </div>
 
         <div className="site-footer__col">
+          {/* 2026-06-08 radical condense — footer Navigate trimmed to the spine.
+              Archive / Civilizations / Play / Canon / Shop / Developers dropped
+              from chrome (pages still live by URL). Crypt TCG kept, flagged soon. */}
           <h2 className="site-footer__heading">Navigate</h2>
           <ul>
-            <li><Link href="/archive">Archive</Link></li>
-            <li><Link href="/civilizations">Civilizations</Link></li>
-            <li><Link href="/play">Play</Link></li>
-            <li><Link href="/crypt-tcg">Crypt TCG</Link></li>
-            <li><Link href="/canon">Canon</Link></li>
-            <li><Link href="/shop">Shop</Link></li>
+            <li><Link href="/citizens">FREELONS</Link></li>
+            <li><Link href="/collections">Collections</Link></li>
+            <li><Link href="/demo">See an Agent</Link></li>
             <li><Link href="/start">Start</Link></li>
-            <li><Link href="/developers">Developers</Link></li>
+            <li><Link href="/crypt-tcg">Crypt TCG · soon</Link></li>
           </ul>
         </div>
 

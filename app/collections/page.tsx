@@ -74,15 +74,16 @@ export default async function CollectionsIndex() {
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "var(--s-6) auto", padding: "0 var(--pad)" }}>
       <header style={{ marginBottom: "var(--s-5)" }}>
-        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE UNIVERSE · ALL COLLECTIONS</span>
+        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ONE CITY · MANY KINDS OF CITIZEN</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 1, margin: "12px 0 8px" }}>
-          Every record can be <em style={{ color: "var(--gold)", fontStyle: "normal" }}>awakened.</em>
+          One city, many kinds of <em style={{ color: "var(--gold)", fontStyle: "normal" }}>citizen.</em>
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 680 }}>
-          The signals were never lost — they were unfinished coordinates, and FREELON CITY
-          is where they finally connect. Six collections, one city. Awaken a citizen and the
-          signal speaks through it: any token here is an AI character you can chat with.
-          Search the full set on-site, trade on OpenSea.
+          <strong style={{ color: "var(--ink)" }}>Freelons</strong> are the citizens.{" "}
+          <strong style={{ color: "var(--ink)" }}>Oogies</strong> the wild ones.{" "}
+          <strong style={{ color: "var(--ink)" }}>The Crypt</strong> the dead ones.{" "}
+          <strong style={{ color: "var(--ink)" }}>Emile</strong> the emotional ones. One signal, many
+          collections — and every token is an AI character you can chat with.
         </p>
       </header>
 
@@ -142,6 +143,9 @@ export default async function CollectionsIndex() {
                   {floor && <span style={{ color: "var(--gold)" }}>FLOOR {floor}</span>}
                 </header>
                 <h3 style={{ fontFamily: "var(--display)", fontSize: 22, lineHeight: 1.1, margin: 0, color: "var(--ink)" }}>{c.title}</h3>
+                {/* The ROLE — each collection is a kind of citizen (founder framing
+                    2026-06-08): citizens / wild / dead / emotional. */}
+                <span style={{ fontFamily: "var(--mono2)", fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: c.statusColor, fontWeight: 700, marginTop: -2 }}>{c.kicker}</span>
                 <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>{c.blurb}</p>
                 <span style={{ marginTop: "auto", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)" }}>
                   {(c as { agentic?: boolean }).agentic ? "MEET THE AGENTS →" : `BROWSE ${c.total.toLocaleString()} →`}
