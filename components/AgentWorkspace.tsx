@@ -508,26 +508,42 @@ export function AgentWorkspace(props: Props) {
                 priority
               />
               {props.headline && <p className={styles.emptyLede} style={{ marginTop: 14 }}>{props.headline}</p>}
-              <p className={styles.emptyHint}>
-                An AI character you own. Give it a brief below — it remembers your work and grows as you train it.
-              </p>
-              <div className={styles.starters}>
-                {(agent?.abilities ?? []).slice(0, 4).map((a) => (
-                  <button key={a.id} className={styles.starter} onClick={() => { setMode("chat"); setAbilityId(a.id); }}>
-                    {a.label}<small>{a.blurb}</small>
-                  </button>
-                ))}
-              </div>
-              {showUnlock && (
-                <WorkspaceUnlock
-                  citizenId={tokenId}
-                  address={address}
-                  accent={color}
-                  tier={agent?.unlock?.tier}
-                  priceEth={agent?.unlock?.priceEth}
-                  onConnect={connect}
-                  onUnlocked={() => { loadAgent(); if (address) loadHex(address); }}
-                />
+              {showUnlock ? (
+                // LOCKED — unlock is the only action. Lead with the pay panel; the
+                // abilities show as a dimmed "what you'll unlock" preview, not a
+                // doomed chat that 402s.
+                <>
+                  <p className={styles.emptyHint}>
+                    Unlock this FREELON once with ETH to switch its agent on — then it can do anything: chat, strategy, research, red-team, dossier &amp; image generation, forever.
+                  </p>
+                  <WorkspaceUnlock
+                    citizenId={tokenId}
+                    address={address}
+                    accent={color}
+                    tier={agent?.unlock?.tier}
+                    priceEth={agent?.unlock?.priceEth}
+                    onConnect={connect}
+                    onUnlocked={() => { loadAgent(); if (address) loadHex(address); }}
+                  />
+                  <div className={styles.starters} style={{ opacity: 0.45, pointerEvents: "none", marginTop: 22 }}>
+                    {(agent?.abilities ?? []).slice(0, 4).map((a) => (
+                      <div key={a.id} className={styles.starter}>{a.label}<small>{a.blurb}</small></div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className={styles.emptyHint}>
+                    An AI character you own. Give it a brief below — it remembers your work and grows as you train it.
+                  </p>
+                  <div className={styles.starters}>
+                    {(agent?.abilities ?? []).slice(0, 4).map((a) => (
+                      <button key={a.id} className={styles.starter} onClick={() => { setMode("chat"); setAbilityId(a.id); }}>
+                        {a.label}<small>{a.blurb}</small>
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           ) : (
@@ -603,7 +619,17 @@ export function AgentWorkspace(props: Props) {
                 ))}
               </div>
             )}
-          {mode === "chat" ? (
+          {showUnlock ? (
+            // Locked → the composer can't run anything; route the holder to unlock.
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ width: "100%", maxWidth: 760, margin: "0 auto", display: "block" }}
+              onClick={() => { setInfoOpen(false); setActiveId(threads[0]?.id ?? activeId); }}
+            >
+              <span className="ttl">⬡ UNLOCK{agent?.unlock?.priceEth ? ` · ${agent.unlock.priceEth} ETH` : ""} TO START →</span>
+            </button>
+          ) : mode === "chat" ? (
             <div className={styles.inputRow}>
               <textarea
                 className={styles.input}
