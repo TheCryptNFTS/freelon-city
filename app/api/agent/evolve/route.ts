@@ -36,7 +36,7 @@ export const maxDuration = 300;
  * must meet the gate for the target evolve tier AND the target must be the next
  * tier in order (never skip / re-buy).
  *
- * Provider-guard: if OPENAI_API_KEY is missing we 503 BEFORE charging ⬡.
+ * Provider-guard: if OPENROUTER_API_KEY is missing we 503 BEFORE charging ⬡.
  * Refund-on-failure: if the render or the store write fails after the burn, the
  * ⬡ is credited straight back (mirrors the mission/ascend flow).
  */
@@ -92,7 +92,8 @@ export async function POST(req: Request) {
 
   // Provider-guard BEFORE any auth/charge work: no renderer → no evolve. 503 so
   // the client knows to retry, and the holder is never charged for a no-op.
-  if (!process.env.OPENAI_API_KEY) {
+  // Renders run through OpenRouter only (direct OpenAI is billing-capped).
+  if (!process.env.OPENROUTER_API_KEY) {
     return NextResponse.json(
       { error: "renderer_unavailable", message: "The evolve renderer is offline — try again shortly." },
       { status: 503 },

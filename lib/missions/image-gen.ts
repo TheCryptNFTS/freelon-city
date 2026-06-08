@@ -26,9 +26,13 @@ import { imageUrl } from "@/lib/constants";
 const OPENAI_IMAGE_URL = "https://api.openai.com/v1/images/edits";
 const MODEL = "gpt-image-1.5";
 
-/** True when ANY image provider is configured (OpenRouter or direct OpenAI). */
+/** True when the image provider is configured. Images run through OpenRouter
+ *  ONLY (direct OpenAI is billing-capped and disabled for renders), so this
+ *  gates on the OpenRouter key — the pre-charge guard must match the provider
+ *  the renderer will actually use, so a holder is never charged for a render
+ *  that can't run. */
 function hasImageProvider(): boolean {
-  return !!(process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY);
+  return !!process.env.OPENROUTER_API_KEY;
 }
 
 type EditResult =
@@ -86,66 +90,48 @@ async function editAttempt(
   quality: "low" | "medium" | "high",
   timeoutMs: number,
 ): Promise<EditResult> {
+  // Images go through OpenRouter ONLY. Direct OpenAI (images/edits) is disabled
+  // for renders because that account is billing-capped — falling back to it just
+  // produced opaque `billing_hard_limit_reached` 400s. OpenRouter is the same
+  // account that powers chat and is healthy. `quality` is unused on the
+  // OpenRouter chat-completions image path (kept in the signature for the API).
+  void quality;
+  const orKey = process.env.OPENROUTER_API_KEY;
+  if (!orKey) return { ok: false, error: "no_api_key" };
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const orKey = process.env.OPENROUTER_API_KEY;
-    if (orKey) {
-      // Default to a FAST image model. openai/gpt-5-image is high quality but
-      // takes ~85s, which a proxy between Vercel and OpenRouter kills as an idle
-      // connection (~20s) before it returns any bytes → "fetch_failed" in prod
-      // even though it works locally. gemini-2.5-flash-image returns in seconds
-      // (dodging the timeout) and is ~6× cheaper, while still doing a faithful
-      // reference edit. Override with OPENROUTER_IMAGE_MODEL.
-      const model = process.env.OPENROUTER_IMAGE_MODEL || "google/gemini-2.5-flash-image";
-      const content = [
-        { type: "text", text: prompt },
-        ...refs.map((r) => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${r.toString("base64")}` } })),
-      ];
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${orKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://www.freeloncity.com",
-          "X-Title": "FREELON CITY",
-        },
-        body: JSON.stringify({ model, modalities: ["image", "text"], messages: [{ role: "user", content }], stream: false }),
-        signal: controller.signal,
-      });
-      if (!res.ok) return { ok: false, error: `openrouter_${res.status}:${(await res.text().catch(() => "")).slice(0, 100)}` };
-      const j = (await res.json()) as {
-        choices?: { message?: { images?: { image_url?: { url?: string } }[] } }[];
-        usage?: { prompt_tokens?: number; completion_tokens?: number };
-      };
-      const url = j.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? "";
-      const b64 = url.startsWith("data:") ? url.slice(url.indexOf(",") + 1) : "";
-      if (!b64) return { ok: false, error: "empty_image" };
-      return { ok: true, b64, usage: { input: j.usage?.prompt_tokens, output: j.usage?.completion_tokens } };
-    }
-
-    const key = process.env.OPENAI_API_KEY!;
-    const form = new FormData();
-    form.append("model", MODEL);
-    form.append("prompt", prompt);
-    form.append("size", "1024x1024");
-    form.append("quality", quality);
-    if (refs.length <= 1) {
-      form.append("image", new Blob([new Uint8Array(refs[0])], { type: "image/jpeg" }), "ref.jpg");
-    } else {
-      refs.forEach((r, i) => form.append("image[]", new Blob([new Uint8Array(r)], { type: "image/jpeg" }), `ref${i}.jpg`));
-    }
-    const res = await fetch(OPENAI_IMAGE_URL, {
+    // Default to a FAST image model. openai/gpt-5-image is high quality but
+    // takes ~85s, which a proxy between Vercel and OpenRouter kills as an idle
+    // connection (~20s) before it returns any bytes → "fetch_failed" in prod
+    // even though it works locally. gemini-2.5-flash-image returns in seconds
+    // (dodging the timeout) and is ~6× cheaper, while still doing a faithful
+    // reference edit. Override with OPENROUTER_IMAGE_MODEL.
+    const model = process.env.OPENROUTER_IMAGE_MODEL || "google/gemini-2.5-flash-image";
+    const content = [
+      { type: "text", text: prompt },
+      ...refs.map((r) => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${r.toString("base64")}` } })),
+    ];
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
-      body: form,
+      headers: {
+        Authorization: `Bearer ${orKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://www.freeloncity.com",
+        "X-Title": "FREELON CITY",
+      },
+      body: JSON.stringify({ model, modalities: ["image", "text"], messages: [{ role: "user", content }], stream: false }),
       signal: controller.signal,
     });
-    if (!res.ok) return { ok: false, error: `openai_${res.status}:${(await res.text().catch(() => "")).slice(0, 120)}` };
-    const j = (await res.json()) as { data?: { b64_json?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
-    const b64 = j.data?.[0]?.b64_json;
+    if (!res.ok) return { ok: false, error: `openrouter_${res.status}:${(await res.text().catch(() => "")).slice(0, 100)}` };
+    const j = (await res.json()) as {
+      choices?: { message?: { images?: { image_url?: { url?: string } }[] } }[];
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    };
+    const url = j.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? "";
+    const b64 = url.startsWith("data:") ? url.slice(url.indexOf(",") + 1) : "";
     if (!b64) return { ok: false, error: "empty_image" };
-    return { ok: true, b64, usage: { input: j.usage?.input_tokens, output: j.usage?.output_tokens } };
+    return { ok: true, b64, usage: { input: j.usage?.prompt_tokens, output: j.usage?.completion_tokens } };
   } catch (e) {
     if ((e as Error).name === "AbortError") return { ok: false, error: "timeout" };
     // Surface the real cause (undici puts the reason in .cause.code) so a
