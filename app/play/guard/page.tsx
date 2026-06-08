@@ -39,6 +39,23 @@ export default function GuardPage() {
 
       <section style={{ marginTop: 28 }}>
         <GuardThePot />
+        <p
+          style={{
+            maxWidth: 760,
+            margin: "16px auto 0",
+            textAlign: "center",
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            letterSpacing: "0.14em",
+            color: "var(--ink-fade)",
+            textTransform: "uppercase",
+          }}
+        >
+          No purchase necessary. ⬡ is an in-app credit with no cash value.{" "}
+          <Link href="/legal/guard-the-pot-rules" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>
+            Official Rules
+          </Link>
+        </p>
       </section>
 
       <section style={{ marginTop: 40, textAlign: "center" }}>
