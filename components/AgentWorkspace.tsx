@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FramedAgent } from "./FramedAgent";
 import { WorkspaceUnlock } from "./WorkspaceUnlock";
+import { AgentPowers } from "./AgentPowers";
 import styles from "./AgentWorkspace.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -557,6 +558,18 @@ export function AgentWorkspace(props: Props) {
                       </button>
                     ))}
                   </div>
+                  {/* The collectible-native powers — only meaningful because each
+                      NFT is a distinct trained agent. FREELONS only (uses the
+                      citizen reasoning + ownership). */}
+                  {!slug && (
+                    <AgentPowers
+                      citizenId={tokenId}
+                      name={name}
+                      accent={color}
+                      address={address}
+                      onConnect={connect}
+                    />
+                  )}
                 </>
               )}
             </div>
