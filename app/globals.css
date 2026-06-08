@@ -276,7 +276,12 @@ body {
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,170,100,0.07), transparent 60%),
     radial-gradient(ellipse 60% 40% at 50% 110%, rgba(168,79,42,0.06), transparent 60%),
     var(--bg);
-  overflow-x: hidden;
+  /* overflow-x: clip (NOT hidden) contains horizontal bleed WITHOUT making body
+     a scroll container. `hidden` forces overflow-y to compute as `auto`, which
+     turns body into the scroller and breaks `position: sticky` on the header on
+     mobile (the holder's "I always have to scroll up to switch" bug). `clip`
+     keeps overflow-y visible, so the sticky header holds. 2026-06-08. */
+  overflow-x: clip;
   position: relative;
 }
 /* GLOBAL GRAIN OVERLAY — single biggest cheap→premium upgrade */
@@ -2953,8 +2958,10 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   header .brand span { font-size: 10px; letter-spacing: 0.2em; }
   header .brand img { width: 28px !important; height: 28px !important; }
 
-  /* iOS form scroll: ensure body can scroll when input is focused */
-  html, body { overflow-x: hidden; }
+  /* iOS form scroll: ensure body can scroll when input is focused. Use clip
+     (not hidden) so body stays a non-scroll-container and the sticky header
+     holds on mobile — see the body{} rule note above. */
+  html, body { overflow-x: clip; }
   body.body-noscroll { overflow: hidden; height: 100vh; }
 
   /* Buttons — smaller on mobile */
