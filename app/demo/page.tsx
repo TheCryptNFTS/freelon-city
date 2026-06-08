@@ -5,7 +5,7 @@ import { DemoChat, type DemoAgent } from "@/components/DemoChat";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Talk to an Agent · FREELON CITY",
+  title: "Talk to an Agent",
   description:
     "Every citizen of FREELON CITY is an AI character you can chat with. Here are free ones — no wallet needed. Talk to them, then meet the ones you own.",
 };

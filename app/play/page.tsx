@@ -10,13 +10,13 @@ import { GamePreview, type GameKind } from "@/components/GamePreview";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Play · FREELON CITY Arcade",
+  title: "Arcade",
   description:
-    "Three ways into the signal. Match the hex, restore the dark city, crack the daily frequency. Prototype arcade for FREELON CITY.",
+    "Ways into the signal. Match the hex, restore the dark city, crack the daily frequency. Prototype arcade for FREELON CITY.",
   openGraph: {
     title: "FREELON CITY ARCADE",
     description:
-      "Three ways into the signal. Match the hex, restore the city, crack the daily frequency.",
+      "Ways into the signal. Match the hex, restore the city, crack the daily frequency.",
     images: [
       { url: "/api/og/play?t=THE%20ARCADE&k=PLAY%20THE%20SIGNAL", width: 1200, height: 630 },
     ],
@@ -72,10 +72,10 @@ export default function PlayHub() {
       <section className="manifesto-hero">
         <span className="kicker">⬡ FREELON CITY · ARCADE · PROTOTYPE</span>
         <h1>
-          Three ways into <em>the signal</em>.
+          Ways into <em>the signal</em>.
         </h1>
         <p className="lead">
-          Three free mini-games — the free hook, the holder loop, the daily ritual. Pick a door.
+          Free mini-games — the free hook, the holder loop, the daily ritual. Pick a door.
         </p>
         <p
           className="lead"

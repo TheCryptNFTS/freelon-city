@@ -120,16 +120,19 @@ export function AdminConsole() {
   useEffect(() => { if (entered && key) loadOps(key); }, [entered, key, loadOps]);
 
   // ── Key gate ──────────────────────────────────────────────
+  // Unauthed visitors see a bare, generic prompt only — no env-var name, no
+  // description of what's behind the gate, no setup instructions. The detailed
+  // guidance lives in the authed console (and in errors only after a key is
+  // submitted), so an anonymous visitor learns nothing about the operation.
   if (!entered) {
     return (
       <div className="admin-wrap">
-        <h1 className="admin-h1">⬡ Admin Console</h1>
-        <p className="admin-lead">Enter your admin key to view costs, errors, and go-live readiness. This is the value you set as <code>ADMIN_SEED_KEY</code> in Vercel.</p>
+        <h1 className="admin-h1">⬡ Restricted</h1>
+        <p className="admin-lead">Enter access key.</p>
         <form onSubmit={(e) => { e.preventDefault(); submitKey(key); }} className="admin-keyform">
-          <input className="admin-input" type="password" placeholder="Admin key…" value={key} onChange={(e) => setKey(e.target.value)} autoFocus />
+          <input className="admin-input" type="password" placeholder="Access key…" value={key} onChange={(e) => setKey(e.target.value)} autoFocus />
           <button className="btn btn-primary" type="submit"><span className="ttl">Unlock →</span></button>
         </form>
-        <p className="admin-hint">Not set one yet? In Vercel → Settings → Environment Variables, add <code>ADMIN_SEED_KEY</code> = any password, then redeploy.</p>
       </div>
     );
   }

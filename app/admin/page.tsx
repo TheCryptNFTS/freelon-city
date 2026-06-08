@@ -11,9 +11,13 @@ export const dynamic = "force-dynamic";
 
 /**
  * /admin — a plain-English founder console. Not a public page: it's gated by the
- * same ADMIN_SEED_KEY as the admin APIs. You type the key once (kept in your
- * browser, never in the URL) and it shows: today's agent cost, recent errors,
- * the go-live readiness checklist, and the payment master switch state.
+ * same admin key as the admin APIs. You type the key once (kept in your browser,
+ * never in the URL) and it shows: today's agent cost, recent errors, the go-live
+ * readiness checklist, and the payment master switch state.
+ *
+ * Unauthed visitors only ever see a bare "Restricted · enter access key" prompt —
+ * no env-var name, no description of what's gated, no setup steps. All of that
+ * lives behind the key (and the server APIs fail closed with 403/404).
  *
  * Everything here is READ-ONLY — it reports state, it never changes payments or
  * runs anything. Built for someone new to ops: no raw JSON, no dev URLs.

@@ -46,23 +46,27 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const sp = await searchParams;
   const g = str(sp.g).toLowerCase();
-  const game = VALID_GAMES.has(g) ? GAME_TITLES[g] : "FREELON CITY Arcade";
+  const game = VALID_GAMES.has(g) ? GAME_TITLES[g] : "Arcade";
   const n = str(sp.n);
   const nl = str(sp.nl);
-  const title = n ? `${n} · ${game}` : `${game} · FREELON CITY`;
+  // Document <title>: bare — the root layout template appends "· FREELON CITY".
+  const title = n ? `${n} · ${game}` : game;
+  // OG/twitter cards aren't run through the title template, so they carry the
+  // brand explicitly to stay self-contained when unfurled off-site.
+  const cardTitle = n ? `${n} · ${game} · FREELON CITY` : `${game} · FREELON CITY`;
   const description = [nl, str(sp.sub)].filter(Boolean).join(" · ") || "Play the signal.";
   const img = ogImageUrl(sp);
   return {
     title,
     description,
     openGraph: {
-      title,
+      title: cardTitle,
       description,
       images: [{ url: img, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: cardTitle,
       description,
       images: [img],
     },

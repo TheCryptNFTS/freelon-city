@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const id4 = tid.toString().padStart(4, "0");
   const who = c.transmission_name || c.honoree || `Citizen #${id4}`;
   return {
-    title: `Work log · ${who} · FREELON CITY`,
+    title: `Work log · ${who}`,
     description: `What this agent has actually done — a public, newest-first record of work tied to the NFT (#${id4}).`,
   };
 }
