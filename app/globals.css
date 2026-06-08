@@ -406,7 +406,20 @@ a { color: inherit; text-decoration: none; }
   padding: 8px 0;
   cursor: pointer; transition: color 200ms ease;
 }
-.btn.btn-ghost:hover, .terminal-button:hover { color: var(--ink); }
+.btn.btn-ghost:hover, .terminal-button:hover {
+  color: var(--ink);
+  /* Ghost is a text-only button (no border/background). The base .btn:hover adds
+     a gold border + lift + glowing box-shadow, which on a frameless ghost reads
+     as a glow "bleeding" into empty space (Discord: READ THE LORE hover bleed).
+     Neutralize those here so ghost only shifts color. */
+  border-color: transparent;
+  transform: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+/* Ghost also inherits the base .btn felt box-shadow at rest — clear it so there's
+   no faint frame around a text-only button. */
+.btn.btn-ghost, .terminal-button { box-shadow: none; backdrop-filter: none; }
 
 .btn.btn-sm { height: 40px; padding: 0 16px; font-size: 11px; }
 .btn.btn-lg { height: 60px; padding: 0 30px; font-size: 14px; }
