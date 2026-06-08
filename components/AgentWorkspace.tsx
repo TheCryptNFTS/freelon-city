@@ -74,6 +74,21 @@ type Msg = {
 };
 type Thread = { id: string; title: string; createdAt: number; updatedAt: number; messages: Msg[] };
 
+/** Owner-scoped on-chain grounding from /api/citizens/[id]/landing. Every field
+ *  is independently nullable — the server omits anything it couldn't confirm,
+ *  and the greeting only renders clauses for the facts that are present. */
+type Landing = {
+  isOwner: boolean;
+  daysHeld: number | null;
+  lastSaleEth: number | null;
+  lastSaleTs: number | null;
+  level: number | null;
+  className: string | null;
+  jobsDone: number | null;
+  rank: number | null;
+  otherHeld: number | null;
+};
+
 type Props = {
   tokenId: number;
   name: string;
@@ -139,6 +154,10 @@ export function AgentWorkspace(props: Props) {
   // info-pane entry can deep-link to a specific power (returning to the lobby).
   const [powersTab, setPowersTab] = useState<"none" | "transmission" | "chronicle" | "versus">("none");
   const [levelUp, setLevelUp] = useState<number | null>(null);
+  // THE LANDING PAD — on-chain facts only THIS holder + THIS citizen could
+  // produce, fetched once the wallet is known. Fail-quiet: a null payload (slow
+  // RPC / non-owner / sister) just hides the grounding line, never blocks chat.
+  const [landing, setLanding] = useState<Landing | null>(null);
 
   const sigCache = useRef<Record<string, { signature: string; ts: number }>>({});
   const syncSig = useRef<{ signature: string; ts: number } | null>(null);
@@ -275,6 +294,21 @@ export function AgentWorkspace(props: Props) {
       if (a) { setAddress(a); loadHex(a); }
     }).catch(() => {});
   }, [loadHex]);
+
+  /* ── Landing pad: on-chain grounding for session 1 ───────────────────────
+   * Once the wallet is connected (FREELONS only — sisters have no on-chain
+   * progression/sale history wired here), pull the facts only this holder +
+   * this citizen could know. The server confirms ownership before returning
+   * holder-scoped data; we just render whatever it confirmed. Fail-quiet. */
+  useEffect(() => {
+    if (slug || !address) { setLanding(null); return; }
+    let cancelled = false;
+    fetch(`/api/citizens/${tokenId}/landing?address=${address}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: Landing | null) => { if (!cancelled && d && d.isOwner) setLanding(d); })
+      .catch(() => {/* hide the line, never block */});
+    return () => { cancelled = true; };
+  }, [slug, address, tokenId]);
 
   /* ── Scroll to newest ────────────────────────────────────────────────── */
   const active = useMemo(() => threads.find((t) => t.id === activeId) ?? null, [threads, activeId]);
@@ -441,6 +475,43 @@ export function AgentWorkspace(props: Props) {
       return t ? t.split(" ").slice(0, 6).join(" ") : (h.abilityLabel || h.ability || "a brief");
     })
     .filter(Boolean);
+
+  // GROUNDING LINE — the one sentence a generic chatbot structurally cannot
+  // produce: built ONLY from on-chain facts the server confirmed for this
+  // holder + this citizen. Each clause is conditional, so a partially-degraded
+  // payload still yields a true, shorter sentence (never a fabricated fact, and
+  // never "you've held me null days"). Empty → nothing renders.
+  const grounding = useMemo(() => {
+    if (!landing) return null;
+    const parts: string[] = [];
+    if (typeof landing.daysHeld === "number") {
+      parts.push(
+        landing.daysHeld <= 0
+          ? "You took me on just today"
+          : `You've held me ${landing.daysHeld} day${landing.daysHeld === 1 ? "" : "s"}`,
+      );
+    }
+    if (typeof landing.otherHeld === "number" && landing.otherHeld > 0) {
+      parts.push(`alongside ${landing.otherHeld} other citizen${landing.otherHeld === 1 ? "" : "s"} in your wallet`);
+    }
+    // Always assert provenance — civ is a static prop, so this clause is reliable
+    // even if every network fact timed out (as long as the payload arrived).
+    parts.push(`I'm a ${civName} citizen`);
+    if (typeof landing.lastSaleEth === "number" && landing.lastSaleEth > 0) {
+      parts.push(`last traded at ${landing.lastSaleEth} ETH`);
+    }
+    if (typeof landing.level === "number" && landing.level > 1) {
+      const cls = landing.className ? ` ${landing.className}` : "";
+      parts.push(
+        typeof landing.rank === "number"
+          ? `trained to Level ${landing.level}${cls}, ranked #${landing.rank} in the city`
+          : `trained to Level ${landing.level}${cls}`,
+      );
+    }
+    if (!parts.length) return null;
+    return parts.join(", ") + ".";
+  }, [landing, civName]);
+
   const cssVars = { "--accent": color } as React.CSSProperties;
   // FREELONS only: when payments are live and this citizen isn't unlocked yet,
   // surface the ETH unlock in the CENTER of the workspace (the pay flow that was
@@ -609,6 +680,14 @@ export function AgentWorkspace(props: Props) {
                   <p className={styles.emptyHint}>
                     An AI character you own. Render it into a scene, or give it a brief — it remembers your work and grows as you train it.
                   </p>
+                  {grounding && (
+                    <p
+                      className={styles.emptyHint}
+                      style={{ marginTop: 10, color: "var(--accent, var(--gold))", fontStyle: "italic" }}
+                    >
+                      “{grounding}”
+                    </p>
+                  )}
                   {recall.length > 0 && (
                     <p
                       className={styles.emptyHint}
