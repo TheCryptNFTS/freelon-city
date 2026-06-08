@@ -76,7 +76,7 @@ export async function POST(req: Request) {
   if (!rl.ok) return tooManyResponse(rl);
 
   // CSRF: same-origin only
-  const { isSameOrigin, requireSessionBound, getSessionFromRequest } = await import("@/lib/x-session");
+  const { isSameOrigin, requireProvenWallet, getSessionFromRequest } = await import("@/lib/x-session");
   if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "bad_origin" }, { status: 403 });
   }
@@ -96,8 +96,12 @@ export async function POST(req: Request) {
   // handle. Without this, anyone could claim missions for any wallet/handle.
   const isWallet = /^0x[a-f0-9]{40}$/.test(key);
   if (isWallet) {
-    if (!requireSessionBound(req, key)) {
-      return NextResponse.json({ error: "session_required" }, { status: 401 });
+    // Wallet-keyed claims CREDIT ⬡ (below), so require a PROVEN wallet —
+    // a forged `bind` must not be able to credit the faucet to a wallet the
+    // caller doesn't control. The handle path credits nothing and is gated
+    // by the (non-forgeable) xHandle match, so it stays as-is.
+    if (!requireProvenWallet(req, key)) {
+      return NextResponse.json({ error: "wallet_proof_required" }, { status: 401 });
     }
   } else {
     // Handle path: session must exist and its xHandle must match the

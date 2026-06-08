@@ -9,6 +9,7 @@ import { AllDoctrinesBadge } from "@/components/AllDoctrinesBadge";
 import { MyInvites } from "@/components/MyInvites";
 import { DailyMission } from "@/components/DailyMission";
 import { cityNotice } from "@/lib/city-notice";
+import { proveWallet } from "@/lib/wallet-proof";
 import { CANON } from "@/lib/canon";
 import { StreakBadge } from "@/components/StreakBadge";
 import { useViewerAddr } from "@/lib/use-viewer";
@@ -268,11 +269,21 @@ export function CarrierClient() {
                   const wallet = viewer.addr || holder.address;
                   if (wallet) {
                     try {
-                      const r = await fetch("/api/claim", {
+                      const doClaim = () => fetch("/api/claim", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ addr: wallet }),
                       });
+                      let r = await doClaim();
+                      // Crediting the wallet ledger needs a one-time wallet
+                      // signature (walletProof). Sign once, then retry.
+                      if (r.status === 401) {
+                        const jj = await r.clone().json().catch(() => ({} as { error?: string }));
+                        if (jj?.error === "wallet_proof_required") {
+                          const proof = await proveWallet(wallet);
+                          if (proof.ok) r = await doClaim();
+                        }
+                      }
                       if (r.ok) {
                         const j = await r.json() as { awarded?: number; streak?: number; streakBonus?: number };
                         const total = (j.awarded || 0) + (j.streakBonus || 0);

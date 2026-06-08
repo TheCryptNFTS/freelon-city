@@ -5,7 +5,7 @@ import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 import { CANON } from "@/lib/canon";
-import { requireSessionBound, isSameOrigin } from "@/lib/x-session";
+import { requireProvenWallet, isSameOrigin } from "@/lib/x-session";
 
 const STREAK_MILESTONES: Record<number, number> = {
   3: ECONOMY.STREAK_3_BONUS,
@@ -54,11 +54,13 @@ export async function POST(req: Request) {
   if (!isValidAddress(addr)) {
     return NextResponse.json({ error: "invalid_address" }, { status: 400 });
   }
-  // Auth: require an HMAC X-session that is BOUND to this wallet. Without
-  // this check, anyone could POST { addr: <victim> } and claim 10⬡ on
-  // their behalf daily — the route trusted the body wholesale before.
-  if (!requireSessionBound(req, addr)) {
-    return NextResponse.json({ error: "session_required" }, { status: 401 });
+  // Auth: require a PROVEN wallet (one-time signature), not just a bound
+  // session. `bind` is attacker-chooseable at OAuth start, so a forged
+  // session could POST { addr: <victim> } and credit the daily faucet to a
+  // wallet the caller doesn't control (faucet/leaderboard distortion). Only
+  // a signature proves control of the wallet being credited.
+  if (!requireProvenWallet(req, addr)) {
+    return NextResponse.json({ error: "wallet_proof_required" }, { status: 401 });
   }
   // Atomic SET NX claim — two concurrent POSTs cannot both win the race.
   if (!(await tryClaimToday(addr))) {
