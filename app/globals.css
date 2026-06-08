@@ -4529,22 +4529,64 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .streak-badge[data-tier="saint"]   { color: var(--gold-bright); border-color: var(--gold-bright); background: linear-gradient(135deg, rgba(200,170,100,0.1), rgba(233,201,132,0.2)); box-shadow: 0 0 32px -4px rgba(200,170,100,0.6); }
 
 /* ============================ 404:04 EVENT ============================ */
-.four-event {
-  width: 100%; padding: 10px var(--pad); text-align: center;
-  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.22em;
-  border-bottom: 1px solid var(--line); color: var(--ink-dim); text-transform: uppercase;
+/* THE CITY BOARD — rotating newsboard banner. Hex-pattern bg + a soft gold light
+   make it stand out; arrows + dots drive manual rotation; the slot text carries
+   the live countdown. */
+.four-board {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px var(--pad);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  background:
+    radial-gradient(60% 140% at 50% -20%, rgba(200,170,100,0.10), transparent 70%),
+    repeating-linear-gradient(60deg, rgba(232,224,207,0.025) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-60deg, rgba(232,224,207,0.025) 0 1px, transparent 1px 14px);
 }
-.four-event.active {
-  background: linear-gradient(90deg, rgba(200,170,100,0.16), rgba(233,201,132,0.24), rgba(200,170,100,0.16));
-  background-size: 200% 100%;
+.four-board__slot {
+  flex: 1; min-width: 0; text-align: center;
+}
+.four-board__text {
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.2em;
+  color: var(--ink-dim); text-transform: uppercase;
+  display: inline-block;
+  animation: four-fade 0.4s ease;
+}
+.four-board__link { color: inherit; text-decoration: none; }
+.four-board__link:hover .four-board__text { color: var(--gold); }
+.four-board__arrow {
+  flex-shrink: 0; width: 24px; height: 24px; line-height: 1;
+  background: transparent; border: 1px solid var(--line-2); border-radius: 999px;
+  color: var(--ink-2); font-size: 14px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.four-board__arrow:hover { color: var(--gold); border-color: var(--gold); }
+.four-board__dots {
+  position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%);
+  display: flex; gap: 5px;
+}
+.four-board__dot {
+  width: 5px; height: 5px; border-radius: 999px; padding: 0; cursor: pointer;
+  background: var(--line-2); border: none; transition: background 120ms ease, transform 120ms ease;
+}
+.four-board__dot.on { background: var(--gold); transform: scale(1.25); }
+.four-board.active {
+  background:
+    linear-gradient(90deg, rgba(200,170,100,0.16), rgba(233,201,132,0.24), rgba(200,170,100,0.16)),
+    repeating-linear-gradient(60deg, rgba(232,224,207,0.04) 0 1px, transparent 1px 14px);
+  background-size: 200% 100%, auto;
   animation: four-pulse 4.04s linear infinite;
-  color: var(--ink);
-  font-size: 14px;
-  padding: 16px var(--pad);
   border-top: 1px solid var(--gold);
   border-bottom: 1px solid var(--gold);
 }
-@keyframes four-pulse { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+.four-board.active .four-board__text { color: var(--ink); font-size: 13px; }
+@keyframes four-pulse { 0% { background-position: 0% 50%, 0 0; } 100% { background-position: 200% 50%, 0 0; } }
+@keyframes four-fade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .four-board__text { animation: none; }
+  .four-board.active { animation: none; }
+}
 
 /* ============================ REGRET / FLEX / DOPPEL ============================ */
 .machine-page { max-width: 720px; margin: 0 auto; padding: var(--s-6) var(--pad); }
