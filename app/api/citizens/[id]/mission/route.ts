@@ -257,39 +257,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
   }
 
-  // 8a. PAYMENT GATE — when PAYMENTS_LIVE and this mission has a USD price (and
-  // it is NOT unlock-gated), the holder must have PAID and pass the tx hash.
-  // Unlock-gated abilities use the credit system above, not per-mission payment.
-  const { isPaid } = await import("@/lib/missions/pricing");
-  const paid = isPaid(mission.id) && !requiresUnlock(mission.id);
-  // The txHash that settled this paid run — kept so we can RELEASE it if the
-  // resolver fails (the holder already sent ETH; they must be able to retry).
-  let paidTxHash: string | null = null;
-  if (paid) {
-    const txHash = typeof body.txHash === "string" ? body.txHash : "";
-    if (!txHash) {
-      return NextResponse.json(
-        { error: "payment_required", message: "Get a quote and send the ETH first, then submit the tx hash." },
-        { status: 402 },
-      );
-    }
-    const { verifyPayment } = await import("@/lib/payments/orders");
-    const v = await verifyPayment({ wallet, citizenId: cid, missionId: mission.id, txHash });
-    if (!v.ok) {
-      // awaiting_confirmations / tx_not_found_yet are retryable → 425; the rest 402.
-      const retry = v.error === "awaiting_confirmations" || v.error === "tx_not_found_yet";
-      return NextResponse.json({ error: v.error }, { status: retry ? 425 : 402 });
-    }
-    paidTxHash = txHash;
-  }
-
-  // 8b. FREE missions (no payment) are capped to one run per citizen per UTC day
+  // 8a. FREE missions (no payment) are capped to one run per citizen per UTC day
   // via an atomic day-claim, so a free run can't be spammed against API cost.
-  // Paid (verified) missions skip this — payment is their throttle.
-  // Unlock-gated runs are NOT "free-tier" — the signal credit is their throttle,
-  // so they skip the 1-per-day free cap + the global free budget (an unlocked
-  // holder can run as many premium jobs as they have credits).
-  const isFree = !paid && !unlockGated && mission.cost <= 0;
+  // Unlock-gated runs are NOT "free-tier" — the premium HEX charge is their
+  // throttle, so they skip the 1-per-day free cap + the global free budget (an
+  // unlocked holder can run as many premium jobs as they have ⬡ for).
+  // NOTE: there is no per-mission ETH payment path — premium is HEX-priced and
+  // gated by the one-time ETH activation (see the unlockGated block above).
+  const isFree = !unlockGated && mission.cost <= 0;
   const dayKey = `freelon:mission:day:${cid}:${mission.id}:${utcDay()}`;
   const perDayMax = runsPerCitizenPerDay();
   // Cents charged against the daily $ budget for THIS free run (refunded if it
@@ -361,11 +336,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // 10. Run the resolver. If it throws OR returns ok:false, REFUND the burn —
   //     never charge for undelivered output.
   // PREMIUM = a genuinely PAID run → deep model + oracle depth (persona/llm read
-  // ctx.paid). A premium ability is unlock-gated, so the ETH-`paid` flag above is
-  // false for it (paid = isPaid && !requiresUnlock); the real signal is that we
-  // charged HEX for it. Without this, a holder who PAID (unlock + HEX) would get
-  // the cheap, shallow model. (Bug found in debug pass 2026-06-04.)
-  const isPaidRun = paid || premiumHexSpent > 0;
+  // ctx.paid). Premium abilities are unlock-gated + HEX-charged, so the signal of
+  // a paid run is simply that we charged HEX for it. Without this, a holder who
+  // PAID (unlock + HEX) would get the cheap, shallow model. (2026-06-04.)
+  const isPaidRun = premiumHexSpent > 0;
   const ctx: MissionContext = { citizen, progress, input, walletAddress: wallet, paid: isPaidRun, priorOutput };
   let output;
   try {
@@ -432,13 +406,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         { status: 502 },
       );
     }
-    // PAID mission failed → the holder already sent ETH (which we can't auto-
-    // refund). Release the tx-used mark so they can RE-RUN with the same payment
-    // (their quote is still valid for its TTL). Never burn paid-for output.
-    if (paidTxHash) {
-      const { releaseTx } = await import("@/lib/payments/orders");
-      await releaseTx(paidTxHash);
-    }
+    // Legacy HEX-cost mission failed → refund the ⬡ so a no-output run is free.
     await creditWalletHex(wallet, mission.cost, {
       kind: "manual",
       note: `Refund: ${mission.title} on #${String(cid).padStart(4, "0")} (+${mission.cost}⬡)`,
@@ -448,7 +416,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         error: "mission_failed",
         message:
           output.error ||
-          "The mission produced no output. Your payment is still valid — press run again to retry at no extra cost.",
+          "No output — your ⬡ was refunded. Press run again to retry.",
         retryable: true,
       },
       { status: 502 },
@@ -503,13 +471,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }).catch(() => {});
     }
   } catch { /* notifications are non-critical — never block the response */ }
-
-  // Paid run delivered → retire the order so it can't linger (the tx-used mark
-  // already blocks any replay; this is hygiene).
-  if (paidTxHash) {
-    const { consumeOrder } = await import("@/lib/payments/orders");
-    await consumeOrder(wallet, mission.id, cid).catch(() => {});
-  }
 
   // Record the actual output into the citizen's body of work (agent history),
   // for ability/deploy missions that produced something the holder keeps —
