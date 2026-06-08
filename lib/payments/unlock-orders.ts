@@ -32,6 +32,9 @@ const client = createPublicClient({
 
 const QUOTE_TTL_SEC = 15 * 60;
 const MIN_CONFIRMATIONS = 2n;
+// Largest random suffix createUnlockQuote can append (≤4095 gwei, in wei). Used
+// to reconstruct the expected payment window when the stored quote has expired.
+const MAX_SUFFIX_WEI = 4095n * 1_000_000_000n;
 
 export type UnlockKind = "activate" | "recharge";
 
@@ -112,10 +115,60 @@ async function markTxUsed(txHash: string): Promise<boolean> {
 
 export type UnlockVerifyResult = { ok: true; order: UnlockOrder } | { ok: false; error: string };
 
-/** Verify the holder's tx pays their pending unlock quote. */
-export async function verifyUnlockPayment(args: { wallet: string; tokenId: number; txHash: string }): Promise<UnlockVerifyResult> {
-  const order = await getOrder(args.wallet, args.tokenId);
-  if (!order) return { ok: false, error: "no_quote_or_expired" };
+/**
+ * Reconstruct the expected order from a citizen's tier when the stored quote has
+ * expired. The on-chain tx carries everything we need to verify a payment
+ * (from/to/value), so a payment must NEVER be lost just because the 15-min quote
+ * TTL elapsed (slow confirmations, a closed tab, a retry). This was the root
+ * cause of recurring "I paid to unlock but it won't activate" reports: the holder
+ * paid a valid quote-matched amount, then the claim ran after the quote expired
+ * → no_quote_or_expired dead-end, forever, despite a permanently valid tx.
+ *
+ * The amount check stays tight: the value must land in [baseWei, baseWei+maxSuffix]
+ * for the tier+kind — the exact window createUnlockQuote could ever have minted —
+ * so a random transfer to the project wallet can't be passed off as an unlock.
+ * Combined with from==owner (ownership re-checked by the caller) and the txHash
+ * dedupe, the synthetic order is as safe as the stored one.
+ */
+function syntheticOrder(wallet: string, tokenId: number, kind: UnlockKind): UnlockOrder | null {
+  const citizen = getCitizen(tokenId);
+  if (!citizen) return null;
+  const tier = unlockTierFor(citizen.tier);
+  const priceEth = kind === "recharge" ? tier.rechargeEth : tier.priceEth;
+  const baseWei = BigInt(Math.round(priceEth * 1e18));
+  return {
+    wallet: wallet.toLowerCase(),
+    tokenId,
+    tier: tier.tier,
+    kind,
+    priceEth,
+    wei: baseWei.toString(), // base; the window is applied in verify
+    ethLabel: priceEth.toFixed(6),
+    toWallet: PAYMENT_WALLET,
+    createdAt: 0,
+    expiresAt: 0,
+  };
+}
+
+/**
+ * Verify the holder's tx pays their unlock. Verification is driven by the
+ * citizen's TIER PRICE, never by the ephemeral stored quote — the on-chain tx
+ * carries everything we need (from/to/value), so a payment must never be lost
+ * because the 15-min quote TTL elapsed (slow confirmations, a closed tab, a
+ * retry, or a fresh quote minting a *different* random amount than the one the
+ * holder already paid). Those were the root causes of recurring "I paid to
+ * unlock but it won't activate" reports.
+ *
+ * The amount check stays tight: value must land in [baseWei, baseWei+maxSuffix]
+ * for the tier+kind — the exact window createUnlockQuote could ever mint — so a
+ * random transfer to the project wallet can't be passed off as an unlock.
+ * Combined with from==owner (ownership re-checked by the caller) and the txHash
+ * dedupe, this is as safe as an exact stored-quote match, and far more robust.
+ */
+export async function verifyUnlockPayment(args: { wallet: string; tokenId: number; txHash: string; kind?: UnlockKind }): Promise<UnlockVerifyResult> {
+  const kind: UnlockKind = args.kind ?? "activate";
+  const order = syntheticOrder(args.wallet, args.tokenId, kind);
+  if (!order) return { ok: false, error: "unknown_citizen" };
 
   const txHash = args.txHash.trim();
   if (!/^0x[a-f0-9]{64}$/i.test(txHash)) return { ok: false, error: "bad_txhash" };
@@ -131,7 +184,10 @@ export async function verifyUnlockPayment(args: { wallet: string; tokenId: numbe
   if (receipt.status !== "success") return { ok: false, error: "tx_failed" };
   if (tx.from.toLowerCase() !== order.wallet) return { ok: false, error: "wrong_sender" };
   if ((tx.to ?? "").toLowerCase() !== order.toWallet) return { ok: false, error: "wrong_recipient" };
-  if (tx.value.toString() !== order.wei) return { ok: false, error: "wrong_amount" };
+  // Accept the exact tier base price plus up to the max random suffix a quote
+  // could have carried. Tight window — NOT a "≥ price" check.
+  const base = BigInt(order.wei);
+  if (tx.value < base || tx.value > base + MAX_SUFFIX_WEI) return { ok: false, error: "wrong_amount" };
 
   try {
     const head = await client.getBlockNumber();

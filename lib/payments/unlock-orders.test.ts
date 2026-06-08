@@ -38,6 +38,15 @@ vi.mock("viem", async (importOriginal) => {
 
 import { createUnlockQuote, verifyUnlockPayment, type UnlockOrder } from "@/lib/payments/unlock-orders";
 import { PAYMENT_WALLET } from "@/lib/missions/pricing";
+import { getCitizen } from "@/lib/citizens";
+import { unlockTierFor } from "@/lib/missions/unlock";
+
+const MAX_SUFFIX_WEI = 4095n * 1_000_000_000n;
+function baseWeiFor(tokenId: number, kind: "activate" | "recharge" = "activate"): bigint {
+  const tier = unlockTierFor(getCitizen(tokenId)?.tier);
+  const priceEth = kind === "recharge" ? tier.rechargeEth : tier.priceEth;
+  return BigInt(Math.round(priceEth * 1e18));
+}
 
 const OWNER = "0x1111111111111111111111111111111111111111";
 const STRANGER = "0x2222222222222222222222222222222222222222";
@@ -75,7 +84,32 @@ describe("verifyUnlockPayment — activation attribution guards", () => {
     const { order, txHash } = await setupValid();
     const r = await verifyUnlockPayment({ wallet: OWNER, tokenId: order.tokenId, txHash });
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.order.wei).toBe(order.wei);
+    if (r.ok) {
+      expect(r.order.kind).toBe("activate");
+      expect(r.order.priceEth).toBe(order.priceEth);
+    }
+  });
+
+  it("accepts a valid payment even with NO live quote (expired-quote fix)", async () => {
+    // The root-cause fix: a holder who paid then returned after the 15-min quote
+    // TTL (or a fresh quote minted a different random amount) must still activate.
+    // No createUnlockQuote here — verification is driven purely by the tier price.
+    const tokenId = tokenSeq++;
+    const base = baseWeiFor(tokenId);
+    // Pay exact base + a 612 gwei suffix, mirroring the real #1450 payment.
+    mock.state.tx = { from: OWNER, to: PAYMENT_WALLET, value: base + 612n * 1_000_000_000n };
+    mock.state.receipt = { status: "success", blockNumber: 100n };
+    mock.state.head = 200n;
+    const r = await verifyUnlockPayment({ wallet: OWNER, tokenId, txHash: freshTx() });
+    expect(r.ok).toBe(true);
+  });
+
+  it("rejects an unknown citizen (no tier to price against)", async () => {
+    mock.state.tx = { from: OWNER, to: PAYMENT_WALLET, value: 10n ** 16n };
+    mock.state.receipt = { status: "success", blockNumber: 100n };
+    mock.state.head = 200n;
+    const r = await verifyUnlockPayment({ wallet: OWNER, tokenId: 999999, txHash: freshTx() });
+    expect(r).toEqual({ ok: false, error: "unknown_citizen" });
   });
 
   it("rejects a replayed tx (one tx unlocks once — no double bonus ⬡)", async () => {
@@ -104,9 +138,16 @@ describe("verifyUnlockPayment — activation attribution guards", () => {
     expect(r).toEqual({ ok: false, error: "wrong_recipient" });
   });
 
-  it("rejects the wrong amount (underpay by 1 wei)", async () => {
+  it("rejects underpayment below the tier base price", async () => {
     const { order, txHash } = await setupValid();
-    mock.state.tx = { from: OWNER, to: order.toWallet, value: BigInt(order.wei) - 1n };
+    mock.state.tx = { from: OWNER, to: order.toWallet, value: baseWeiFor(order.tokenId) - 1n };
+    const r = await verifyUnlockPayment({ wallet: OWNER, tokenId: order.tokenId, txHash });
+    expect(r).toEqual({ ok: false, error: "wrong_amount" });
+  });
+
+  it("rejects overpayment beyond the max quote-suffix window", async () => {
+    const { order, txHash } = await setupValid();
+    mock.state.tx = { from: OWNER, to: order.toWallet, value: baseWeiFor(order.tokenId) + MAX_SUFFIX_WEI + 1n };
     const r = await verifyUnlockPayment({ wallet: OWNER, tokenId: order.tokenId, txHash });
     expect(r).toEqual({ ok: false, error: "wrong_amount" });
   });
@@ -136,11 +177,6 @@ describe("verifyUnlockPayment — activation attribution guards", () => {
     const { order } = await setupValid();
     const r = await verifyUnlockPayment({ wallet: OWNER, tokenId: order.tokenId, txHash: "0xnothex" });
     expect(r).toEqual({ ok: false, error: "bad_txhash" });
-  });
-
-  it("rejects when there is no quote for this owner+citizen", async () => {
-    const r = await verifyUnlockPayment({ wallet: STRANGER, tokenId: 4039, txHash: freshTx() });
-    expect(r).toEqual({ ok: false, error: "no_quote_or_expired" });
   });
 
   it("anchors the recipient to the configured project wallet", async () => {

@@ -104,7 +104,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (body.action === "claim") {
     const txHash = typeof body.txHash === "string" ? body.txHash : "";
     if (!txHash) return NextResponse.json({ error: "payment_required" }, { status: 402 });
-    const v = await verifyUnlockPayment({ wallet, tokenId: cid, txHash });
+    const v = await verifyUnlockPayment({ wallet, tokenId: cid, txHash, kind });
     if (!v.ok) {
       const retry = v.error === "awaiting_confirmations" || v.error === "tx_not_found_yet";
       return NextResponse.json({ error: v.error }, { status: retry ? 425 : 402 });
