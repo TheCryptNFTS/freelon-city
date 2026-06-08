@@ -66,14 +66,7 @@ export default function SyncPage() {
       {/* ── CONNECT — the original /sync (wallet connect + civ finder) ── */}
       <section
         id="connect"
-        className="sync-empty"
-        style={{
-          backgroundImage:
-            "linear-gradient(180deg, rgba(10,12,18,0.5) 0%, rgba(10,12,18,0.92) 60%, var(--bg) 100%), url(/atmos/sync.webp)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
+        className="sync-empty sync-connect-bg"
       >
         <div className="sync-hero">
           <span className="kicker">⬡ ENTER THE CITY</span>
@@ -102,34 +95,21 @@ export default function SyncPage() {
         {/* Fallback path: scan a pasted address/ENS/handle. */}
         <WalletScanner />
 
-        <div
-          className="sync-fallback"
-          style={{
-            maxWidth: 720,
-            margin: "var(--s-7) auto 0",
-            padding: "var(--s-5) var(--pad) var(--s-6)",
-            borderTop: "1px solid var(--line)",
-            textAlign: "center",
-          }}
-        >
-          <span
-            className="kicker"
-            style={{ display: "block", marginBottom: "var(--s-3)" }}
-          >
-            ⬡ OR SYNC BY HANDLE
-          </span>
-          <p
-            style={{
-              color: "var(--ink-2)",
-              margin: "0 0 var(--s-3)",
-              fontSize: 14,
-            }}
-          >
-            Don&apos;t own a FREELON yet? Drop your X handle — the city sorts you into a tribe and shows
-            you that tribe&apos;s face. It&apos;s an <strong>example, not yours</strong>; you own a FREELON by buying one.
-          </p>
-          <div className="big-input">
-            <InlineSync />
+        <div className="sync-fallback">
+          {/* Unified "OR" divider — a centered rule instead of a hard top border,
+              so the two paths read as alternatives, not separate panels. */}
+          <div className="sync-or" aria-hidden>
+            <span>OR</span>
+          </div>
+          <div className="sync-fallback__card">
+            <span className="kicker sync-fallback__kicker">⬡ SYNC BY HANDLE</span>
+            <p className="sync-fallback__lede">
+              Don&apos;t own a FREELON yet? Drop your X handle — the city sorts you into a tribe and shows
+              you that tribe&apos;s face. It&apos;s an <strong>example, not yours</strong>; you own a FREELON by buying one.
+            </p>
+            <div className="big-input">
+              <InlineSync />
+            </div>
           </div>
         </div>
 

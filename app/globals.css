@@ -1607,11 +1607,47 @@ a { color: inherit; text-decoration: none; }
 
 /* ============================ /sync ============================ */
 .sync-empty, .sync-result { max-width: 1240px; margin: 0 auto; padding: var(--sec-y) var(--pad); }
+/* CONNECT fold background — the atmos image now fades into --bg on ALL FOUR
+   edges (top/bottom vertical + left/right horizontal), so it reads as part of
+   the page instead of a hard-edged photo card (Discord, Cm #0006). The image is
+   a ::before layer so the side-fade mask doesn't clip the section content. */
+.sync-connect-bg { position: relative; isolation: isolate; }
+.sync-connect-bg::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(10,12,18,0.5) 0%, rgba(10,12,18,0.92) 60%, var(--bg) 100%),
+    url(/atmos/sync.webp);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+}
 .sync-hero .kicker { color: var(--ink-dim); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.28em; }
 .sync-hero h1 { font-family: var(--display); font-size: var(--t-h1); line-height: 0.9; letter-spacing: -0.02em; margin: var(--s-5) 0 var(--s-6); text-transform: uppercase; }
 .sync-hero h1 em { color: var(--gold); font-style: normal; }
 .sync-hero p { color: var(--ink-2); max-width: 60ch; font-size: 17px; line-height: 1.5; margin-bottom: 40px; }
 .sync-hero .big-input form { display: flex; gap: 12px; max-width: 540px; }
+
+/* SYNC fallback (handle path) — a unified "OR" divider + a grouped card, so the
+   two ways in read as alternatives with clear proximity (Discord, Cm #0006). */
+.sync-fallback { max-width: 720px; margin: var(--s-6) auto 0; }
+.sync-or {
+  display: flex; align-items: center; gap: 16px;
+  margin: 0 auto var(--s-5); color: var(--ink-dim);
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.3em;
+}
+.sync-or::before, .sync-or::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-2), transparent);
+}
+.sync-fallback__card {
+  text-align: center;
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 4%, transparent), transparent);
+}
+.sync-fallback__kicker { display: block; margin-bottom: var(--s-3); }
+.sync-fallback__lede { color: var(--ink-2); margin: 0 0 var(--s-4); font-size: 14px; line-height: 1.55; }
 .sync-hero .big-input input {
   flex: 1; background: var(--surface); border: 1px solid var(--line); color: var(--ink);
   padding: 18px 20px; border-radius: 4px; font-family: var(--grotesk); font-size: 18px;
