@@ -105,9 +105,27 @@ function Transmission({ citizenId, name, accent, address, onConnect, sign }: Sub
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const [nextIn, setNextIn] = useState("");
+
   useEffect(() => {
     fetch(`/api/citizens/${citizenId}/transmission`).then((r) => r.json()).then((d) => { if (d?.transmission?.text) setText(d.transmission.text); }).catch(() => {});
   }, [citizenId]);
+
+  // Live countdown to the next transmission window (resets at UTC midnight). Only
+  // ticks once today's is already broadcast — answers "transmit now or wait?".
+  useEffect(() => {
+    if (!text) { setNextIn(""); return; }
+    const tick = () => {
+      const now = new Date();
+      const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0);
+      const ms = midnight - now.getTime();
+      const h = Math.floor(ms / 3.6e6), m = Math.floor((ms % 3.6e6) / 6e4), s = Math.floor((ms % 6e4) / 1e3);
+      setNextIn(`${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`);
+    };
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [text]);
 
   async function broadcast() {
     if (!address) { onConnect(); return; }
@@ -128,10 +146,13 @@ function Transmission({ citizenId, name, accent, address, onConnect, sign }: Sub
         <>
           <p style={{ fontSize: 15, color: "#f2efe6", lineHeight: 1.5, margin: "12px 0 0", fontStyle: "italic" }}>“{text}”</p>
           <a style={ghostBtn(accent)} href={X(`"${text}"\n\n— ${name}, FREELON CITY\nfreeloncity.com/agent/${citizenId}`)} target="_blank" rel="noreferrer">Share to X ↗</a>
+          <p style={{ fontSize: 11, color: "var(--ink-dim, #8a8a92)", marginTop: 10, fontFamily: "var(--mono2)", letterSpacing: "0.04em" }}>
+            ✓ Today&apos;s signal is sent. Next transmission in <strong style={{ color: accent }}>{nextIn || "—"}</strong> (UTC midnight).
+          </p>
         </>
       ) : (
         <>
-          <p style={{ fontSize: 13, color: "var(--ink-2, #b8b8c0)", lineHeight: 1.5, margin: "10px 0 0" }}>Broadcast {name}&apos;s signal for today — one striking line in its voice, ready to share.</p>
+          <p style={{ fontSize: 13, color: "var(--ink-2, #b8b8c0)", lineHeight: 1.5, margin: "10px 0 0" }}>Broadcast {name}&apos;s signal for today — one striking line in its voice, ready to share. One per day; resets at UTC midnight.</p>
           <button type="button" style={actBtn(accent, busy)} disabled={busy} onClick={broadcast}>{busy ? "BROADCASTING…" : address ? "BROADCAST TODAY'S SIGNAL →" : "CONNECT TO BROADCAST →"}</button>
         </>
       )}

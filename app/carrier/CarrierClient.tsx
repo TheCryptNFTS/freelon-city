@@ -285,8 +285,8 @@ export function CarrierClient() {
                         });
                       } else if (r.status === 401) {
                         cityNotice({
-                          title: "SIGN IN WITH X",
-                          body: "Carrier hex credited, but your X session isn't bound to this wallet — wallet hex needs that to credit.",
+                          title: "LINK X IN A REAL BROWSER",
+                          body: "Counted locally, but to credit your wallet, link X with this wallet in Safari/Chrome (not a wallet's in-app browser — it drops the sign-in).",
                           delta: "+10 ⬡ local",
                         });
                       } else if (r.status === 409) {

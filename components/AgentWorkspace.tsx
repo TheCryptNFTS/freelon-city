@@ -5,6 +5,8 @@ import Link from "next/link";
 import { FramedAgent } from "./FramedAgent";
 import { WorkspaceUnlock } from "./WorkspaceUnlock";
 import { AgentPowers } from "./AgentPowers";
+import { LevelUpCelebration } from "./LevelUpCelebration";
+import { cityNotice } from "@/lib/city-notice";
 import styles from "./AgentWorkspace.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -135,6 +137,7 @@ export function AgentWorkspace(props: Props) {
   // Which Agent Power is open in the lobby. Lifted here so the always-visible
   // info-pane entry can deep-link to a specific power (returning to the lobby).
   const [powersTab, setPowersTab] = useState<"none" | "transmission" | "chronicle" | "versus">("none");
+  const [levelUp, setLevelUp] = useState<number | null>(null);
 
   const sigCache = useRef<Record<string, { signature: string; ts: number }>>({});
   const syncSig = useRef<{ signature: string; ts: number } | null>(null);
@@ -396,6 +399,11 @@ export function AgentWorkspace(props: Props) {
       const r = await runMission(ab.id, `${tk}: ${brief}`);
       if (r.ok && r.output?.body) {
         pushMsg(active.id, { id: uid(), role: "agent", kind: "text", text: r.output.body, abilityLabel: ab.label, ts: Date.now() });
+        // Celebrate a level-up: the agent's level went UP after this run.
+        if (typeof r.level === "number" && agent && r.level > agent.level) {
+          setLevelUp(r.level);
+          cityNotice({ title: `${name} reached Level ${r.level}`, body: "Trained up — it reasons deeper now.", delta: `LV ${r.level}` });
+        }
         setAgent((prev) => (prev && typeof r.level === "number" ? { ...prev, level: r.level } : prev));
         if (address) loadHex(address);
       } else {
@@ -782,6 +790,10 @@ export function AgentWorkspace(props: Props) {
         <div className={styles.lightbox} onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="" />
         </div>
+      )}
+
+      {levelUp !== null && (
+        <LevelUpCelebration level={levelUp} name={name} tokenId={tokenId} accent={color} onClose={() => setLevelUp(null)} />
       )}
     </div>
   );
