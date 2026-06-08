@@ -41,7 +41,7 @@ export default function StartPage() {
        textures + bg from the scoped system + the catch-all override
        in globals.css for inline-styled cards (Section/Box/Step) so
        they flatten to archival surface. No structural edits. */
-    <div className="home-page" style={{ maxWidth: 820, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+    <div className="home-page" style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* ── HERO ── */}
       {/* 2026-05-27 (post-Ogilvy down-funnel): hero rewritten to deliver
          on the homepage h1 promise ("the city remembers what you carry").

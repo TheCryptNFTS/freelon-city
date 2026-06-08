@@ -97,7 +97,7 @@ export default function PlayHub() {
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           gridAutoRows: "1fr",
           gap: 16,
-          maxWidth: 1000,
+          maxWidth: 1120,
           margin: "32px auto 0",
         }}
       >
