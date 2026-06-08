@@ -28,7 +28,7 @@ const DEFAULT_BUDGET_USD = 20;
 /** Conservative per-run cost estimates in CENTS (rounded up for safety). */
 export const RUN_COST_CENTS = {
   text: 1, // cheap-model mission (~0.2¢ real) — rounded up hard
-  image: 24, // openai/gpt-5-image via OpenRouter (~21¢ real) — rounded up
+  image: 6, // gemini-2.5-flash-image via OpenRouter (~4¢ real) — rounded up
   video: 60, // image-to-video (~$0.50 real) — rounded up hard
 } as const;
 
@@ -38,7 +38,7 @@ export const RUN_COST_CENTS = {
  *  much HEX a holder farmed or was granted. Override cap via AGENT_PREMIUM_BUDGET_USD. */
 export const PREMIUM_COST_CENTS = {
   text: 5, // premium (deep) text run
-  image: 24, // openai/gpt-5-image via OpenRouter (~21¢ real) — rounded up
+  image: 6, // gemini-2.5-flash-image via OpenRouter (~4¢ real) — rounded up
   video: 60,
 } as const;
 

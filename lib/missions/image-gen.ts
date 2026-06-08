@@ -55,7 +55,13 @@ async function editToB64(
   try {
     const orKey = process.env.OPENROUTER_API_KEY;
     if (orKey) {
-      const model = process.env.OPENROUTER_IMAGE_MODEL || "openai/gpt-5-image";
+      // Default to a FAST image model. openai/gpt-5-image is high quality but
+      // takes ~85s, which a proxy between Vercel and OpenRouter kills as an idle
+      // connection (~20s) before it returns any bytes → "fetch_failed" in prod
+      // even though it works locally. gemini-2.5-flash-image returns in seconds
+      // (dodging the timeout) and is ~6× cheaper, while still doing a faithful
+      // reference edit. Override with OPENROUTER_IMAGE_MODEL.
+      const model = process.env.OPENROUTER_IMAGE_MODEL || "google/gemini-2.5-flash-image";
       const content = [
         { type: "text", text: prompt },
         ...refs.map((r) => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${r.toString("base64")}` } })),

@@ -564,7 +564,14 @@ export function AgentWorkspace(props: Props) {
           {sending && (
             <div className={`${styles.msgRow} ${styles.agent}`}>
               <img src={art} alt="" className={styles.msgAvatar} />
-              <div className={styles.bubble}><div className={styles.typing}><span/><span/><span/></div></div>
+              {mode === "image" ? (
+                <div className={`${styles.bubble} ${styles.renderBubble}`}>
+                  <span className={styles.hexSpinner} aria-hidden>⬡</span>
+                  <span className={styles.renderLabel}>Rendering {name}…</span>
+                </div>
+              ) : (
+                <div className={styles.bubble}><div className={styles.typing}><span/><span/><span/></div></div>
+              )}
             </div>
           )}
         </div>
