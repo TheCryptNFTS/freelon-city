@@ -132,6 +132,9 @@ export function AgentWorkspace(props: Props) {
   const [infoOpen, setInfoOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [syncState, setSyncState] = useState<"off" | "syncing" | "on" | "error">("off");
+  // Which Agent Power is open in the lobby. Lifted here so the always-visible
+  // info-pane entry can deep-link to a specific power (returning to the lobby).
+  const [powersTab, setPowersTab] = useState<"none" | "transmission" | "chronicle" | "versus">("none");
 
   const sigCache = useRef<Record<string, { signature: string; ts: number }>>({});
   const syncSig = useRef<{ signature: string; ts: number } | null>(null);
@@ -568,6 +571,8 @@ export function AgentWorkspace(props: Props) {
                       accent={color}
                       address={address}
                       onConnect={connect}
+                      open={powersTab}
+                      onOpenChange={setPowersTab}
                     />
                   )}
                 </>
@@ -717,6 +722,35 @@ export function AgentWorkspace(props: Props) {
         ) : agent && agent.unlock.unlocked ? (
           <div className={styles.activated}>⬡ Activated{agent.unlock.credits ? ` · ${agent.unlock.credits} runs` : ""}</div>
         ) : null}
+
+        {/* PERSISTENT AGENT POWERS — always reachable from the info pane (not just
+            the empty-state lobby). Each jumps back to a fresh lobby with that
+            power open. FREELONS only. */}
+        {!slug && (
+          <section className={styles.infoSec}>
+            <h3>Agent Powers</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {([
+                ["transmission", "⬡ Daily Transmission"],
+                ["chronicle", "The Chronicle"],
+                ["versus", "Versus ⚔"],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => { setInfoOpen(false); newThread(); setPowersTab(key); }}
+                  style={{
+                    textAlign: "left", padding: "9px 12px", borderRadius: 9, cursor: "pointer",
+                    background: "#101015", border: "1px solid #1f1f26", color: "#ece9e2",
+                    fontFamily: "var(--mono2)", fontSize: 12.5, letterSpacing: "0.02em",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {gallery.length > 0 && (
           <section className={styles.infoSec}>

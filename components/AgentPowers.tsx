@@ -19,20 +19,30 @@ type Line = { speaker: string; tokenId: number; line: string };
 const SIG_WINDOW_MS = 30 * 60 * 1000;
 const X = (t: string) => `https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}`;
 
+export type PowerTab = "none" | "transmission" | "chronicle" | "versus";
+
 export function AgentPowers({
   citizenId,
   name,
   accent,
   address,
   onConnect,
+  open: openProp,
+  onOpenChange,
 }: {
   citizenId: number;
   name: string;
   accent: string;
   address: string | null;
   onConnect: () => void;
+  /** Controlled open tab (optional). When provided, the parent owns the state so
+   *  an external entry point (e.g. the info pane) can deep-link to a power. */
+  open?: PowerTab;
+  onOpenChange?: (t: PowerTab) => void;
 }) {
-  const [open, setOpen] = useState<"none" | "transmission" | "chronicle" | "versus">("none");
+  const [openLocal, setOpenLocal] = useState<PowerTab>("none");
+  const open = openProp ?? openLocal;
+  const setOpen = (t: PowerTab) => { onOpenChange ? onOpenChange(t) : setOpenLocal(t); };
   const sigCache = useState<Record<string, { signature: string; ts: number }>>({})[0];
 
   function eth(): Eth | null {
