@@ -469,6 +469,38 @@ export function tweetGeneric(text: string, pageUrl: string): string {
   ].join("\n");
 }
 
+/**
+ * Carrier of the Week — the weekly winner card. Recognition only: the FREELON
+ * was crowned on MERIT (its on-chain level/skill). COPY-SAFE: no
+ * prize/payout/worth/investment language — "crowned", "featured", "recognized"
+ * only. The ?ref= makes inbound from the share measurable (ReferralBeacon).
+ */
+export function shareCarrierUrl(weekKey: string): string {
+  return `${SITE}/carrier-of-the-week?ref=cotw-${encodeURIComponent(weekKey)}`;
+}
+
+export function tweetCarrierOfWeek(input: {
+  weekKey: string; // "2026-W23"
+  tokenId: number;
+  name: string;
+  civName: string;
+  level: number;
+  className: string;
+}): string {
+  const id4 = input.tokenId.toString().padStart(4, "0");
+  const title = input.name && !input.name.startsWith("FREELON CITY #") ? input.name : `Citizen #${id4}`;
+  return [
+    `⬡ ${HANDLE} · CARRIER OF THE WEEK · ${input.weekKey}`,
+    ``,
+    `${title} · #${id4}`,
+    `${input.civName.toUpperCase()} · LVL ${input.level} · ${input.className.toUpperCase()}`,
+    ``,
+    `Crowned on merit. The city recognizes the work.`,
+    `${HASHTAGS}`,
+    shareCarrierUrl(input.weekKey),
+  ].join("\n");
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // REPLY PROMPTS — for the new daily-replies feature
 // Carriers can post these (not as a link, as a quoted-reply or as

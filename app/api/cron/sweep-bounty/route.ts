@@ -460,6 +460,21 @@ export async function GET(req: Request) {
     console.error("weekly receipts error", e);
   }
 
+  // ── Piggyback: Carrier of the Week resolution. ISO-week-idempotent
+  // (SET-NX gate), so running it every sweep tick is safe — only the
+  // first tick of a new week actually crowns. Recognition only: moves
+  // NO ⬡. Honored kill-switch CARRIER_OF_WEEK_OFF. Same "no spare cron
+  // slot on Hobby" reasoning as weekly-receipts above.
+  let carrierResult: Awaited<ReturnType<typeof import("@/lib/carrier-of-week").resolveCarrierOfWeek>> | null = null;
+  if (process.env.CARRIER_OF_WEEK_OFF !== "1") {
+    try {
+      const { resolveCarrierOfWeek } = await import("@/lib/carrier-of-week");
+      carrierResult = await resolveCarrierOfWeek();
+    } catch (e) {
+      console.error("carrier of week error", e);
+    }
+  }
+
   // ── Piggyback: reply engagement scan. Replies submitted ≥24h ago
   // get their like count checked; ≥3 likes earns the bonus.
   let engagementResult: Awaited<ReturnType<typeof import("@/lib/reply-engagement-scan").runReplyEngagementScan>> | null = null;
@@ -502,6 +517,7 @@ export async function GET(req: Request) {
     pulse: pulseResult,
     pulseSalesSeen: pulseSales.length,
     receipts: receiptsResult,
+    carrier: carrierResult,
     engagement: engagementResult,
     defenders: defenderResult,
     burst: burstResult,
