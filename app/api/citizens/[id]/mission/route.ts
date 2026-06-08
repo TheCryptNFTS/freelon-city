@@ -529,6 +529,31 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       body: output.body,
       level: result.progress.level,
     }).catch(() => {});
+
+    // AUTO-DOSSIER — distil ONE line from the brief+outcome already in hand so a
+    // free holder's agent visibly sharpens with zero homework. Text only (an
+    // image scene tells the dossier nothing about the holder). Cheap: derived
+    // from existing text, no extra LLM call. KILL-SWITCH: AGENT_AUTO_DOSSIER_OFF
+    // disables it instantly. FAIL-SAFE: any throw is swallowed — auto-dossier
+    // must NEVER break a run that already succeeded (and may have spent ⬡). The
+    // manual paid dossier mission is untouched.
+    if (!isImage && process.env.AGENT_AUTO_DOSSIER_OFF !== "true") {
+      try {
+        const briefBit = input.replace(/\s+/g, " ").trim().slice(0, 120);
+        const outcomeBit = (typeof output.title === "string" ? output.title : "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 80);
+        const day = utcDay();
+        const summary = `[${day}] ${briefBit}${outcomeBit ? ` → ${outcomeBit}` : ""}`;
+        if (briefBit) {
+          const { appendDossierLine } = await import("@/lib/missions/dossier-store");
+          await appendDossierLine(cid, summary).catch(() => {});
+        }
+      } catch {
+        /* auto-dossier is a nicety — never block or fail a successful run */
+      }
+    }
   }
 
   const lp = levelProgress(result.progress.xp);

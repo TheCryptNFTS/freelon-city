@@ -46,17 +46,20 @@ const GROUPS: Group[] = [
   //     provenance/other-collections framing reads better than under "city".
   // Keep in sync with MobileNav.tsx (one IA, two renderers).
   {
+    // 2026-06-08 — Dashboard removed from the newcomer "Get started" group.
+    // It's market/floor/snipe analytics, not onboarding, and reading it as a
+    // first step pushed a trading product over the agent thesis. Still reachable
+    // from ~13 in-content links (/start, /earn, /wallet, /sync, /press, etc.) —
+    // this only de-clutters the newcomer path. Keep in sync with MobileNav.tsx.
     heading: "Get started",
     items: [
       { href: "/start",     label: "New here? Start" },
       { href: "/play",      label: "Play" },
-      { href: "/dashboard", label: "Dashboard" },
     ],
   },
   {
     heading: "The city",
     items: [
-      { href: "/collections",   label: "Collections" },      // the 6-collection index
       { href: "/transmissions", label: "Community wall" },
       { href: "/shop",          label: "Shop" },
     ],

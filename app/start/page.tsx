@@ -81,7 +81,7 @@ export default function StartPage() {
             button. Folded its one action into the hero so the page opens on ONE
             focal box, not two. No wallet needed to look. */}
         <div style={{ marginTop: "var(--s-4)", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <Link className="btn btn-primary btn-lg" href="/citizens/1">
+          <Link className="btn btn-primary btn-lg" href="/demo">
             <span className="ttl">SEE AN AGENT →</span>
           </Link>
           <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)" }}>
@@ -192,7 +192,7 @@ export default function StartPage() {
           n="1"
           title="See an agent work"
           body="Open any FREELON and look at what its agent does — a real example, no wallet needed. This is the thing you're buying."
-          cta={{ label: "SEE AN AGENT →", href: "/citizens/1" }}
+          cta={{ label: "SEE AN AGENT →", href: "/demo" }}
         />
         <Step
           n="2"
@@ -341,7 +341,7 @@ export default function StartPage() {
           See what an <em style={{ color: "var(--gold)", fontStyle: "normal" }}>agent</em> actually does.
         </h2>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/citizens/1"><span className="ttl">SEE AN AGENT →</span></Link>
+          <Link className="btn btn-primary" href="/demo"><span className="ttl">SEE AN AGENT →</span></Link>
         </div>
         <p
           style={{

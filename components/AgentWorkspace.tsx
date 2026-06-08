@@ -423,6 +423,18 @@ export function AgentWorkspace(props: Props) {
   const curAbility = agent?.abilities.find((a) => a.id === abilityId) ?? null;
   const gallery = (agent?.history ?? []).filter((h) => h.kind === "image");
   const textWork = (agent?.history ?? []).filter((h) => h.kind === "text");
+  // RECALL STRIP — surface the moat in the empty state: when the agent already
+  // has history, show the last few things you built together so memory is FELT,
+  // not just stored. Derived purely from the already-loaded history (no new
+  // fetch). Short labels; image work reads as "an image".
+  const recall = (agent?.history ?? [])
+    .slice(0, 3)
+    .map((h) => {
+      if (h.kind === "image") return "an image";
+      const t = (h.body || h.task || "").replace(/\s+/g, " ").trim();
+      return t ? t.split(" ").slice(0, 6).join(" ") : (h.abilityLabel || h.ability || "a brief");
+    })
+    .filter(Boolean);
   const cssVars = { "--accent": color } as React.CSSProperties;
   // FREELONS only: when payments are live and this citizen isn't unlocked yet,
   // surface the ETH unlock in the CENTER of the workspace (the pay flow that was
@@ -433,6 +445,25 @@ export function AgentWorkspace(props: Props) {
     <div className={styles.shell} style={cssVars}>
       {/* ── LEFT: threads ─────────────────────────────────────────────── */}
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
+        {/* Persistent NFT hero — the character is the hero of its own workspace,
+            always on the left (Billy: "the nft on the left on the chatgpt
+            layout"). Stays visible while chatting; the empty-state reveal used
+            to be the only place the art showed at size. */}
+        <div className={styles.sideHero}>
+          <FramedAgent
+            art={art}
+            civColor={color}
+            size={140}
+            alt={name}
+            name={name}
+            stamp={`#${id4} · ${agent?.className ?? civName}`}
+            priority
+          />
+          <div className={styles.sideHeroStats}>
+            <span><small>LEVEL</small><strong>{agent?.level ?? "—"}</strong></span>
+            <span><small>⬡ HEX</small><strong>{address ? (hex ?? "…") : "—"}</strong></span>
+          </div>
+        </div>
         <div className={styles.sideHead}>
           <Link href={slug ? `/collections/${slug}` : `/citizens/${tokenId}`} className={styles.back}>← {slug ? "Collection" : "Citizen"}</Link>
           <button className={styles.newBtn} onClick={newThread}>+ New chat</button>
@@ -464,8 +495,8 @@ export function AgentWorkspace(props: Props) {
               marginBottom: 10,
               padding: "8px 10px",
               background: "transparent",
-              border: `1px solid ${syncState === "on" ? "var(--gold, #E9C984)" : "var(--line-2, #2a2a2a)"}`,
-              color: syncState === "on" ? "var(--gold, #E9C984)" : "var(--ink-2, #aaa)",
+              border: `1px solid ${syncState === "on" ? "var(--gold)" : "var(--line-2)"}`,
+              color: syncState === "on" ? "var(--gold)" : "var(--ink-2)",
               borderRadius: 8,
               fontFamily: "var(--mono2)",
               fontSize: 10.5,
@@ -548,6 +579,14 @@ export function AgentWorkspace(props: Props) {
                   <p className={styles.emptyHint}>
                     An AI character you own. Render it into a scene, or give it a brief — it remembers your work and grows as you train it.
                   </p>
+                  {recall.length > 0 && (
+                    <p
+                      className={styles.emptyHint}
+                      style={{ marginTop: 10, color: "var(--accent, var(--gold))" }}
+                    >
+                      Last time, you and {name} worked on: {recall.join(" · ")}
+                    </p>
+                  )}
                   {(agent?.scenes?.length ?? 0) > 0 && (
                     <button
                       type="button"
@@ -741,7 +780,7 @@ export function AgentWorkspace(props: Props) {
               {([
                 ["transmission", "⬡ Daily Transmission"],
                 ["chronicle", "The Chronicle"],
-                ["versus", "Versus ⚔"],
+                ["versus", "⬡ Versus"],
               ] as const).map(([key, label]) => (
                 <button
                   key={key}
@@ -749,7 +788,7 @@ export function AgentWorkspace(props: Props) {
                   onClick={() => { setInfoOpen(false); newThread(); setPowersTab(key); }}
                   style={{
                     textAlign: "left", padding: "9px 12px", borderRadius: 9, cursor: "pointer",
-                    background: "#101015", border: "1px solid #1f1f26", color: "#ece9e2",
+                    background: "var(--surface)", border: "1px solid var(--line-2)", color: "var(--ink)",
                     fontFamily: "var(--mono2)", fontSize: 12.5, letterSpacing: "0.02em",
                   }}
                 >

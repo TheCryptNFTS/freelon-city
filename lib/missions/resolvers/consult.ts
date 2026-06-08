@@ -40,7 +40,18 @@ export async function consultResolver(ctx: MissionContext): Promise<MissionOutpu
     return { ok: false, title: "No question", body: "", error: "Ask the citizen something." };
   }
 
-  const { system, maxTokens, classLabel } = buildPersona(ctx.citizen, ctx.progress);
+  // MOAT WIRING — the plain consult path must carry the same memory the ability
+  // path does (ability.ts builds persona with dossier + recentWork). Without this
+  // the chat path silently starts cold and loses the per-citizen moat. Fail-quiet:
+  // a missing/unreachable dossier or history just yields a generic persona.
+  const { getDossier } = await import("@/lib/missions/dossier-store");
+  const dossier = await getDossier(ctx.citizen.id).catch(() => null);
+  const { getAgentHistory, workDigest } = await import("@/lib/agent-history");
+  const recentWork = await getAgentHistory(ctx.citizen.id).then(workDigest).catch(() => "");
+  const { system, maxTokens, classLabel } = buildPersona(ctx.citizen, ctx.progress, dossier?.profile, {
+    paid: ctx.paid,
+    recentWork,
+  });
 
   const result = await citizenReason({ system, user: question, maxTokens });
   if (!result.ok) {

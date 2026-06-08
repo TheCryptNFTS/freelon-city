@@ -138,7 +138,7 @@ export default async function EarnPage() {
             the loop instead of being a dead-end sink. */}
         <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", lineHeight: 1.6, maxWidth: 540, marginTop: 10 }}>
           New here? ⬡ is the fuel — you spend it running an unlocked FREELON&apos;s agent.{" "}
-          <Link href="/citizens/1" style={{ color: "var(--gold)" }}>See an agent first →</Link>
+          <Link href="/demo" style={{ color: "var(--gold)" }}>See an agent first →</Link>
         </p>
       </section>
 

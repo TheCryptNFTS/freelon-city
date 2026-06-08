@@ -537,9 +537,9 @@ export default async function WalletPage({
                 : imageUrl(tid);
               return (
                 <li key={tid} className="wallet-grid-item">
-                  {/* Deep-link straight to the run surface (#run) so a connected
+                  {/* Deep-link straight to the agent workspace so a connected
                       holder is one click from running, not parked on a photo. */}
-                  <Link href={`/citizens/${tid}#run`}>
+                  <Link href={`/agent/${tid}`}>
                     <span
                       className="wgi-frame"
                       style={{ borderColor: color }}

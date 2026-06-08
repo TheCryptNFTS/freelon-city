@@ -29,6 +29,7 @@ export function Header() {
               moved INTO Explore ▾ (they're not the front door). FREELONS (the
               trainable agents) is the gold pillar. Primary action: Own a Freelon. */}
           <Link href="/citizens" className="nav-link nav-start">FREELONS</Link>
+          <Link href="/collections" className="nav-link">Collections</Link>
           <Link href="/earn" className="nav-link">Earn HEX</Link>
           <HeaderArchives />
           {/* Primary aligns with the HERO (try-first), not OpenSea. "Own a Freelon"

@@ -21,7 +21,7 @@ export async function TopAgents({ limit = 8 }: { limit?: number }) {
       {agents.length === 0 ? (
         <p className="topagents-empty">
           No agent has specialized yet — train a citizen and claim the top of the wall.{" "}
-          <Link href="/citizens/1">See an agent →</Link>
+          <Link href="/demo">See an agent →</Link>
         </p>
       ) : (
         <div className="topagents-grid">

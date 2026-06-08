@@ -8,7 +8,6 @@ import { HeroMarketStat } from "@/components/HeroMarketStat";
 import TransformsWall from "@/components/TransformsWall";
 import { ActivationProof } from "@/components/ActivationProof";
 import { YourAgentsRail } from "@/components/YourAgentsRail";
-import { topAgentHref } from "@/lib/featured-agent";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -51,10 +50,10 @@ export const dynamic = "force-dynamic";
 // block. To restore one to the homepage, re-add its <section> + matching import.
 
 export default async function Home() {
-  // Smart "SEE AN AGENT" — point at the current top-trained agent's identity
-  // page (not always citizen #1) so the highest-traffic CTA showcases a real
-  // specialized agent. Holder-aware override happens in the Header.
-  const seeAgentHref = await topAgentHref();
+  // "SEE AN AGENT" — point cold (non-holder) traffic at the FREE public demo so
+  // a stranger can actually TALK to a live agent in ten seconds, then hit the
+  // OWN A FREELON wall. Holder-aware override still happens in the Header.
+  const seeAgentHref = "/demo";
   return (
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */
@@ -116,8 +115,9 @@ export default async function Home() {
             <ActivationProof />
           </div>
 
-          {/* Lore flavour, now SECONDARY (below the value prop + actions). */}
-          <span className="term-badge flicker" style={{ marginTop: "var(--s-5)" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
+          {/* Lore badge relocated 2026-06-08 — it competed with the
+              10-second comprehension window in the hero. Now a depth reward
+              AFTER "How It Works" (below). */}
 
           {/* 2026-05-28 collector pass — live floor + sealed-supply line.
               Client-side fetch, never blocks the hero LCP. */}
@@ -155,6 +155,11 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Lore flavour — relocated here 2026-06-08 from the hero. Lore is a
+          depth reward, not a first-impression element; it sits AFTER the loop
+          is understood. Same markup, just moved. */}
+      <span className="term-badge flicker" style={{ display: "block", textAlign: "center", margin: "var(--s-5) auto" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
+
       {/* CITIZEN SHOWCASE — the homepage finally shows the product. A
           4040-PFP project that displayed zero Freelons couldn't "show, not
           tell"; this slow band of real portraits (1/1s + honoraries) fixes
@@ -174,6 +179,13 @@ export default async function Home() {
           re-add its section + matching import (history: git + components/_archive). */}
       <section className="home-close reveal">
         <p className="home-close__line">4,040 characters. Make one yours. See what it becomes.</p>
+        {/* 2026-06-08 — multi-collection agent line. FREELONS stays the flagship;
+            this one sentence tells the visitor the OTHER collections are becoming
+            agents too, and points to /collections (the full story). No price claims. */}
+        <p className="home-close__note">
+          FREELONS are the first. Emile, The Crypt and Oogies are agents too — one signal, many collections.{" "}
+          <Link href="/collections">Explore the collections →</Link>
+        </p>
         {/* The close is the BUY moment (after the showcase) — OWN is primary here,
             mirroring the hero where SEE AN AGENT is primary. Try at the top, buy
             at the bottom. */}

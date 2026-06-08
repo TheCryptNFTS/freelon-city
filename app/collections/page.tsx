@@ -44,7 +44,7 @@ export default async function CollectionsIndex() {
       status: "LIVE",
       statusColor: "var(--gold)",
       kicker: "THE CITIZENS · 4040 TOTAL",
-      blurb: "The 4040 citizens of FREELON CITY. Ten civilizations, seven castes, nine shapes.",
+      blurb: "The 4040 citizens of FREELON CITY. Ten civilizations, seven castes, sixteen shapes.",
       img: "/og/art/freelons.png",
       total: 4040,
       onsite: true,
@@ -71,11 +71,13 @@ export default async function CollectionsIndex() {
       <header style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE UNIVERSE · ALL COLLECTIONS</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 1, margin: "12px 0 8px" }}>
-          Every record is a <em style={{ color: "var(--gold)", fontStyle: "normal" }}>living agent.</em>
+          Every record can be <em style={{ color: "var(--gold)", fontStyle: "normal" }}>awakened.</em>
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 680 }}>
-          Six collections, one city. Own a token and open it to talk to its agent — every
-          record is an AI character you can chat with. Search the full set on-site, trade on OpenSea.
+          The signals were never lost — they were unfinished coordinates, and FREELON CITY
+          is where they finally connect. Six collections, one city. Awaken a citizen and the
+          signal speaks through it: any token here is an AI character you can chat with.
+          Search the full set on-site, trade on OpenSea.
         </p>
       </header>
 
@@ -152,7 +154,7 @@ export default async function CollectionsIndex() {
         </span>
         <p className="archive-page__provenanceText">
           Every collection in this universe was minted from the same architect&apos;s
-          wallet. The signals were never rugged — they were unfinished coordinates.
+          wallet. The signals were never lost — they were unfinished coordinates.
           FREELON CITY is the place they finally connect.
         </p>
       </section>

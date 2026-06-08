@@ -72,7 +72,7 @@ export function AgentPowers({
       <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: 14 }}>
         <button type="button" style={tabBtn("transmission", "")} onClick={() => setOpen(open === "transmission" ? "none" : "transmission")}>⬡ Daily Transmission</button>
         <button type="button" style={tabBtn("chronicle", "")} onClick={() => setOpen(open === "chronicle" ? "none" : "chronicle")}>The Chronicle</button>
-        <button type="button" style={tabBtn("versus", "")} onClick={() => setOpen(open === "versus" ? "none" : "versus")}>Versus ⚔</button>
+        <button type="button" style={tabBtn("versus", "")} onClick={() => setOpen(open === "versus" ? "none" : "versus")}>⬡ Versus</button>
       </div>
       {open === "transmission" && <Transmission citizenId={citizenId} name={name} accent={accent} address={address} onConnect={onConnect} sign={sign} />}
       {open === "chronicle" && <Chronicle citizenId={citizenId} name={name} accent={accent} address={address} onConnect={onConnect} sign={sign} />}
@@ -231,7 +231,7 @@ function Versus({ citizenId, name, accent, address, onConnect, sign }: Sub) {
 
   return (
     <div style={card(accent)}>
-      <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: accent, fontWeight: 700 }}>⚔ Versus · Send {name} into a debate</div>
+      <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: accent, fontWeight: 700 }}>⬡ Versus · Send {name} into a debate</div>
       {!result ? (
         <>
           <p style={{ fontSize: 12, color: "var(--ink-2, #b8b8c0)", margin: "8px 0 0" }}>Pick any citizen to argue against. Both reason in-character from their own identity.</p>

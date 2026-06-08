@@ -71,7 +71,7 @@ export default async function Dashboard() {
         <p className="lead">
           Live stats for the collection — floor price, who holds what, and how ⬡
           moves through the city. For holders who want the data; if you&apos;re new,{" "}
-          <Link href="/citizens/1" style={{ color: "var(--gold)" }}>see an agent first</Link>.
+          <Link href="/demo" style={{ color: "var(--gold)" }}>see an agent first</Link>.
         </p>
       </section>
 

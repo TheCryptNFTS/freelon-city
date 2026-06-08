@@ -30,7 +30,7 @@ const GROUPS: NavGroup[] = [
     links: [
       // 2026-06-06 dedup — primary mirrors desktop + hero: SEE AN AGENT (try
       // first). Own a Freelon is the secondary just below (still one tap away).
-      { href: "/citizens/1", label: "⬡ SEE AN AGENT", gold: true },
+      { href: "/demo", label: "⬡ SEE AN AGENT", gold: true },
       { href: "https://opensea.io/collection/freelons", label: "Own a Freelon" },
     ],
   },
@@ -38,6 +38,7 @@ const GROUPS: NavGroup[] = [
     heading: null,                                          // top-nav parity block — AGENTS-FIRST
     links: [
       { href: "/citizens",  label: "FREELONS", gold: true },
+      { href: "/collections", label: "Collections" },
       { href: "/earn",      label: "Earn HEX" },
     ],
   },
@@ -48,17 +49,18 @@ const GROUPS: NavGroup[] = [
   // cue (reconstruction-unstable placeholder); /archive moved into Lore. Keep in
   // sync with HeaderArchives.tsx (one IA, two renderers).
   {
+    // 2026-06-08 — Dashboard pulled from the newcomer "Get started" group (it's
+    // market analytics, not onboarding; still reachable from ~13 in-content
+    // links). Mirrors HeaderArchives.tsx — keep the two renderers in sync.
     heading: "GET STARTED",
     links: [
       { href: "/start",     label: "New here? Start" },
       { href: "/play",      label: "Play" },
-      { href: "/dashboard", label: "Dashboard" },
     ],
   },
   {
     heading: "THE CITY",
     links: [
-      { href: "/collections",   label: "Collections" },
       { href: "/transmissions", label: "Community wall" },
       { href: "/shop",          label: "Shop" },
     ],
