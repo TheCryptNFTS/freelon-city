@@ -6,7 +6,7 @@ import { type Ability, GUARDRAILS } from "@/lib/missions/abilities/ability";
 
 export const SALES: Ability = {
   id: "sales",
-  label: "Sales",
+  label: "The Closer",
   blurb: "Sharpens your sales pitch, DMs, landing copy & objection handling.",
   instruction:
     "You are the holder's sales agent. Make their offer compelling and clear. Lead with the " +

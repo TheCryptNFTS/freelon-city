@@ -11,12 +11,12 @@ import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
 // to LEAD with the transform — the thing the community already reaches for — then
 // the sharpest reasoning skills.
 const ABILITIES = [
-  { label: "Transform", blurb: "turns your citizen into any style — robot, statue, anime — ready to share" },
-  { label: "Strategy", blurb: "fixes your launch, plans growth & sharpens positioning" },
-  { label: "Red Team", blurb: "finds weak points and red-teams your idea before you ship" },
-  { label: "Research", blurb: "researches markets, summarizes long text, scans competitors" },
-  { label: "Content", blurb: "writes X posts, threads, captions & content plans in your voice" },
-  { label: "Sales", blurb: "sharpens your pitch, DMs & landing copy" },
+  { label: "Render", blurb: "drops your citizen into a scene — Neon City, Throne Room & more — a branded image ready to share" },
+  { label: "War Council", blurb: "fixes your launch, plans growth & sharpens positioning" },
+  { label: "Adversary", blurb: "finds weak points and red-teams your idea before you ship" },
+  { label: "Signal Scan", blurb: "researches markets, summarizes long text, scans competitors" },
+  { label: "Broadcast", blurb: "writes X posts, threads, captions & content plans in your voice" },
+  { label: "The Closer", blurb: "sharpens your pitch, DMs & landing copy" },
 ];
 
 export function CitizenAgentExplainer() {

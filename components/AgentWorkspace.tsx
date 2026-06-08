@@ -534,8 +534,22 @@ export function AgentWorkspace(props: Props) {
               ) : (
                 <>
                   <p className={styles.emptyHint}>
-                    An AI character you own. Give it a brief below — it remembers your work and grows as you train it.
+                    An AI character you own. Render it into a scene, or give it a brief — it remembers your work and grows as you train it.
                   </p>
+                  {(agent?.scenes?.length ?? 0) > 0 && (
+                    <button
+                      type="button"
+                      className={styles.heroRender}
+                      onClick={() => setMode("image")}
+                    >
+                      <span className={styles.heroRenderHex} aria-hidden>⬡</span>
+                      <span className={styles.heroRenderText}>
+                        <strong>Render {name} into a scene</strong>
+                        <small>Neon City · Throne Room · Ash Wastes &amp; more — a branded, shareable image of your character</small>
+                      </span>
+                      <span className={styles.heroRenderArrow} aria-hidden>→</span>
+                    </button>
+                  )}
                   <div className={styles.starters}>
                     {(agent?.abilities ?? []).slice(0, 4).map((a) => (
                       <button key={a.id} className={styles.starter} onClick={() => { setMode("chat"); setAbilityId(a.id); }}>

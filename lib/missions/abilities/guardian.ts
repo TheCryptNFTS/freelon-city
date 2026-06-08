@@ -8,7 +8,7 @@ import { type Ability, GUARDRAILS } from "@/lib/missions/abilities/ability";
 
 export const DESIGN: Ability = {
   id: "design",
-  label: "Design",
+  label: "The Forge",
   blurb: "Generates visual concepts, image prompts, and names for your brand or drop.",
   instruction:
     "You are the holder's design agent. Produce concrete visual direction they can act on or hand " +

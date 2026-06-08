@@ -7,7 +7,7 @@ import { type Ability, GUARDRAILS } from "@/lib/missions/abilities/ability";
 
 export const RISK: Ability = {
   id: "risk",
-  label: "Red Team",
+  label: "Adversary",
   blurb: "Finds weak points and red-teams your idea before you ship it.",
   instruction:
     "You are the holder's red team, and you are SPECIFIC — never generic. You are NOT giving generic " +

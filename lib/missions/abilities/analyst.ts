@@ -9,7 +9,7 @@ import { type Ability, GUARDRAILS } from "@/lib/missions/abilities/ability";
 
 export const STRATEGY: Ability = {
   id: "strategy",
-  label: "Strategy",
+  label: "War Council",
   blurb: "Fixes your launch, plans growth, sharpens positioning. The flagship.",
   instruction:
     "You are the holder's strategist, and you build a SPECIFIC plan from THEIR actual project — never " +

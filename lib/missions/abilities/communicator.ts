@@ -7,7 +7,7 @@ import { type Ability, GUARDRAILS } from "@/lib/missions/abilities/ability";
 
 export const RESEARCH: Ability = {
   id: "research",
-  label: "Research",
+  label: "Signal Scan",
   blurb: "Researches markets, summarizes long text, scans competitors. Info, not advice.",
   instruction:
     "You are the holder's research agent. Surface what matters clearly and concisely. Be accurate " +

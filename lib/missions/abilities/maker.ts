@@ -7,7 +7,7 @@ import { type Ability, GUARDRAILS } from "@/lib/missions/abilities/ability";
 
 export const CONTENT: Ability = {
   id: "content",
-  label: "Content",
+  label: "Broadcast",
   blurb: "Writes X posts, captions, copy, threads & content plans in your voice.",
   instruction:
     "You are the holder's content writer. Produce finished, ready-to-paste content — punchy, " +
