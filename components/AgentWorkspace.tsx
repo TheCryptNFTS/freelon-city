@@ -657,7 +657,10 @@ export function AgentWorkspace(props: Props) {
               {mode === "image" ? (
                 <div className={`${styles.bubble} ${styles.renderBubble}`}>
                   <span className={styles.hexSpinner} aria-hidden>⬡</span>
-                  <span className={styles.renderLabel}>Rendering {name}…</span>
+                  <span className={styles.renderCol}>
+                    <span className={styles.renderLabel}>Rendering {name}…</span>
+                    <span className={styles.renderHint}>Usually ~15s — stay here, it&apos;ll appear right in this chat.</span>
+                  </span>
                 </div>
               ) : (
                 <div className={styles.bubble}><div className={styles.typing}><span/><span/><span/></div></div>
