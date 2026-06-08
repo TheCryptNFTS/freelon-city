@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FramedAgent } from "./FramedAgent";
 import { WorkspaceUnlock } from "./WorkspaceUnlock";
 import { AgentPowers } from "./AgentPowers";
+import { CitizenJobsBoard } from "./CitizenJobsBoard";
 import { LevelUpCelebration } from "./LevelUpCelebration";
 import { cityNotice } from "@/lib/city-notice";
 import styles from "./AgentWorkspace.module.css";
@@ -587,6 +588,11 @@ export function AgentWorkspace(props: Props) {
                       Last time, you and {name} worked on: {recall.join(" · ")}
                     </p>
                   )}
+                  {/* Free daily training — the zero-cost, can't-fail first action.
+                      Consolidated here from the citizen profile so "give it work"
+                      lives in ONE place (the workspace). FREELONS only (sisters
+                      have no /job backing); self-hides for non-owners. */}
+                  {!slug && <CitizenJobsBoard citizenId={tokenId} />}
                   {(agent?.scenes?.length ?? 0) > 0 && (
                     <button
                       type="button"

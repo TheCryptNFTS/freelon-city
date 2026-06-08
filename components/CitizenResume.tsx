@@ -175,10 +175,11 @@ export async function CitizenResume({ tokenId }: { tokenId: number }) {
       <p className="resume-bestfor">BEST FOR · {spec.resume.bestFor.toUpperCase()}</p>
 
       {/* THE USE — the obvious "how do I use this" action, on the first screen.
-          Scrolls to the owner dashboard (#run), which gates to the holder. */}
-      <a className="btn btn-primary resume-cta" href="#run">
+          Opens the agent workspace, the one home for training/chat (gates to
+          the holder there). Was a dead #run anchor after the dashboard moved. */}
+      <Link className="btn btn-primary resume-cta" href={`/agent/${tokenId}`}>
         <span className="ttl">{untrained ? "GIVE THIS FREELON ITS FIRST JOB →" : "GIVE THIS FREELON A JOB →"}</span>
-      </a>
+      </Link>
     </section>
   );
 }

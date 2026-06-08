@@ -11,7 +11,6 @@ import { WatchlistButton } from "@/components/WatchlistButton";
 import { CitizenNameEditor } from "@/components/CitizenNameEditor";
 import { CitizenRealignEditor } from "@/components/CitizenRealignEditor";
 import { CitizenProgressPanel } from "@/components/CitizenProgressPanel";
-import { CitizenJobsBoard } from "@/components/CitizenJobsBoard";
 import { CitizenCheckIn } from "@/components/CitizenCheckIn";
 import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
@@ -257,7 +256,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <summary className="collector-summary">Owner tools</summary>
             <CitizenCheckIn citizenId={tid} initial={todayCheckIn} rank={levelRank} />
             <EvolvePanel citizenId={tid} />
-            <CitizenJobsBoard citizenId={tid} />
             <CitizenResume tokenId={tid} />
             <CitizenProgressPanel tokenId={tid} />
             <CitizenNameEditor citizenId={tid} currentName={customName?.name ?? null} />
