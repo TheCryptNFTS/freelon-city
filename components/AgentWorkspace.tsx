@@ -466,8 +466,32 @@ export function AgentWorkspace(props: Props) {
             priority
           />
           <div className={styles.sideHeroStats}>
-            <span><small>LEVEL</small><strong>{agent?.level ?? "—"}</strong></span>
-            <span><small>⬡ HEX</small><strong>{address ? (hex ?? "…") : "—"}</strong></span>
+            <span><small>LEVEL</small><strong>{agent ? agent.level : "…"}</strong></span>
+            <span><small>CLASS</small><strong>{agent?.className ?? civName}</strong></span>
+            <span style={{ gridColumn: "1 / -1" }}>
+              <small>⬡ HEX</small>
+              {address ? (
+                <strong>{hex ?? "…"}</strong>
+              ) : (
+                <button
+                  type="button"
+                  onClick={connect}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    fontSize: 11,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "var(--ink-dim)",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Connect
+                </button>
+              )}
+            </span>
           </div>
         </div>
         <div className={styles.sideHead}>

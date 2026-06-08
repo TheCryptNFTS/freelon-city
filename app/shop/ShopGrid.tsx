@@ -222,7 +222,7 @@ export function ShopGrid() {
       <div className="shop-balance">
         <div>
           <div style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-dim)" }}>
-            {carrier?.handle ? `@${carrier.handle}` : "NOT SYNCED"}
+            {carrier?.handle ? `@${carrier.handle}` : "BROWSING FREE · SYNC YOUR HANDLE TO SPEND ⬡"}
           </div>
           <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.18em", color: "var(--ink-2)", marginTop: 4 }}>
             {usingWallet ? "WALLET HEX BALANCE" : "HEX BALANCE"}
