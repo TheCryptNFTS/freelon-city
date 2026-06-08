@@ -32,7 +32,11 @@ export function HexNetWorth() {
   if (!h.address) {
     return (
       <div className="net-worth-empty">
-        Connect wallet to see your Hex Net Worth.
+        <span className="kicker">⬡ YOUR HEX NET WORTH</span>
+        <div className="nw-detail" style={{ marginTop: "var(--s-2)" }}>
+          The city stats above are public. This card is yours — connect your
+          wallet to price the citizens you hold against the live floor.
+        </div>
       </div>
     );
   }
