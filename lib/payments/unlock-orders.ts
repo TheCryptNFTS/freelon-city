@@ -9,7 +9,7 @@ import { createPublicClient, http, fallback } from "viem";
 import { mainnet } from "viem/chains";
 import { upstash, hasUpstash } from "@/lib/upstash-client";
 import { getCitizen } from "@/lib/citizens";
-import { unlockTierFor } from "@/lib/missions/unlock";
+import { unlockTierFor, UNLOCK_TIERS } from "@/lib/missions/unlock";
 import { PAYMENT_WALLET } from "@/lib/missions/pricing";
 
 const CONFIGURED_RPC = process.env.ETH_RPC_URL || process.env.NEXT_PUBLIC_ETH_RPC_URL || null;
@@ -35,8 +35,44 @@ const MIN_CONFIRMATIONS = 2n;
 // Largest random suffix createUnlockQuote can append (≤4095 gwei, in wei). Used
 // to reconstruct the expected payment window when the stored quote has expired.
 const MAX_SUFFIX_WEI = 4095n * 1_000_000_000n;
+const GWEI = 1_000_000_000n;
+const MAX_TOKEN_ID = 4040;
 
 export type UnlockKind = "activate" | "recharge";
+
+/**
+ * Attribute a bare unlock payment to its citizen from the ON-CHAIN VALUE ALONE.
+ * createUnlockQuote encodes the tokenId as the gwei suffix on the tier base
+ * (value = tierBaseWei + tokenId×1gwei), so any payment tx is permanently
+ * self-describing with no server state. We scan every tier base (both kinds),
+ * decode the candidate tokenId from the suffix, and confirm that token really
+ * IS that tier — which also disambiguates the one base collision (Uncommon
+ * activate == Rare recharge == 0.01 ETH), since a token has exactly one tier.
+ *
+ * Returns null for values that fit no tier window or whose decoded id doesn't
+ * match its tier (e.g. legacy random-suffix payments minted before this change).
+ * Use this for recovery tooling and "this payment was for #X" self-serve hints.
+ */
+export function attributeUnlockPayment(weiValue: bigint): { tokenId: number; tier: string; kind: UnlockKind } | null {
+  for (const tierName of Object.keys(UNLOCK_TIERS) as (keyof typeof UNLOCK_TIERS)[]) {
+    const resolved = unlockTierFor(tierName);
+    const bases: [UnlockKind, number][] = [
+      ["activate", resolved.priceEth],
+      ["recharge", resolved.rechargeEth],
+    ];
+    for (const [kind, baseEth] of bases) {
+      const base = BigInt(Math.round(baseEth * 1e18));
+      const diff = weiValue - base;
+      if (diff <= 0n || diff > BigInt(MAX_TOKEN_ID) * GWEI || diff % GWEI !== 0n) continue;
+      const tokenId = Number(diff / GWEI);
+      const c = getCitizen(tokenId);
+      if (c && unlockTierFor(c.tier).tier === resolved.tier) {
+        return { tokenId, tier: resolved.tier, kind };
+      }
+    }
+  }
+  return null;
+}
 
 export type UnlockOrder = {
   wallet: string;
@@ -63,8 +99,15 @@ export async function createUnlockQuote(args: { wallet: string; tokenId: number;
   const tier = unlockTierFor(citizen.tier);
   const priceEth = args.kind === "recharge" ? tier.rechargeEth : tier.priceEth;
 
+  // SELF-DESCRIBING PAYMENT: encode the tokenId into the gwei suffix, so the
+  // on-chain amount itself points back to the citizen. TokenIds (1..4040) fit
+  // inside the ≤4095-gwei window, and tier bases are separated by millions of
+  // gwei, so a suffix can never cross into another tier. This means a bare
+  // payment tx is permanently attributable (value→tier→tokenId) with NO server
+  // state — closing the "holder paid but we can't tell which citizen" orphan
+  // when the quote TTL expires before the claim lands.
   const baseWei = BigInt(Math.round(priceEth * 1e18));
-  const suffixWei = BigInt(Math.floor(Math.random() * 4096)) * 1_000_000_000n; // ≤4095 gwei, collision-free
+  const suffixWei = BigInt(args.tokenId) * 1_000_000_000n; // tokenId as gwei
   const wei = baseWei + suffixWei;
 
   const now = Date.now();

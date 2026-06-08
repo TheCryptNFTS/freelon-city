@@ -36,7 +36,7 @@ vi.mock("viem", async (importOriginal) => {
   };
 });
 
-import { createUnlockQuote, verifyUnlockPayment, type UnlockOrder } from "@/lib/payments/unlock-orders";
+import { createUnlockQuote, verifyUnlockPayment, attributeUnlockPayment, type UnlockOrder } from "@/lib/payments/unlock-orders";
 import { PAYMENT_WALLET } from "@/lib/missions/pricing";
 import { getCitizen } from "@/lib/citizens";
 import { unlockTierFor } from "@/lib/missions/unlock";
@@ -177,6 +177,28 @@ describe("verifyUnlockPayment — activation attribution guards", () => {
     const { order } = await setupValid();
     const r = await verifyUnlockPayment({ wallet: OWNER, tokenId: order.tokenId, txHash: "0xnothex" });
     expect(r).toEqual({ ok: false, error: "bad_txhash" });
+  });
+
+  it("encodes the tokenId as the gwei suffix (self-describing payment)", async () => {
+    const tokenId = tokenSeq++;
+    const res = await createUnlockQuote({ wallet: OWNER, tokenId, kind: "activate" });
+    if ("error" in res) throw new Error(res.error);
+    const suffix = BigInt(res.wei) - baseWeiFor(tokenId);
+    expect(suffix).toBe(BigInt(tokenId) * 1_000_000_000n);
+  });
+
+  it("attributes a bare payment back to its citizen from the value alone", async () => {
+    const tokenId = tokenSeq++;
+    const res = await createUnlockQuote({ wallet: OWNER, tokenId, kind: "activate" });
+    if ("error" in res) throw new Error(res.error);
+    const got = attributeUnlockPayment(BigInt(res.wei));
+    expect(got?.tokenId).toBe(tokenId);
+    const tier = unlockTierFor(getCitizen(tokenId)?.tier).tier;
+    expect(got?.tier).toBe(tier);
+  });
+
+  it("returns null attributing a value that fits no tier window", async () => {
+    expect(attributeUnlockPayment(123n)).toBeNull();
   });
 
   it("anchors the recipient to the configured project wallet", async () => {
