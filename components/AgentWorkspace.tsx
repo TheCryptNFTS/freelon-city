@@ -348,7 +348,12 @@ export function AgentWorkspace(props: Props) {
         body: JSON.stringify(creds ? { ...base, ...creds } : base),
       });
       const d = await res.json().catch(() => ({}));
-      if (res.status === 401 && d?.error === "auth_required" && !creds) {
+      // Premium (⬡-spending) runs require a PROVEN wallet — the server returns
+      // `wallet_proof_required` when the session is only bound (no walletProof),
+      // which is the common case on mobile / a fresh device. Sign once and retry
+      // with creds; the server accepts an inline {address,signature} as proof.
+      // (Also covers plain `auth_required` for a sessionless caller.)
+      if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
         creds = await sign(missionId);
         continue;
       }
