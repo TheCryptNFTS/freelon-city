@@ -184,7 +184,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // PROVIDER GUARD — never debit HEX for a render we can't actually perform
     // (image needs OpenAI, video needs Replicate). Checked BEFORE any charge, like
     // the kill-switch — avoids the debit-then-refund dance the red-team flagged.
-    if ((mission.id === "deploy-citizen" || mission.id === "deploy-crew") && !process.env.OPENAI_API_KEY) {
+    if ((mission.id === "deploy-citizen" || mission.id === "deploy-crew") && !process.env.OPENROUTER_API_KEY && !process.env.OPENAI_API_KEY) {
       return NextResponse.json({ error: "image_unavailable", message: "Image generation is briefly unavailable — nothing was charged." }, { status: 503 });
     }
     if (mission.id === "deploy-video" && !process.env.REPLICATE_API_TOKEN) {
