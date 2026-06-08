@@ -3723,6 +3723,15 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   grid-row: 2;
   grid-column: 1 / -1;
 }
+.hex-log .hl-balance .hl-balance-tag {
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  margin-left: 10px;
+  vertical-align: middle;
+}
 .hex-log .hl-lifetime { grid-column: 1 / -1; grid-row: 3; font-family: var(--mono2); font-size: 11px; letter-spacing: 0.18em; color: var(--ink-dim); text-transform: uppercase; }
 .hex-log .hl-tick {
   padding: 10px 14px;

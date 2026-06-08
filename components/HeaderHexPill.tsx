@@ -44,7 +44,7 @@ export function HeaderHexPill() {
     <Link
       href={`/wallet/${holder.address}`}
       className="header-hex-pill"
-      title="Wallet hex balance"
+      title="Spendable HEX balance"
     >
       <span className="hp-icon">{HEX_GLYPH}</span>
       <span className="hp-balance">{hex.toLocaleString()}</span>

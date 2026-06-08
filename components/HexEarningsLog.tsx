@@ -126,9 +126,13 @@ export function HexEarningsLog({ address }: { address: string }) {
         <span className="kicker">⬡ WALLET HEX LEDGER</span>
         <span className="hl-balance">
           {data.balance.toLocaleString()} ⬡
+          <span className="hl-balance-tag">available</span>
         </span>
         <span className="hl-lifetime">
-          lifetime · {data.lifetimeEarned.toLocaleString()} ⬡
+          earned {data.lifetimeEarned.toLocaleString()} ⬡
+          {data.lifetimeEarned - data.balance > 0 && (
+            <> · spent {(data.lifetimeEarned - data.balance).toLocaleString()} ⬡</>
+          )}
         </span>
       </div>
 
