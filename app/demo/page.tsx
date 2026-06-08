@@ -53,12 +53,12 @@ export default function DemoPage() {
       <header style={{ marginBottom: "var(--s-4)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ FREE · NO WALLET NEEDED</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(30px, 5vw, 48px)", lineHeight: 1.02, margin: "12px 0 8px" }}>
-          Meet a <em style={{ color: "var(--gold)", fontStyle: "normal" }}>FREELON.</em> Free.
+          Meet a <em style={{ color: "var(--gold)", fontStyle: "normal" }}>citizen.</em> Free.
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 600 }}>
-          The first is a FREELON — an AI character you <strong style={{ color: "var(--ink)" }}>own and train</strong>, and it
-          remembers what you build together. The rest are free citizens from across the city. Pick any, ask it anything —
-          then own the one that keeps growing.
+          Every collection in FREELON CITY is a kind of citizen — Freelons, the Crypt, Oogies, Emile. Each one is a live AI
+          character. Pick a citizen, ask it anything — then own a <strong style={{ color: "var(--ink)" }}>FREELON</strong>, the
+          one that&apos;s yours to train and keep.
         </p>
       </header>
 
