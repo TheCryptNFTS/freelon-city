@@ -184,7 +184,7 @@ export function CarrierClient() {
             <strong>X SIGN-IN FAILED · {xError.toUpperCase()}</strong>
             <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "var(--ink-2)" }}>
               {xError === "state_mismatch" && (<li>Browser likely blocked third-party cookies. Try Brave / Firefox / Chrome (not Safari).</li>)}
-              {xError === "missing_cookies" && (<li>Browser blocked our OAuth cookies — usually a Safari ITP issue. Try Brave or Firefox.</li>)}
+              {xError === "missing_cookies" && (<li><strong>Most common cause: you&apos;re in your wallet&apos;s in-app browser (MetaMask / Rainbow).</strong> Those don&apos;t carry the sign-in cookies through X. Open <strong>freeloncity.com in Safari, Chrome, or Brave</strong> directly and link X there — you don&apos;t need your wallet connected just to link X.</li>)}
               {xError === "not_configured" && (<li>The site's X OAuth keys aren't loaded yet. Tell @freeloncity if this persists.</li>)}
               {xError.startsWith("token_") && (<li>X rejected the OAuth handshake. Confirm your X account isn't locked / suspended.</li>)}
               {xError === "user_fetch" && (<li>X API hiccup. Try again in 30 seconds.</li>)}
