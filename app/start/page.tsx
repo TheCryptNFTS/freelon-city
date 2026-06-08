@@ -197,7 +197,7 @@ export default function StartPage() {
         <Step
           n="2"
           title="Own one"
-          body="Find a FREELON you like and buy it on OpenSea. Now it's yours — the agent, the levels, and the work history all belong to the NFT."
+          body="Find a FREELON you like and buy it on OpenSea. If the exact one you want isn't listed, OpenSea lets you make an offer to its owner. Once it's yours, the agent, the levels, and the work history all belong to the NFT."
           cta={{ label: "OPENSEA COLLECTION ↗", href: "https://opensea.io/collection/freelons", external: true }}
         />
         <Step

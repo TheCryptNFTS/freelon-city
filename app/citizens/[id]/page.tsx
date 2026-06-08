@@ -310,10 +310,17 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
       <section style={{ marginTop: "var(--s-5)", maxWidth: "var(--maxw)", margin: "var(--s-5) auto 0", padding: "0 var(--pad)" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <a className="btn btn-secondary" href={openseaUrl(tid)} target="_blank" rel="noreferrer"><span className="ttl">BUY ON OPENSEA ↗</span></a>
+          <a className="btn btn-secondary" href={openseaUrl(tid)} target="_blank" rel="noreferrer"><span className="ttl">VIEW ON OPENSEA ↗</span></a>
           <Link className="btn btn-secondary" href={`/civilizations/${c.civilization}`}><span className="ttl">EXPLORE {civ?.name?.toUpperCase()} →</span></Link>
           <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE ALL 4040 →</span></Link>
         </div>
+        {/* 2026-06-08 (Discord, KinkiDred): a holder found his PFP #887, hit
+            "BUY", and couldn't — it wasn't listed, so OpenSea only offered
+            "Make offer". The old "BUY ON OPENSEA" label promised a buy button
+            that doesn't exist for unlisted tokens. Set the expectation here. */}
+        <p style={{ marginTop: "var(--s-3)", fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", lineHeight: 1.6, maxWidth: 560 }}>
+          If this one isn&apos;t listed for sale, OpenSea will show <strong style={{ color: "var(--ink-2)" }}>Make offer</strong> instead of a buy button — you can still bid for it there.
+        </p>
       </section>
     </div>
   );
