@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getAllCitizens } from "@/lib/citizens";
-import { heroImageUrl } from "@/lib/constants";
+import { heroImageUrl, CIVILIZATIONS } from "@/lib/constants";
 
 // ── CITIZEN SHOWCASE ────────────────────────────────────────────────
 // Show-don't-tell, asset-free: the homepage sells "OWN A FREELON" but
@@ -30,6 +30,9 @@ export function CitizenShowcase() {
       <div className="citizen-showcase__track">
         {track.map((c, i) => {
           const label = c.honoree || c.transmission_name || `Citizen #${c.id}`;
+          const civName =
+            (CIVILIZATIONS as Record<string, { name?: string }>)[c.civilization]?.name ??
+            c.civilization;
           return (
             <Link
               key={`${c.id}-${i}`}
@@ -44,9 +47,13 @@ export function CitizenShowcase() {
                 src={heroImageUrl(c.id)}
                 alt={label}
                 loading="lazy"
-                width={96}
-                height={96}
+                width={200}
+                height={200}
               />
+              <span className="citizen-showcase__meta" aria-hidden="true">
+                <span className="citizen-showcase__name">{label}</span>
+                <span className="citizen-showcase__civ">{civName}</span>
+              </span>
             </Link>
           );
         })}

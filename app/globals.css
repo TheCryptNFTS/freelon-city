@@ -972,7 +972,7 @@ a { color: inherit; text-decoration: none; }
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   background: var(--bg);
-  padding: 16px 0 18px;
+  padding: 28px 0 34px;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
 }
@@ -988,7 +988,7 @@ a { color: inherit; text-decoration: none; }
 }
 .citizen-showcase__track {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   width: max-content;
   animation: citizenMarquee 70s linear infinite;
   will-change: transform;
@@ -997,20 +997,74 @@ a { color: inherit; text-decoration: none; }
 .citizen-showcase:focus-within .citizen-showcase__track {
   animation-play-state: paused;
 }
-.citizen-showcase__cell { flex: 0 0 auto; display: block; }
+.citizen-showcase__cell {
+  flex: 0 0 auto;
+  display: block;
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+}
 .citizen-showcase__cell img {
-  width: 96px;
-  height: 96px;
+  width: clamp(140px, 18vw, 200px);
+  height: clamp(140px, 18vw, 200px);
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 14px;
   border: 1px solid var(--line);
   display: block;
-  transition: transform .2s ease, border-color .2s ease;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
 }
 .citizen-showcase__cell:hover img,
 .citizen-showcase__cell:focus-visible img {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--gold);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.58);
+}
+/* Hover/focus caption — name + civilization rise on a soft gradient strip so the
+   showcase reads as a named roster, not an anonymous ticker. pointer-events:none
+   keeps the whole tile a single link target. */
+.citizen-showcase__meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 22px 12px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(8, 8, 10, 0.92) 12%, rgba(8, 8, 10, 0) 100%);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .22s ease, transform .22s ease;
+  border-radius: 0 0 14px 14px;
+}
+.citizen-showcase__cell:hover .citizen-showcase__meta,
+.citizen-showcase__cell:focus-visible .citizen-showcase__meta {
+  opacity: 1;
+  transform: translateY(0);
+}
+.citizen-showcase__name {
+  font-family: var(--mono2);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--gold-bright, var(--gold));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.citizen-showcase__civ {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (prefers-reduced-motion: reduce) {
+  .citizen-showcase__meta { transition: opacity .22s ease; transform: none; }
 }
 @keyframes citizenMarquee {
   from { transform: translateX(0); }
