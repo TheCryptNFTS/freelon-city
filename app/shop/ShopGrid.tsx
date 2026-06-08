@@ -6,6 +6,7 @@ import { loadCarrier, type CarrierState } from "@/lib/carrier";
 import { cityNotice } from "@/lib/city-notice";
 import { CANON } from "@/lib/canon";
 import { useViewerAddr } from "@/lib/use-viewer";
+import { proveWallet } from "@/lib/wallet-proof";
 
 type SoldMap = Record<string, number>;
 
@@ -148,13 +149,35 @@ export function ShopGrid() {
     }
     setBusyId(item.id);
     setError(null);
-    try {
-      const res = await fetch("/api/shop/buy", {
+    const doPost = () =>
+      fetch("/api/shop/buy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ handle: carrier.handle, itemId: item.id }),
       });
-      const j = await res.json();
+    try {
+      let res = await doPost();
+      let j = await res.json();
+      // Wallet-ledger spends need a one-time wallet signature (walletProof).
+      if (res.status === 401 && j?.error === "wallet_proof_required") {
+        if (!viewer.addr) {
+          setError("Connect your wallet to spend ⬡ in the shop.");
+          return;
+        }
+        const proof = await proveWallet(viewer.addr);
+        if (!proof.ok) {
+          setError(
+            proof.reason === "no_wallet"
+              ? "Open this page in your wallet's browser to spend ⬡."
+              : proof.reason === "rejected"
+              ? "Signature declined — needed once to spend ⬡."
+              : "Couldn't prove your wallet — retry.",
+          );
+          return;
+        }
+        res = await doPost();
+        j = await res.json();
+      }
       if (!res.ok) {
         setError(j?.error ?? `Purchase failed (${res.status})`);
         return;

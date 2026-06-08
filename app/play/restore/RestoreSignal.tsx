@@ -19,6 +19,7 @@ import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import { ArcadeTutorial } from "@/components/ArcadeTutorial";
 import { abbreviateAmount, formatSignal } from "@/lib/money-format";
+import { proveWallet } from "@/lib/wallet-proof";
 
 /**
  * Restore the Signal — v2, the ONE shared city.
@@ -250,12 +251,31 @@ export function RestoreSignal() {
     if (!address || busy) return;
     setBusy("boost");
     setMsg(null);
-    try {
-      const r = await fetch("/api/city/boost", {
+    const doPost = () =>
+      fetch("/api/city/boost", {
         ...POST,
         body: JSON.stringify({ address, hex: boostAmt }),
       });
-      const j = await r.json();
+    try {
+      let r = await doPost();
+      let j = await r.json();
+      // Burning real ⬡ needs a one-time wallet signature (walletProof).
+      if (r.status === 401 && j?.error === "wallet_proof_required") {
+        const proof = await proveWallet(address);
+        if (!proof.ok) {
+          setMsg(
+            proof.reason === "no_wallet"
+              ? "OPEN IN YOUR WALLET'S BROWSER TO BURN HEX"
+              : proof.reason === "rejected"
+              ? "SIGNATURE DECLINED · NEEDED ONCE TO BURN HEX"
+              : "COULDN'T PROVE WALLET · RETRY",
+          );
+          cue("error");
+          return;
+        }
+        r = await doPost();
+        j = await r.json();
+      }
       if (!r.ok) {
         setMsg(errorText(j));
         cue("error");

@@ -60,17 +60,17 @@ export async function POST(req: Request) {
     );
   }
 
-  // Require a verified X session bound to the burning wallet (IDOR guard).
+  // Require a verified X session, then require the burning wallet be
+  // CRYPTOGRAPHICALLY PROVEN by it (one-time personal_sign → walletProof).
+  // `bind` is forgeable at OAuth start, so it can never authorize a ⬡ spend —
+  // trusting it let any signed-in user drain a victim's wallet by address.
   const session = await requireXSession(req, {});
   if (session instanceof NextResponse) return session;
-  const sessionBind = (session.bind || "").toLowerCase();
-  if (!/^0x[a-f0-9]{40}$/.test(sessionBind) || sessionBind !== address) {
+  const { requireProvenWallet } = await import("@/lib/x-session");
+  if (!requireProvenWallet(req, address)) {
     return NextResponse.json(
-      {
-        error: "wallet_not_bound_to_session",
-        hint: "Sign in with X using the wallet you want to burn from.",
-      },
-      { status: 403 },
+      { error: "wallet_proof_required", message: "Sign with your wallet once to spend ⬡." },
+      { status: 401 },
     );
   }
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { cityNotice } from "@/lib/city-notice";
 import { ECONOMY } from "@/lib/economy-constants";
 import { CANON } from "@/lib/canon";
+import { proveWallet } from "@/lib/wallet-proof";
 
 type Civ = { slug: string; name: string; color: string };
 
@@ -65,8 +66,8 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
       return;
     }
     setBusy(true);
-    try {
-      const res = await fetch("/api/tithe", {
+    const doPost = () =>
+      fetch("/api/tithe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,7 +77,26 @@ export function TitheForm({ address, civs, defaultDisplay = "" }: Props) {
           display: display.trim().slice(0, 32) || undefined,
         }),
       });
-      const j = await res.json();
+    try {
+      let res = await doPost();
+      let j = await res.json();
+      // ⬡ spends require a one-time wallet signature (walletProof). If the
+      // server says the wallet isn't proven, sign once and retry.
+      if (res.status === 401 && j?.error === "wallet_proof_required") {
+        const proof = await proveWallet(address);
+        if (!proof.ok) {
+          setError(
+            proof.reason === "no_wallet"
+              ? "Open this page in your wallet's browser to spend ⬡."
+              : proof.reason === "rejected"
+              ? "Signature declined — needed once to spend ⬡."
+              : "Couldn't prove your wallet — retry.",
+          );
+          return;
+        }
+        res = await doPost();
+        j = await res.json();
+      }
       if (!res.ok) {
         if (j?.error === "x_session_required") {
           setError("NO X SIGNAL DETECTED · sign in to bind your handle to this wallet.");

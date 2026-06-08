@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { useViewerAddr } from "@/lib/use-viewer";
+import { proveWallet } from "@/lib/wallet-proof";
 
 type Public = {
   id: string;
@@ -73,19 +74,38 @@ export function TransmissionCard({ t: initialT, compact }: { t: Public; compact?
   async function boost() {
     setErr(null);
     if (!viewer.addr) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    const addr = viewer.addr;
     const hex = Math.floor(Number(boostAmt));
     if (!Number.isFinite(hex) || hex < 10) { setErr("MIN BOOST 10⬡"); return; }
     setBoosting(true);
     // Idempotency key — server dedupes retries against this so a
     // network blip + retry doesn't double-debit.
     const idemKey = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`).toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 64);
-    try {
-      const r = await fetch(`/api/transmissions/${t.id}/boost`, {
+    const doPost = () =>
+      fetch(`/api/transmissions/${t.id}/boost`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ addr: viewer.addr, hex, idemKey }),
+        body: JSON.stringify({ addr, hex, idemKey }),
       });
-      const j = await r.json();
+    try {
+      let r = await doPost();
+      let j = await r.json();
+      // Boosting burns ⬡ — needs a one-time wallet signature (walletProof).
+      if (r.status === 401 && j?.error === "wallet_proof_required") {
+        const proof = await proveWallet(addr);
+        if (!proof.ok) {
+          setErr(
+            proof.reason === "no_wallet"
+              ? "OPEN IN YOUR WALLET'S BROWSER TO BOOST"
+              : proof.reason === "rejected"
+              ? "SIGNATURE DECLINED · NEEDED ONCE TO BOOST"
+              : "COULDN'T PROVE WALLET · RETRY",
+          );
+          return;
+        }
+        r = await doPost();
+        j = await r.json();
+      }
       if (!r.ok) {
         const map: Record<string, string> = {
           session_required: "SIGN IN WITH X FIRST",

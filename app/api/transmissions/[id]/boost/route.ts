@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { boostTransmission, getTransmission } from "@/lib/transmissions-store";
-import { isSameOrigin, requireSessionBound } from "@/lib/x-session";
+import { isSameOrigin, requireProvenWallet } from "@/lib/x-session";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { debitWalletHex, creditWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 
@@ -45,8 +45,13 @@ export async function POST(
   if (!Number.isFinite(hex) || hex < MIN_BOOST || hex > MAX_BOOST) {
     return NextResponse.json({ error: "invalid_amount", min: MIN_BOOST, max: MAX_BOOST }, { status: 400 });
   }
-  if (!requireSessionBound(req, addr)) {
-    return NextResponse.json({ error: "session_required" }, { status: 401 });
+  // This boost SPENDS ⬡, so the spending wallet must be CRYPTOGRAPHICALLY PROVEN
+  // by the session (walletProof), not the forgeable `bind`.
+  if (!requireProvenWallet(req, addr)) {
+    return NextResponse.json(
+      { error: "wallet_proof_required", message: "Sign with your wallet once to spend ⬡." },
+      { status: 401 },
+    );
   }
 
   // Idempotency check: if a previous identical boost succeeded with

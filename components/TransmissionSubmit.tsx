@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useViewerAddr, useXVerification } from "@/lib/use-viewer";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { cityNotice } from "@/lib/city-notice";
+import { proveWallet } from "@/lib/wallet-proof";
 
 const COST = 100;
 const MAX_CAPTION = 280;
@@ -40,6 +41,7 @@ export function TransmissionSubmit({ onSubmitted }: { onSubmitted?: (id: string)
     e.preventDefault();
     setError(null);
     if (!viewer.addr || !x.verified) return;
+    const addr = viewer.addr;
     if (!civ) { setError("PICK A CIVILIZATION"); return; }
     if (caption.length < 1) { setError("CAPTION REQUIRED"); return; }
     if (caption.length > MAX_CAPTION) { setError(`CAPTION TOO LONG · ${MAX_CAPTION} MAX`); return; }
@@ -48,13 +50,31 @@ export function TransmissionSubmit({ onSubmitted }: { onSubmitted?: (id: string)
       return;
     }
     setBusy(true);
-    try {
-      const res = await fetch("/api/transmissions", {
+    const doPost = () =>
+      fetch("/api/transmissions", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ addr: viewer.addr, civ, caption, imageUrl }),
+        body: JSON.stringify({ addr, civ, caption, imageUrl }),
       });
-      const j = await res.json();
+    try {
+      let res = await doPost();
+      let j = await res.json();
+      // Submitting a transmission burns ⬡ — needs a one-time wallet signature.
+      if (res.status === 401 && j?.error === "wallet_proof_required") {
+        const proof = await proveWallet(addr);
+        if (!proof.ok) {
+          setError(
+            proof.reason === "no_wallet"
+              ? "OPEN IN YOUR WALLET'S BROWSER TO TRANSMIT"
+              : proof.reason === "rejected"
+              ? "SIGNATURE DECLINED · NEEDED ONCE TO TRANSMIT"
+              : "COULDN'T PROVE WALLET · RETRY",
+          );
+          return;
+        }
+        res = await doPost();
+        j = await res.json();
+      }
       if (!res.ok) {
         const map: Record<string, string> = {
           invalid_address: "ADDRESS MALFORMED",

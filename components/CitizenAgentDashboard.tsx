@@ -4,6 +4,7 @@ import { useHolder } from "@/lib/useHolder";
 import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
 import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
 import { openseaUrl } from "@/lib/constants";
+import { proveWallet } from "@/lib/wallet-proof";
 import ShareAgentOutput from "@/components/ShareAgentOutput";
 import { buildImageShareIntent } from "@/lib/share-agent";
 import { trackEvent } from "@/lib/track";
@@ -263,19 +264,23 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const needsUnlock = needsActivate || needsRecharge; // either starts the pay flow
   const payKind: "activate" | "recharge" = needsRecharge ? "recharge" : "activate";
 
-  /** Prove ownership to the server when there's no bound session. Prefer a wallet
-   *  signature; if no injected wallet is present (desktop without an extension,
-   *  paste-an-address visitors), fall back to binding this wallet to an X sign-in
-   *  so the server session covers future runs — instead of dead-ending. */
+  /** Establish wallet authority when the server demands it (auth_required /
+   *  wallet_proof_required). Prefer proving the wallet ONCE — that persists in the
+   *  7-day session (walletProof), so subsequent runs need no popup at all. Falls
+   *  back to a per-mission signature if the holder dismisses the proof prompt.
+   *  With no injected wallet (paste-an-address / mobile), route to a wallet-bound
+   *  X sign-in (restores a session for FREE runs); spending ⬡ still needs a real
+   *  signature, which the message makes clear. */
   async function signOrThrow(message: string): Promise<{ address: string; signature: string }> {
     if (!h.address) throw new Error("Connect your wallet first.");
     if (!window.ethereum) {
-      // Stash the brief so it survives the OAuth round-trip, then take them to
-      // the wallet-bound X sign-in (the other auth path the server accepts).
       try { sessionStorage.setItem(`freelon:brief:${citizenId}`, brief); } catch { /* ignore */ }
       window.location.href = `/api/x/start?bind=${encodeURIComponent(h.address)}`;
-      throw new Error("Taking you to a one-time X sign-in so this wallet can deploy missions…");
+      throw new Error("Taking you to a one-time X sign-in. To spend ⬡, open this page in your wallet's browser.");
     }
+    const proved = await proveWallet(h.address);
+    // Proven session covers auth server-side; empty signature is ignored there.
+    if (proved.ok) return { address: h.address, signature: "" };
     const signature = (await window.ethereum.request({ method: "personal_sign", params: [message, h.address] })) as string;
     return { address: h.address, signature };
   }
@@ -301,7 +306,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { ...base, ...creds } : base),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "${ability.id}".`);
           continue;
         }
@@ -335,7 +340,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { ...base, ...creds } : base),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-citizen".`);
           continue;
         }
@@ -369,7 +374,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { ...base, ...creds } : base),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-video".`);
           continue;
         }
@@ -404,7 +409,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { ...base, ...creds } : base),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "dossier".`);
           continue;
         }
@@ -440,7 +445,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { ...base, ...creds } : base),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "crew".`);
           continue;
         }
@@ -475,7 +480,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { ...base, ...creds } : base),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-crew".`);
           continue;
         }
@@ -513,7 +518,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { ...base, ...creds } : base),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "${ability.id}".`);
           continue;
         }
@@ -549,7 +554,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           body: JSON.stringify(creds ? { action: "quote", kind: payKind, ...creds } : { action: "quote", kind: payKind }),
         });
         const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && d?.error === "auth_required" && !creds) {
+        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
           creds = await signOrThrow(`I am unlocking FREELON CITY agent #${citizenId}.`);
           continue;
         }
@@ -582,7 +587,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         body: JSON.stringify(creds ? { action: "claim", kind: payKind, txHash, ...creds } : { action: "claim", kind: payKind, txHash }),
       });
       const d = await res.json().catch(() => ({}));
-      if (res.status === 401 && d?.error === "auth_required" && !creds) {
+      if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
         creds = await signOrThrow(`I am unlocking FREELON CITY agent #${citizenId}.`);
         continue;
       }

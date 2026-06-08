@@ -9,6 +9,7 @@ import { useHolder } from "@/lib/useHolder";
 import { cue } from "@/lib/arcade-feedback";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
 import { ArcadeTutorial } from "@/components/ArcadeTutorial";
+import { proveWallet } from "@/lib/wallet-proof";
 
 type CivRow = { slug: string; score: number; rawHex: number; tributes: number };
 type General = { address: string; score: number; rawHex: number; topCiv: string | null };
@@ -224,13 +225,32 @@ export function Reckoning() {
     setBusy(true);
     setError(null);
     setLastBurn(null);
-    try {
-      const r = await fetch("/api/reckoning/tribute", {
+    const doPost = () =>
+      fetch("/api/reckoning/tribute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address, civ: selected, amount: amountN }),
       });
-      const j = await r.json();
+    try {
+      let r = await doPost();
+      let j = await r.json();
+      // Tribute burns real ⬡ — needs a one-time wallet signature (walletProof).
+      if (r.status === 401 && j?.error === "wallet_proof_required") {
+        const proof = await proveWallet(address);
+        if (!proof.ok) {
+          setError(
+            proof.reason === "no_wallet"
+              ? "OPEN IN YOUR WALLET'S BROWSER TO PAY TRIBUTE"
+              : proof.reason === "rejected"
+              ? "SIGNATURE DECLINED · NEEDED ONCE TO PAY TRIBUTE"
+              : "COULDN'T PROVE WALLET · RETRY",
+          );
+          cue("error");
+          return;
+        }
+        r = await doPost();
+        j = await r.json();
+      }
       if (!r.ok) {
         if (j?.error === "x_session_required")
           setError("NO X SIGNAL · sign in to bind your handle to this wallet.");

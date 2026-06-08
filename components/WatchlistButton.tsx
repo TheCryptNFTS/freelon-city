@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { CANON } from "@/lib/canon";
 import { stampViewerAddr } from "@/lib/viewer-cookie";
+import { proveWallet } from "@/lib/wallet-proof";
 
 type Props = { tokenId: number };
 
@@ -68,8 +69,8 @@ export function WatchlistButton({ tokenId }: Props) {
     if (!addr || watching === null) return;
     setBusy(true);
     setError(null);
-    try {
-      const res = await fetch("/api/watchlist", {
+    const doPost = () =>
+      fetch("/api/watchlist", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -78,7 +79,25 @@ export function WatchlistButton({ tokenId }: Props) {
           action: watching ? "remove" : "add",
         }),
       });
-      const j = await res.json();
+    try {
+      let res = await doPost();
+      let j = await res.json();
+      // Adding to the watchlist burns ⬡ — needs a one-time wallet signature.
+      if (res.status === 401 && j?.error === "wallet_proof_required") {
+        const proof = await proveWallet(addr);
+        if (!proof.ok) {
+          setError(
+            proof.reason === "no_wallet"
+              ? "OPEN IN YOUR WALLET'S BROWSER TO WATCH"
+              : proof.reason === "rejected"
+              ? "SIGNATURE DECLINED · NEEDED ONCE TO WATCH"
+              : `${CANON.LOST} · couldn't prove wallet · retry`,
+          );
+          return;
+        }
+        res = await doPost();
+        j = await res.json();
+      }
       if (!res.ok) {
         const map: Record<string, string> = {
           insufficient_hex: `HEX BALANCE LOW · need ${cost} ⬡`,

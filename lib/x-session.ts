@@ -19,8 +19,20 @@ export type XSession = {
   xId: string;
   xHandle: string;
   bind: string;
+  /**
+   * A wallet address this session has PROVEN control of via a one-time
+   * personal_sign (see /api/x/prove). Unlike `bind` — which is an
+   * attacker-chooseable string set at OAuth start with NO proof — `walletProof`
+   * is only ever written after a signature verifies. Money-moving routes MUST
+   * authorize against this field (requireProvenWallet), never against `bind`.
+   */
+  walletProof?: string;
   exp: number;
 };
+
+// Canonical proof message lives in the shared (node-free) module so the client
+// signer and this server verifier never drift. Re-exported for existing importers.
+export { walletProofMessage } from "./wallet-proof";
 
 function secret(): Buffer {
   const s = process.env.X_OAUTH_CLIENT_SECRET;
@@ -43,6 +55,7 @@ export function signSession(input: Omit<XSession, "exp"> & { ttlMs?: number }): 
     xId: input.xId,
     xHandle: input.xHandle,
     bind: input.bind,
+    ...(input.walletProof ? { walletProof: input.walletProof.toLowerCase() } : {}),
     exp,
   };
   const payloadStr = JSON.stringify(payload);
@@ -102,6 +115,33 @@ export function requireSessionBound(req: Request, expected: string): XSession | 
   const s = getSessionFromRequest(req);
   if (!s) return null;
   if ((s.bind || "").toLowerCase() !== expected.toLowerCase()) return null;
+  return s;
+}
+
+const ADDR_RE = /^0x[a-f0-9]{40}$/;
+
+/**
+ * Returns the wallet this session has PROVEN control of (via /api/x/prove),
+ * lowercased, or null. This is the only trustworthy wallet-authority signal on
+ * a session — use it (not `bind`) to gate anything that moves ⬡ or value.
+ */
+export function getProvenWallet(req: Request): string | null {
+  const s = getSessionFromRequest(req);
+  const w = (s?.walletProof || "").toLowerCase();
+  return ADDR_RE.test(w) ? w : null;
+}
+
+/**
+ * Money-path gate: the caller must hold a session whose PROVEN wallet matches
+ * `expected`. Closes the bind-forgery vector — `bind` is attacker-chooseable at
+ * OAuth start, so it can never authorize a spend; only a signature can.
+ */
+export function requireProvenWallet(req: Request, expected: string): XSession | null {
+  const s = getSessionFromRequest(req);
+  if (!s) return null;
+  const w = (s.walletProof || "").toLowerCase();
+  if (!ADDR_RE.test(w)) return null;
+  if (w !== expected.toLowerCase()) return null;
   return s;
 }
 

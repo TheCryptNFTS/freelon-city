@@ -52,17 +52,16 @@ export async function POST(req: Request) {
     );
   }
 
-  // Session must be bound to the wallet being burned from.
+  // The burning wallet must be CRYPTOGRAPHICALLY PROVEN by this session
+  // (one-time personal_sign → walletProof), not merely the forgeable `bind`.
+  // Trusting `bind` let any signed-in user drain a victim's wallet by address.
   const session = await requireXSession(req, {});
   if (session instanceof NextResponse) return session;
-  const sessionBind = (session.bind || "").toLowerCase();
-  if (!/^0x[a-f0-9]{40}$/.test(sessionBind) || sessionBind !== address) {
+  const { requireProvenWallet } = await import("@/lib/x-session");
+  if (!requireProvenWallet(req, address)) {
     return NextResponse.json(
-      {
-        error: "wallet_not_bound_to_session",
-        hint: "Sign in with X using the wallet you want to boost from.",
-      },
-      { status: 403 },
+      { error: "wallet_proof_required", message: "Sign with your wallet once to spend ⬡." },
+      { status: 401 },
     );
   }
 

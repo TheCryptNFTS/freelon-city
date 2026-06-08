@@ -6,6 +6,7 @@ import { normalizeHandle, syncHandle } from "@/lib/sync";
 import { CarrierState, POINTS } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { requireXSession } from "@/lib/require-x";
+import { requireProvenWallet } from "@/lib/x-session";
 import { walletFromSession, foldCarrierIntoWallet } from "@/lib/hex-spend";
 import { debitWalletHex, getWalletHex, InsufficientHexError } from "@/lib/wallet-hex-store";
 
@@ -82,6 +83,16 @@ export async function POST(req: Request) {
   }
 
   if (wallet) {
+    // Spending wallet-ledger ⬡ requires a PROVEN wallet (one-time signature).
+    // `session.bind` is attacker-chooseable at OAuth start, so it can never
+    // authorize a debit — otherwise an attacker could bind a victim's wallet
+    // and burn their HEX on shop items. Gate before the fold + debit.
+    if (!requireProvenWallet(req, wallet)) {
+      return NextResponse.json(
+        { error: "wallet_proof_required", message: "Sign with your wallet once to spend ⬡." },
+        { status: 401 },
+      );
+    }
     // Fold any leftover carrier-hex into the wallet first (idempotent), so
     // previously-earned/relayed hex is spendable in the shop.
     await foldCarrierIntoWallet(handle, wallet);

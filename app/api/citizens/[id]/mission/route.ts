@@ -97,12 +97,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const mission = getMission((body.missionId ?? "").trim());
   if (!mission) return NextResponse.json({ error: "unknown_mission" }, { status: 400 });
 
-  // 5. Auth — bound x-session OR wallet signature (the naming pattern). The
-  //    payee/debited wallet is the AUTHENTICATED wallet, never a body field.
+  // 5. Auth. The debited wallet is the AUTHENTICATED wallet, never a body field.
+  //    `proven` is true ONLY when wallet control is cryptographically established
+  //    (a session walletProof, or a fresh signature). An unproven bound session
+  //    is an identity HINT — fine for FREE runs, but it can NEVER authorize a ⬡
+  //    spend. `bind` is attacker-chooseable at OAuth start, so trusting it to
+  //    move ⬡ was a drain vector (see lib/x-session.ts).
   let wallet: string | null = null;
+  let proven = false;
   const session = getSessionFromRequest(req);
-  if (session && /^0x[a-f0-9]{40}$/.test((session.bind || "").toLowerCase())) {
-    wallet = session.bind.toLowerCase();
+  const provenWallet = (session?.walletProof || "").toLowerCase();
+  if (/^0x[a-f0-9]{40}$/.test(provenWallet)) {
+    wallet = provenWallet;
+    proven = true;
   } else if (body.address && body.signature) {
     const address = body.address.toLowerCase();
     if (!/^0x[a-f0-9]{40}$/.test(address)) {
@@ -121,6 +128,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
     if (!sigOk) return NextResponse.json({ error: "signature verification failed" }, { status: 401 });
     wallet = address;
+    proven = true;
+  } else if (session && /^0x[a-f0-9]{40}$/.test((session.bind || "").toLowerCase())) {
+    wallet = session.bind.toLowerCase(); // identity hint only — never authorizes a spend
   }
   if (!wallet) return NextResponse.json({ error: "auth_required" }, { status: 401 });
 
@@ -181,6 +191,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   let premiumHexSpent = 0; // HEX charged for this premium run (refunded on failure)
   let premiumBudgetCents = 0; // premium $-pool charge for this run (refunded on failure)
   if (unlockGated) {
+    // PROVEN-WALLET GATE — a premium run SPENDS this wallet's ⬡, so the caller
+    // must have cryptographically proven control of it (signature / walletProof),
+    // not merely a forgeable bound session. Checked BEFORE any charge so an
+    // unproven session can never burn someone else's ⬡. Free runs skip this.
+    if (!proven) {
+      return NextResponse.json(
+        { error: "wallet_proof_required", message: "Sign with your wallet once to spend ⬡ on premium runs." },
+        { status: 401 },
+      );
+    }
     // PROVIDER GUARD — never debit HEX for a render we can't actually perform
     // (image needs OpenAI, video needs Replicate). Checked BEFORE any charge, like
     // the kill-switch — avoids the debit-then-refund dance the red-team flagged.

@@ -6,7 +6,7 @@ import {
   generateId,
   type Transmission,
 } from "@/lib/transmissions-store";
-import { isSameOrigin, requireSessionBound } from "@/lib/x-session";
+import { isSameOrigin, requireProvenWallet, getSessionFromRequest } from "@/lib/x-session";
 import { isValidAddress, getWalletBalanceVerified } from "@/lib/wallet-tokens";
 import { creditWalletHex, debitWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 import { CIVILIZATIONS } from "@/lib/constants";
@@ -83,10 +83,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "image_url_not_recognized" }, { status: 400 });
   }
 
-  // Auth
-  const session = requireSessionBound(req, addr);
-  if (!session) {
+  // Auth — this POST SPENDS ⬡ (SUBMISSION_COST), so the spending wallet must be
+  // CRYPTOGRAPHICALLY PROVEN by the session (one-time personal_sign → walletProof),
+  // not the forgeable `bind`. A plain signed-in session is not enough.
+  if (!getSessionFromRequest(req)) {
     return NextResponse.json({ error: "session_required" }, { status: 401 });
+  }
+  const session = requireProvenWallet(req, addr);
+  if (!session) {
+    return NextResponse.json(
+      { error: "wallet_proof_required", message: "Sign with your wallet once to spend ⬡." },
+      { status: 401 },
+    );
   }
 
   // Eligibility: must be a holder

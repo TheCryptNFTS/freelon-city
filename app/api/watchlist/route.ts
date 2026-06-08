@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   if (!rl.ok) return tooManyResponse(rl);
 
   // CSRF: only accept same-origin browser POSTs
-  const { isSameOrigin, requireSessionBound } = await import("@/lib/x-session");
+  const { isSameOrigin, requireSessionBound, requireProvenWallet } = await import("@/lib/x-session");
   if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "bad_origin" }, { status: 403 });
   }
@@ -67,17 +67,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_action" }, { status: 400 });
   }
 
-  // Auth gate: the caller must have an HMAC X-session bound to this wallet
-  // before we touch the wallet's hex balance. Without this, ANY attacker
-  // could POST { addr: <victim> } and drain the victim's hex 50⬡ at a time
-  // by spamming watchlist adds.
-  if (!requireSessionBound(req, addr)) {
-    return NextResponse.json({ error: "session_required" }, { status: 401 });
-  }
-
+  // Auth gate. "remove" is FREE and identity-only, so a session bound to the
+  // wallet is sufficient. "add" SPENDS ⬡ (WATCHLIST_COST), so the spending
+  // wallet must be CRYPTOGRAPHICALLY PROVEN (walletProof) — the forgeable
+  // `bind` can never authorize a debit or an attacker would drain a victim's
+  // hex 50⬡ at a time by spamming { addr: <victim> } adds.
   if (action === "remove") {
+    if (!requireSessionBound(req, addr)) {
+      return NextResponse.json({ error: "session_required" }, { status: 401 });
+    }
     await removeFromWatchlist(addr, tokenId);
     return NextResponse.json({ ok: true, action: "remove" });
+  }
+
+  if (!requireProvenWallet(req, addr)) {
+    return NextResponse.json(
+      { error: "wallet_proof_required", message: "Sign with your wallet once to spend ⬡." },
+      { status: 401 },
+    );
   }
 
   // Per-wallet size cap — stops a single wallet from watchlisting the
