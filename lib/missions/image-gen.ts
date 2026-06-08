@@ -35,16 +35,52 @@ type EditResult =
   | { ok: true; b64: string; usage?: { input?: number; output?: number } }
   | { ok: false; error: string };
 
+/** Transient failures worth a retry: connection kills (the Vercel↔OpenRouter
+ *  idle-proxy reset), self-timeouts, and provider 5xx / 429. A 4xx (billing
+ *  cap, bad request) will never recover, so we DON'T retry those. */
+function isRetryable(error: string): boolean {
+  return (
+    error.startsWith("fetch_failed") ||
+    error === "timeout" ||
+    error === "empty_image" ||
+    /_(5\d\d|429)\b/.test(error) ||
+    /_(5\d\d|429):/.test(error)
+  );
+}
+
 /**
  * Render an image EDIT (reference art → new image) through whichever provider is
- * configured. OpenRouter (when OPENROUTER_API_KEY is set) is preferred — it's the
- * same account that powers chat, so direct-OpenAI billing caps don't take images
- * down. OpenRouter exposes the OpenAI image line as a chat-completions model with
- * an image modality (reference passed as a data URI), NOT the multipart
- * images/edits endpoint — so the request shape differs by provider. Falls back to
- * direct OpenAI images/edits when only OPENAI_API_KEY is set. Self-times-out.
+ * configured, with a retry on TRANSIENT failures. OpenRouter (when
+ * OPENROUTER_API_KEY is set) is preferred — it's the same account that powers
+ * chat, so direct-OpenAI billing caps don't take images down. The Vercel↔OpenRouter
+ * hop occasionally resets an idle connection mid-render (→ "fetch_failed") even
+ * though the model itself is healthy, so a single retry turns most blips into a
+ * success instead of a dead, refunded render. OpenRouter exposes the image line as
+ * a chat-completions model with an image modality (reference passed as a data URI),
+ * NOT the multipart images/edits endpoint — so the request shape differs by
+ * provider. Falls back to direct OpenAI images/edits when only OPENAI_API_KEY is
+ * set. Self-times-out per attempt.
  */
 async function editToB64(
+  prompt: string,
+  refs: Buffer[],
+  quality: "low" | "medium" | "high",
+  timeoutMs: number,
+): Promise<EditResult> {
+  // Per-attempt timeout so two tries still fit comfortably under the route's
+  // 300s ceiling (the fast image model returns in <15s, so 2× is cheap).
+  const perAttempt = Math.max(30_000, Math.floor(timeoutMs / 2));
+  let last: EditResult = { ok: false, error: "unknown" };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    last = await editAttempt(prompt, refs, quality, perAttempt);
+    if (last.ok || !isRetryable(last.error)) return last;
+    // brief backoff before the retry; transient resets clear quickly
+    await new Promise((r) => setTimeout(r, 400 + attempt * 600));
+  }
+  return last;
+}
+
+async function editAttempt(
   prompt: string,
   refs: Buffer[],
   quality: "low" | "medium" | "high",
@@ -105,7 +141,7 @@ async function editToB64(
       body: form,
       signal: controller.signal,
     });
-    if (!res.ok) return { ok: false, error: `openai_${res.status}` };
+    if (!res.ok) return { ok: false, error: `openai_${res.status}:${(await res.text().catch(() => "")).slice(0, 120)}` };
     const j = (await res.json()) as { data?: { b64_json?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
     const b64 = j.data?.[0]?.b64_json;
     if (!b64) return { ok: false, error: "empty_image" };
