@@ -26,6 +26,91 @@ import { imageUrl } from "@/lib/constants";
 const OPENAI_IMAGE_URL = "https://api.openai.com/v1/images/edits";
 const MODEL = "gpt-image-1.5";
 
+/** True when ANY image provider is configured (OpenRouter or direct OpenAI). */
+function hasImageProvider(): boolean {
+  return !!(process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY);
+}
+
+type EditResult =
+  | { ok: true; b64: string; usage?: { input?: number; output?: number } }
+  | { ok: false; error: string };
+
+/**
+ * Render an image EDIT (reference art → new image) through whichever provider is
+ * configured. OpenRouter (when OPENROUTER_API_KEY is set) is preferred — it's the
+ * same account that powers chat, so direct-OpenAI billing caps don't take images
+ * down. OpenRouter exposes the OpenAI image line as a chat-completions model with
+ * an image modality (reference passed as a data URI), NOT the multipart
+ * images/edits endpoint — so the request shape differs by provider. Falls back to
+ * direct OpenAI images/edits when only OPENAI_API_KEY is set. Self-times-out.
+ */
+async function editToB64(
+  prompt: string,
+  refs: Buffer[],
+  quality: "low" | "medium" | "high",
+  timeoutMs: number,
+): Promise<EditResult> {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const orKey = process.env.OPENROUTER_API_KEY;
+    if (orKey) {
+      const model = process.env.OPENROUTER_IMAGE_MODEL || "openai/gpt-5-image";
+      const content = [
+        { type: "text", text: prompt },
+        ...refs.map((r) => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${r.toString("base64")}` } })),
+      ];
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${orKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://www.freeloncity.com",
+          "X-Title": "FREELON CITY",
+        },
+        body: JSON.stringify({ model, modalities: ["image", "text"], messages: [{ role: "user", content }] }),
+        signal: controller.signal,
+      });
+      if (!res.ok) return { ok: false, error: `openrouter_${res.status}` };
+      const j = (await res.json()) as {
+        choices?: { message?: { images?: { image_url?: { url?: string } }[] } }[];
+        usage?: { prompt_tokens?: number; completion_tokens?: number };
+      };
+      const url = j.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? "";
+      const b64 = url.startsWith("data:") ? url.slice(url.indexOf(",") + 1) : "";
+      if (!b64) return { ok: false, error: "empty_image" };
+      return { ok: true, b64, usage: { input: j.usage?.prompt_tokens, output: j.usage?.completion_tokens } };
+    }
+
+    const key = process.env.OPENAI_API_KEY!;
+    const form = new FormData();
+    form.append("model", MODEL);
+    form.append("prompt", prompt);
+    form.append("size", "1024x1024");
+    form.append("quality", quality);
+    if (refs.length <= 1) {
+      form.append("image", new Blob([new Uint8Array(refs[0])], { type: "image/jpeg" }), "ref.jpg");
+    } else {
+      refs.forEach((r, i) => form.append("image[]", new Blob([new Uint8Array(r)], { type: "image/jpeg" }), `ref${i}.jpg`));
+    }
+    const res = await fetch(OPENAI_IMAGE_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+      signal: controller.signal,
+    });
+    if (!res.ok) return { ok: false, error: `openai_${res.status}` };
+    const j = (await res.json()) as { data?: { b64_json?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
+    const b64 = j.data?.[0]?.b64_json;
+    if (!b64) return { ok: false, error: "empty_image" };
+    return { ok: true, b64, usage: { input: j.usage?.input_tokens, output: j.usage?.output_tokens } };
+  } catch (e) {
+    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /** Server-side scene allowlist. The client may only pass one of these keys. */
 export const SCENES: Record<string, { label: string; desc: string }> = {
   "neon-city": {
@@ -155,8 +240,7 @@ export async function generateCitizenScene(args: {
   styleKey?: string;
   timeoutMs?: number;
 }): Promise<ImageGenResult> {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return { ok: false, error: "no_api_key" };
+  if (!hasImageProvider()) return { ok: false, error: "no_api_key" };
   // Exactly one of scene/style (contract enforcement — never both/neither).
   if (!!args.styleKey === !!args.sceneKey) return { ok: false, error: "bad_render_args" };
   const isStyle = !!args.styleKey;
@@ -182,37 +266,13 @@ export async function generateCitizenScene(args: {
     ? buildTransformPrompt(args.citizen, STYLES[renderKey].desc)
     : buildImagePrompt(args.citizen, args.spec, SCENES[renderKey].desc);
 
-  const form = new FormData();
-  form.append("model", MODEL);
-  form.append("prompt", prompt);
-  form.append("size", "1024x1024");
-  form.append("quality", "medium");
-  form.append(
-    "image",
-    new Blob([new Uint8Array(refBytes)], { type: "image/jpeg" }),
-    `${id4(args.citizen.id)}.jpg`,
-  );
-
-  const controller = new AbortController();
   // 240s default leaves ~60s headroom under the route's 300s ceiling for the
   // reference fetch, signature stamp, and Blob upload — so a real overrun aborts
   // cleanly (→ refundable "timeout") instead of the platform killing the function.
-  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 240_000);
-  try {
-    const res = await fetch(OPENAI_IMAGE_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
-      body: form,
-      signal: controller.signal,
-    });
-    if (!res.ok) return { ok: false, error: `openai_${res.status}` };
-    const j = (await res.json()) as {
-      data?: { b64_json?: string }[];
-      usage?: { input_tokens?: number; output_tokens?: number };
-    };
-    const b64 = j.data?.[0]?.b64_json;
-    if (!b64) return { ok: false, error: "empty_image" };
-
+  const r = await editToB64(prompt, [refBytes], "medium", args.timeoutMs ?? 240_000);
+  if (!r.ok) return r;
+  const b64 = r.b64;
+  {
     // Upload to Vercel Blob (public) → a real, shareable, persistent URL. The
     // filesystem is read-only on Vercel, so we can't write to /public anymore.
     // The image is BRANDED with a FREELON signature first (free marketing on share).
@@ -233,13 +293,9 @@ export async function generateCitizenScene(args: {
       ok: true,
       url: blob.url,
       filename,
-      promptTokens: j.usage?.input_tokens,
-      imageTokens: j.usage?.output_tokens,
+      promptTokens: r.usage?.input,
+      imageTokens: r.usage?.output,
     };
-  } catch (e) {
-    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
-  } finally {
-    clearTimeout(t);
   }
 }
 
@@ -281,50 +337,26 @@ export async function generateEvolvedArt(args: {
   tier: number;
   timeoutMs?: number;
 }): Promise<ImageGenResult> {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return { ok: false, error: "no_api_key" };
+  if (!hasImageProvider()) return { ok: false, error: "no_api_key" };
   const tier = Math.max(1, Math.floor(args.tier));
 
   const ref = await fetchRefArt(args.citizen.id);
   if (!ref) return { ok: false, error: "reference_art_missing" };
 
   const prompt = buildEvolvePrompt(args.citizen, tier);
-  const form = new FormData();
-  form.append("model", MODEL);
-  form.append("prompt", prompt);
-  form.append("size", "1024x1024");
-  form.append("quality", "high");
-  form.append("image", new Blob([new Uint8Array(ref)], { type: "image/jpeg" }), `${id4(args.citizen.id)}.jpg`);
+  const r = await editToB64(prompt, [ref], "high", args.timeoutMs ?? 240_000);
+  if (!r.ok) return r;
 
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 240_000);
+  const filename = `evolve/${id4(args.citizen.id)}-t${tier}-${Date.now()}.png`;
+  const { stampSignature } = await import("@/lib/missions/image-stamp");
+  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.citizen.id);
+  let blob;
   try {
-    const res = await fetch(OPENAI_IMAGE_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
-      body: form,
-      signal: controller.signal,
-    });
-    if (!res.ok) return { ok: false, error: `openai_${res.status}` };
-    const j = (await res.json()) as { data?: { b64_json?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
-    const b64 = j.data?.[0]?.b64_json;
-    if (!b64) return { ok: false, error: "empty_image" };
-
-    const filename = `evolve/${id4(args.citizen.id)}-t${tier}-${Date.now()}.png`;
-    const { stampSignature } = await import("@/lib/missions/image-stamp");
-    const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id);
-    let blob;
-    try {
-      blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
-    } catch (e) {
-      return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
-    }
-    return { ok: true, url: blob.url, filename, promptTokens: j.usage?.input_tokens, imageTokens: j.usage?.output_tokens };
+    blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
   } catch (e) {
-    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
-  } finally {
-    clearTimeout(t);
+    return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
   }
+  return { ok: true, url: blob.url, filename, promptTokens: r.usage?.input, imageTokens: r.usage?.output };
 }
 
 /** Fetch a citizen's hosted reference art (timeout-guarded). */
@@ -351,8 +383,7 @@ export async function generateCrewTransform(args: {
   styleKey: string;
   timeoutMs?: number;
 }): Promise<ImageGenResult> {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return { ok: false, error: "no_api_key" };
+  if (!hasImageProvider()) return { ok: false, error: "no_api_key" };
   if (!isValidStyle(args.styleKey)) return { ok: false, error: "invalid_style" };
 
   const a = await fetchRefArt(args.citizenA.id);
@@ -360,41 +391,17 @@ export async function generateCrewTransform(args: {
   if (!a || !b) return { ok: false, error: "reference_art_missing" };
 
   const prompt = buildCrewTransformPrompt(args.citizenA, args.citizenB, STYLES[args.styleKey].desc);
-  const form = new FormData();
-  form.append("model", MODEL);
-  form.append("prompt", prompt);
-  form.append("size", "1024x1024");
-  form.append("quality", "medium");
-  form.append("image[]", new Blob([new Uint8Array(a)], { type: "image/jpeg" }), `${id4(args.citizenA.id)}.jpg`);
-  form.append("image[]", new Blob([new Uint8Array(b)], { type: "image/jpeg" }), `${id4(args.citizenB.id)}.jpg`);
+  const r = await editToB64(prompt, [a, b], "medium", args.timeoutMs ?? 240_000);
+  if (!r.ok) return r;
 
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), args.timeoutMs ?? 240_000);
+  const filename = `deploy/crew-${id4(args.citizenA.id)}-${id4(args.citizenB.id)}-${args.styleKey}-${Date.now()}.png`;
+  const { stampSignature } = await import("@/lib/missions/image-stamp");
+  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.citizenA.id);
+  let blob;
   try {
-    const res = await fetch(OPENAI_IMAGE_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
-      body: form,
-      signal: controller.signal,
-    });
-    if (!res.ok) return { ok: false, error: `openai_${res.status}` };
-    const j = (await res.json()) as { data?: { b64_json?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
-    const b64 = j.data?.[0]?.b64_json;
-    if (!b64) return { ok: false, error: "empty_image" };
-
-    const filename = `deploy/crew-${id4(args.citizenA.id)}-${id4(args.citizenB.id)}-${args.styleKey}-${Date.now()}.png`;
-    const { stampSignature } = await import("@/lib/missions/image-stamp");
-    const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizenA.id);
-    let blob;
-    try {
-      blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
-    } catch (e) {
-      return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
-    }
-    return { ok: true, url: blob.url, filename, promptTokens: j.usage?.input_tokens, imageTokens: j.usage?.output_tokens };
+    blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
   } catch (e) {
-    return { ok: false, error: (e as Error).name === "AbortError" ? "timeout" : "fetch_failed" };
-  } finally {
-    clearTimeout(t);
+    return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
   }
+  return { ok: true, url: blob.url, filename, promptTokens: r.usage?.input, imageTokens: r.usage?.output };
 }
