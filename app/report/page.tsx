@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCivStandings } from "@/lib/civ-wars";
+import { getCivWeekStandings } from "@/lib/city-week";
 import { topCitizens } from "@/lib/progression-store";
 import { getCitizen } from "@/lib/citizens";
 import { epithetFor } from "@/lib/epithets";
@@ -27,13 +27,6 @@ export const metadata: Metadata = {
   },
 };
 
-function weekLabel(weekStart: number): string {
-  const d = new Date(weekStart);
-  const end = new Date(weekStart + 6 * 86400_000);
-  const fmt = (x: Date) => x.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-  return `${fmt(d)} – ${fmt(end)}, ${d.getUTCFullYear()}`;
-}
-
 type Notable = { tokenId: number; value: number; name: string; epithet: string | null; civColor: string; civName: string };
 
 function buildNotables(rows: { tokenId: number; value: number }[], limit: number): Notable[] {
@@ -57,7 +50,7 @@ function buildNotables(rows: { tokenId: number; value: number }[], limit: number
 
 export default async function ReportPage() {
   const [civ, levelRows, jobRows, repRows] = await Promise.all([
-    getCivStandings(),
+    getCivWeekStandings(),
     topCitizens("level", 12),
     topCitizens("jobs", 5),
     topCitizens("rep", 5),
@@ -67,12 +60,13 @@ export default async function ReportPage() {
   const mostActive = buildNotables(jobRows, 3);
   const highestStanding = buildNotables(repRows, 3);
 
-  // The week's winner — only crown one if a civ actually pressed a claim.
-  const winner = civ.totalScoredHex > 0 ? civ.standings[0] : null;
+  // The week's winner — most distinct participating citizens; only crown one if
+  // a civ actually pressed a claim this week.
+  const winner = civ.totalActive > 0 ? civ.standings[0] : null;
   const winnerDef = winner ? (CIVILIZATIONS as Record<string, { rival: string }>)[winner.slug] : null;
   const rival = winnerDef ? (CIVILIZATIONS as Record<string, { name: string; rivalLine: string }>)[winnerDef.rival] : null;
-  const topCivs = civ.standings.filter((s) => s.totalHex > 0).slice(0, 5);
-  const maxHex = topCivs[0]?.totalHex || 1;
+  const topCivs = civ.standings.filter((s) => s.active > 0).slice(0, 5);
+  const maxActive = topCivs[0]?.active || 1;
 
   return (
     <div className="home-page" style={{ maxWidth: 1080, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
@@ -83,7 +77,7 @@ export default async function ReportPage() {
           The week in the <em style={{ color: "var(--gold)", fontStyle: "normal" }}>city</em>.
         </h1>
         <p className="lead" style={{ maxWidth: 560, margin: "0 auto", color: "var(--ink-2)" }}>
-          {weekLabel(civ.weekStart)} · who pressed their claim, and the citizens building a public life.
+          {civ.week} · who pressed their claim, and the citizens building a public life.
         </p>
       </section>
 
@@ -105,9 +99,9 @@ export default async function ReportPage() {
                 <div key={s.slug} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={{ width: 140, fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>{s.name}</span>
                   <div style={{ flex: 1, height: 10, borderRadius: 999, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
-                    <div style={{ width: `${Math.max(4, (s.totalHex / maxHex) * 100)}%`, height: "100%", background: s.color, borderRadius: 999 }} />
+                    <div style={{ width: `${Math.max(4, (s.active / maxActive) * 100)}%`, height: "100%", background: s.color, borderRadius: 999 }} />
                   </div>
-                  <span style={{ width: 44, textAlign: "right", fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", flexShrink: 0 }}>{s.events}</span>
+                  <span style={{ width: 44, textAlign: "right", fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", flexShrink: 0 }}>{s.active}</span>
                 </div>
               ))}
             </div>

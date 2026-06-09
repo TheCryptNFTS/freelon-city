@@ -466,6 +466,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   await recordRun(mission.id, mission.cost).catch(() => {});
 
+  // CITY WEEK (spectatorship plane) — only COST-BEARING runs count toward the
+  // weekly civ standings + earn the week-stamped artifact, so free daily missions
+  // can't farm faction wins or artifacts (security-redteam guardrail). Both writes
+  // are idempotent (set membership / SET-NX) and STATUS-ONLY — fully wrapped so a
+  // hiccup here never 500s a run the holder already paid for.
+  const costBearing = premiumHexSpent > 0 || mission.cost > 0;
+  if (costBearing && citizen.civilization) {
+    try {
+      const { tallyCivMission, grantWeekArtifact } = await import("@/lib/city-week");
+      await tallyCivMission(cid, citizen.civilization);
+      await grantWeekArtifact(cid, citizen.civilization);
+    } catch { /* status-plane write is non-critical — never block the response */ }
+  }
+
   // AGENT NOTIFICATIONS (best-effort, deduped, never block the response):
   // level-up, and a "runs low" nudge when a premium run dropped to/under the
   // threshold. Fully wrapped — a failed import here must NEVER 500 a run that

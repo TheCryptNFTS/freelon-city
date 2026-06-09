@@ -18,6 +18,7 @@ import { ActivationProof } from "@/components/ActivationProof";
 import { EvolvePanel } from "@/components/EvolvePanel";
 import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
+import { getArtifacts } from "@/lib/city-week";
 import { getRankByLevel } from "@/lib/progression-store";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
 import { getName } from "@/lib/name-store";
@@ -95,6 +96,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const id4 = tid.toString().padStart(4, "0");
   const identity = getIdentity(tid);
   const customName = await getName(tid).catch(() => null);
+  // Earned week-stamped artifacts (the renewable collectible record) — public,
+  // status-only, travels with the token.
+  const artifacts = await getArtifacts(tid).catch(() => []);
   const realign = await getRealignment(tid).catch(() => null);
   const alignedCivDef = realign
     ? (CIVILIZATIONS as Record<string, { name: string }>)[realign.alignedCiv]
@@ -285,6 +289,30 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <EvolvePanel citizenId={tid} />
             <CitizenResume tokenId={tid} />
             <CitizenProgressPanel tokenId={tid} />
+            {artifacts.length > 0 && (
+              <section className="panel-premium" style={{ padding: "var(--s-4)", marginTop: "var(--s-3)" }}>
+                <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ARTIFACTS · {artifacts.length}</span>
+                <p style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "var(--ink-dim)", margin: "4px 0 12px" }}>
+                  Week-stamped marks earned in the city. They travel with the NFT.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {artifacts.map((a) => (
+                    <span
+                      key={a.id}
+                      title={a.title}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 11px",
+                        borderRadius: 999, border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)",
+                        background: "color-mix(in srgb, var(--gold) 8%, transparent)",
+                        fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink)", letterSpacing: "0.04em",
+                      }}
+                    >
+                      <span style={{ color: "var(--gold)" }}>⬡</span>{a.title}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
             <CitizenNameEditor citizenId={tid} currentName={customName?.name ?? null} />
             <CitizenRealignEditor
               citizenId={tid}
