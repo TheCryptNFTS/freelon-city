@@ -106,11 +106,9 @@ export default function ProofPage() {
           </h2>
         </header>
         <pre
+          className="panel-premium"
           style={{
-            background: "rgba(8,8,10,0.6)",
-            border: "1px solid var(--line-2)",
-            borderRadius: 14,
-            padding: "var(--s-4)",
+            padding: "var(--s-5)",
             overflowX: "auto",
             fontFamily: "var(--mono2)",
             fontSize: 13,
