@@ -724,11 +724,19 @@ export function AgentWorkspace(props: Props) {
                     onConnect={connect}
                     onUnlocked={() => { loadAgent(); if (address) loadHex(address); }}
                   />
-                  <div className={styles.starters} style={{ opacity: 0.45, pointerEvents: "none", marginTop: 22 }}>
-                    {(agent?.abilities ?? []).slice(0, 4).map((a) => (
-                      <div key={a.id} className={styles.starter}>{a.label}<small>{a.blurb}</small></div>
-                    ))}
-                  </div>
+                  {(agent?.abilities ?? []).length > 0 && (
+                    <>
+                      <div className={styles.starterPreviewLabel}>What {name} does once it&apos;s on</div>
+                      <div className={styles.starters} style={{ marginTop: 14 }}>
+                        {(agent?.abilities ?? []).slice(0, 4).map((a) => (
+                          <div key={a.id} className={`${styles.starter} ${styles.starterPreview}`}>
+                            {a.label}
+                            <small>{a.blurb}</small>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
