@@ -42,26 +42,29 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const rankText = typeof rank === "number" ? `#${rank}` : "UNRANKED";
   const civName = (civ?.name ?? c.civilization).toUpperCase();
 
-  // Status STAMP-CHIP — bordered, civ-accent left edge. Status, not an admin label.
-  const chip = (text: string) => (
+  // Archive STAMP — a small caps label over a big value, civ-accent left edge,
+  // faint fill + thin border. Reads as an official stamped field, not an HTML button.
+  const stamp = (label: string, value: string) => (
     <div
       style={{
         display: "flex",
-        alignItems: "center",
-        height: 52,
-        padding: "0 22px 0 18px",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: 4,
+        minHeight: 70,
+        padding: "10px 22px 10px 18px",
         borderLeft: `4px solid ${color}`,
-        border: "1px solid rgba(245,242,232,0.18)",
+        border: "1px solid rgba(245,242,232,0.2)",
         borderLeftWidth: 4,
-        background: "rgba(10,12,18,0.72)",
-        fontFamily: "monospace",
-        fontSize: 26,
-        fontWeight: 700,
-        letterSpacing: 2,
-        color: "#f3efe4",
+        background: "rgba(10,12,18,0.78)",
       }}
     >
-      {text}
+      <span style={{ fontFamily: "monospace", fontSize: 13, letterSpacing: 3, color: "rgba(243,239,228,0.5)" }}>
+        {label}
+      </span>
+      <span style={{ fontFamily: "monospace", fontSize: 26, fontWeight: 700, letterSpacing: 1, color: "#f3efe4" }}>
+        {value}
+      </span>
     </div>
   );
 
@@ -81,8 +84,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         {/* Civ-accent vignette frame */}
         <div style={{ position: "absolute", top: 0, left: 0, width: "1200px", height: "630px", border: `2px solid ${color}`, boxShadow: `inset 0 0 180px 40px rgba(10,12,18,0.85)` }} />
 
-        {/* Bottom gradient scrim so the title reads over the art */}
-        <div style={{ position: "absolute", left: 0, bottom: 0, width: "1200px", height: "430px", background: "linear-gradient(180deg, rgba(10,12,18,0) 0%, rgba(10,12,18,0.55) 45%, rgba(10,12,18,0.96) 100%)", display: "flex" }} />
+        {/* Bottom gradient scrim — deeper so the title zone has clean breathing room */}
+        <div style={{ position: "absolute", left: 0, bottom: 0, width: "1200px", height: "470px", background: "linear-gradient(180deg, rgba(10,12,18,0) 0%, rgba(10,12,18,0.65) 42%, rgba(10,12,18,0.98) 100%)", display: "flex" }} />
+
+        {/* Large faint ARCHIVE SEAL watermark (one strong official object, not clutter) */}
+        <div style={{ position: "absolute", top: 150, right: 60, display: "flex", alignItems: "center", justifyContent: "center", width: 220, height: 220, opacity: 0.16 }}>
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="106" fill="none" stroke={color} strokeWidth="2" />
+            <circle cx="110" cy="110" r="86" fill="none" stroke={color} strokeWidth="1" />
+            <polygon points="110,34 176,72 176,148 110,186 44,148 44,72" fill="none" stroke={color} strokeWidth="2" />
+          </svg>
+        </div>
+        <div style={{ position: "absolute", top: 248, right: 95, display: "flex", fontFamily: "monospace", fontSize: 16, letterSpacing: 5, color, opacity: 0.55, transform: "rotate(-8deg)" }}>
+          ARCHIVE SEALED
+        </div>
 
         {/* Top-left record stamp (hex drawn as SVG — no tofu) */}
         <div style={{ position: "absolute", top: 40, left: 44, display: "flex", alignItems: "center", gap: 12 }}>
@@ -93,9 +108,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             FREELON CITY ARCHIVE
           </span>
         </div>
-        {/* Top-right serial */}
-        <div style={{ position: "absolute", top: 44, right: 46, display: "flex", fontFamily: "monospace", fontSize: 18, letterSpacing: 4, color: "rgba(243,239,228,0.6)" }}>
-          RECORD · {id4}
+        {/* Top-right serial — official record code */}
+        <div style={{ position: "absolute", top: 44, right: 46, display: "flex", fontFamily: "monospace", fontSize: 19, letterSpacing: 4, fontWeight: 700, color: "rgba(243,239,228,0.78)" }}>
+          FC-ARCHIVE-{id4}
         </div>
 
         {/* Bottom-left content block over the scrim */}
@@ -106,10 +121,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           <span style={{ marginTop: 12, fontFamily: "monospace", fontSize: 30, letterSpacing: 3, color, fontWeight: 700 }}>
             {civName} · {className}
           </span>
-          <div style={{ display: "flex", gap: 16, marginTop: 24 }}>
-            {chip(`${records} RECORDS SEALED`)}
-            {chip(`RANK ${rankText}`)}
-            {chip("STATUS: ACTIVE")}
+          <div style={{ display: "flex", gap: 16, marginTop: 26 }}>
+            {stamp("RECORDS", `${records} SEALED`)}
+            {stamp("STANDING", `RANK ${rankText}`)}
+            {stamp("SIGNAL", "ACTIVE")}
           </div>
         </div>
       </div>
