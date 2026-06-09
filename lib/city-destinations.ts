@@ -66,6 +66,13 @@ export const CITY_DESTINATIONS: CityDest[] = [
     keywords: ["the proof", "why freelon", "what makes this different", "vs chatgpt", "vs gpt", "why is this special", "why not just chatgpt"],
   },
   {
+    key: "report",
+    href: "/report",
+    title: "The Signal Report",
+    blurb: "This week in the city — the winning civilization and its most notable citizens.",
+    keywords: ["the report", "signal report", "weekly report", "city report", "who won", "winning civilization", "who's winning", "this week in the city", "the week in the city"],
+  },
+  {
     key: "dashboard",
     href: "/dashboard",
     title: "City Pulse",
