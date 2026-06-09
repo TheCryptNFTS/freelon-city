@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
 import { MISSION_DISCLAIMER } from "@/lib/missions/pricing";
@@ -84,6 +84,8 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [brief, setBrief] = useState("");
+  const briefRef = useRef<HTMLTextAreaElement>(null);
+  const [briefHint, setBriefHint] = useState(false);
   // Set true the moment an activation (not a recharge) confirms, so the
   // dashboard can greet a brand-new owner with a guided first run instead of
   // silently dropping them into the generic picker.
@@ -672,7 +674,22 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
 
   /** RUN button: premium + not-unlocked + live → start the unlock flow; else run. */
   function run() {
-    if (!ability || !brief.trim()) return;
+    if (!ability) return;
+    // Empty brief was the silent dead-end (Discord: "I click things and nothing
+    // happens"). Don't just no-op a disabled button — guide them: drop in a
+    // starter brief if we have one, else focus the box and flash a hint.
+    if (!brief.trim()) {
+      const starter = STARTERS[ability.id];
+      if (starter) {
+        setBrief(starter);
+        setTimeout(() => briefRef.current?.focus(), 30);
+      } else {
+        briefRef.current?.focus();
+        setBriefHint(true);
+        setTimeout(() => setBriefHint(false), 4000);
+      }
+      return;
+    }
     if (needsUnlock) { getUnlockQuote(); return; }
     doRun();
   }
@@ -926,13 +943,17 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                 ))}
               </div>
               <textarea
-                className="agentdash-brief"
+                ref={briefRef}
+                className={`agentdash-brief${briefHint ? " needs-brief" : ""}`}
                 placeholder={`Tell your ${ability.label} what to do…`}
                 maxLength={600}
                 value={brief}
-                onChange={(e) => setBrief(e.target.value)}
+                onChange={(e) => { setBrief(e.target.value); if (briefHint) setBriefHint(false); }}
                 disabled={payStep !== "idle"}
               />
+              {briefHint && (
+                <div className="agentdash-brief-hint">⬡ Type what you want your agent to do, then hit run.</div>
+              )}
 
               {payStep === "idle" && !brief.trim() && STARTERS[ability.id] && (
                 <button
@@ -945,7 +966,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               )}
 
               {payStep === "idle" ? (
-                <button className="btn btn-primary agentdash-go" type="button" disabled={busy || !brief.trim()} onClick={run}>
+                <button className="btn btn-primary agentdash-go" type="button" disabled={busy} onClick={run}>
                   <span className="ttl">
                     {busy ? "WORKING…"
                       : needsActivate ? `ACTIVATE TO RUN ${ability.label.toUpperCase()} →`
