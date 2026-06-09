@@ -109,7 +109,7 @@
 <script>
 const PORTRAIT_CID="bafybeifax6nksc7h7m3duztjbrpy3e4bnyz3k3nj6xqcdleqsnpod622vi"; // FREELON figurative (all 4040)
 const IPFS="https://ipfs.io/ipfs";
-const PROXY=u=>"https://wsrv.nl/?url="+encodeURIComponent(u)+"&w=900&output=jpg"; // CORS-clean transcode for seadn
+const PROXY=u=>"/api/img?url="+encodeURIComponent(u); // owned same-origin proxy (CORS-clean, no third party)
 const GOLD="#c9a24b", GOLD_D="#8a7234";
 const RANGES={freelon:4040,crypt:5244,oogie:2279,emile:3333,smiles:313,tcg:4129};
 
