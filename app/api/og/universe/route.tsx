@@ -69,15 +69,18 @@ function FreelonCard(src: (p: string) => string, display: string) {
         }}
       />
 
-      {/* LEFT — one large FREELON portrait */}
+      {/* LEFT — one large cinematic FREELON hero (the 1/1 "THE FINAL SIGNAL"
+          rendered into a black-sun eclipse — generated via the proven
+          identity-lock pipeline, hex face intact). objectPosition top so the
+          eclipse + glowing hex eye survive the portrait crop. */}
       <div style={{ width: 560, height: "630px", display: "flex", position: "relative" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={src("/og/art/freelons.png")}
+          src={src("/og/art/hero-eclipse.png")}
           width="560"
           height="630"
           alt=""
-          style={{ width: "560px", height: "630px", objectFit: "cover" }}
+          style={{ width: "560px", height: "630px", objectFit: "cover", objectPosition: "center 38%" }}
         />
         {/* vignette — darkens corners so the glowing hex face is the brightest
             point and the eye lands there at thumbnail size */}
