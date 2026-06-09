@@ -55,7 +55,7 @@ export const CONNECTED_COLLECTIONS: ConnectedCollection[] = [
     slug: "crypttradingcards",
     contract: "0x48fd513c9f8ca591ffada7223a261ffc6e797394",
     chain: "ethereum",
-    name: "Combat Archives",
+    name: "Crypt TCG",
     role: "Combat Relics",
     color: "var(--state-surge)",
   },

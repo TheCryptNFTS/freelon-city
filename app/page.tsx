@@ -13,8 +13,11 @@ import { YourAgentsRail } from "@/components/YourAgentsRail";
 // `title.absolute` to bypass the layout template (otherwise the
 // title would become "404 — FREELON CITY · Bring identity back. ·
 // FREELON CITY" with the suffix duplicated).
+// Product-first (P1, 2026-06-09): this is the most-shared/indexed text (meta +
+// OG + Twitter), so it must deliver the pitch, not lore. Matches the canonical
+// 10-second line + the on-page hero subline. Lore lives on the page, not here.
 const HOME_DESC =
-  "The HEX disappeared. FREELON CITY formed around the signal. 4040 sealed citizens across 10 civilizations.";
+  "4,040 AI characters you own and train. Each FREELON is an agent that remembers your work — and its whole history travels with the NFT. Try one free.";
 export const metadata: Metadata = {
   title: { absolute: "404 — FREELON CITY · Bring identity back." },
   description: HOME_DESC,

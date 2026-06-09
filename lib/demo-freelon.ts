@@ -19,7 +19,7 @@
 export const FREELON_DEMO_DISPLAY = {
   name: "VANTA-01",
   collectionName: "FREELONS",
-  kicker: "FLAGSHIP · THE ONE YOU OWN",
+  kicker: "FLAGSHIP · THE ONE YOU CAN OWN",
   blurb: "A sealed citizen of FREELON CITY — the kind you own, train, and keep.",
   color: "#E9C984",
   art: "/og/art/freelons.png",

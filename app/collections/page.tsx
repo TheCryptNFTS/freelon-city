@@ -79,11 +79,12 @@ export default async function CollectionsIndex() {
           One city, many kinds of <em style={{ color: "var(--gold)", fontStyle: "normal" }}>citizen.</em>
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 680 }}>
-          <strong style={{ color: "var(--ink)" }}>Freelons</strong> are the citizens.{" "}
+          <strong style={{ color: "var(--ink)" }}>Freelons</strong> are the citizens — the ones you
+          own and train.{" "}
           <strong style={{ color: "var(--ink)" }}>Oogies</strong> the wild ones.{" "}
           <strong style={{ color: "var(--ink)" }}>The Crypt</strong> the dead ones.{" "}
           <strong style={{ color: "var(--ink)" }}>Emile</strong> the emotional ones. One signal, many
-          collections — and every token is an AI character you can chat with.
+          collections — talk to any of them; train and keep a FREELON.
         </p>
       </header>
 

@@ -49,11 +49,11 @@ const CARDS: Card[] = [
       "https://i2c.seadn.io/ethereum/0x06827dea49f5ff963bf15beb7cfc3b211c50b41c/62731ec9b5f6ba2d2476c16b566881/a362731ec9b5f6ba2d2476c16b566881.png",
   },
   {
-    title: "Combat Archives",
+    title: "Crypt TCG",
     status: "RECONSTRUCTING",
     statusColor: "var(--state-surge)",
     slug: "crypttradingcards",
-    href: "/combat-archives",
+    href: "/crypt-tcg",
     body: "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
     // Anubis (#1519) — the recovered god relic; same art shown on /combat-archives.
     image:

@@ -50,7 +50,7 @@ export const COLLECTION_META: Record<
       "Dead signals. Forgotten identities. Ancient records recovered beneath the city — the first signals the HEX ever caught.",
   },
   crypttradingcards: {
-    title: "Combat Archives",
+    title: "Crypt TCG",
     status: "RECONSTRUCTING",
     statusColor: "var(--state-surge)",
     kicker: "RECOVERED BATTLE SIMULATIONS",

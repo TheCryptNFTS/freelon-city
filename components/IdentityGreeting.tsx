@@ -4,7 +4,7 @@
  *
  * Renders above the homepage hero. Three states:
  *   - loading: skeleton pill
- *   - anon:    "no signal · SYNC TO ENTER THE CITY →"
+ *   - anon:    "Try a citizen free · no wallet needed →" (→ /demo)
  *   - known:   civ-colored ring + handle + civ + counts + hex
  *
  * The pill chrome itself is the shared <Pill /> primitive — civ
@@ -87,8 +87,8 @@ export function IdentityGreeting() {
       <div className="ig-wrap">
         <Pill>
           <span className="ig-glyph" aria-hidden>⬡</span>
-          <span>No signal detected · </span>
-          <Link href="/sync" className="ig-cta">SYNC TO ENTER THE CITY →</Link>
+          <Link href="/demo" className="ig-cta">Try a citizen free</Link>
+          <span> · no wallet needed →</span>
         </Pill>
         <IgStyles />
       </div>

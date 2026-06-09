@@ -119,6 +119,20 @@ export function SyncWalletAction() {
           {busy ? "OPENING WALLET…" : "CONNECT WALLET ⬡"}
         </span>
       </button>
+      {/* Wallet-anxiety reassurance — connect is eth_requestAccounts only
+          (address read), never a signature or transaction. Concrete facts,
+          no overclaim ("100% safe" etc.). */}
+      <p
+        style={{
+          marginTop: 8,
+          fontSize: 11.5,
+          letterSpacing: "0.08em",
+          color: "var(--ink-dim)",
+          textAlign: "center",
+        }}
+      >
+        Read-only · no transaction · we never move your assets
+      </p>
       {err && (
         <p className="sync-wallet-action__err" role="alert">
           ⚠ {err}

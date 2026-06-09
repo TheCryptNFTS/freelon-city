@@ -22,7 +22,7 @@ export const runtime = "edge";
 const PIECES: { name: string; tag: string; color: string; img: string }[] = [
   { name: "Freelons", tag: "4040 CITIZENS", color: "#C8A75D", img: "/og/art/freelons.png" },
   { name: "The Crypt", tag: "DEAD SIGNALS", color: "#4CFF7A", img: "/og/art/crypt.png" },
-  { name: "Combat Archives", tag: "TEN GODS", color: "#FF6A3D", img: "/og/art/combat.png" },
+  { name: "Crypt TCG", tag: "TEN GODS", color: "#FF6A3D", img: "/og/art/combat.png" },
   { name: "OOGIES", tag: "ANCIENT SPECIES", color: "#B85CFF", img: "/og/art/oogies.png" },
   { name: "Emile", tag: "MEMORY", color: "#FF5CB4", img: "/og/art/emile.png" },
   { name: "SMILES", tag: "COLLAPSE", color: "#FFD24A", img: "/og/art/smiles.png" },

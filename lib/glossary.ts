@@ -29,7 +29,7 @@ export const GLOSSARY: Record<string, string> = {
   transmission:
     "A small post (image + caption) carriers send to the city wall. Burns 100 ⬡ to send.",
   archive:
-    "A connected collection the city recognises: The Crypt, Combat Archives, OOGIES, Emile, SMILES.",
+    "A connected collection the city recognises: The Crypt, Crypt TCG, OOGIES, Emile, SMILES.",
 };
 
 export function defineTerm(term: string): string | null {
