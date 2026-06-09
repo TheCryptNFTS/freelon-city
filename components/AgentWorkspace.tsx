@@ -270,15 +270,18 @@ export function AgentWorkspace(props: Props) {
    * have before the attempt; return it so the chat can show it instead of a
    * false "render failed". Bounded polls (the render is usually done in ~15s). */
   const pollForNewImage = useCallback(async (knownBefore: Set<string>): Promise<string | null> => {
-    for (let i = 0; i < 6; i++) {
-      await new Promise((r) => setTimeout(r, i === 0 ? 2000 : 4000));
+    // ~90s of polling: covers a slow render (image model + signature stamp +
+    // Blob upload can run 20-40s) plus mobile network lag, comfortably under the
+    // route's 300s ceiling. First check is quick (fast renders land in ~10s).
+    const delays = [3000, 4000, 5000, 5000, 6000, 6000, 7000, 7000, 8000, 8000, 8000, 8000];
+    for (const wait of delays) {
+      await new Promise((r) => setTimeout(r, wait));
       try {
         const res = await fetch(agentUrl, { cache: "no-store" });
         const d: AgentData = await res.json();
         const fresh = (d.history ?? []).filter((h) => h.kind === "image" && h.body && !knownBefore.has(h.body));
         if (fresh.length) {
-          // newest first
-          fresh.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+          fresh.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0)); // newest first
           setAgent(d); // refresh gallery/level too
           return fresh[0].body;
         }
@@ -439,28 +442,39 @@ export function AgentWorkspace(props: Props) {
       // saves the image to history BEFORE replying — so on a flaky mobile
       // connection the render can SUCCEED server-side while the fetch drops.)
       const knownBefore = new Set<string>((agent?.history ?? []).filter((h) => h.kind === "image").map((h) => h.body));
+      let shown = false;
       const showImage = (url: string) => {
+        if (shown) return;
+        shown = true;
         pushMsg(tid, { id: uid(), role: "agent", kind: "image", imageUrl: url, abilityLabel: label, ts: Date.now() });
         loadAgent();
         if (address) loadHex(address);
       };
+      // The render saves to history BEFORE the request replies, and a render
+      // takes ~15-30s — long enough that a flaky mobile connection can hang or
+      // drop the response while the image SUCCEEDS server-side. So we don't wait
+      // on the request alone: we RACE the request against a background poll of
+      // history. Whichever surfaces the new image first wins; a hung fetch can
+      // no longer leave the holder staring at a spinner with nothing delivered.
       try {
-        const r = await runMission("deploy-citizen", sceneKey);
-        if (r.ok && r.output?.meta?.kind === "image") {
-          showImage(r.output.body);
+        const requestPath = (async (): Promise<string | null> => {
+          const r = await runMission("deploy-citizen", sceneKey);
+          return r.ok && r.output?.meta?.kind === "image" ? r.output.body : null;
+        })().catch(() => null);
+        const pollPath = pollForNewImage(knownBefore);
+
+        // Whichever path yields a URL first, show it.
+        const winner = await Promise.race([
+          requestPath.then((u) => u || pollPath),
+          pollPath.then((u) => u || requestPath),
+        ]);
+        if (winner) {
+          showImage(winner);
         } else {
-          // The request failed client-side — but the render may have completed
-          // server-side (the lost-response case). Poll history for a NEW image
-          // before giving up; only error if nothing new actually landed.
-          const recovered = await pollForNewImage(knownBefore);
-          if (recovered) showImage(recovered);
-          else pushMsg(tid, { id: uid(), role: "system", kind: "text", text: r.error || "Render failed.", error: true, ts: Date.now() });
+          // Neither the request nor the full poll window produced a new image —
+          // a genuine failure (nothing was charged). Surface it once.
+          pushMsg(tid, { id: uid(), role: "system", kind: "text", text: "Render didn't complete — your ⬡ was not charged. Try again.", error: true, ts: Date.now() });
         }
-      } catch (e) {
-        // Network throw (typical mobile drop mid-render). Same recovery path.
-        const recovered = await pollForNewImage(knownBefore);
-        if (recovered) showImage(recovered);
-        else pushMsg(tid, { id: uid(), role: "system", kind: "text", text: (e as Error).message || "Render failed.", error: true, ts: Date.now() });
       } finally {
         setSending(false);
       }
