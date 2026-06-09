@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { CIVILIZATIONS } from "@/lib/constants";
+import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import { cityNotice } from "@/lib/city-notice";
 import { CANON } from "@/lib/canon";
 
@@ -11,7 +11,7 @@ type ScanResult = {
   address?: string;
   balance?: number;
   dominantCiv?: CivInfo;
-  citizenMatch?: { id: number; civ: string; color: string };
+  citizenMatch?: { id: number; civ: string; color: string; civName: string };
 };
 
 // Step language uses the canon — "SIGNAL FOUND" is reserved for the
@@ -85,13 +85,25 @@ export function WalletScanner() {
         const id = (hash % 4040) + 1;
         await delay(600);
         setStep(2);
+        // Resolve the matched citizen's real civilization so the reveal shows a
+        // FACE in its tribe's color, not a bare token number (the promised payoff).
+        const civRes = await fetch(`/api/v1/citizens/${id}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+        const civSlug: string = civRes?.civilization ?? "";
+        const civInfo = CIV_LOOKUP[civSlug];
         await delay(600);
         setStep(3);
         await delay(600);
         setStep(4);
         setResult({
           kind: "handle",
-          citizenMatch: { id, civ: "?", color: "#C8A75D" },
+          citizenMatch: {
+            id,
+            civ: civSlug,
+            color: civInfo?.color ?? "#C8A75D",
+            civName: civInfo?.name ?? "the city",
+          },
         });
         cityNotice({
           title: CANON.RECEIVED,
@@ -147,9 +159,12 @@ export function WalletScanner() {
                   <div
                     className="ws-result"
                     style={
-                      result.dominantCiv
-                        ? ({ "--civ": result.dominantCiv.color } as React.CSSProperties)
-                        : undefined
+                      {
+                        "--civ":
+                          result.dominantCiv?.color ??
+                          result.citizenMatch?.color ??
+                          "#C8A75D",
+                      } as React.CSSProperties
                     }
                   >
                     {result.kind === "wallet" ? (
@@ -181,12 +196,29 @@ export function WalletScanner() {
                       </>
                     ) : (
                       <>
-                        <div className="ws-line">
-                          <span className="ws-line-arrow">→</span>
-                          <span>
-                            YOUR TRIBE&apos;S FACE: #
-                            {result.citizenMatch?.id.toString().padStart(4, "0")} · aligned, not owned
-                          </span>
+                        {/* THE FACE — the promised payoff: an actual portrait in
+                            the matched tribe's color, not a bare token number. */}
+                        <div className="ws-face">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            className="ws-face-img"
+                            src={imageUrl(result.citizenMatch!.id)}
+                            alt={`Tribe face #${result.citizenMatch?.id}`}
+                            width={132}
+                            height={132}
+                          />
+                          <div className="ws-face-meta">
+                            <span
+                              className="ws-face-civ"
+                              style={{ color: result.citizenMatch?.color }}
+                            >
+                              {result.citizenMatch?.civName}
+                            </span>
+                            <span className="ws-face-id">
+                              #{result.citizenMatch?.id.toString().padStart(4, "0")}
+                            </span>
+                            <span className="ws-face-note">aligned, not owned</span>
+                          </div>
                         </div>
                         <Link
                           className="btn btn-secondary"

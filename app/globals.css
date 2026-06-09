@@ -5014,6 +5014,29 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .ws-line-arrow { color: var(--gold); }
 .ws-result strong { color: var(--gold-bright); font-weight: 600; }
 .ws-result .btn { margin-top: 8px; align-self: flex-start; }
+/* THE TRIBE FACE — the sync-by-handle payoff: an actual portrait in a civ-colored
+   relic frame + civ name, not a bare token number. --civ is set on .ws-result. */
+.ws-face { display: flex; align-items: center; gap: 16px; }
+.ws-face-img {
+  width: 132px; height: 132px; object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--civ, var(--gold));
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 0 34px -8px color-mix(in oklab, var(--civ, var(--gold)), transparent 45%),
+    0 12px 34px -16px rgba(0, 0, 0, 0.8);
+}
+.ws-face-meta { display: flex; flex-direction: column; gap: 3px; }
+.ws-face-civ {
+  font-family: var(--display, var(--mono2)); font-size: 20px; font-weight: 600; line-height: 1.05;
+}
+.ws-face-id {
+  font-family: var(--mono); font-size: 13px; color: var(--ink-2); letter-spacing: 0.06em;
+}
+.ws-face-note {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-fade); margin-top: 2px;
+}
 @keyframes ws-fade-up {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
