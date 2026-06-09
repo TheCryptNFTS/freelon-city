@@ -158,6 +158,13 @@ export function AgentWorkspace(props: Props) {
   // produce, fetched once the wallet is known. Fail-quiet: a null payload (slow
   // RPC / non-owner / sister) just hides the grounding line, never blocks chat.
   const [landing, setLanding] = useState<Landing | null>(null);
+  // Owner-only FULL history (incl. raw text body) from the signature-gated
+  // /history/full endpoint (Build Sequence Prompt 8). The public agent fetch
+  // supplies everything else; this overlays ONLY the work-history body for the
+  // proven owner. null = not loaded / not a proven owner → UI falls back to the
+  // public history. Kept separate from `agent` so loadAgent/poll refreshes never
+  // clobber it and we never trigger a setAgent loop.
+  const [ownerHistory, setOwnerHistory] = useState<WorkItem[] | null>(null);
 
   const sigCache = useRef<Record<string, { signature: string; ts: number }>>({});
   const syncSig = useRef<{ signature: string; ts: number } | null>(null);
@@ -336,6 +343,27 @@ export function AgentWorkspace(props: Props) {
       .catch(() => {/* hide the line, never block */});
     return () => { cancelled = true; };
   }, [slug, address, tokenId]);
+
+  /* ── Owner full-history overlay (Prompt 8) ───────────────────────────────
+   * For the PROVEN owner only, pull the full work history (incl. raw text body)
+   * from the signature-gated /history/full endpoint. The public agent endpoint
+   * still carries body today (stripped in a later prompt); once it's stripped,
+   * THIS is what keeps the owner's memory visible. Fail-quiet: a 401
+   * (bound-but-unsigned) / 403 / network error leaves ownerHistory null and the
+   * UI falls back to the public history — never blank, never an error, never a
+   * forced signature popup. Re-runs when the public history grows (new work) so
+   * the owner's view stays fresh. FREELONS only. */
+  useEffect(() => {
+    if (slug || !address || !landing?.isOwner) { setOwnerHistory(null); return; }
+    let cancelled = false;
+    fetch(`/api/citizens/${tokenId}/history/full?address=${address}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { history?: WorkItem[] } | null) => {
+        if (!cancelled && d && Array.isArray(d.history)) setOwnerHistory(d.history);
+      })
+      .catch(() => {/* fall back to public history, never block */});
+    return () => { cancelled = true; };
+  }, [slug, address, tokenId, landing?.isOwner, agent?.history?.length]);
 
   /* ── Scroll to newest ────────────────────────────────────────────────── */
   const active = useMemo(() => threads.find((t) => t.id === activeId) ?? null, [threads, activeId]);
@@ -517,17 +545,23 @@ export function AgentWorkspace(props: Props) {
 
   const curAbility = agent?.abilities.find((a) => a.id === abilityId) ?? null;
   const gallery = (agent?.history ?? []).filter((h) => h.kind === "image");
-  const textWork = (agent?.history ?? []).filter((h) => h.kind === "text");
+  // Work-history body is owner-only: prefer the signature-gated full history
+  // (ownerHistory) when the proven owner has loaded it; otherwise fall back to
+  // the public history. The render still gates the body span on landing?.isOwner.
+  const textWork = (ownerHistory ?? agent?.history ?? []).filter((h) => h.kind === "text");
   // RECALL STRIP — surface the moat in the empty state: when the agent already
   // has history, show the last few things you built together so memory is FELT,
   // not just stored. Derived purely from the already-loaded history (no new
-  // fetch). Short labels; image work reads as "an image".
+  // fetch). Safe kind-based labels; raw body is never surfaced here.
   const recall = (agent?.history ?? [])
     .slice(0, 3)
     .map((h) => {
-      if (h.kind === "image") return "an image";
-      const t = (h.body || h.task || "").replace(/\s+/g, " ").trim();
-      return t ? t.split(" ").slice(0, 6).join(" ") : (h.abilityLabel || h.ability || "a brief");
+      // Label by KIND only — never the raw generated body, which can leak
+      // emojis, hype copy, test output, or private content into this compact
+      // public-facing line.
+      if (h.kind === "image") return "image deployment";
+      if (h.kind === "text") return "content post";
+      return "saved work";
     })
     .filter(Boolean);
 
@@ -741,7 +775,9 @@ export function AgentWorkspace(props: Props) {
               ) : (
                 <>
                   <p className={styles.emptyHint}>
-                    An AI character you own. Render it into a scene, or give it a brief — it remembers your work and grows as you train it.
+                    {landing?.isOwner
+                      ? "An AI character you own. Render it into a scene, or give it a brief — it remembers your work and grows as you train it."
+                      : "An AI citizen with work history attached to the NFT."}
                   </p>
                   {grounding && (
                     <p
@@ -756,7 +792,7 @@ export function AgentWorkspace(props: Props) {
                       className={styles.emptyHint}
                       style={{ marginTop: 10, color: "var(--accent, var(--gold))" }}
                     >
-                      Last time, you and {name} worked on: {recall.join(" · ")}
+                      {landing?.isOwner ? `Last time, you and ${name} worked on: ` : `Recent work history attached to ${name}: `}{recall.join(" · ")}
                     </p>
                   )}
                   {/* Free daily training — the zero-cost, can't-fail first action.
@@ -785,10 +821,14 @@ export function AgentWorkspace(props: Props) {
                       </button>
                     ))}
                   </div>
-                  {/* The collectible-native powers — only meaningful because each
-                      NFT is a distinct trained agent. FREELONS only (uses the
-                      citizen reasoning + ownership). */}
-                  {!slug && (
+                  {/* The collectible-native powers. The launcher tabs live in the
+                      persistent right-rail "Agent Powers" panel, so in the default
+                      (none) empty state this center copy would just duplicate them.
+                      Render it only once a power is actually open — it's the
+                      component that draws the open panel (right-rail buttons only
+                      set powersTab), so this keeps the feature fully intact while
+                      removing the duplicate launcher row from the lobby. FREELONS only. */}
+                  {!slug && powersTab !== "none" && (
                     <AgentPowers
                       citizenId={tokenId}
                       name={name}
@@ -997,7 +1037,12 @@ export function AgentWorkspace(props: Props) {
               {textWork.slice(0, 12).map((w) => (
                 <li key={w.id}>
                   <span className={styles.workAbility}>{w.abilityLabel || w.ability}</span>
-                  <span className={styles.workBody}>{w.body.slice(0, 90)}</span>
+                  {/* Raw saved body is the owner's memory — never surfaced to
+                      non-owners (can carry hype/test/private content). Public
+                      sees the ability label only: proof of work, not the text.
+                      NOTE: the /api/citizens/[id]/agent endpoint still returns
+                      body publicly — this is a UI clarity gate, not privacy. */}
+                  {landing?.isOwner && <span className={styles.workBody}>{w.body.slice(0, 90)}</span>}
                 </li>
               ))}
             </ul>

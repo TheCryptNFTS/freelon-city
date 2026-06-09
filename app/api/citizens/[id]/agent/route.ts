@@ -41,7 +41,23 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   // showcase), but STRIP the holder's raw `brief` — that's their private input
   // (project details, numbers, launch plans) and must never be readable by a
   // non-owner. The brief is not rendered anywhere; only the output is.
-  const history = (await getAgentHistory(cid)).map(({ brief: _brief, ...rest }) => rest);
+  //
+  // HISTORY-PRIVACY (Build Sequence Prompt 9, 2026-06-09): the raw TEXT `body`
+  // is the owner's memory — it can carry private/hype/test content and must not
+  // be public. The proven owner reads full text body from the signature-gated
+  // /api/citizens/[id]/history/full (Prompt 7) and the workspace overlays it
+  // (Prompt 8). So here we strip text `body` from the PUBLIC response, keeping
+  // image `body` (URLs — shareable branded renders) and all proof fields
+  // (kind/ability/task/timestamp/level). Flag-guarded for instant rollback:
+  // set HISTORY_PUBLIC_STRIP=false to restore the old behaviour.
+  const stripPublicBody = process.env.HISTORY_PUBLIC_STRIP !== "false";
+  const history = (await getAgentHistory(cid)).map(({ brief: _brief, ...rest }) => {
+    if (stripPublicBody && rest.kind === "text") {
+      const { body: _body, ...noBody } = rest;
+      return noBody;
+    }
+    return rest;
+  });
   const unlock = await unlockStatus(cid);
   // Image scenes + character-transform STYLES (for the dashboard picker) + price.
   const { SCENES, STYLES } = await import("@/lib/missions/image-gen");

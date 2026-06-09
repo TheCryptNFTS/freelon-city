@@ -37,11 +37,6 @@ function relTime(ts: number): string {
   return `${Math.floor(mo / 12)}y ago`;
 }
 
-function snippet(body: string): string {
-  const t = body.trim().replace(/\s+/g, " ");
-  return t.length > 320 ? `${t.slice(0, 320)}…` : t;
-}
-
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const tid = parseInt(id, 10);
@@ -223,17 +218,23 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                     ⬡ Image output
                   </span>
                 ) : (
-                  <p
+                  // Public proof only — the raw text output is the owner's
+                  // memory, never surfaced publicly (can carry hype/test/
+                  // private content). Mirrors the "Image output" badge above.
+                  <span
                     style={{
-                      fontSize: 13,
-                      lineHeight: 1.7,
-                      color: "var(--ink-2)",
-                      margin: 0,
-                      whiteSpace: "pre-wrap",
+                      display: "inline-block",
+                      fontSize: 11,
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase",
+                      color: "var(--ink-dim)",
+                      padding: "5px 10px",
+                      border: "1px solid rgba(245,242,232,0.16)",
+                      borderRadius: 999,
                     }}
                   >
-                    {snippet(w.body)}
-                  </p>
+                    ⬡ Content output
+                  </span>
                 )}
               </div>
             </li>

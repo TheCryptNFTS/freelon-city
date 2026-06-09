@@ -4,7 +4,6 @@ import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
 import { getProgress } from "@/lib/progression-store";
 import { deriveSpec } from "@/lib/specialization";
 import { getAgentHistory } from "@/lib/agent-history";
-import { agentSnippet } from "@/lib/share-agent";
 
 // nodejs (not edge): this route reads the agent history store (Redis).
 export const runtime = "nodejs";
@@ -37,7 +36,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const idx = Number(new URL(req.url).searchParams.get("work") ?? "0");
   const work = history[Number.isFinite(idx) && idx >= 0 ? idx : 0] ?? history[0];
   const abilityLabel = work?.abilityLabel ? work.abilityLabel.toUpperCase() : "";
-  const snippet = work && work.kind !== "image" ? agentSnippet(work.body) : "";
+  // HISTORY-PRIVACY (Prompt 10, 2026-06-09): this is a PUBLIC share image, so it
+  // must not draw the raw text body (owner memory — see HISTORY_VISIBILITY_POLICY).
+  // Use a safe proof summary instead: name the work type, never quote the output.
+  // Image renders are shown as art elsewhere; text work gets a label, not content.
+  const snippet =
+    work && work.kind !== "image"
+      ? `${work.task ? `${work.task} · ` : ""}content post`.toUpperCase()
+      : "";
 
   return new ImageResponse(
     (

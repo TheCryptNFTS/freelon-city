@@ -31,6 +31,19 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 
   const [progress, work] = await Promise.all([getProgress(tokenId), getAgentHistory(tokenId)]);
 
+  // HISTORY-PRIVACY (Build Sequence Prompt 11, 2026-06-09): this is a PUBLIC,
+  // CORS-open API, so the raw TEXT `body` (owner memory — see
+  // HISTORY_VISIBILITY_POLICY) must not be served here either. To preserve the
+  // documented contract SHAPE, the `body` KEY is kept, but for text outputs its
+  // value becomes a safe summary instead of the raw output. Image `body` (URLs)
+  // is retained (shareable renders). Same flag as the public agent route so both
+  // strip/unstrip together: HISTORY_PUBLIC_STRIP=false restores raw bodies.
+  const stripPublicBody = process.env.HISTORY_PUBLIC_STRIP !== "false";
+  const safeBody = (w: { kind: string; task?: string; body: string }) =>
+    stripPublicBody && w.kind === "text"
+      ? `${w.task ? `${w.task} · ` : ""}content post`
+      : w.body;
+
   return publicJson({
     tokenId,
     memoryLog: progress.memoryLog.slice(0, max),
@@ -39,7 +52,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
       ability: w.abilityLabel,
       task: w.task,
       kind: w.kind,
-      body: w.body,
+      body: safeBody(w),
       level: w.level,
       timestamp: w.timestamp,
     })),
