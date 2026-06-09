@@ -14,9 +14,11 @@
  * Both names come from env so you can swap models WITHOUT a code change.
  */
 
-// Known-good defaults (these exist today). Override via env to upgrade.
-const PREMIUM = process.env.AGENT_MODEL_PREMIUM || "gpt-4o";
-const CHEAP = process.env.AGENT_MODEL_CHEAP || "gpt-4o-mini";
+// Known-good defaults, OpenRouter-namespaced (provider/model). All chat routes
+// through OpenRouter (see lib/missions/llm.ts), so model IDs use its format.
+// Override via env to upgrade (e.g. AGENT_MODEL_PREMIUM="anthropic/claude-3.5-sonnet").
+const PREMIUM = process.env.AGENT_MODEL_PREMIUM || "openai/gpt-4o";
+const CHEAP = process.env.AGENT_MODEL_CHEAP || "openai/gpt-4o-mini";
 
 /** Logical task kinds → which tier they run on. */
 export type AgentTask =

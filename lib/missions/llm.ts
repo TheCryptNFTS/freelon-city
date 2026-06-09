@@ -12,18 +12,15 @@
  * (or the same citizen at different levels) genuinely produce different output.
  */
 
-// Provider-agnostic. If OPENROUTER_API_KEY is set we route through OpenRouter
-// (one OpenAI-compatible API that exposes many models by name — gpt-5.5,
-// Claude, etc.), otherwise straight to OpenAI. Lets you upgrade the model with
-// only an env change. Model NAMES come from lib/missions/models.ts.
-function provider(): { url: string; key: string | undefined; openrouter: boolean } {
-  const orKey = process.env.OPENROUTER_API_KEY;
-  if (orKey) {
-    return { url: "https://openrouter.ai/api/v1/chat/completions", key: orKey, openrouter: true };
-  }
-  return { url: "https://api.openai.com/v1/chat/completions", key: process.env.OPENAI_API_KEY, openrouter: false };
+// OpenRouter ONLY. All chat (and all images, see image-gen.ts) route through
+// OpenRouter — one OpenAI-compatible API that exposes many models by name. We
+// do NOT fall back to direct OpenAI: that account is billing-capped, so a
+// fallback only produces billing_hard_limit_reached errors. Model NAMES come
+// from lib/missions/models.ts. Returns no key → caller returns no_api_key.
+function provider(): { url: string; key: string | undefined } {
+  return { url: "https://openrouter.ai/api/v1/chat/completions", key: process.env.OPENROUTER_API_KEY };
 }
-const DEFAULT_MODEL = "gpt-4o-mini";
+const DEFAULT_MODEL = "openai/gpt-4o-mini";
 
 export type LlmResult =
   | { ok: true; text: string; usage?: { prompt: number; completion: number } }
@@ -42,7 +39,7 @@ export async function citizenReason(args: {
   model?: string;
   timeoutMs?: number;
 }): Promise<LlmResult> {
-  const { url, key, openrouter } = provider();
+  const { url, key } = provider();
   if (!key) return { ok: false, error: "no_api_key" };
 
   const controller = new AbortController();
@@ -53,8 +50,8 @@ export async function citizenReason(args: {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${key}`,
-        // OpenRouter recommends these; harmless on OpenAI (ignored).
-        ...(openrouter ? { "HTTP-Referer": "https://www.freeloncity.com", "X-Title": "FREELON CITY" } : {}),
+        "HTTP-Referer": "https://www.freeloncity.com",
+        "X-Title": "FREELON CITY",
       },
       signal: controller.signal,
       body: JSON.stringify({
@@ -69,7 +66,7 @@ export async function citizenReason(args: {
       }),
     });
     if (!res.ok) {
-      return { ok: false, error: `openai_${res.status}` };
+      return { ok: false, error: `openrouter_${res.status}:${(await res.text().catch(() => "")).slice(0, 100)}` };
     }
     const j = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
