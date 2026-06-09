@@ -97,9 +97,12 @@ export async function stampSignature(
             <div style={{ position: "absolute", top: "8px", left: "8px", width: "1004px", height: "1004px", border: "2px solid rgba(233,201,132,0.55)", display: "flex" }} />
           )}
 
-          {/* top-left: ⬡ seal + FC-ARCHIVE provenance line */}
+          {/* top-left: hex seal (drawn as SVG — next/og's font lacks the ⬡
+              glyph, which rendered as tofu) + FC-ARCHIVE provenance line */}
           <div style={{ position: "absolute", top: "24px", left: "28px", display: "flex", alignItems: "center" }}>
-            <span style={{ color: GOLD, fontSize: isApex ? "36px" : "30px", marginRight: "12px" }}>⬡</span>
+            <svg width={isApex ? 32 : 28} height={isApex ? 32 : 28} viewBox="0 0 24 24" style={{ marginRight: "12px" }}>
+              <path d="M7 3 L17 3 L22 12 L17 21 L7 21 L2 12 Z" fill="none" stroke={GOLD} strokeWidth="2" />
+            </svg>
             <span style={{ color: SILVER, fontSize: "18px", letterSpacing: "0.10em" }}>{archiveLine}</span>
           </div>
 
@@ -117,7 +120,10 @@ export async function stampSignature(
               color: GOLD, fontSize: "20px", letterSpacing: "0.06em", fontWeight: 600,
             }}
           >
-            ⬡ FREELONCITY.COM
+            <svg width={18} height={18} viewBox="0 0 24 24" style={{ marginRight: "8px" }}>
+              <path d="M7 3 L17 3 L22 12 L17 21 L7 21 L2 12 Z" fill="none" stroke={GOLD} strokeWidth="2.2" />
+            </svg>
+            <span>FREELONCITY.COM</span>
           </div>
         </div>
       ),
