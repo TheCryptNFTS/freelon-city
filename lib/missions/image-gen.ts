@@ -18,7 +18,8 @@
 import { put } from "@vercel/blob";
 import type { Citizen } from "@/lib/citizens";
 import type { Specialization } from "@/lib/specialization";
-import { imageUrl } from "@/lib/constants";
+import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
+import type { StampMeta } from "@/lib/missions/image-stamp";
 // NOTE: the JSX stamp (image-stamp.tsx) is loaded via DYNAMIC import at generation
 // time, NOT a static import — so test/tooling that pulls this module for SCENES or
 // the resolver's scene-validation never has to parse the JSX.
@@ -187,7 +188,7 @@ export const SCENES: Record<string, { label: string; desc: string }> = {
   },
   "frozen-vault": {
     label: "Frozen Vault",
-    desc: "inside an ice-locked archive vault, frost on gold seams, breath-fog in cold blue light, a single thawing signal-record glowing nearby",
+    desc: "inside an ice-locked archive vault, frost on gold seams, breath-fog in pale archive light, a single thawing signal-record glowing nearby",
   },
   "aurora-wastes": {
     label: "Aurora Wastes",
@@ -300,7 +301,7 @@ export const STYLES: Record<string, { label: string; category: string; desc: str
   "gold-idol":          { label: "Solid Gold", category: "Sculpture", desc: "cast in solid polished gold, reflective and opulent, dramatic rim light, luxury collector feel" },
   "anime":              { label: "Anime", category: "Illustrated", desc: "a high-detail anime / cel-shaded illustration, bold linework, dynamic shading, expressive and clean" },
   "comic-ink":          { label: "Comic Ink", category: "Illustrated", desc: "a gritty inked comic-book panel, heavy blacks, halftone shading, dramatic crosshatching" },
-  "vaporwave":          { label: "Vaporwave", category: "Illustrated", desc: "an 80s vaporwave aesthetic — magenta/cyan neon, chrome, grid horizon, retro-futuristic glow" },
+  "vaporwave":          { label: "Vaporwave", category: "Illustrated", desc: "an 80s vaporwave aesthetic — violet and gold neon, chrome, grid horizon, retro-futuristic glow" },
   "graffiti":           { label: "Graffiti", category: "Illustrated", desc: "a bold street-art graffiti mural version, spray-paint texture, drips, vivid outlines on concrete" },
   "skeleton-lich":      { label: "Lich", category: "Dark", desc: "a skeletal lich form wreathed in eerie soul-fire, cracked bone, glowing sockets, gothic and ominous" },
   "lego":               { label: "Brick Toy", category: "Toy", desc: "rebuilt entirely from plastic toy building bricks, glossy studs, playful, on a clean studio backdrop" },
@@ -316,21 +317,86 @@ function id4(n: number): string {
   return n.toString().padStart(4, "0");
 }
 
-/** The proven identity-lock-FIRST prompt. Identity is non-negotiable; the scene
- *  is the only thing that changes. Class/level/skill flavor the framing. */
+// ─── TRAIT INJECTION — 2026-06-09 ───────────────────────────────────────────
+// The render's moat is the token's REAL traits, which a blank GPT tab can't
+// know. We lead the prompt with the citizen's SHAPE silhouette (our IP — the 16
+// canonical shapes), make the hex eye glow the civ's CANONICAL colour as key
+// light, and scale form-strangeness by TIER. This turns a generic "hooded
+// figure" prompt into one only #N's data produces.
+
+/** The 16 canonical shapes → a silhouette directive (drawn from SHAPES lore in
+ *  constants). Shape drives the silhouette FIRST. */
+const SHAPE_SILHOUETTE: Record<string, string> = {
+  "Geometric Hood Main": "a hooded faceted figure with a clean, readable silhouette",
+  "Geometric Hood Variant": "a hooded faceted figure with deep, aggressive hood angles",
+  "Lumen": "a luminous arrow-tipped ceremonial candle-form",
+  "Mask": "a faceted figure wearing a separate ceremonial mask over the face",
+  "Chained": "a hooded figure with hex-chain veils hanging from the hood",
+  "Archon": "a broad authority form with a full hex-mesh tessellated face",
+  "Veil": "a faceless head behind a translucent geometric veil",
+  "Crown-Bearer": "a hooded figure crowned with a structural geometric crown",
+  "Horned": "a hooded figure with hex-shaped horns rising from the crown",
+  "Halo": "a round seamless faceless head — a glowing void framed by a gold halo",
+  "Monolith": "a tall pyramidal faceless monolith-hood with a single vertical hex line, minimal limbs",
+  "Split": "a cathedral-spire helm with a plague-mask cheek piece",
+  "Antenna": "a figure with multiple gold transmission antennae rising vertically",
+  "Prism": "an angular sword-shaped head with a single glowing strip",
+  "Shard": "a pure pointed cone helm — a brutalist monolith form",
+  "Sanctum": "a high pointed gothic cathedral-arch head — the rarest sacred form",
+};
+function shapeSilhouette(shape: string): string {
+  return SHAPE_SILHOUETTE[shape] || "a hooded faceted figure with a readable silhouette";
+}
+
+/** Tier → how abstract / monumental the form reads. Tier drives form-strangeness. */
+function tierForm(tier: string): string {
+  const t = (tier || "").toLowerCase();
+  if (t.includes("one of one")) return "a singular, impossible apex artifact, the form fully abstracted into monumental architecture";
+  if (t.includes("legendary")) return "fully abstract, monumental architecture at awe-scale — the figure as a relic";
+  if (t.includes("epic") || t.includes("honorary")) return "an exotic, architectural form — the figure as an artifact more than a person";
+  if (t.includes("rare")) return "a form beginning to abstract, its faceting more pronounced and strange";
+  return "a restrained, readable form";
+}
+
+/** Civ → the hex-eye key-light phrase, keyed to the civ's CANONICAL colour +
+ *  doctrine (source of truth: CIVILIZATIONS). */
+function civLight(slug: string): string {
+  const civ = (CIVILIZATIONS as Record<string, { doctrine: string; color: string }>)[slug];
+  if (!civ) return "its own signal-light";
+  return `${civ.color} ${civ.doctrine}-signal light`;
+}
+
+/** Build the per-render provenance/house-look metadata the stamp burns in. */
+function stampMetaForCitizen(c: Citizen): StampMeta {
+  const civ = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; stamp: string; color: string }>)[c.civilization];
+  return {
+    civName: civ?.name,
+    doctrine: civ?.doctrine,
+    tier: c.tier,
+    color: civ?.color,
+    archiveCode: civ ? `${civ.stamp}-${id4(c.id)}` : `#${id4(c.id)}`,
+  };
+}
+
+/** The proven identity-lock-FIRST prompt, now TRAIT-DRIVEN. Identity is
+ *  non-negotiable; the scene is the only thing that changes. Shape, civ colour
+ *  and tier are injected so the render is one only this token's data produces. */
 function buildImagePrompt(citizen: Citizen, spec: Specialization, sceneDesc: string): string {
+  const civ = (CIVILIZATIONS as Record<string, { name: string }>)[citizen.civilization];
+  const civName = civ?.name || citizen.civilization;
   const classLine =
     spec.cls === "drifter"
       ? "an untrained citizen"
-      : `a ${spec.className} (${spec.rank.label}, Level-shaped presence)`;
+      : `a ${spec.className} (${spec.rank.label})`;
   return [
-    "Keep the figure in the reference image EXACTLY: its faceted sculptural head/helm, the glowing",
-    "geometric HEX symbol where a face would be, its robes, its exact colour palette and materials.",
+    `Keep the figure in the reference image EXACTLY: ${shapeSilhouette(citizen.shape)}, its faceted sculptural head/helm,`,
+    "the glowing geometric HEX symbol where a face would be, its robes, its exact colour palette and materials.",
     "Do NOT add a human face, eyes, hair, or turn it into a person or cartoon. Same character, same silhouette.",
-    `This is FREELON CITY citizen #${id4(citizen.id)} (${citizen.civilization}, ${citizen.tier}), ${classLine}.`,
+    `This is FREELON CITY citizen #${id4(citizen.id)} — a ${civName} ${citizen.caste}, ${classLine}, ${citizen.tier}. Render it as ${tierForm(citizen.tier)}.`,
+    `Its hex face glows ${civLight(citizen.civilization)} as the key light source.`,
     `Only change the SETTING to a cinematic scene: ${sceneDesc}.`,
-    "Premium dark cinematic render, dramatic volumetric light, the hex glowing as a key light source.",
-    "Collector-grade, readable at thumbnail size.",
+    "Premium dark cinematic render on a lifted near-black background (never pure black), strong rim lighting, dramatic volumetric light, a big bright hex eye and an extreme, readable silhouette.",
+    "Collector-grade, reads clearly at 40×40 thumbnail size. No weapons. Square 1:1.",
   ].join(" ");
 }
 
@@ -423,7 +489,7 @@ export async function generateCitizenScene(args: {
     // set it) — instead we let put() try and surface its real error if it fails.
     const filename = `deploy/${id4(args.citizen.id)}-${renderKey}-${Date.now()}.png`;
     const { stampSignature } = await import("@/lib/missions/image-stamp");
-    const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id);
+    const bytes = await stampSignature(Buffer.from(b64, "base64"), args.citizen.id, stampMetaForCitizen(args.citizen));
     let blob;
     try {
       blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
@@ -492,7 +558,7 @@ export async function generateSisterScene(args: {
   const safeSlug = args.slug.replace(/[^a-z0-9-]/gi, "");
   const filename = `sister/${safeSlug}-${id4(args.tokenId)}-${args.sceneKey}-${Date.now()}.png`;
   const { stampSignature } = await import("@/lib/missions/image-stamp");
-  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.tokenId);
+  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.tokenId, { collectionName: args.collectionName });
   let blob;
   try {
     blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
@@ -552,7 +618,7 @@ export async function generateEvolvedArt(args: {
 
   const filename = `evolve/${id4(args.citizen.id)}-t${tier}-${Date.now()}.png`;
   const { stampSignature } = await import("@/lib/missions/image-stamp");
-  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.citizen.id);
+  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.citizen.id, stampMetaForCitizen(args.citizen));
   let blob;
   try {
     blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
@@ -599,7 +665,7 @@ export async function generateCrewTransform(args: {
 
   const filename = `deploy/crew-${id4(args.citizenA.id)}-${id4(args.citizenB.id)}-${args.styleKey}-${Date.now()}.png`;
   const { stampSignature } = await import("@/lib/missions/image-stamp");
-  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.citizenA.id);
+  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.citizenA.id, stampMetaForCitizen(args.citizenA));
   let blob;
   try {
     blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
