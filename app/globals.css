@@ -1859,12 +1859,53 @@ a { color: inherit; text-decoration: none; }
 }
 .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .result-cell {
+  position: relative;
   background: var(--surface); border: 1px solid var(--line); border-radius: 5px; overflow: hidden;
   text-decoration: none; color: var(--ink); border-top: 2px solid var(--civ, var(--gold));
-  transition: transform 0.18s;
+  /* Stronger civ signal at thumbnail scale than the 2px top line alone: a faint
+     civ-tinted inset glow so each card carries its civilization color. */
+  box-shadow: inset 0 -28px 36px -28px color-mix(in oklab, var(--civ, var(--gold)), transparent 55%);
+  transition: transform 0.18s, box-shadow 0.18s;
 }
-.result-cell:hover { transform: translateY(-2px); }
+.result-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 -30px 40px -26px color-mix(in oklab, var(--civ, var(--gold)), transparent 40%);
+}
 .result-cell img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+/* Civilization identity chip — bottom-left, civ-color hex + name. Sits opposite
+   the ★ RARE badge (top-right) so they never collide. */
+.result-cell .cell-civ {
+  position: absolute;
+  left: 7px;
+  top: calc(100% - 56px); /* anchored just above the meta strip / image base */
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: calc(100% - 14px);
+  padding: 3px 7px 3px 6px;
+  background: rgba(8, 8, 10, 0.78);
+  border: 1px solid color-mix(in oklab, var(--civ, var(--gold)), transparent 55%);
+  border-radius: 999px;
+  font-family: var(--mono2);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+.result-cell .cell-civ__dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  background: var(--civ, var(--gold));
+  /* hexagon ⬡ — the signal motif */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: 0 0 5px color-mix(in oklab, var(--civ, var(--gold)), transparent 35%);
+}
 .result-cell .meta { padding: 8px 10px; }
 .result-cell .id { font-family: var(--mono2); font-size: 11px; color: var(--gold); }
 .result-cell .sub { font-family: var(--mono2); font-size: 9px; color: var(--ink-dim); letter-spacing: 0.16em; margin-top: 3px; }

@@ -243,7 +243,7 @@ export function CitizensBrowser({
       {/* ── Results grid ─────────────────────────────────────────── */}
       <div className="results-grid">
         {showing.map((c) => {
-          const civObj = (CIVILIZATIONS as Record<string, { color: string; doctrine: string }>)[c.civilization];
+          const civObj = (CIVILIZATIONS as Record<string, { color: string; doctrine: string; name: string }>)[c.civilization];
           const isUnique = rareTraitIds?.has(c.id);
           return (
             <Link
@@ -254,6 +254,15 @@ export function CitizensBrowser({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imageUrl(c.id)} alt={`Citizen #${c.id}`} loading="lazy" />
+              {/* Civilization chip — a civ-colored hex + name so the 4040-grid reads
+                  as 10 distinct civilizations at a glance, not a wall of samey
+                  portraits. Civ name only (copy-safe — no rarity/value language). */}
+              {civObj && (
+                <span className="cell-civ" aria-hidden="true">
+                  <span className="cell-civ__dot" />
+                  {civObj.name}
+                </span>
+              )}
               {isUnique && (
                 <span
                   aria-label="Carries a rare trait"
