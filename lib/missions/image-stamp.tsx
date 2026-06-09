@@ -85,9 +85,12 @@ export async function stampSignature(
           {/* civ-colour spine bar — the data-keyed signature down the left edge */}
           <div style={{ position: "absolute", left: 0, top: 0, width: "10px", height: "1024px", background: spine, display: "flex" }} />
 
-          {/* cinematic scrims so the burned-in text stays legible over any art */}
-          <div style={{ position: "absolute", top: 0, left: 0, width: "1024px", height: "120px", background: "linear-gradient(180deg, rgba(8,8,10,0.82) 0%, rgba(8,8,10,0) 100%)", display: "flex" }} />
-          <div style={{ position: "absolute", bottom: 0, left: 0, width: "1024px", height: "160px", background: "linear-gradient(0deg, rgba(8,8,10,0.92) 0%, rgba(8,8,10,0) 100%)", display: "flex" }} />
+          {/* cinematic letterbox bars so the burned-in text stays legible over
+              any art. SOLID (not gradient) — resvg composites solids trivially,
+              whereas full-bleed gradient overlays on a 1024px raster were the
+              likely cause of the render hang (2026-06-09). */}
+          <div style={{ position: "absolute", top: 0, left: 0, width: "1024px", height: "96px", background: "rgba(8,8,10,0.74)", display: "flex" }} />
+          <div style={{ position: "absolute", bottom: 0, left: 0, width: "1024px", height: "120px", background: "rgba(8,8,10,0.82)", display: "flex" }} />
 
           {/* apex-tier gold hairline border */}
           {isApex && (
