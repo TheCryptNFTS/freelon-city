@@ -168,6 +168,9 @@ export function AgentWorkspace(props: Props) {
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [sceneKey, setSceneKey] = useState<string>("");
+  // Image scene picker collapses to a compact "Scene · {selected} · change" bar
+  // so all 32 chips don't stay sprawled across the composer during/after a render.
+  const [scenesOpen, setScenesOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -1012,18 +1015,31 @@ export function AgentWorkspace(props: Props) {
               </div>
             )}
             {mode === "image" && (
-              <div className={styles.chipRow}>
-                {agent?.scenes.map((s) => (
+              scenesOpen ? (
+                <div className={styles.chipRow}>
+                  {agent?.scenes.map((s) => (
+                    <button
+                      key={s.key}
+                      type="button"
+                      className={`${styles.chip} ${s.key === sceneKey ? styles.chipOn : ""}`}
+                      onClick={() => { setSceneKey(s.key); setScenesOpen(false); }}
+                    >
+                      {s.label}{agent?.imageHexCost ? <span className={styles.chipCost}>{agent.imageHexCost}⬡</span> : null}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.chipRow}>
                   <button
-                    key={s.key}
                     type="button"
-                    className={`${styles.chip} ${s.key === sceneKey ? styles.chipOn : ""}`}
-                    onClick={() => setSceneKey(s.key)}
+                    className={`${styles.chip} ${styles.chipOn}`}
+                    onClick={() => setScenesOpen(true)}
                   >
-                    {s.label}{agent?.imageHexCost ? <span className={styles.chipCost}>{agent.imageHexCost}⬡</span> : null}
+                    Scene · {agent?.scenes.find((s) => s.key === sceneKey)?.label ?? "choose"} · change ▾
+                    {agent?.imageHexCost ? <span className={styles.chipCost}>{agent.imageHexCost}⬡</span> : null}
                   </button>
-                ))}
-              </div>
+                </div>
+              )
             )}
           {showUnlock ? (
             // Locked → the composer can't run anything; route the holder to unlock.
