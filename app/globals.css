@@ -2585,13 +2585,48 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 .scarcity { margin: var(--s-6) 0; }
 .scarcity .kicker { display: block; margin-bottom: var(--s-3); }
-.scarcity ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.scarcity ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-3); }
 .scarcity li {
-  display: flex; align-items: baseline; gap: var(--s-2);
+  display: flex; flex-direction: column; gap: 6px;
   font-family: var(--sans); font-size: 14px; color: var(--ink-2);
 }
+.scarcity .scar-row { display: flex; align-items: baseline; gap: var(--s-2); flex-wrap: wrap; }
 .scarcity li span { font-family: var(--mono2); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.16em; }
+.scarcity li .scar-label { letter-spacing: 0; }
 .scarcity li strong { font-family: var(--display); font-size: 22px; color: var(--gold); font-weight: 400; letter-spacing: -0.01em; }
+/* Rarity meter — fill = population fraction (--pct). A rarer trait (fewer exist)
+   has a SHORTER, emptier bar, so "1 of 6" reads dramatically rarer than "1 of 412". */
+.scarcity .scar-bar {
+  position: relative;
+  height: 4px;
+  width: 100%;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.scarcity .scar-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: calc(var(--pct, 1) * 100%);
+  background: linear-gradient(90deg, color-mix(in oklab, var(--gold), transparent 30%), var(--gold-bright, var(--gold)));
+  border-radius: 2px;
+}
+/* RAREST line — the exact combo on a low-population token: civ-glow the count + a tag. */
+.scarcity li[data-rare] strong {
+  color: var(--gold-bright, var(--gold));
+  text-shadow: 0 0 14px color-mix(in oklab, var(--civ, var(--gold)), transparent 35%);
+}
+.scarcity li[data-rare] .scar-bar::before {
+  background: var(--civ, var(--gold-bright));
+  box-shadow: 0 0 10px -1px color-mix(in oklab, var(--civ, var(--gold)), transparent 30%);
+}
+.scarcity .scar-rarest {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--bg); background: var(--civ, var(--gold-bright));
+  padding: 2px 7px; border-radius: 999px; align-self: center;
+}
 
 .citizen-body .cta-row {
   display: flex; flex-wrap: wrap; gap: var(--s-2);

@@ -199,13 +199,32 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
-          {/* SCARCITY — why this one is collectible. Identity, not a price. */}
+          {/* SCARCITY — why this one is collectible. Identity, not a price. Each
+              line carries a rarity meter (rarer = shorter, emptier bar) so "1 of 6"
+              READS rarer than "1 of 412" instead of looking identical. The exact
+              civ×shape×tier combo is flagged RAREST when its population is tiny. */}
           <div className="scarcity">
             <span className="kicker">SCARCITY</span>
             <ul>
-              <li><span>1 of</span><strong>{counts.sameCiv}</strong>{civ?.name} citizens</li>
-              <li><span>1 of</span><strong>{counts.sameShape}</strong>{c.shape} shapes</li>
-              <li><span>1 of</span><strong>{counts.sameCombo}</strong>with this exact civ × shape × tier</li>
+              {[
+                { n: counts.sameCiv, label: `${civ?.name} citizens`, rare: false },
+                { n: counts.sameShape, label: `${c.shape} shapes`, rare: false },
+                { n: counts.sameCombo, label: "with this exact civ × shape × tier", rare: counts.sameCombo <= 25 },
+              ].map((row, i) => (
+                <li
+                  key={i}
+                  data-rare={row.rare ? "true" : undefined}
+                  style={{ "--pct": Math.min(1, Math.max(0.012, row.n / 4040)) } as React.CSSProperties}
+                >
+                  <div className="scar-row">
+                    <span>1 of</span>
+                    <strong>{row.n}</strong>
+                    <span className="scar-label">{row.label}</span>
+                    {row.rare && <span className="scar-rarest">RAREST</span>}
+                  </div>
+                  <span className="scar-bar" aria-hidden="true" />
+                </li>
+              ))}
             </ul>
           </div>
 
