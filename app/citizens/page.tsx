@@ -6,7 +6,6 @@ import { PfpSection } from "@/components/citizens/PfpSection";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import Link from "next/link";
-import { topAgentHref } from "@/lib/featured-agent";
 
 export const metadata = { title: "FREELONS · Trainable AI Agents" };
 
@@ -23,8 +22,6 @@ const ONE_TAGS: Record<number, { slug: string; sub: string }> = {
 
 export default async function Citizens() {
   const all = getAllCitizens();
-  // Smart "SEE AN AGENT" — the current top-trained agent, not always #0001.
-  const seeAgentHref = await topAgentHref();
   const ones = all.filter((c) => c.tier === "One of One");
   const honoraries = all.filter((c) => c.tier === "Honorary");
   const legendaries = all.filter((c) => c.tier === "Legendary").slice(0, 12);
@@ -85,171 +82,118 @@ export default async function Citizens() {
 
   return (
     <div className="citizens-page">
+      {/* SURFACE-REDUCTION 2026-06-09: /citizens does ONE job now — choose a
+          citizen and create with it. Was 10 sections (museum + rarity showcase +
+          agent rail + PFP guide + browse + footer funnel). Now ~3: hero → browse
+          grid → one "Notable citizens" fold (the 1/1s + honoraries + legendaries +
+          top-agents, MOVED off the chooser, not deleted) → PFP fold. */}
       <section className="citizens-hero">
         <span className="kicker">⬡ FREELONS · 4040 TRAINABLE AGENTS</span>
-        <h1>Meet a <em>FREELON</em></h1>
-        {/* 2026-06-03 FREELONS-first — a newcomer learns it's a trainable AI
-            AGENT, not just "enter a token number". The agent is the point; the
-            trait/lore stuff is secondary. */}
+        <h1>Choose a <em>FREELON</em></h1>
         <p className="lead">
           Each <GlossaryTerm term="citizen">FREELON</GlossaryTerm> is a trainable
-          <strong> AI agent you own</strong> — with art, traits and a civilization, plus a growing
-          work record. Give it jobs (write, strategize, research, red-team); it levels up, develops a
-          role, and builds a work history that stays with the NFT.
+          <strong> AI agent you own</strong>. Pick one below to meet it and create — or open one to see an agent.
         </p>
-        <p className="lead">Enter a token number 1—4040 to meet one — or open #1 to see an agent.</p>
         <div className="finder">
           <FindCitizen />
-          {/* 2026-06-04 — KinkiDred (Discord): the lookup box looked like an
-              ownership filter ("why does someone else's citizen come up?").
-              It's a public viewer for ANY token. Point owners at the wallet
-              view so the box reads as "look up any citizen", not "find mine". */}
           <p style={{ marginTop: "var(--s-3)", color: "var(--ink-2)", fontSize: 13 }}>
-            Any token 1—4040 opens — it&rsquo;s a public viewer, not an ownership
-            check. Want the ones <em>you</em> own?{" "}
-            <Link href="/sync#connect" style={{ color: "var(--gold)" }}>
-              Connect your wallet →
-            </Link>
+            Any token 1—4040 opens — a public viewer, not an ownership check. Want the ones <em>you</em> own?{" "}
+            <Link href="/sync#connect" style={{ color: "var(--gold)" }}>Connect your wallet →</Link>
           </p>
         </div>
-        {/* 2026-06-03 — one-click way for a newcomer to actually SEE an agent
-            (the #1 friction point: "My Citizen" used to dead-end at a lookup). */}
-        <p style={{ marginTop: "var(--s-4)" }}>
-          <Link
-            href={seeAgentHref}
-            className="btn btn-primary"
-          >
-            <span className="ttl">SEE AN AGENT →</span>
-          </Link>
-        </p>
-        {/* Jump link to the folded PFP studio (2026-05-31). */}
-        <p style={{ marginTop: "var(--s-3)" }}>
-          <a
-            href="#pfp"
-            style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)", textDecoration: "none" }}
-          >
-            ⬡ HEX-FRAME YOUR AVATAR ↓
-          </a>
-        </p>
       </section>
 
-      {/* TOP AGENTS — the "look what these become" proof. Sits right after the
-          hero so a buyer sees specialized, leveled citizens before the trait
-          browse. Empty (with a claim hook) until citizens specialize. */}
-      <TopAgents />
-
-      {/* Phase 3: CURATED FIRST. The original order put the 4040-item
-          mass browser above the 4 one-of-ones — terrible mobile experience
-          (endless scroll before seeing the brand's hero citizens). The
-          ones / honoraries / legendaries are the FOMO + brand surface;
-          they land first now. Mass browser is still anchor-linkable
-          from the hero via #browse. */}
-
-      <section className="citizens-section reveal">
-        <header className="sec-head">
-          <span className="kicker">ONE OF ONES</span>
-          <h2>The <em>Four</em></h2>
-        </header>
-        <div className="ones-grid">
-          {ones.map((c) => {
-            const tag = ONE_TAGS[c.id];
-            const civ = (CIVILIZATIONS as Record<string, { color: string }>)[c.civilization];
-            return (
-              <Link
-                key={c.id}
-                href={tag ? `/${tag.slug}` : `/citizens/${c.id}`}
-                className="one-card"
-                style={{ "--civ": civ?.color } as React.CSSProperties}
-              >
-                <div className="img-frame">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl(c.id)} alt={c.transmission_name || c.name} loading="lazy" />
-                </div>
-                <div className="meta">
-                  <span className="id">#{c.id.toString().padStart(4, "0")}</span>
-                  <h3>{c.transmission_name || c.name}</h3>
-                  <span className="sub">{tag?.sub || `ONE OF ONE · ${c.caste}`}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 2026-06-07 density (browse scored 6/10 — four stacked grids before the
-          actual browser): the curated Honoraries + Legendaries grids fold into
-          one tap so the page flows hero → top agents → the 1/1s → [curated] →
-          browse, instead of four equal gridwalls. */}
-      <details className="collector-details citizens-section">
-        <summary className="collector-summary">Curated · the 35 Honoraries &amp; the Legendaries</summary>
-      <section className="citizens-section reveal">
-        <header className="sec-head">
-          <span className="kicker">35 ELEVATED CITIZENS</span>
-          <h2>The <em>Honoraries</em></h2>
-        </header>
-        <div className="honor-grid">
-          {honoraries.map((c) => {
-            const civ = (CIVILIZATIONS as Record<string, { color: string }>)[c.civilization];
-            const handle = (c.honoree_handle || "").replace(/^@/, "") || String(c.id);
-            return (
-              <Link key={c.id} href={`/tribute/${handle}`} className="honor-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(c.id)} alt={c.honoree} loading="lazy" />
-                <div className="meta">
-                  <span className="id">#{c.id.toString().padStart(4, "0")}</span>
-                  <span className="name">{c.honoree}</span>
-                  <span className="handle">{c.honoree_handle}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="citizens-section reveal">
-        <header className="sec-head">
-          <span className="kicker">40 TOTAL · 12 SHOWN</span>
-          <h2>The <em>Legendaries</em></h2>
-        </header>
-        <div className="legendary-grid">
-          {legendaries.map((c) => {
-            const civ = (CIVILIZATIONS as Record<string, { color: string }>)[c.civilization];
-            return (
-              <Link key={c.id} href={`/citizens/${c.id}`} className="legendary-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(c.id)} alt={c.name} loading="lazy" />
-                <div className="meta">
-                  <span className="id">#{c.id.toString().padStart(4, "0")}</span>
-                  <span className="shape">{c.shape}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-      </details>
-
-      {/* Mass browser below curated. Anchor target for the hero "BROWSE ALL"
-          link so users who specifically want the filter UI can jump down. */}
+      {/* THE CHOOSER — the page's one job. Lands right under the hero. */}
       <section className="citizens-section reveal" id="browse">
-        <header className="sec-head">
-          <span className="kicker">SEARCH · FILTER · {all.length} TOTAL</span>
-          <h2>Browse all <em>{all.length}</em></h2>
-        </header>
         <CitizensBrowser all={mini} rareTraitIds={rareTraitIds} rareThreshold={RARE_THRESHOLD} />
       </section>
 
-      {/* ── FOLDED: PFP STUDIO (former /pfp) ── */}
-      <PfpSection />
+      {/* NOTABLE CITIZENS — the brand/FOMO showcase (1/1s, honoraries,
+          legendaries, top-trained agents). MOVED off the main chooser flow into
+          one fold so it no longer fights "pick a citizen". Content preserved. */}
+      <details className="collector-details citizens-section">
+        <summary className="collector-summary">Notable citizens · the Four 1/1s, 35 Honoraries, Legendaries &amp; top-trained agents</summary>
 
-      <section style={{ marginTop: "var(--s-6)" }}>
-        <span className="kicker">⬡ NEXT SIGNAL</span>
-        <div className="ui-cta-row" style={{ marginTop: "var(--s-3)" }}>
-          <Link className="btn btn-primary" href="/sync"><span className="ttl">FIND YOUR TRIBE →</span></Link>
-          <Link className="btn btn-secondary" href="/civilizations"><span className="ttl">EXPLORE CIVILIZATIONS →</span></Link>
-          <Link className="btn btn-secondary" href="/earn"><span className="ttl">THE LEDGER →</span></Link>
-        </div>
-      </section>
+        <TopAgents />
+
+        <section className="citizens-section reveal">
+          <header className="sec-head">
+            <span className="kicker">ONE OF ONES</span>
+            <h2>The <em>Four</em></h2>
+          </header>
+          <div className="ones-grid">
+            {ones.map((c) => {
+              const tag = ONE_TAGS[c.id];
+              const civ = (CIVILIZATIONS as Record<string, { color: string }>)[c.civilization];
+              return (
+                <Link key={c.id} href={tag ? `/${tag.slug}` : `/citizens/${c.id}`} className="one-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
+                  <div className="img-frame">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imageUrl(c.id)} alt={c.transmission_name || c.name} loading="lazy" />
+                  </div>
+                  <div className="meta">
+                    <span className="id">#{c.id.toString().padStart(4, "0")}</span>
+                    <h3>{c.transmission_name || c.name}</h3>
+                    <span className="sub">{tag?.sub || `ONE OF ONE · ${c.caste}`}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="citizens-section reveal">
+          <header className="sec-head">
+            <span className="kicker">35 ELEVATED CITIZENS</span>
+            <h2>The <em>Honoraries</em></h2>
+          </header>
+          <div className="honor-grid">
+            {honoraries.map((c) => {
+              const civ = (CIVILIZATIONS as Record<string, { color: string }>)[c.civilization];
+              const handle = (c.honoree_handle || "").replace(/^@/, "") || String(c.id);
+              return (
+                <Link key={c.id} href={`/tribute/${handle}`} className="honor-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imageUrl(c.id)} alt={c.honoree} loading="lazy" />
+                  <div className="meta">
+                    <span className="id">#{c.id.toString().padStart(4, "0")}</span>
+                    <span className="name">{c.honoree}</span>
+                    <span className="handle">{c.honoree_handle}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="citizens-section reveal">
+          <header className="sec-head">
+            <span className="kicker">40 TOTAL · 12 SHOWN</span>
+            <h2>The <em>Legendaries</em></h2>
+          </header>
+          <div className="legendary-grid">
+            {legendaries.map((c) => {
+              const civ = (CIVILIZATIONS as Record<string, { color: string }>)[c.civilization];
+              return (
+                <Link key={c.id} href={`/citizens/${c.id}`} className="legendary-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imageUrl(c.id)} alt={c.name} loading="lazy" />
+                  <div className="meta">
+                    <span className="id">#{c.id.toString().padStart(4, "0")}</span>
+                    <span className="shape">{c.shape}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      </details>
+
+      {/* PFP studio — moved off the main surface into a fold (was a full section). */}
+      <details className="collector-details citizens-section" id="pfp">
+        <summary className="collector-summary">⬡ Hex-frame your avatar · PFP studio</summary>
+        <PfpSection />
+      </details>
     </div>
   );
 }
