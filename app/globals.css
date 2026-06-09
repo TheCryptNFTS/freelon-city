@@ -2371,9 +2371,45 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   position: relative; aspect-ratio: 1;
   border: 1px solid var(--line); border-top: 3px solid var(--civ);
   border-radius: 4px; overflow: hidden; background: var(--surface);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 60px -20px rgba(0,0,0,0.8);
+  /* LIVING RELIC FRAME — every portrait (not just paid-activated ones) bleeds a
+     faint civilization-colored halo so the default state reads premium + alive
+     instead of a flat thumbnail. The gold .is-activated treatment still clearly
+     out-ranks this (brighter, gold, breathing). Civ tint from --civ on .citizen-page. */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 0 70px -30px color-mix(in oklab, var(--civ), transparent 52%),
+    0 20px 60px -20px rgba(0,0,0,0.8);
+  transition: box-shadow .3s ease;
+}
+.citizen-image .img-shell:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 0 90px -26px color-mix(in oklab, var(--civ), transparent 40%),
+    0 20px 60px -20px rgba(0,0,0,0.8);
 }
 .citizen-image .img-shell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Slow specular gloss sweep across the art — the "alive" tell on un-activated
+   portraits. Sits above the image, below the AWAKENED glyph (z 2). pointer-events
+   none so it never blocks the link. */
+.citizen-image .img-shell::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 38%,
+    rgba(255,255,255,0.07) 48%,
+    rgba(255,255,255,0.12) 50%,
+    rgba(255,255,255,0.07) 52%,
+    transparent 62%
+  );
+  background-size: 250% 100%;
+  background-position: 180% 0;
+  animation: relic-sheen 7.5s ease-in-out infinite;
+}
+@keyframes relic-sheen {
+  0%   { background-position: 180% 0; }
+  55%  { background-position: -80% 0; }
+  100% { background-position: -80% 0; }
+}
 /* ACTIVATED ("awakened") portrait — a paid ETH unlock makes the agent visibly
    alive: a gold rim + a slow breathing glow, plus a corner glyph. Gold only
    (on-brand, never cyan). Pure CSS, respects reduced-motion. */
@@ -2410,6 +2446,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 @media (prefers-reduced-motion: reduce) {
   .citizen-image .img-shell.is-activated { animation: none; }
+  .citizen-image .img-shell::after { animation: none; opacity: 0; }
 }
 
 /* ACTIVATED glow on GRID/LEADERBOARD cards — compact version of the profile
