@@ -99,7 +99,7 @@ export async function POST(req: Request) {
     await creditWalletHex(addr, dailyHex, {
       kind: "manual",
       note: `Daily X share · streak ${streak}d · +${dailyHex}⬡${noteSuffix}`,
-    });
+    }, { farmable: true });
 
     // Streak milestone bonus — a SEPARATE, non-critical credit. If it fails
     // we must NOT roll back the claim: the base was already paid, so a retry
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
         await creditWalletHex(addr, bonusHex, {
           kind: "manual",
           note: `${label} · ${streak}d · +${bonusHex}⬡${noteSuffix}`,
-        });
+        }, { farmable: true });
         bonus = bonusHex; // return the actual amount paid
       } catch (e) {
         console.error("[claim] streak bonus credit failed (base paid, not rolled back)", addr, e);

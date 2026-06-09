@@ -5,6 +5,7 @@ import { runFloorDefenderTick } from "@/lib/floor-defender";
 import { processSweepsForWallet } from "@/lib/sweep-inline";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { requireProvenWallet } from "@/lib/x-session";
 
 export const dynamic = "force-dynamic";
 
@@ -44,11 +45,21 @@ export async function GET(
   const defenderFallback = { qualifyingTokens: 0, hexCredited: 0, daysCredited: 0 };
   const sweepFallback = { credited: 0, hex: 0, bonus: false };
 
-  const [tick, defenderTick, sweep] = await Promise.all([
-    withDeadline(runHolderTick(address), 7000, tickFallback),
-    withDeadline(runFloorDefenderTick(address), 2000, defenderFallback),
-    withDeadline(processSweepsForWallet(address), 7000, sweepFallback),
-  ]);
+  // HEX-SECURITY (2026-06-09, red-team finding A): the holder/defender/sweep
+  // ticks each CREDIT real HEX. They must run only for the authenticated wallet
+  // owner (one-time walletProof signature), never for an unauthenticated caller
+  // who can pass any address in the path. Non-owners get a read-only balance —
+  // crediting is skipped (fallbacks returned), so the GET can no longer mint HEX
+  // for an arbitrary address. walletProof rule preserved; balance read unchanged.
+  const isOwner = !!requireProvenWallet(req, address);
+
+  const [tick, defenderTick, sweep] = isOwner
+    ? await Promise.all([
+        withDeadline(runHolderTick(address), 7000, tickFallback),
+        withDeadline(runFloorDefenderTick(address), 2000, defenderFallback),
+        withDeadline(processSweepsForWallet(address), 7000, sweepFallback),
+      ])
+    : [tickFallback, defenderFallback, sweepFallback];
   const rec = await getWalletHex(address);
 
   return NextResponse.json({

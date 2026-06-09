@@ -193,7 +193,7 @@ export async function markStep(
           await creditWalletHex(state.key, reward, {
             kind: "quest",
             note: `Quest: ${questId} (+${reward}⬡)`,
-          });
+          }, { farmable: true });
         } catch {
           /* non-fatal */
         }

@@ -72,7 +72,7 @@ export async function runReplyEngagementScan(): Promise<EngagementScanResult> {
         await creditWalletHex(rec.wallet, amt, {
           kind: "manual",
           note: `Reply engagement · ${lk.likes} likes · +${amt} ⬡`,
-        });
+        }, { farmable: true });
         rec.bonusPaid = amt;
         paid++;
         totalBonusHex += amt;

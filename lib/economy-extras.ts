@@ -31,7 +31,7 @@ type RawSale = {
   event_timestamp?: number;
   seller?: string;
   payment?: { quantity?: string; decimals?: number };
-  nft?: { identifier?: string };
+  nft?: { identifier?: string; contract?: string };
   transaction?: string;
 };
 
@@ -63,10 +63,15 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
     const events = (d.asset_events || [])
       .filter((e) => (e.seller || "").toLowerCase() === address.toLowerCase())
       .filter((e) => (e.nft?.identifier ? (e.event_timestamp || 0) > cursor : false))
-      // Filter to this collection only (events api returns multi-collection)
+      // Filter to this collection only (events api returns multi-collection).
+      // Contract-scope (Prompt 2): if the row carries a contract and it isn't
+      // ours, reject it — closes the cross-collection same-tokenId credit hole.
+      // The /events/accounts endpoint doesn't return contract per row
+      // consistently, so when it's ABSENT we fall back to the tokenId-in-range
+      // check (mirrors the snipe path) — tightens without dropping legit sales.
       .filter((e) => {
-        // The /events/accounts endpoint doesn't return contract per row consistently;
-        // accept anything with a numeric identifier in range as a freelon. Cheap.
+        const c = (e.nft?.contract || "").toLowerCase();
+        if (c && c !== CONTRACT.toLowerCase()) return false;
         const tid = Number(e.nft?.identifier);
         return Number.isFinite(tid) && tid >= 1 && tid <= 4040;
       });
@@ -328,7 +333,7 @@ export async function creditListingBounty(
       await creditWalletHex(address, credit, {
         kind: "manual",
         note: `Listing bounty · ${active} active × ${daysDue}d`,
-      });
+      }, { farmable: true });
     }
     return { credited: credit, activeListings: active };
   } catch {

@@ -46,6 +46,12 @@ export type WalletHex = {
   lastSaleCreditTs?: number;
   /** Whether the one-time fresh-blood bounty has been awarded. */
   freshBloodAwardedAt?: number;
+  /** Farmable-faucet daily ceiling (Prompt 3, two-bucket): UTC day + ⬡ credited
+   *  that day from FARMABLE sources only (claim/sweep/passive/quest/listing/etc).
+   *  Value-backed events (snipe/sale/admin) do NOT touch these. Reset lazily on
+   *  day rollover inside the wallet lock. */
+  farmedDay?: string;
+  farmedToday?: number;
 };
 
 const memory = new Map<string, WalletHex>();
@@ -162,13 +168,32 @@ export async function creditWalletHex(
   addr: string,
   amount: number,
   ev: Omit<HexEvent, "ts" | "amount"> & { ts?: number },
+  opts?: { farmable?: boolean },
 ): Promise<WalletHex> {
+  // Two-bucket daily ceiling (Prompt 3). Pass { farmable: true } ONLY from
+  // low-effort/repeatable faucets (claim/sweep/passive/quest/listing/etc). When
+  // set, the per-UTC-day farmable total is held under ECONOMY.FARMABLE_DAILY_CAP
+  // by clamping `amount` to the remaining headroom (credits less / nothing once
+  // the ceiling is hit). Value-backed events (snipe/sale/unlock/admin/refund)
+  // omit the flag and are NEVER capped — a legit 500⬡ snipe always goes through.
+  // Backward compatible: callers that omit opts behave exactly as before.
+  const farmable = opts?.farmable === true;
+  const cap = farmable ? (await import("@/lib/economy-constants")).ECONOMY.FARMABLE_DAILY_CAP : 0;
   const rec = await withWalletLock(addr, async () => {
     const r = await getWalletHex(addr);
-    r.balance += amount;
-    r.lifetimeEarned += amount;
+    let give = amount;
+    if (farmable) {
+      const today = todayUTC();
+      if (r.farmedDay !== today) { r.farmedDay = today; r.farmedToday = 0; }
+      const headroom = Math.max(0, cap - (r.farmedToday ?? 0));
+      give = Math.min(amount, headroom);
+      if (give <= 0) { await setWalletHex(r); return r; } // ceiling reached — no credit
+      r.farmedToday = (r.farmedToday ?? 0) + give;
+    }
+    r.balance += give;
+    r.lifetimeEarned += give;
     const ts = ev.ts ?? Date.now();
-    r.events.unshift({ ts, kind: ev.kind, amount, note: ev.note });
+    r.events.unshift({ ts, kind: ev.kind, amount: give, note: ev.note });
     if (r.events.length > 50) r.events.length = 50;
     r.lastEventTs = Math.max(r.lastEventTs, ts);
     // Stamp activity for the decay gate when this credit is an active action.
@@ -183,6 +208,50 @@ export async function creditWalletHex(
   // wallet has never been tracked. Subsequent dumps break it.
   void fireDefenderEnsure(rec.address);
   return rec;
+}
+
+/**
+ * Atomic capped sweep credit (red-team finding B, 2026-06-09). Combines the
+ * daily-count reset, cap check, balance credit, and counter increment inside ONE
+ * wallet lock. The prior sweep path did these as separate read-modify-writes
+ * OUTSIDE the lock, so two concurrent `GET /api/wallet/[addr]/hex` calls could
+ * both read `sweepsToday < cap`, both credit, and the unlocked counter write
+ * could clobber concurrent ticks. Returns whether the credit was applied
+ * (`credited: false` = daily cap already reached) plus the updated record.
+ * Mirrors `creditWalletHex`'s record mutation exactly; adds only the capped
+ * counter so existing sweep behaviour (amount, event, activity stamp) is intact.
+ */
+export async function creditWalletHexCapped(
+  addr: string,
+  amount: number,
+  ev: Omit<HexEvent, "ts" | "amount"> & { ts?: number },
+  dailyCap: number,
+): Promise<{ credited: boolean; rec: WalletHex }> {
+  const out = await withWalletLock(addr, async () => {
+    const r = await getWalletHex(addr);
+    const today = todayUTC();
+    if (r.sweepsResetDay !== today) {
+      r.sweepsResetDay = today;
+      r.sweepsToday = 0;
+    }
+    if ((r.sweepsToday ?? 0) >= dailyCap) {
+      // Cap reached — persist any day-reset, credit nothing.
+      await setWalletHex(r);
+      return { credited: false, rec: r };
+    }
+    const ts = ev.ts ?? Date.now();
+    r.balance += amount;
+    r.lifetimeEarned += amount;
+    r.sweepsToday = (r.sweepsToday ?? 0) + 1;
+    r.events.unshift({ ts, kind: ev.kind, amount, note: ev.note });
+    if (r.events.length > 50) r.events.length = 50;
+    r.lastEventTs = Math.max(r.lastEventTs, ts);
+    if (ACTIVE_KINDS.has(ev.kind)) r.lastActiveDay = todayUTC();
+    await setWalletHex(r);
+    return { credited: true, rec: r };
+  });
+  if (out.credited) void fireDefenderEnsure(out.rec.address);
+  return out;
 }
 
 /** Explicitly stamp activity (e.g. snipe/sale events that aren't kind=manual). */

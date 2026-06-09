@@ -114,9 +114,16 @@ export const ECONOMY = {
   // becomes a passive-income farm that dwarfs sweeps. Per-job ⬡ sits at/below
   // the sweep tier (SWEEP_BOUNTY=25); the per-wallet daily cap mirrors
   // SWEEP_DAILY_CAP so jobs can't become the dominant income source.
-  JOB_SIGNAL_T1: 5,   // difficulty 1 ⬡ reward
-  JOB_SIGNAL_T2: 12,  // difficulty 2
-  JOB_SIGNAL_T3: 25,  // difficulty 3
+  // ⚠ FOOTGUN GUARD (verified 2026-06-09): JOB_SIGNAL_T* feeds jobs-catalog's
+  // `rewardSignal`, but jobs DO NOT pay ⬡ — the job route passes signalReward:0
+  // and `rewardSignal` is rendered NOWHERE (the job board shows XP + skill only).
+  // Jobs are intentionally an XP/skill faucet, not a HEX faucet. DO NOT wire
+  // these into the ledger (e.g. signalReward: signalFor(d)) without a per-wallet
+  // daily-issuance ceiling + finance sign-off — doing so lights a 250⬡/day faucet
+  // (JOB_DAILY_CAP below) with no global cap. See HEX_ECONOMY_RED_TEAM.md §3-E.
+  JOB_SIGNAL_T1: 5,   // difficulty 1 ⬡ reward (NOT credited — see guard above)
+  JOB_SIGNAL_T2: 12,  // difficulty 2 (NOT credited)
+  JOB_SIGNAL_T3: 25,  // difficulty 3 (NOT credited)
   JOB_XP_T1: 50,
   JOB_XP_T2: 150,
   JOB_XP_T3: 400,
@@ -128,6 +135,18 @@ export const ECONOMY = {
   // Per-wallet ⬡ cap across ALL job completions per UTC day. Bounds whale
   // farming regardless of how many citizens a wallet holds.
   JOB_DAILY_CAP: 250,
+
+  // GLOBAL FARMABLE-FAUCET DAILY CEILING (Build Sequence Prompt 3, two-bucket
+  // design 2026-06-09). Bounds the per-wallet/UTC-day total across the LOW-EFFORT
+  // / repeatable / bot-friendly faucets ONLY: daily+streak claim, sweep, passive
+  // holder tick, defender tick, quests/missions, listing bounty, reply engagement.
+  // EXCLUDED (never counted, never capped): value-backed / liquidity / admin events
+  // — snipe bounty, sale-share, unlock bonus, paid-activation bonus, admin grant,
+  // migration grant, manual correction, refund. Those keep using plain
+  // creditWalletHex; farmable sources call creditWalletHexFarmable, which enforces
+  // this. Set 250 because excluding the big value-backed events means the cap only
+  // has to stop farming, not block real trading (a legit 500⬡ snipe is uncapped).
+  FARMABLE_DAILY_CAP: 250,
 
   // ─── Missions (lib/missions/*) — the SINK side of the loop ───────────
   // Missions are the inverse of jobs: a holder BURNS ⬡ to deploy a citizen

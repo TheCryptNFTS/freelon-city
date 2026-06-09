@@ -166,7 +166,7 @@ export async function runHolderTick(address: string): Promise<TickResult> {
       note: `${daysDue}d × ${balance} citizens (${tier(balance)} ${mult}x${
         civBonusPct ? ` +${civBonusPct}%` : ""
       })`,
-    });
+    }, { farmable: true });
   }
 
   // Active-economy crediters — chained sequentially.

@@ -186,7 +186,7 @@ export async function POST(req: Request) {
       note: burstWinner
         ? `Reply · BURST 2× · +${basePaid} ⬡`
         : `Reply to @4040hex · +${basePaid} ⬡`,
-    });
+    }, { farmable: true });
   } catch {/* non-fatal — record is in, credit can be backfilled */}
 
   return NextResponse.json({

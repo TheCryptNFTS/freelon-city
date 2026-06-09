@@ -11,9 +11,8 @@
 import { CONTRACT } from "@/lib/constants";
 import {
   creditWalletHex,
+  creditWalletHexCapped,
   getWalletHex,
-  setWalletHex,
-  todayUTC,
 } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 
@@ -55,7 +54,7 @@ type SaleEvent = {
   transaction?: string;
   event_timestamp?: number;
   buyer?: string;
-  nft?: { identifier?: string };
+  nft?: { identifier?: string; contract?: string };
 };
 
 export async function processSweepsForWallet(address: string): Promise<{
@@ -100,7 +99,11 @@ export async function processSweepsForWallet(address: string): Promise<{
         if (ts < minTs) continue;
 
         // Verify token is from FREELON contract — accounts endpoint may include other collections
-        // (the path is /events/accounts/{address} not contract-scoped). Filter by tokenId being a valid FREELON id.
+        // (the path is /events/accounts/{address} not contract-scoped). Contract-scope (Prompt 2):
+        // if the row carries a contract and it isn't ours, reject; when absent (the endpoint isn't
+        // consistent) fall back to the tokenId-in-range check (mirrors the snipe path).
+        const evContract = (ev.nft?.contract || "").toLowerCase();
+        if (evContract && evContract !== CONTRACT.toLowerCase()) continue;
         const tid = parseInt(tokenId, 10);
         if (!Number.isFinite(tid) || tid < 1 || tid > 4040) continue;
 
@@ -108,29 +111,25 @@ export async function processSweepsForWallet(address: string): Promise<{
         const isNew = await upstashGetSet(eventKey, 2592000);
         if (!isNew) continue;
 
-        // Check daily cap
-        const rec = await getWalletHex(address);
-        const today = todayUTC();
-        if (rec.sweepsResetDay !== today) {
-          rec.sweepsResetDay = today;
-          rec.sweepsToday = 0;
-          await setWalletHex(rec);
-        }
-        if (rec.sweepsToday >= DAILY_CAP_SWEEPS) continue;
-
-        await creditWalletHex(address, PER_SWEEP, {
-          kind: "sweep",
-          ts,
-          note: `Sweep · +${PER_SWEEP}⬡`,
-        });
-        const after = await getWalletHex(address);
-        after.sweepsToday = (after.sweepsToday || 0) + 1;
-        await setWalletHex(after);
+        // Atomic cap-check + credit + counter increment in ONE wallet lock
+        // (red-team finding B). Concurrent callers can no longer both pass the
+        // cap and double-credit; if the daily cap is already reached this returns
+        // credited:false and we skip. Per-event SET-NX above still prevents
+        // re-crediting the same sale.
+        const { credited: didCredit, rec: after } = await creditWalletHexCapped(
+          address,
+          PER_SWEEP,
+          { kind: "sweep", ts, note: `Sweep · +${PER_SWEEP}⬡` },
+          DAILY_CAP_SWEEPS,
+        );
+        if (!didCredit) continue; // daily cap reached
 
         credited++;
         hexCredited += PER_SWEEP;
 
-        // Streak bonus check (same logic as cron)
+        // Streak bonus check (same logic as cron). Guard with a per-day SET-NX so
+        // two concurrent sweeps that both cross the threshold can't double-pay the
+        // bonus (the in-record `alreadyBonus` read alone is not atomic).
         const recentSweeps = after.events.filter(
           (e) => e.kind === "sweep" && Date.now() - e.ts < STREAK_WINDOW_MS,
         ).length;
@@ -138,13 +137,16 @@ export async function processSweepsForWallet(address: string): Promise<{
           (e) => e.kind === "sweep_streak" && Date.now() - e.ts < STREAK_WINDOW_MS,
         );
         if (recentSweeps >= STREAK_THRESHOLD && !alreadyBonus) {
-          await creditWalletHex(address, STREAK_BONUS, {
-            kind: "sweep_streak",
-            ts,
-            note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${STREAK_BONUS}⬡`,
-          });
-          hexCredited += STREAK_BONUS;
-          bonus = true;
+          const bonusKey = `freelon:sweep:streak:${address.toLowerCase()}:${new Date().toISOString().slice(0, 10)}`;
+          if (await upstashGetSet(bonusKey, 172800)) {
+            await creditWalletHex(address, STREAK_BONUS, {
+              kind: "sweep_streak",
+              ts,
+              note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${STREAK_BONUS}⬡`,
+            });
+            hexCredited += STREAK_BONUS;
+            bonus = true;
+          }
         }
       }
       next = d.next;

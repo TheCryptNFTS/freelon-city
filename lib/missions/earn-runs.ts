@@ -37,7 +37,7 @@ export const EARN_LABEL: Record<EarnReason, string> = {
 export async function awardHex(wallet: string, reason: EarnReason): Promise<{ hex: number; balance: number }> {
   const hex = EARN_HEX[reason];
   const { creditWalletHex } = await import("@/lib/wallet-hex-store");
-  const rec = await creditWalletHex(wallet, hex, { kind: "quest", note: `Earned: ${EARN_LABEL[reason]} (+${hex}⬡)` });
+  const rec = await creditWalletHex(wallet, hex, { kind: "quest", note: `Earned: ${EARN_LABEL[reason]} (+${hex}⬡)` }, { farmable: true });
   return { hex, balance: rec.balance };
 }
 
