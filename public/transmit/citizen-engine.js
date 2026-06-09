@@ -53,9 +53,9 @@
 
   /* doctrine accent (mirrors the card's civ accent so engine + art agree) */
   var DOCTRINE_ACCENT = {
-    "Synthesis":"#5b8cff","Oracle":"#b061ff","Transmission":"#fff1cf",
+    "Synthesis":"#7a6cff","Oracle":"#b061ff","Transmission":"#fff1cf",
     "Corruption":"#ff4632","Growth":"#43d58a","Luxury":"#ff6bb3",
-    "Fracture":"#ff4d4d","Sovereignty":"#f4c658","Void/404":"#d7dee8","Machine":"#cbd5e2",
+    "Fracture":"#ff4d4d","Sovereignty":"#f4c658","Void/404":"#8A5DFF","Machine":"#C9CDD6",
   };
 
   /* ========================================================================
@@ -584,7 +584,7 @@
       out.role = roleFor("freelon", id, traits);
       out.district = district;
       out.doctrine = doctrine;
-      out.accent = DOCTRINE_ACCENT[doctrine] || "#c9a24b";
+      out.accent = DOCTRINE_ACCENT[doctrine] || "#E9C984";
       out.firstSignal = pick(leads, id, 1) + " " + pick(CITY_PIVOTS, id, 5) + " " + pick(FREELON_TAGS, id, 2);
       out.knownFor = FREELON_KNOWN[doctrine] || "Signal Work";
       out.status = statusFor(traits.g);
