@@ -195,9 +195,14 @@
 .starter {
   text-align: left;
   padding: 12px 14px;
-  border: 1px solid var(--line-2);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--surface);
+  /* premium-panel treatment (2026-06-09): top-lit surface gradient + inset
+     highlight + elevation, matching globals .panel-premium. */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 40%),
+    linear-gradient(180deg, var(--surface), #101012);
+  box-shadow: 0 1px 0 rgba(245,242,232,0.05) inset, 0 10px 24px -16px rgba(0,0,0,0.6);
   color: var(--ink);
   cursor: pointer;
   font-size: 13px;
@@ -205,9 +210,15 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 .starter small { color: var(--ink-dim); font-weight: 400; font-size: 11.5px; }
-.starter:hover { border-color: var(--accent, var(--gold)); }
+.starter:hover {
+  border-color: color-mix(in srgb, var(--accent, var(--gold)) 35%, var(--line));
+  transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(245,242,232,0.06) inset, 0 14px 30px -16px rgba(0,0,0,0.66), 0 0 0 1px color-mix(in srgb, var(--accent, var(--gold)) 12%, transparent);
+}
+@media (prefers-reduced-motion: reduce) { .starter { transition: none; } .starter:hover { transform: none; } }
 
 /* LOCKED-state ability preview — "here's the character you're about to switch on".
    Full opacity (not a 45% dead wall), civ-accent left edge, and a small unlock

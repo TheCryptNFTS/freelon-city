@@ -88,7 +88,7 @@ export default async function Citizens() {
           agent rail + PFP guide + browse + footer funnel). Now ~3: hero → browse
           grid → one "Notable citizens" fold (the 1/1s + honoraries + legendaries +
           top-agents, MOVED off the chooser, not deleted) → PFP fold. */}
-      <section className="citizens-hero">
+      <section className="citizens-hero field-glow">
         <span className="kicker">⬡ FREELONS · 4040 TRAINABLE AGENTS</span>
         <h1>Choose a <em>FREELON</em></h1>
         <p className="lead">

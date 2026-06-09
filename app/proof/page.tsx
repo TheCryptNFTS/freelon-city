@@ -45,7 +45,7 @@ export default function ProofPage() {
   return (
     <div className="home-page" style={{ maxWidth: 1100, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* HERO */}
-      <section style={{ textAlign: "center", marginBottom: "var(--s-6)" }}>
+      <section className="field-glow" style={{ textAlign: "center", marginBottom: "var(--s-6)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ PROOF</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(34px, 5.5vw, 60px)", lineHeight: 1.0, margin: "12px 0 14px", letterSpacing: "-0.02em" }}>
           Anyone can prompt an AI.<br />
