@@ -9,6 +9,7 @@ import { CitizenJobsBoard } from "./CitizenJobsBoard";
 import { LevelUpCelebration } from "./LevelUpCelebration";
 import { cityNotice } from "@/lib/city-notice";
 import { proveWallet } from "@/lib/wallet-proof";
+import { resolveCityDestinations, type CityLink } from "@/lib/city-destinations";
 import styles from "./AgentWorkspace.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -70,6 +71,8 @@ type Msg = {
   text?: string;
   imageUrl?: string;
   abilityLabel?: string;
+  /** City-assistant link cards surfaced from the allowlist (navigation/help). */
+  links?: CityLink[];
   error?: boolean;
   ts: number;
 };
@@ -201,6 +204,16 @@ export function AgentWorkspace(props: Props) {
   const sigCache = useRef<Record<string, { signature: string; ts: number }>>({});
   const syncSig = useRef<{ signature: string; ts: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  // Clicking a "what this agent does" starter should DO something visible — it
+  // selects the ability + chat mode, then focuses the composer so the holder
+  // sees the next step (type a brief) instead of a silent no-op. (Discord:
+  // "I click on things and nothing happens.")
+  function pickStarter(abilityId: string) {
+    setMode("chat");
+    setAbilityId(abilityId);
+    setTimeout(() => composerRef.current?.focus({ preventScroll: false }), 40);
+  }
 
   /* ── Load saved threads ──────────────────────────────────────────────── */
   useEffect(() => {
@@ -590,10 +603,13 @@ export function AgentWorkspace(props: Props) {
     setComposer("");
     setSending(true);
     pushMsg(active.id, { id: uid(), role: "user", kind: "text", text: brief, abilityLabel: ab.label, ts: Date.now() }, brief);
+    // City-assistant: if the brief looks navigational/help/lore-shaped, surface
+    // allowlisted link cards under the reply (client-side, no LLM cost).
+    const cityLinks = resolveCityDestinations(brief);
     try {
       const r = await runMission(ab.id, `${tk}: ${brief}`);
       if (r.ok && r.output?.body) {
-        pushMsg(active.id, { id: uid(), role: "agent", kind: "text", text: r.output.body, abilityLabel: ab.label, ts: Date.now() });
+        pushMsg(active.id, { id: uid(), role: "agent", kind: "text", text: r.output.body, abilityLabel: ab.label, links: cityLinks.length ? cityLinks : undefined, ts: Date.now() });
         // Celebrate a level-up: the agent's level went UP after this run.
         if (typeof r.level === "number" && agent && r.level > agent.level) {
           setLevelUp(r.level);
@@ -894,7 +910,7 @@ export function AgentWorkspace(props: Props) {
                   {!slug && <CitizenJobsBoard citizenId={tokenId} />}
                   <div className={styles.starters}>
                     {(agent?.abilities ?? []).slice(0, 4).map((a) => (
-                      <button key={a.id} className={styles.starter} onClick={() => { setMode("chat"); setAbilityId(a.id); }}>
+                      <button key={a.id} className={styles.starter} onClick={() => pickStarter(a.id)}>
                         {a.label}<small>{a.blurb}</small>
                       </button>
                     ))}
@@ -946,7 +962,31 @@ export function AgentWorkspace(props: Props) {
                       })()}
                     </>
                   ) : (
-                    <div className={styles.bubbleText}>{m.text}</div>
+                    <div className={styles.bubbleText}>
+                      {m.text}
+                      {m.links && m.links.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+                          {m.links.map((lk) => {
+                            const href = lk.key === "wallet" ? (address ? `/wallet/${address}` : "/sync") : lk.href;
+                            return (
+                              <Link
+                                key={lk.key}
+                                href={href}
+                                className="panel-premium"
+                                style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", textDecoration: "none", color: "var(--ink)" }}
+                              >
+                                <span aria-hidden style={{ color: "var(--gold)", fontSize: 18, lineHeight: 1 }}>⬡</span>
+                                <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+                                  <span style={{ fontWeight: 700, fontSize: 13 }}>{lk.title}</span>
+                                  <span style={{ fontSize: 11.5, color: "var(--ink-dim)", lineHeight: 1.4 }}>{lk.blurb}</span>
+                                </span>
+                                <span aria-hidden style={{ color: "var(--gold)", fontSize: 16 }}>→</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -1054,11 +1094,12 @@ export function AgentWorkspace(props: Props) {
           ) : mode === "chat" ? (
             <div className={styles.inputRow}>
               <textarea
+                ref={composerRef}
                 className={styles.input}
                 value={composer}
                 onChange={(e) => setComposer(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder={curAbility ? `Brief ${name} — ${curAbility.blurb}` : "Connect your wallet to begin…"}
+                placeholder={curAbility ? `Type here — tell ${name} what to do, then press ↵` : "Connect your wallet to begin…"}
                 rows={1}
                 disabled={sending}
               />
