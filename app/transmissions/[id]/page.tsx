@@ -5,6 +5,7 @@ import { getTransmission, toPublic } from "@/lib/transmissions-store";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { TransmissionCard } from "@/components/TransmissionCard";
 import { tweetTransmission, tweetIntent } from "@/lib/share";
+import { RelayButton } from "./RelayButton";
 
 export const dynamic = "force-dynamic";
 
@@ -73,19 +74,15 @@ export default async function TransmissionDetailPage({
       <section style={{ marginTop: "var(--s-5)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <a
-            className="btn btn-primary"
+          <RelayButton
+            id={t.id}
             href={tweetIntent(tweetTransmission({
               id: t.id,
               caption: t.caption,
               civName: civ?.name ?? t.civ,
               authorHandle: t.authorHandle,
             }))}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span className="ttl">RELAY TO X →</span>
-          </a>
+          />
           <Link className="btn btn-secondary" href="/transmissions">
             <span className="ttl">TRANSMIT YOUR OWN →</span>
           </Link>

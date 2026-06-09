@@ -233,7 +233,7 @@ export function tweetTransmission(input: {
     ``,
     `Signal back ⬢ or boost ↑`,
     `${HASHTAGS}`,
-    `${SITE}/transmissions/${input.id}`,
+    `${SITE}/transmissions/${input.id}?ref=tx-${encodeURIComponent(input.id)}`,
   ].join("\n");
 }
 
