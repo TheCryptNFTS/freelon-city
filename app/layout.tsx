@@ -21,18 +21,20 @@ export const metadata: Metadata = {
     default: "404 — FREELON CITY",
     template: "%s · FREELON CITY",
   },
-  description: "4040 citizens of a Martian civilization built around the missing hex from X. 10 Signal civilizations · 7 castes · 16 sacred shapes.",
+  description: "4040 AI characters you own and train. Each FREELON is an agent that remembers your work — and its whole history travels with the NFT.",
   openGraph: {
     title: "404 — FREELON CITY",
-    description: "4040 citizens. 10 civilizations. 7 castes. 16 sacred shapes. The hex didn't disappear. It moved.",
+    description: "4040 AI characters you own and train. Each FREELON remembers your work, and its history travels with the NFT.",
     type: "website",
-    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
+    // Site-wide default OG → the branded product card (every page without its
+    // own OG inherits this). Was a flat static /og/home.jpg.
+    images: [{ url: "/api/og/universe", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "404 — FREELON CITY",
-    description: "4040 citizens. 10 civilizations. 7 castes. 16 sacred shapes. The hex didn't disappear. It moved.",
-    images: ["/og/home.jpg"],
+    description: "4040 AI characters you own and train. Each FREELON remembers your work, and its history travels with the NFT.",
+    images: ["/api/og/universe"],
   },
 };
 

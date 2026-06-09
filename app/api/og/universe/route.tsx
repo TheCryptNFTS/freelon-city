@@ -3,24 +3,36 @@ import { ImageResponse } from "next/og";
 export const runtime = "edge";
 
 // Shareable OG card — the real front door (every X/Discord/OpenSea link
-// preview).
+// preview). This is the FIRST thing a stranger sees, so it has to read as a
+// premium collectible brand in 10 seconds, not a feature list.
 //
-// 2026-06-08 rebuild: the previous default card sold SCOPE + LORE ("one
-// universe · six collections · one arcade · when the HEX vanished…"). A
-// stranger seeing a link preview can't tell what the PRODUCT is. This card
-// now sells ONE FREELON: a large portrait + the plain-words pitch (own it,
-// train it, it remembers you + keeps a visible work history). Engagement
-// framing only — no resale-premium / value claims.
+// 2026-06-09 brand pass (founder: "seriously up our branding"):
+//   - Killed the off-brand CYAN (#00B8FF) + NAVY (#0A0E27) on the scope card —
+//     the whole system is now the LOCKED palette: gold on warm near-black.
+//   - The wordmark is set in CLASH DISPLAY (the site's display face), vendored
+//     same-origin at /public/fonts and loaded into the edge render — no more
+//     generic system-ui (the #1 "demo template" tell on a card people screenshot).
+//   - Composition: hex-glyph logotype lockup, a masthead hairline, a portrait
+//     vignette that points the eye at the glowing hex face, a two-weight foil
+//     seam, and a mono provenance stamp.
 //
-// The old scope card is preserved as a still-callable variant at
-// `?v=universe` (it names the six collections; useful where the SCOPE is the
-// point). Default (homepage / shares) renders the FREELON product card.
+// DEFAULT (homepage / shares) = the product card: ONE large FREELON portrait +
+// the plain-words pitch. The six-collection SCOPE card is gated at `?v=universe`.
 //
-// Art is mirrored locally under /public/og/art (PNG, same-origin) so the edge
-// render stays fast + reliable and never depends on a remote CDN fetch.
+// Art + font are mirrored locally under /public (same-origin) so the edge render
+// stays fast + reliable and never depends on a remote CDN fetch.
+
+const BG = "#0B0B0D";
+const SURFACE = "#141417";
+const INK = "#F5F2E8";
+const INK_FADE = "rgba(245,242,232,0.42)";
+const LINE_2 = "rgba(245,242,232,0.16)";
+const GOLD = "#C8A75D";
+const GOLD_BRIGHT = "#E9C984";
+const GOLD_DEEP = "#8A7A40";
 
 const PIECES: { name: string; tag: string; color: string; img: string }[] = [
-  { name: "Freelons", tag: "4040 CITIZENS", color: "#C8A75D", img: "/og/art/freelons.png" },
+  { name: "Freelons", tag: "4040 CITIZENS", color: GOLD, img: "/og/art/freelons.png" },
   { name: "The Crypt", tag: "DEAD SIGNALS", color: "#4CFF7A", img: "/og/art/crypt.png" },
   { name: "Crypt TCG", tag: "TEN GODS", color: "#FF6A3D", img: "/og/art/combat.png" },
   { name: "OOGIES", tag: "ANCIENT SPECIES", color: "#B85CFF", img: "/og/art/oogies.png" },
@@ -29,7 +41,7 @@ const PIECES: { name: string; tag: string; color: string; img: string }[] = [
 ];
 
 // ── DEFAULT: product-first FREELON card ──────────────────────────────────
-function FreelonCard(src: (p: string) => string) {
+function FreelonCard(src: (p: string) => string, display: string) {
   return (
     <div
       style={{
@@ -37,13 +49,13 @@ function FreelonCard(src: (p: string) => string) {
         height: "630px",
         display: "flex",
         flexDirection: "row",
-        background: "#0B0B0D",
-        color: "#F5F2E8",
+        background: BG,
+        color: INK,
         fontFamily: "system-ui, sans-serif",
         position: "relative",
       }}
     >
-      {/* faint gold glow, top-right */}
+      {/* faint gold glow, top-right (was off-brand cyan elsewhere) */}
       <div
         style={{
           position: "absolute",
@@ -52,22 +64,13 @@ function FreelonCard(src: (p: string) => string) {
           width: 620,
           height: 620,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(200,167,93,0.16) 0%, rgba(200,167,93,0) 70%)",
+          background: "radial-gradient(circle, rgba(233,201,132,0.16) 0%, rgba(233,201,132,0) 70%)",
           display: "flex",
         }}
       />
 
       {/* LEFT — one large FREELON portrait */}
-      <div
-        style={{
-          width: 560,
-          height: "630px",
-          display: "flex",
-          position: "relative",
-          borderRight: "1px solid rgba(200,167,93,0.28)",
-        }}
-      >
+      <div style={{ width: 560, height: "630px", display: "flex", position: "relative" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src("/og/art/freelons.png")}
@@ -76,21 +79,36 @@ function FreelonCard(src: (p: string) => string) {
           alt=""
           style={{ width: "560px", height: "630px", objectFit: "cover" }}
         />
+        {/* vignette — darkens corners so the glowing hex face is the brightest
+            point and the eye lands there at thumbnail size */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "radial-gradient(circle at 38% 42%, rgba(11,11,13,0) 52%, rgba(11,11,13,0.62) 100%)",
+            display: "flex",
+          }}
+        />
         {/* gentle fade into the panel so the seam reads intentional */}
         <div
           style={{
             position: "absolute",
             top: 0,
             right: 0,
-            width: 160,
+            width: 170,
             height: "630px",
-            background: "linear-gradient(90deg, rgba(11,11,13,0) 0%, rgba(11,11,13,0.92) 100%)",
+            background: "linear-gradient(90deg, rgba(11,11,13,0) 0%, rgba(11,11,13,0.94) 100%)",
             display: "flex",
           }}
         />
       </div>
 
-      {/* RIGHT — kicker · title · subline */}
+      {/* two-weight FOIL seam — a thin bright gold line + a heavier gold-deep
+          line, so the divide reads printed/foil-stamped, not a CSS border */}
+      <div style={{ position: "absolute", left: 560, top: 0, width: 1, height: "630px", background: GOLD, display: "flex" }} />
+      <div style={{ position: "absolute", left: 566, top: 0, width: 2, height: "630px", background: GOLD_DEEP, display: "flex" }} />
+
+      {/* RIGHT — kicker · wordmark lockup · subline */}
       <div
         style={{
           flex: 1,
@@ -98,53 +116,90 @@ function FreelonCard(src: (p: string) => string) {
           flexDirection: "column",
           justifyContent: "center",
           padding: "0 64px",
-          gap: 22,
+          gap: 20,
+          position: "relative",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            fontSize: 24,
-            fontWeight: 700,
-            letterSpacing: "0.22em",
-            color: "#E9C984",
-            textTransform: "uppercase",
-          }}
-        >
-          ⬡ An AI character you own
+        {/* masthead: kicker + a hairline rule under it = a label becomes a masthead */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div
+            style={{
+              fontSize: 23,
+              fontWeight: 700,
+              letterSpacing: "0.24em",
+              color: GOLD_BRIGHT,
+              textTransform: "uppercase",
+              display: "flex",
+            }}
+          >
+            AN AI CHARACTER YOU OWN
+          </div>
+          <div style={{ width: 92, height: 1, background: GOLD, display: "flex" }} />
         </div>
-        <div
-          style={{
-            fontSize: 124,
-            fontWeight: 800,
-            lineHeight: 0.9,
-            letterSpacing: "-0.03em",
-            color: "#F5F2E8",
-            display: "flex",
-          }}
-        >
-          FREELONS
+
+        {/* wordmark lockup: the real brand hex mark as a hanging initial +
+            FREELONS in Clash Display. (A literal ⬡ glyph tofu's in satori — no
+            font carries it — so we use the actual logo PNG, same-origin.) Sized
+            to fit the right panel (≈512px usable) without clipping. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src("/logo.png")}
+            width="74"
+            height="74"
+            alt=""
+            style={{ width: "74px", height: "74px", display: "flex" }}
+          />
+          <div
+            style={{
+              fontFamily: display,
+              fontSize: 86,
+              fontWeight: 700,
+              lineHeight: 0.86,
+              letterSpacing: "-0.035em",
+              color: INK,
+              display: "flex",
+            }}
+          >
+            FREELONS
+          </div>
         </div>
+
         <div
           style={{
-            fontSize: 32,
+            fontSize: 31,
             lineHeight: 1.32,
-            color: "#C8A75D",
+            color: GOLD,
             letterSpacing: "0.01em",
             display: "flex",
-            maxWidth: 520,
+            maxWidth: 510,
           }}
         >
-          Own it. Train it. It remembers you — and keeps a visible work history.
+          Own it. Train it. It remembers your work — and its history travels with the NFT.
+        </div>
+
+        {/* provenance stamp — bottom-anchored mono, collector feel */}
+        <div
+          style={{
+            position: "absolute",
+            left: 64,
+            bottom: 44,
+            fontSize: 16,
+            letterSpacing: "0.18em",
+            color: INK_FADE,
+            textTransform: "uppercase",
+            display: "flex",
+          }}
+        >
+          FREELON CITY · 4040 · ETHEREUM
         </div>
       </div>
     </div>
   );
 }
 
-// ── VARIANT (?v=universe): the original scope/contact-sheet card ─────────
-function UniverseCard(src: (p: string) => string) {
+// ── VARIANT (?v=universe): the six-collection scope/contact-sheet card ────
+function UniverseCard(src: (p: string) => string, display: string) {
   return (
     <div
       style={{
@@ -153,14 +208,14 @@ function UniverseCard(src: (p: string) => string) {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        background: "#0A0E27",
-        color: "#F5F2E8",
+        background: BG,
+        color: INK,
         fontFamily: "system-ui, sans-serif",
         padding: "54px 56px",
         position: "relative",
       }}
     >
-      {/* faint hex glow top-right */}
+      {/* faint gold glow top-right (was off-brand cyan) */}
       <div
         style={{
           position: "absolute",
@@ -169,46 +224,41 @@ function UniverseCard(src: (p: string) => string) {
           width: 600,
           height: 600,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(0,184,255,0.18) 0%, rgba(0,184,255,0) 70%)",
+          background: "radial-gradient(circle, rgba(233,201,132,0.16) 0%, rgba(233,201,132,0) 70%)",
           display: "flex",
         }}
       />
 
       {/* headline block */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            fontSize: 22,
-            letterSpacing: "0.24em",
-            color: "#00B8FF",
-            textTransform: "uppercase",
-          }}
-        >
-          One universe · six collections · one arcade
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div
+            style={{
+              fontSize: 22,
+              letterSpacing: "0.26em",
+              color: GOLD_BRIGHT,
+              textTransform: "uppercase",
+              display: "flex",
+            }}
+          >
+            One universe · six collections · one arcade
+          </div>
+          <div style={{ width: 92, height: 1, background: GOLD, display: "flex" }} />
         </div>
         <div
           style={{
-            fontSize: 96,
-            fontWeight: 800,
-            lineHeight: 0.92,
+            fontFamily: display,
+            fontSize: 100,
+            fontWeight: 700,
+            lineHeight: 0.9,
             letterSpacing: "-0.03em",
-            color: "#F5F2E8",
+            color: INK,
             display: "flex",
           }}
         >
           FREELON CITY
         </div>
-        <div
-          style={{
-            fontSize: 28,
-            color: "#C8A75D",
-            letterSpacing: "0.02em",
-            display: "flex",
-          }}
-        >
+        <div style={{ fontSize: 28, color: GOLD, letterSpacing: "0.02em", display: "flex" }}>
           When the HEX vanished, a city formed around the signal.
         </div>
       </div>
@@ -225,11 +275,10 @@ function UniverseCard(src: (p: string) => string) {
               height: 250,
               borderRadius: 10,
               overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "#11152E",
+              border: `1px solid ${LINE_2}`,
+              background: SURFACE,
             }}
           >
-            {/* real on-chain record */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src(p.img)}
@@ -248,15 +297,7 @@ function UniverseCard(src: (p: string) => string) {
                 flex: 1,
               }}
             >
-              <span
-                style={{
-                  fontSize: 17,
-                  fontWeight: 700,
-                  color: "#F5F2E8",
-                  lineHeight: 1.0,
-                  display: "flex",
-                }}
-              >
+              <span style={{ fontSize: 17, fontWeight: 700, color: INK, lineHeight: 1.0, display: "flex" }}>
                 {p.name}
               </span>
               <span
@@ -278,15 +319,29 @@ function UniverseCard(src: (p: string) => string) {
   );
 }
 
-export function GET(req: Request) {
+export async function GET(req: Request) {
   const src = (p: string) => new URL(p, req.url).toString();
   const variant = new URL(req.url).searchParams.get("v");
 
+  // Load the site display face (Clash Display) same-origin so the wordmark is
+  // on-brand, not system-ui. Fail-soft: if the fetch hiccups, fall back to the
+  // sans stack (the card still renders, just less premium) rather than 500.
+  let fonts: { name: string; data: ArrayBuffer; weight: 700; style: "normal" }[] | undefined;
+  let display = "system-ui, sans-serif";
+  try {
+    const fontData = await fetch(src("/fonts/ClashDisplay-Bold.ttf")).then((r) => r.arrayBuffer());
+    fonts = [{ name: "Clash Display", data: fontData, weight: 700, style: "normal" }];
+    display = "Clash Display";
+  } catch {
+    /* fall back to system-ui */
+  }
+
   return new ImageResponse(
-    variant === "universe" ? UniverseCard(src) : FreelonCard(src),
+    variant === "universe" ? UniverseCard(src, display) : FreelonCard(src, display),
     {
       width: 1200,
       height: 630,
+      ...(fonts ? { fonts } : {}),
       headers: {
         // Static composition — cache hard so social platforms hit the CDN
         // cache instead of re-rendering (re-renders are what make cards
