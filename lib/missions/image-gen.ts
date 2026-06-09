@@ -169,6 +169,34 @@ export const SCENES: Record<string, { label: string; desc: string }> = {
     label: "Victory",
     desc: "raised above a roaring crowd of citizens under banners and drifting embers, triumphant, hero-lit from below",
   },
+  // ── TRANSMISSION POSTER LOOKS (2026-06-09, from POSTER_LOOK_BANK.md) ──────────
+  // Same allowlist mechanism + flat deploy-citizen cost — these just widen the
+  // cinematic variety so the render becomes shareable "city media", not one look.
+  // Aesthetics intentionally varied (the marketing lane is NOT the strict canon).
+  "rain-neon-district": {
+    label: "Neon District",
+    desc: "on a rain-slick neon megacity street at night, reflections in wet stone, volumetric haze, distant signage glow raking across the figure, cinematic Blade Runner mood",
+  },
+  "storm-monolith": {
+    label: "Storm Monolith",
+    desc: "tiny and monumental before a colossal brutalist monolith under violent storm light, lightning-lit clouds, Dune-scale awe, cloth caught in the wind",
+  },
+  "eclipse-ring": {
+    label: "Black Eclipse",
+    desc: "silhouetted in the burning gold corona of a total black-sun eclipse over a dead city skyline, awe and dread, rim-lit edges",
+  },
+  "frozen-vault": {
+    label: "Frozen Vault",
+    desc: "inside an ice-locked archive vault, frost on gold seams, breath-fog in cold blue light, a single thawing signal-record glowing nearby",
+  },
+  "aurora-wastes": {
+    label: "Aurora Wastes",
+    desc: "alone on a cracked salt-flat under a vast aurora of gold and violet signal-light, cosmic loneliness, lone monumental figure, distant ruins",
+  },
+  "noir-spotlight": {
+    label: "Noir File",
+    desc: "under a single hard film-noir spotlight in deep shadow, drifting smoke, venetian-blind light bars across the figure, classified-record tension",
+  },
 };
 
 export function isValidScene(key: string): boolean {
