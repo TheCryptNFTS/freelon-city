@@ -1117,12 +1117,13 @@ export function AgentWorkspace(props: Props) {
               {textWork.slice(0, 12).map((w) => (
                 <li key={w.id}>
                   <span className={styles.workAbility}>{w.abilityLabel || w.ability}</span>
-                  {/* Raw saved body is the owner's memory — never surfaced to
-                      non-owners (can carry hype/test/private content). Public
-                      sees the ability label only: proof of work, not the text.
-                      NOTE: the /api/citizens/[id]/agent endpoint still returns
-                      body publicly — this is a UI clarity gate, not privacy. */}
-                  {landing?.isOwner && <span className={styles.workBody}>{w.body.slice(0, 90)}</span>}
+                  {/* Raw saved body is the owner's memory. The PUBLIC agent API
+                      strips text `body` (Prompt 9), so non-owners — and the owner
+                      before the /history/full overlay loads — have NO body here.
+                      Guard with optional chaining: `w.body` can be undefined, and
+                      calling .slice on it crashed the whole workspace (the "SIGNAL
+                      HAS FAULTED" boundary). Only render when body is present. */}
+                  {landing?.isOwner && w.body && <span className={styles.workBody}>{w.body.slice(0, 90)}</span>}
                 </li>
               ))}
             </ul>
