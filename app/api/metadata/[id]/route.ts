@@ -66,21 +66,30 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const suffix = process.env.BASE_TOKEN_URI_SUFFIX ?? "";
   const origin = `${base.replace(/\/+$/, "")}/${tokenId}${suffix}`;
 
-  // 1) Fetch the ORIGINAL metadata (the source of truth). Timeout-guarded.
-  let original: Metadata;
-  try {
-    const c = new AbortController();
-    const t = setTimeout(() => c.abort(), 12_000);
-    const res = await fetch(origin, { signal: c.signal, cache: "no-store" }).finally(() => clearTimeout(t));
-    if (!res.ok) return fail503(`origin_${res.status}`);
-    original = (await res.json()) as Metadata;
-  } catch {
-    return fail503("origin_fetch_failed");
+  // 1) Fetch the ORIGINAL metadata (the source of truth). Timeout-guarded, with
+  //    a short retry: the origin is an IPFS gateway, which transiently blips —
+  //    and once baseURI points here, a single blip would 503 a token's metadata
+  //    to OpenSea (blank art) with no client-side retry on the marketplace. Two
+  //    quick tries turn most blips into a clean 200; still fails SAFE (503, never
+  //    a broken body) if both fail.
+  let original: Metadata | null = null;
+  let lastReason = "origin_fetch_failed";
+  for (let attempt = 0; attempt < 2 && !original; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 500));
+    try {
+      const c = new AbortController();
+      const t = setTimeout(() => c.abort(), 12_000);
+      const res = await fetch(origin, { signal: c.signal, cache: "no-store" }).finally(() => clearTimeout(t));
+      if (!res.ok) { lastReason = `origin_${res.status}`; continue; }
+      const parsed = (await res.json()) as Metadata;
+      // Guard against a non-object / empty body that would blank a token.
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) { lastReason = "origin_not_object"; continue; }
+      original = parsed;
+    } catch {
+      lastReason = "origin_fetch_failed";
+    }
   }
-  // Guard against a non-object / empty body that would blank a token.
-  if (!original || typeof original !== "object" || Array.isArray(original)) {
-    return fail503("origin_not_object");
-  }
+  if (!original) return fail503(lastReason);
 
   // 2) Read evolution state. On ANY store error this returns the empty record
   //    (evolved:false), so a store outage fails SAFE to the original art.

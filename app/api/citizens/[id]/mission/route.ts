@@ -350,6 +350,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     // OPS: record the crash so failures are visible, not silent.
     import("@/lib/missions/ops-log").then((m) => m.recordError(`resolve:${mission.id}`, e, { tokenId: cid, wallet })).catch(() => {});
   }
+  // CHARGE-WITHOUT-DELIVERY GUARD: a run that reports ok:true but produced no
+  // body delivered nothing to the holder — treat it as a failure so it flows
+  // into the refund path below. The SERVER decides charge-vs-refund here; never
+  // leave it to client-side meta-matching (which could show an error while the
+  // ⬡ is already spent). Belt-and-suspenders — no resolver does this today.
+  if (output.ok && (typeof output.body !== "string" || output.body.trim() === "")) {
+    import("@/lib/missions/ops-log").then((m) => m.recordError(`empty_output:${mission.id}`, new Error("ok:true with empty body"), { tokenId: cid, wallet })).catch(() => {});
+    output = { ok: false, title: "Mission failed", body: "", error: "empty_output" };
+  }
   // OPS: record real LLM token spend (best-effort) so cost is observable.
   if (output.ok) {
     const pt = typeof output.meta?.promptTokens === "number" ? output.meta.promptTokens : 0;
