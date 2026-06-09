@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { FramedAgent } from "@/components/FramedAgent";
 import { ClaimForm } from "@/components/ClaimForm";
 import { trackEvent } from "@/lib/track";
+import { tweetIntent, tweetDemoReply } from "@/lib/share";
 
 export type DemoAgent = {
   slug: string;
@@ -323,6 +324,40 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                 train it, and the whole history travels with the NFT. Want one? Leave your email and we&apos;ll
                 get you set up.
               </p>
+              {/* SHARE THE MOMENT — the demo's "wow, it's alive" reply turned into
+                  a one-tap brag (the highest-frequency viral surface on the site).
+                  Quotes the agent's own line via tweet-intent. Shown only when the
+                  user actually got an agent reply to share. */}
+              {(() => {
+                const lastReply = [...(threads[agent.slug] ?? [])]
+                  .reverse()
+                  .find((m) => m.role === "agent")?.text;
+                if (!lastReply) return null;
+                return (
+                  <a
+                    href={tweetIntent(tweetDemoReply({ agentName: agent.name, reply: lastReply }))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackEvent("demo_share", { slug: agent.slug })}
+                    style={{
+                      display: "inline-block",
+                      marginBottom: 16,
+                      fontFamily: "var(--mono2)",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--bg)",
+                      background: "var(--gold)",
+                      borderRadius: 10,
+                      padding: "11px 20px",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Share what it said →
+                  </a>
+                );
+              })()}
               {/* On-site reservation (replaces the old invisible OpenSea hand-off,
                   where conversion died and we learned nothing). Non-binding. */}
               <ClaimForm slug={agent.slug} accent="var(--gold)" />

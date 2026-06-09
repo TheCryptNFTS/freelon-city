@@ -458,6 +458,25 @@ export function tweetHexMatch(input: {
 }
 
 /**
+ * Demo reply share — the /demo "wow, it's alive" moment turned into a one-tap
+ * brag. Quotes the agent's OWN line (the hook), then a copy-safe recruitment
+ * close + the /demo funnel. Tag-first so X doesn't suppress it; the quoted line
+ * is the agent's words, never a value/return claim.
+ */
+export function tweetDemoReply(input: { agentName: string; reply: string }): string {
+  const line = input.reply.replace(/\s+/g, " ").trim().slice(0, 180);
+  return [
+    `⬡ ${HANDLE} · I asked ${input.agentName} and it said:`,
+    ``,
+    `"${line}"`,
+    ``,
+    `Every citizen of FREELON CITY is an AI character you can talk to. Meet one free:`,
+    `${HASHTAGS}`,
+    `${SITE}/demo`,
+  ].join("\n");
+}
+
+/**
  * Generic share — used by the ShareOG component.
  */
 export function tweetGeneric(text: string, pageUrl: string): string {
