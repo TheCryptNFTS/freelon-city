@@ -9,13 +9,17 @@ import { getAgentHistory } from "@/lib/agent-history";
 export const runtime = "nodejs";
 
 /**
- * CITIZEN RÉSUMÉ CARD — the weekly "look what my citizen has become" status flex
- * (City Creation MVP, piece #3, the cheapest/highest-flex-per-effort surface:
- * pure OG render from data that ALREADY exists, no generation cost, no new HEX
- * faucet). Mirrors /api/og/agent/[id]: portrait left, status right. Restrained
- * dark + civ-accent signature look (the official-archive lane — see
- * POSTER_LOOK_BANK.md A1). Public proof only — no raw work body (per
- * HISTORY_VISIBILITY_POLICY): records COUNT, not contents.
+ * CITIZEN RÉSUMÉ CARD — "Cinematic Poster Record" (RESUME_CARD_REDESIGN.md, Direction C).
+ *
+ * A social FLEX OBJECT, not a web component. v1 was a left-image/right-stats dashboard
+ * panel (rejected: clean but no desire-to-post). This is cinematic key-art: full-bleed
+ * portrait + a bottom gradient scrim + a HUGE title + status STAMP-CHIPS — the 1-second
+ * scroll-stopper. Built from data that already exists (no generation cost, no HEX faucet),
+ * public-proof only (records COUNT, not contents — per HISTORY_VISIBILITY_POLICY).
+ *
+ * Satori note: no special-glyph fonts → the hex mark is drawn as inline <svg>, never a
+ * text glyph (v1 hit ⬡ tofu). Text-over-image via absolute positioning + a scrim for
+ * legibility (the v1 mistake was splitting image and text into two dead zones).
  */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -26,7 +30,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const color = civilizationColor(c.civilization);
   const civ = (CIVILIZATIONS as Record<string, { name: string }>)[c.civilization];
   const id4 = tid.toString().padStart(4, "0");
-  const name = c.transmission_name || c.honoree || `Citizen #${id4}`;
 
   const [progress, rank, history] = await Promise.all([
     getProgress(tid).catch(() => null),
@@ -34,60 +37,80 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     getAgentHistory(tid).catch(() => []),
   ]);
   const spec = progress ? deriveSpec(progress) : null;
-  const level = progress?.level ?? 1;
-  const className = spec && spec.cls !== "drifter" ? spec.className : "Untrained";
+  const className = (spec && spec.cls !== "drifter" ? spec.className : "Citizen").toUpperCase();
   const records = history.length;
-  const rankText = typeof rank === "number" ? `#${rank}` : "—";
+  const rankText = typeof rank === "number" ? `#${rank}` : "UNRANKED";
+  const civName = (civ?.name ?? c.civilization).toUpperCase();
 
-  const stat = (label: string, value: string) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={{ fontFamily: "monospace", fontSize: 16, letterSpacing: 3, color: "#6a6658" }}>
-        {label}
-      </span>
-      <span style={{ fontSize: 40, fontWeight: 800, color: "#e6e1d2", lineHeight: 1 }}>{value}</span>
+  // Status STAMP-CHIP — bordered, civ-accent left edge. Status, not an admin label.
+  const chip = (text: string) => (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        height: 52,
+        padding: "0 22px 0 18px",
+        borderLeft: `4px solid ${color}`,
+        border: "1px solid rgba(245,242,232,0.18)",
+        borderLeftWidth: 4,
+        background: "rgba(10,12,18,0.72)",
+        fontFamily: "monospace",
+        fontSize: 26,
+        fontWeight: 700,
+        letterSpacing: 2,
+        color: "#f3efe4",
+      }}
+    >
+      {text}
     </div>
   );
 
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: "1200px",
-          height: "630px",
-          display: "flex",
-          background: "#0a0c12",
-          color: "#e6e1d2",
-          fontFamily: "system-ui, sans-serif",
-        }}
-      >
-        {/* Left: portrait */}
-        <div style={{ width: "440px", height: "630px", background: "#000", display: "flex", borderRight: `3px solid ${color}` }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl(tid)} alt={name} width={440} height={630} style={{ objectFit: "cover" }} />
+      <div style={{ width: "1200px", height: "630px", display: "flex", position: "relative", background: "#0a0c12" }}>
+        {/* Full-bleed portrait (cinematic, fills the frame) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl(tid)}
+          alt=""
+          width={1200}
+          height={630}
+          style={{ position: "absolute", top: 0, left: 0, width: "1200px", height: "630px", objectFit: "cover" }}
+        />
+
+        {/* Civ-accent vignette frame */}
+        <div style={{ position: "absolute", top: 0, left: 0, width: "1200px", height: "630px", border: `2px solid ${color}`, boxShadow: `inset 0 0 180px 40px rgba(10,12,18,0.85)` }} />
+
+        {/* Bottom gradient scrim so the title reads over the art */}
+        <div style={{ position: "absolute", left: 0, bottom: 0, width: "1200px", height: "430px", background: "linear-gradient(180deg, rgba(10,12,18,0) 0%, rgba(10,12,18,0.55) 45%, rgba(10,12,18,0.96) 100%)", display: "flex" }} />
+
+        {/* Top-left record stamp (hex drawn as SVG — no tofu) */}
+        <div style={{ position: "absolute", top: 40, left: 44, display: "flex", alignItems: "center", gap: 12 }}>
+          <svg width="22" height="24" viewBox="0 0 22 24" style={{ display: "block" }}>
+            <polygon points="11,1 21,6.5 21,17.5 11,23 1,17.5 1,6.5" fill="none" stroke={color} strokeWidth="2" />
+          </svg>
+          <span style={{ fontFamily: "monospace", fontSize: 20, letterSpacing: 6, color: "rgba(243,239,228,0.9)" }}>
+            FREELON CITY ARCHIVE
+          </span>
+        </div>
+        {/* Top-right serial */}
+        <div style={{ position: "absolute", top: 44, right: 46, display: "flex", fontFamily: "monospace", fontSize: 18, letterSpacing: 4, color: "rgba(243,239,228,0.6)" }}>
+          RECORD · {id4}
         </div>
 
-        {/* Right: the résumé */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "48px 52px", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontFamily: "monospace", fontSize: 20, letterSpacing: 4, color }}>
-              CITY ARCHIVE · RÉSUMÉ · #{id4}
-            </span>
-            <span style={{ fontSize: 50, fontWeight: 800, marginTop: 16, lineHeight: 1.05 }}>{name}</span>
-            <span style={{ fontFamily: "monospace", fontSize: 22, letterSpacing: 2, color, marginTop: 10 }}>
-              LV {level} · {className.toUpperCase()}
-            </span>
-          </div>
-
-          {/* Stat row — proof of work (counts, not contents) */}
-          <div style={{ display: "flex", gap: 56, marginTop: 8 }}>
-            {stat("RECORDS LOGGED", String(records))}
-            {stat("RANK", rankText)}
-            {stat("CLASS", className)}
-          </div>
-
-          <span style={{ fontFamily: "monospace", fontSize: 18, letterSpacing: 2, color: "#6a6658" }}>
-            {civ?.name?.toUpperCase()} · freeloncity.com
+        {/* Bottom-left content block over the scrim */}
+        <div style={{ position: "absolute", left: 48, bottom: 44, right: 48, display: "flex", flexDirection: "column" }}>
+          <span style={{ fontSize: 92, fontWeight: 800, lineHeight: 0.95, color: "#f7f3e8", letterSpacing: -1 }}>
+            CITIZEN #{id4}
           </span>
+          <span style={{ marginTop: 12, fontFamily: "monospace", fontSize: 30, letterSpacing: 3, color, fontWeight: 700 }}>
+            {civName} · {className}
+          </span>
+          <div style={{ display: "flex", gap: 16, marginTop: 24 }}>
+            {chip(`${records} RECORDS SEALED`)}
+            {chip(`RANK ${rankText}`)}
+            {chip("STATUS: ACTIVE")}
+          </div>
         </div>
       </div>
     ),
