@@ -38,6 +38,7 @@ export default async function AgentWorkspacePage({ params }: { params: Promise<{
       art={imageUrl(tid)}
       tier={c.tier}
       civName={civ?.name ?? c.civilization}
+      civSlug={c.civilization}
       doctrine={c.doctrine}
       color={color}
       headline={identity?.headline ?? null}

@@ -8,6 +8,7 @@ import { AgentPowers } from "./AgentPowers";
 import { CitizenJobsBoard } from "./CitizenJobsBoard";
 import { LevelUpCelebration } from "./LevelUpCelebration";
 import { cityNotice } from "@/lib/city-notice";
+import { proveWallet } from "@/lib/wallet-proof";
 import styles from "./AgentWorkspace.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -95,6 +96,10 @@ type Props = {
   art: string;
   tier: string;
   civName: string;
+  /** Civilization SLUG (e.g. "red-corruption") — needed to publish a render to
+   *  the City Archive (POST /api/transmissions validates against civ slugs).
+   *  FREELONS only; sisters have no city civ. */
+  civSlug?: string;
   doctrine: string;
   color: string;
   headline: string | null;
@@ -123,7 +128,7 @@ function mergeThreads(a: Thread[], b: Thread[]): Thread[] {
 }
 
 export function AgentWorkspace(props: Props) {
-  const { tokenId, name, art, tier, civName, color } = props;
+  const { tokenId, name, art, tier, civName, civSlug, color } = props;
   const id4 = String(tokenId).padStart(4, "0");
   // Sister collections (any agentic slug ≠ freelons) are served by a separate,
   // shape-compatible endpoint and namespace their local threads by slug so they
@@ -149,6 +154,13 @@ export function AgentWorkspace(props: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  // CITY CREATION LOOP (Prompt step 1): publish a just-rendered image to the City
+  // Archive (/transmissions). Reuses the existing POST /api/transmissions (which
+  // walletProof-gates + burns the existing submission cost). FREELONS only (needs
+  // a civ slug; sisters have no city civ). Flag-gated via NEXT_PUBLIC_CREATE_PUBLISH_LIVE.
+  const publishLive = process.env.NEXT_PUBLIC_CREATE_PUBLISH_LIVE !== "false";
+  const canPublish = publishLive && !slug && !!civSlug;
+  const [publishState, setPublishState] = useState<Record<string, "idle" | "busy" | "done" | "error">>({});
   const [syncState, setSyncState] = useState<"off" | "syncing" | "on" | "error">("off");
   // Which Agent Power is open in the lobby. Lifted here so the always-visible
   // info-pane entry can deep-link to a specific power (returning to the lobby).
@@ -424,6 +436,38 @@ export function AgentWorkspace(props: Props) {
     const signature = (await e.request({ method: "personal_sign", params: [message, address] })) as string;
     sigCache.current[missionId] = { signature, ts };
     return { address, signature, ts };
+  }
+
+  /* ── Publish a rendered image to the City Archive (the creation loop) ──── */
+  // Reuses POST /api/transmissions (walletProof-gated, burns the existing
+  // submission cost). On 401 wallet_proof_required → proveWallet + retry, the
+  // same pattern TransmissionSubmit uses. FREELONS only (needs civSlug).
+  async function publishToArchive(imageUrl: string) {
+    if (!canPublish || !civSlug) return;
+    if (!address) { connect(); return; }
+    setPublishState((s) => ({ ...s, [imageUrl]: "busy" }));
+    const caption = `${name} · transmitted from FREELON CITY`;
+    const doPost = () =>
+      fetch("/api/transmissions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ addr: address, civ: civSlug, caption, imageUrl }),
+      });
+    try {
+      let res = await doPost();
+      let j = await res.json().catch(() => ({}));
+      if (res.status === 401 && j?.error === "wallet_proof_required") {
+        const proof = await proveWallet(address);
+        if (!proof.ok) { setPublishState((s) => ({ ...s, [imageUrl]: "error" })); return; }
+        res = await doPost();
+        j = await res.json().catch(() => ({}));
+      }
+      if (!res.ok) { setPublishState((s) => ({ ...s, [imageUrl]: "error" })); return; }
+      setPublishState((s) => ({ ...s, [imageUrl]: "done" }));
+      cityNotice({ title: "Posted to the City Archive", body: "Your transmission is live on the wall.", delta: "⬡ ARCHIVE" });
+    } catch {
+      setPublishState((s) => ({ ...s, [imageUrl]: "error" }));
+    }
   }
 
   /* ── Run a mission (text or image), with auth retry ──────────────────── */
@@ -849,7 +893,24 @@ export function AgentWorkspace(props: Props) {
                 <div className={`${styles.bubble} ${m.error ? styles.errorBubble : ""}`}>
                   {m.abilityLabel && m.role === "agent" && <div className={styles.bubbleTag}>{m.abilityLabel}</div>}
                   {m.kind === "image" && m.imageUrl ? (
-                    <img src={m.imageUrl} alt={m.abilityLabel || "render"} className={styles.bubbleImg} onClick={() => setLightbox(m.imageUrl!)} />
+                    <>
+                      <img src={m.imageUrl} alt={m.abilityLabel || "render"} className={styles.bubbleImg} onClick={() => setLightbox(m.imageUrl!)} />
+                      {/* Creation loop: publish this render to the City Archive */}
+                      {canPublish && m.role === "agent" && (() => {
+                        const st = publishState[m.imageUrl!] ?? "idle";
+                        return (
+                          <button
+                            type="button"
+                            className={styles.bubbleTag}
+                            style={{ marginTop: 8, cursor: st === "done" ? "default" : "pointer", border: `1px solid ${color}`, background: "transparent", color: st === "done" ? "var(--ink-dim)" : color }}
+                            disabled={st === "busy" || st === "done"}
+                            onClick={() => publishToArchive(m.imageUrl!)}
+                          >
+                            {st === "busy" ? "Posting…" : st === "done" ? "✓ In the City Archive" : st === "error" ? "Retry · Post to Archive" : "Post to City Archive →"}
+                          </button>
+                        );
+                      })()}
+                    </>
                   ) : (
                     <div className={styles.bubbleText}>{m.text}</div>
                   )}
