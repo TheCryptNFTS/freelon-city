@@ -19,6 +19,7 @@ import { EvolvePanel } from "@/components/EvolvePanel";
 import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
 import { getArtifacts } from "@/lib/city-week";
+import { DispatchPanel } from "@/components/DispatchPanel";
 import { getRankByLevel } from "@/lib/progression-store";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
 import { getName } from "@/lib/name-store";
@@ -289,6 +290,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <EvolvePanel citizenId={tid} />
             <CitizenResume tokenId={tid} />
             <CitizenProgressPanel tokenId={tid} />
+            <DispatchPanel citizenId={tid} name={customName?.name || c.transmission_name || c.name || `Citizen #${id4}`} />
             {artifacts.length > 0 && (
               <section className="panel-premium" style={{ padding: "var(--s-4)", marginTop: "var(--s-3)" }}>
                 <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ARTIFACTS · {artifacts.length}</span>
