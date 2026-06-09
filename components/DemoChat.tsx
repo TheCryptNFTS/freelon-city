@@ -12,6 +12,9 @@ export type DemoAgent = {
   kicker: string;
   color: string;
   art: string;
+  /** A short in-character opening line shown before the user types. Presentational
+   *  only — NEVER calls the metered /api/demo path or counts against the free budget. */
+  greeting?: string;
 };
 
 type Msg = { role: "you" | "agent"; text: string };
@@ -226,32 +229,59 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
           }}
         >
           {msgs.length === 0 && !exhausted && (
-            <div style={{ margin: "auto", textAlign: "center", maxWidth: 360 }}>
-              <p style={{ fontFamily: "var(--mono2)", fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 16 }}>
-                {agent.name} is listening. Try one of these, or ask your own.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-                {STARTERS.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => send(s)}
-                    disabled={busy}
-                    style={{
-                      fontFamily: "var(--mono2)",
-                      fontSize: 11.5,
-                      color: "var(--ink-2)",
-                      background: "var(--surface)",
-                      border: "1px solid var(--line-2)",
-                      borderRadius: 999,
-                      padding: "7px 13px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
+            <>
+              {/* The agent speaks first — a typed-in in-character line so the box is
+                  ALIVE before you type. Keyed by slug so it re-animates per agent.
+                  Presentational only: never hits /api/demo, never spends a free run. */}
+              {agent.greeting && (
+                <div
+                  key={agent.slug}
+                  className="demo-greeting"
+                  style={{
+                    alignSelf: "flex-start",
+                    maxWidth: "82%",
+                    padding: "11px 14px",
+                    borderRadius: 13,
+                    borderBottomLeftRadius: 4,
+                    fontFamily: "var(--mono2)",
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    whiteSpace: "pre-wrap",
+                    background: "var(--surface)",
+                    color: "var(--ink)",
+                    border: `1px solid color-mix(in srgb, ${agent.color} 32%, var(--line))`,
+                  }}
+                >
+                  {agent.greeting}
+                </div>
+              )}
+              <div style={{ marginTop: "auto", textAlign: "center" }}>
+                <p style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "var(--ink-dim)", lineHeight: 1.7, marginBottom: 12 }}>
+                  Try one of these, or ask your own.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+                  {STARTERS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => send(s)}
+                      disabled={busy}
+                      style={{
+                        fontFamily: "var(--mono2)",
+                        fontSize: 11.5,
+                        color: "var(--ink-2)",
+                        background: "var(--surface)",
+                        border: "1px solid var(--line-2)",
+                        borderRadius: 999,
+                        padding: "7px 13px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           {msgs.map((m, i) => (

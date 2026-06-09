@@ -1074,6 +1074,19 @@ a { color: inherit; text-decoration: none; }
   .citizen-showcase__track { animation: none; }
 }
 
+/* /demo opening greeting — the agent's first line eases in so the box feels
+   alive the instant you land (or switch agents). Reduced-motion shows it instantly. */
+.demo-greeting {
+  animation: demoGreetingIn 0.42s ease both;
+}
+@keyframes demoGreetingIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-greeting { animation: none; }
+}
+
 /* Universe scope chips — clickable, low-weight; lift to gold on hover so
    they read as explorable without competing with the primary OWN button. */
 .universe-chip { transition: color .18s ease, border-color .18s ease; }
