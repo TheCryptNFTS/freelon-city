@@ -111,6 +111,19 @@ type Props = {
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
+/** Per-collection flavour for the CREATE action — same simple UI, different
+ *  world flavour (multi-collection: FREELONS aren't the only citizens). Keyed
+ *  by sister slug; FREELONS (slug null) uses the default. */
+function createFlavour(slug: string | null): { noun: string; line: string } {
+  if (!slug) return { noun: "CHARACTER", line: "Create a city transmission — a branded, shareable scene of your citizen, saved to its record." };
+  if (slug.includes("crypt-official") || slug === "the-crypt-official")
+    return { noun: "DEAD SIGNAL", line: "Recover a dead signal — a cinematic archive record, saved to its history." };
+  if (slug.includes("oogie")) return { noun: "LIFEFORM", line: "File a mutation sighting — a cinematic creature record, saved to its history." };
+  if (slug.includes("emile")) return { noun: "MEMORY", line: "Surface a memory fragment — a cinematic scene, saved to its record." };
+  if (slug.includes("smile")) return { noun: "SIGNAL", line: "Issue a collapse report — a cinematic warning scene, saved to its record." };
+  return { noun: "CHARACTER", line: "Create a cinematic scene with this character, saved to its record." };
+}
+
 /** Cached signatures stay valid for this long before we transparently re-sign
  *  (replay-protection window — matches the server's accept window). */
 const SIG_WINDOW_MS = 30 * 60 * 1000;
@@ -650,6 +663,7 @@ export function AgentWorkspace(props: Props) {
   // surface the ETH unlock in the CENTER of the workspace (the pay flow that was
   // orphaned when the old dashboard was unmounted). Sisters have no unlock yet.
   const showUnlock = !slug && !!agent?.paymentsLive && !agent?.unlock?.unlocked;
+  const flavour = createFlavour(slug);
 
   return (
     <div className={styles.shell} style={cssVars}>
@@ -818,10 +832,30 @@ export function AgentWorkspace(props: Props) {
                 </>
               ) : (
                 <>
-                  <p className={styles.emptyHint}>
+                  {/* SURFACE-REDUCTION 2026-06-09: CREATE is the hero action now —
+                      it leads the lobby (was buried below intro/grounding/recall/
+                      jobs). Neutral "CREATE WITH THIS CHARACTER" + per-collection
+                      flavour line (multi-collection: FREELONS aren't the only
+                      citizens). Proof (grounding/recall) + training + starters
+                      follow BELOW, as support, not competition. */}
+                  {(agent?.scenes?.length ?? 0) > 0 && (
+                    <button
+                      type="button"
+                      className={styles.heroRender}
+                      onClick={() => setMode("image")}
+                    >
+                      <span className={styles.heroRenderHex} aria-hidden>⬡</span>
+                      <span className={styles.heroRenderText}>
+                        <strong>CREATE WITH THIS {flavour.noun}</strong>
+                        <small>{flavour.line}</small>
+                      </span>
+                      <span className={styles.heroRenderArrow} aria-hidden>→</span>
+                    </button>
+                  )}
+                  <p className={styles.emptyHint} style={{ marginTop: 12 }}>
                     {landing?.isOwner
-                      ? "An AI character you own. Render it into a scene, or give it a brief — it remembers your work and grows as you train it."
-                      : "An AI citizen with work history attached to the NFT."}
+                      ? "Or give it a brief — it remembers your work and grows as you train it."
+                      : "An AI character with work history attached to the NFT."}
                   </p>
                   {grounding && (
                     <p
@@ -840,24 +874,9 @@ export function AgentWorkspace(props: Props) {
                     </p>
                   )}
                   {/* Free daily training — the zero-cost, can't-fail first action.
-                      Consolidated here from the citizen profile so "give it work"
-                      lives in ONE place (the workspace). FREELONS only (sisters
-                      have no /job backing); self-hides for non-owners. */}
+                      FREELONS only (sisters have no /job backing); self-hides for
+                      non-owners. Sits below CREATE as a secondary action. */}
                   {!slug && <CitizenJobsBoard citizenId={tokenId} />}
-                  {(agent?.scenes?.length ?? 0) > 0 && (
-                    <button
-                      type="button"
-                      className={styles.heroRender}
-                      onClick={() => setMode("image")}
-                    >
-                      <span className={styles.heroRenderHex} aria-hidden>⬡</span>
-                      <span className={styles.heroRenderText}>
-                        <strong>Render {name} into a scene</strong>
-                        <small>Neon City · Throne Room · Ash Wastes &amp; more — a branded, shareable image of your character</small>
-                      </span>
-                      <span className={styles.heroRenderArrow} aria-hidden>→</span>
-                    </button>
-                  )}
                   <div className={styles.starters}>
                     {(agent?.abilities ?? []).slice(0, 4).map((a) => (
                       <button key={a.id} className={styles.starter} onClick={() => { setMode("chat"); setAbilityId(a.id); }}>
