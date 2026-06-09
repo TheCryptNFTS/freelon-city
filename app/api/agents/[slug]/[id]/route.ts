@@ -56,6 +56,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
 
   // Shape mirrors AgentData in components/AgentWorkspace.tsx. Sisters are free +
   // pre-on (no payments), so paymentsLive=false and unlock reads as unlocked.
+  // 2026-06-09: sisters now have the SAME cinematic scene picker as FREELONS —
+  // rendered from the token's OWN art (generateSisterScene). Free, but bounded by
+  // a TIGHT daily image cap + the global free $-budget (see POST). The image
+  // cost is 6× a chat turn, so the per-token/per-wallet image caps are separate
+  // and much lower than the chat caps.
+  const { SCENES } = await import("@/lib/missions/image-gen");
+  const scenes = Object.entries(SCENES).map(([key, s]) => ({ key, label: s.label }));
   return NextResponse.json({
     level: 1,
     className: tok.kicker,
@@ -63,7 +70,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     paymentsLive: false,
     unlock: { unlocked: true, credits: 0, tier: tok.collectionName },
     abilities: [CHAT_ABILITY],
-    scenes: [],
+    scenes,
+    imageHexCost: 0, // free tier (bounded by daily image cap, not HEX)
     history: [],
   });
 }
@@ -134,6 +142,51 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   }
   if (verdict.status === "not-owner") {
     return NextResponse.json({ error: "you do not own this token" }, { status: 403 });
+  }
+
+  // 5b. IMAGE RENDER branch — the workspace sends missionId "deploy-citizen" with
+  //     `input` = a scene key. Sisters render a cinematic scene from THEIR OWN art
+  //     (generateSisterScene). FREE, but image gen costs ~6× a chat turn, so it gets
+  //     SEPARATE, much tighter per-token + per-wallet daily caps on top of the same
+  //     globally-hard-capped free $-budget. Charged-before / refunded-on-failure.
+  if (missionId === "deploy-citizen") {
+    const { isValidScene, generateSisterScene } = await import("@/lib/missions/image-gen");
+    const sceneKey = (body.input ?? "").trim().replace(/^[a-z]+:\s*/i, "");
+    if (!isValidScene(sceneKey)) return NextResponse.json({ error: "invalid_scene" }, { status: 400 });
+
+    const {
+      agentsKilled, consumeFreeRun, refundFreeRun, RUN_COST_CENTS, claimDaily, releaseDaily,
+    } = await import("@/lib/missions/budget");
+    if (agentsKilled()) {
+      return NextResponse.json({ error: "agents_offline", message: "The agents are briefly offline. Back shortly." }, { status: 503 });
+    }
+    // Tight image caps (separate from chat). Conservative defaults — env-tunable.
+    const IMG_PER_TOKEN = Number(process.env.SISTER_IMAGE_RUNS_PER_TOKEN_DAY || 3);
+    const IMG_PER_WALLET = Number(process.env.SISTER_IMAGE_RUNS_PER_WALLET_DAY || 5);
+    const day = new Date().toISOString().slice(0, 10);
+    const tKey = `freelon:sister:img:tok:${slug}:${tid}:${day}`;
+    const wKey = `freelon:sister:img:wal:${address}:${day}`;
+    if (!(await claimDaily(tKey, IMG_PER_TOKEN))) {
+      return NextResponse.json({ error: "token_daily_limit", message: "This token hit today's free render limit. Resets at UTC midnight." }, { status: 429 });
+    }
+    if (!(await claimDaily(wKey, IMG_PER_WALLET))) {
+      await releaseDaily(tKey);
+      return NextResponse.json({ error: "wallet_daily_limit", message: "Your wallet hit today's free render limit. Resets at UTC midnight." }, { status: 429 });
+    }
+    const bud = await consumeFreeRun(RUN_COST_CENTS.image);
+    if (!bud.ok) {
+      await releaseDaily(tKey); await releaseDaily(wKey);
+      return NextResponse.json({ error: "daily_capacity", message: "The agents hit today's free capacity — back at UTC midnight." }, { status: 503 });
+    }
+    const r = await generateSisterScene({
+      slug, tokenId: tid, artUrl: tok.img, label: tok.name, collectionName: tok.collectionName, sceneKey,
+    });
+    if (!r.ok) {
+      await refundFreeRun(RUN_COST_CENTS.image);
+      await releaseDaily(tKey); await releaseDaily(wKey);
+      return NextResponse.json({ error: "render_failed", message: "The render couldn't complete — nothing was charged." }, { status: 502 });
+    }
+    return NextResponse.json({ ok: true, level: 1, output: { ok: true, body: r.url, meta: { kind: "image", scene: sceneKey } } });
   }
 
   // 6. Input. The shared composer sends "talk: <brief>"; strip the task prefix.

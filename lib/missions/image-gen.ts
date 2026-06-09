@@ -441,6 +441,67 @@ export async function generateCitizenScene(args: {
   }
 }
 
+// ─── SISTER-COLLECTION SCENE RENDER — 2026-06-09 ────────────────────────────
+// Generates a cinematic scene for a NON-FREELONS token (Crypt / OOGIES / Emile /
+// SMILES) from THAT token's own hosted art. Reuses the exact pipeline (fetch ref
+// → editToB64 → stamp → Blob) but with a GENERIC identity-preserving prompt:
+// sisters are not hooded-hex citizens, so we lock to whatever the reference IS
+// (a card, a creature, a fragment) and only change the SETTING. Same SCENES
+// allowlist. Cost/caps are enforced by the caller (sister route), not here.
+function buildSisterScenePrompt(label: string, collectionName: string, sceneDesc: string): string {
+  return [
+    "Keep the SUBJECT in the reference image EXACTLY as it is: same character/object, same shapes,",
+    "same colours, same materials and proportions. Do NOT redesign it, do NOT add or remove features,",
+    "do NOT turn it into a different creature or a generic human.",
+    `This is "${label}" from the FREELON CITY collection ${collectionName}.`,
+    `Only change the SETTING / background to a cinematic scene: ${sceneDesc}.`,
+    "Composite the original subject naturally into the new scene with matching dramatic light.",
+    "Premium dark cinematic render, collector-grade, readable at thumbnail size.",
+  ].join(" ");
+}
+
+export async function generateSisterScene(args: {
+  slug: string;
+  tokenId: number;
+  /** The token's own hosted art URL (CollectionToken.img). */
+  artUrl: string;
+  /** Display name for the prompt (e.g. the token name). */
+  label: string;
+  collectionName: string;
+  sceneKey: string;
+  timeoutMs?: number;
+}): Promise<ImageGenResult> {
+  if (!hasImageProvider()) return { ok: false, error: "no_api_key" };
+  if (!isValidScene(args.sceneKey)) return { ok: false, error: "invalid_scene" };
+
+  let refBytes: Buffer;
+  try {
+    const ctrl = new AbortController();
+    const rt = setTimeout(() => ctrl.abort(), 15_000);
+    const res = await fetch(args.artUrl, { signal: ctrl.signal }).finally(() => clearTimeout(rt));
+    if (!res.ok) return { ok: false, error: "reference_art_missing" };
+    refBytes = Buffer.from(await res.arrayBuffer());
+  } catch {
+    return { ok: false, error: "reference_art_missing" };
+  }
+
+  const prompt = buildSisterScenePrompt(args.label, args.collectionName, SCENES[args.sceneKey].desc);
+  const r = await editToB64(prompt, [refBytes], "medium", args.timeoutMs ?? 240_000);
+  if (!r.ok) return r;
+
+  const safeSlug = args.slug.replace(/[^a-z0-9-]/gi, "");
+  const filename = `sister/${safeSlug}-${id4(args.tokenId)}-${args.sceneKey}-${Date.now()}.png`;
+  const { stampSignature } = await import("@/lib/missions/image-stamp");
+  const bytes = await stampSignature(Buffer.from(r.b64, "base64"), args.tokenId);
+  let blob;
+  try {
+    blob = await put(filename, bytes, { access: "public", contentType: "image/png" });
+  } catch (e) {
+    return { ok: false, error: `blob_upload_failed:${(e as Error).message}`.slice(0, 120) };
+  }
+  return { ok: true, url: blob.url, filename, promptTokens: r.usage?.input, imageTokens: r.usage?.output };
+}
+
 // ─── EVOLVE — opt-in, revertable art evolution — 2026-06-06 ─────────────────
 // Reuses this exact pipeline (fetch real art → gpt-image-1.5 edit → stamp →
 // Blob) to render a TIER-APPROPRIATE on-brand UPGRADE of the citizen's own art.
