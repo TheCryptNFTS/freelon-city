@@ -37,7 +37,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const tid = parseInt(id, 10);
   const c = getCitizen(tid);
   if (!c) return { title: "Not found" };
-  const ogUrl = `/api/og/${tid}`;
+  // ?v=2 busts the 1-year immutable CDN cache so social scrapers refetch the
+  // redesigned card (civ-colored, thesis footer) instead of the old flat one.
+  const ogUrl = `/api/og/${tid}?v=2`;
   const title = c.transmission_name
     ? `#${tid.toString().padStart(4,"0")} · ${c.transmission_name}`
     : c.honoree

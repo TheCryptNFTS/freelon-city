@@ -33,7 +33,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           position: "relative",
         }}
       >
-        {/* Left: image */}
+        {/* Left: image — civ color is load-bearing: a civ-hued edge glow + border
+            so every shared card carries its civilization's signature, not a
+            hairline divider. */}
         <div
           style={{
             width: "630px",
@@ -42,7 +44,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            borderRight: `3px solid ${color}`,
+            position: "relative",
+            borderRight: `4px solid ${color}`,
+            boxShadow: `inset -60px 0 90px -40px ${color}`,
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -52,6 +56,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             height="630"
             alt=""
             style={{ width: "630px", height: "630px", objectFit: "cover" }}
+          />
+          {/* Civ-color wash riding the inner edge toward the metadata panel. */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              background: `linear-gradient(90deg, transparent 62%, ${color}55 100%)`,
+            }}
           />
         </div>
 
@@ -75,16 +88,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 display: "flex",
               }}
             >
-              ⬡ 404 — FREELON CITY · #{id4}
+              ⬡ FREELON CITY · #{id4}
             </div>
 
             <div
               style={{
-                marginTop: 36,
-                fontSize: heading.length > 16 ? 52 : 64,
-                fontWeight: 300,
-                color: "#e6e1d2",
-                lineHeight: 1.05,
+                marginTop: 34,
+                fontSize: heading.length > 16 ? 54 : 66,
+                fontWeight: 600,
+                color,
+                lineHeight: 1.04,
                 display: "flex",
               }}
             >
@@ -117,20 +130,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             </div>
           </div>
 
+          {/* Thesis line — tells a cold viewer what this IS at a glance, replacing
+              the old lore-noise footer. Copy-safe (no value/return language). */}
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
+              alignItems: "center",
               fontFamily: "monospace",
-              fontSize: 14,
+              fontSize: 17,
               letterSpacing: 4,
-              color: "#888888",
+              color: "#c8aa64",
             }}
           >
-            <div style={{ display: "flex" }}>404 HEX NOT FOUND</div>
-            <div style={{ display: "flex", color: "#c8aa64", marginTop: 6 }}>
-              ON MARS · WE HEAR · WE SYNC · WE ARE
-            </div>
+            AI CHARACTER · 1 OF 4,040 · FREELONCITY.COM
           </div>
         </div>
       </div>
