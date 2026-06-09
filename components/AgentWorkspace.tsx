@@ -263,6 +263,30 @@ export function AgentWorkspace(props: Props) {
   }, [agentUrl]);
   useEffect(() => { loadAgent(); }, [loadAgent]);
 
+  /* ── Recover a lost image render ─────────────────────────────────────────
+   * deploy-citizen writes the image to history BEFORE it replies, so on a
+   * flaky mobile connection the render can SUCCEED server-side while the
+   * client's fetch drops. Poll the agent's history for an image URL we didn't
+   * have before the attempt; return it so the chat can show it instead of a
+   * false "render failed". Bounded polls (the render is usually done in ~15s). */
+  const pollForNewImage = useCallback(async (knownBefore: Set<string>): Promise<string | null> => {
+    for (let i = 0; i < 6; i++) {
+      await new Promise((r) => setTimeout(r, i === 0 ? 2000 : 4000));
+      try {
+        const res = await fetch(agentUrl, { cache: "no-store" });
+        const d: AgentData = await res.json();
+        const fresh = (d.history ?? []).filter((h) => h.kind === "image" && h.body && !knownBefore.has(h.body));
+        if (fresh.length) {
+          // newest first
+          fresh.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+          setAgent(d); // refresh gallery/level too
+          return fresh[0].body;
+        }
+      } catch {/* keep polling */}
+    }
+    return null;
+  }, [agentUrl]);
+
   /* ── Default task when ability changes ───────────────────────────────── */
   useEffect(() => {
     const ab = agent?.abilities.find((a) => a.id === abilityId);
@@ -407,19 +431,36 @@ export function AgentWorkspace(props: Props) {
     if (mode === "image") {
       const ab = agent?.scenes.find((s) => s.key === sceneKey);
       const label = ab?.label || "scene";
+      const tid = active.id;
       setSending(true);
-      pushMsg(active.id, { id: uid(), role: "user", kind: "text", text: `Generate image · ${label}`, ts: Date.now() }, `Image · ${label}`);
+      pushMsg(tid, { id: uid(), role: "user", kind: "text", text: `Generate image · ${label}`, ts: Date.now() }, `Image · ${label}`);
+      // Snapshot the image URLs we already know about, so we can detect a NEW
+      // render even if the client never receives the response. (deploy-citizen
+      // saves the image to history BEFORE replying — so on a flaky mobile
+      // connection the render can SUCCEED server-side while the fetch drops.)
+      const knownBefore = new Set<string>((agent?.history ?? []).filter((h) => h.kind === "image").map((h) => h.body));
+      const showImage = (url: string) => {
+        pushMsg(tid, { id: uid(), role: "agent", kind: "image", imageUrl: url, abilityLabel: label, ts: Date.now() });
+        loadAgent();
+        if (address) loadHex(address);
+      };
       try {
         const r = await runMission("deploy-citizen", sceneKey);
         if (r.ok && r.output?.meta?.kind === "image") {
-          pushMsg(active.id, { id: uid(), role: "agent", kind: "image", imageUrl: r.output.body, abilityLabel: label, ts: Date.now() });
-          loadAgent();
-          if (address) loadHex(address);
+          showImage(r.output.body);
         } else {
-          pushMsg(active.id, { id: uid(), role: "system", kind: "text", text: r.error || "Render failed.", error: true, ts: Date.now() });
+          // The request failed client-side — but the render may have completed
+          // server-side (the lost-response case). Poll history for a NEW image
+          // before giving up; only error if nothing new actually landed.
+          const recovered = await pollForNewImage(knownBefore);
+          if (recovered) showImage(recovered);
+          else pushMsg(tid, { id: uid(), role: "system", kind: "text", text: r.error || "Render failed.", error: true, ts: Date.now() });
         }
       } catch (e) {
-        pushMsg(active.id, { id: uid(), role: "system", kind: "text", text: (e as Error).message, error: true, ts: Date.now() });
+        // Network throw (typical mobile drop mid-render). Same recovery path.
+        const recovered = await pollForNewImage(knownBefore);
+        if (recovered) showImage(recovered);
+        else pushMsg(tid, { id: uid(), role: "system", kind: "text", text: (e as Error).message || "Render failed.", error: true, ts: Date.now() });
       } finally {
         setSending(false);
       }
