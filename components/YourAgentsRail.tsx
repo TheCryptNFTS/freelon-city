@@ -12,7 +12,7 @@ import { imageUrl } from "@/lib/constants";
  * straight into each agent, plus "See all → /wallet". Renders nothing for
  * non-holders (the newcomer hero shows instead). Wallet-aware, so client-only.
  */
-export function YourAgentsRail() {
+export function YourAgentsRail({ hrefBase = "/citizens/", heading = "Your Agents" }: { hrefBase?: string; heading?: string } = {}) {
   const { isHolder, address, balance } = useHolder();
   const [ids, setIds] = useState<number[] | null>(null);
 
@@ -44,7 +44,7 @@ export function YourAgentsRail() {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
         <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--gold)", fontWeight: 700 }}>
-          ⬡ Your Agents · {count.toLocaleString()} held
+          ⬡ {heading} · {count.toLocaleString()} held
         </span>
         <Link href={`/wallet/${address}`} style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--ink-2)", textDecoration: "none" }}>
           See all →
@@ -54,7 +54,7 @@ export function YourAgentsRail() {
       {ids && ids.length > 0 ? (
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center" }}>
           {ids.map((id) => (
-            <Link key={id} href={`/citizens/${id}`} style={{ textDecoration: "none", color: "inherit" }} aria-label={`Open citizen #${id}`}>
+            <Link key={id} href={`${hrefBase}${id}`} style={{ textDecoration: "none", color: "inherit" }} aria-label={`Open citizen #${id}`}>
               <FramedAgent
                 art={imageUrl(id)}
                 civColor="var(--gold)"

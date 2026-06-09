@@ -1,5 +1,6 @@
 import { getAllCitizens } from "@/lib/citizens";
 import { FindCitizen } from "@/components/FindCitizen";
+import { YourAgentsRail } from "@/components/YourAgentsRail";
 import { TopAgents } from "@/components/TopAgents";
 import { CitizensBrowser } from "@/components/CitizensBrowser";
 import { PfpSection } from "@/components/citizens/PfpSection";
@@ -92,14 +93,23 @@ export default async function Citizens() {
         <h1>Choose a <em>FREELON</em></h1>
         <p className="lead">
           Each <GlossaryTerm term="citizen">FREELON</GlossaryTerm> is a trainable
-          <strong> AI agent you own</strong>. Pick one below to meet it and create — or open one to see an agent.
+          <strong> AI agent you own</strong>. Pick one to create with it.
         </p>
+
+        {/* OWNER-FIRST 2026-06-09: connect → see YOUR characters → click straight
+            into the create page (/agent/[id]). No typing a token number — that's
+            a lookup pattern, not an owner flow. Renders nothing for non-holders,
+            who get the lookup box + full browse grid below. */}
+        <YourAgentsRail hrefBase="/agent/" heading="Your characters · tap to create" />
+
+        {/* Secondary: look up ANY token (public viewer). Demoted below the owner
+            rail — it's a lookup tool, not the primary owner action. */}
         <div className="finder">
-          <FindCitizen />
-          <p style={{ marginTop: "var(--s-3)", color: "var(--ink-2)", fontSize: 13 }}>
-            Any token 1—4040 opens — a public viewer, not an ownership check. Want the ones <em>you</em> own?{" "}
-            <Link href="/sync#connect" style={{ color: "var(--gold)" }}>Connect your wallet →</Link>
+          <p style={{ marginBottom: "var(--s-2)", color: "var(--ink-2)", fontSize: 13 }}>
+            Or look up any citizen by number — a public viewer, not an ownership check.{" "}
+            <Link href="/sync#connect" style={{ color: "var(--gold)" }}>Connect to see yours →</Link>
           </p>
+          <FindCitizen />
         </div>
       </section>
 
