@@ -4,6 +4,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { WalletConnect } from "@/components/WalletConnect";
 import { HeaderHexPill } from "@/components/HeaderHexPill";
 import { HeaderSeeAgent } from "@/components/HeaderSeeAgent";
+import { HeaderHolderLinks } from "@/components/HeaderHolderLinks";
 
 /**
  * Site header. Primary nav trimmed to 4 items (Start / Citizens / The
@@ -31,6 +32,9 @@ export function Header() {
               own → see an agent → chat. */}
           <Link href="/citizens" className="nav-link nav-start">FREELONS</Link>
           <Link href="/collections" className="nav-link">Collections</Link>
+          {/* Returning-holder tools — only render once a holding wallet is
+              connected, so the newcomer front door stays condensed. */}
+          <HeaderHolderLinks />
           <HeaderSeeAgent />
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>

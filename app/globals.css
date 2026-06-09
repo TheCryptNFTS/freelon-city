@@ -8177,3 +8177,58 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 /* Locked ability preview — dimmed + non-interactive */
 .agentdash-lockpreview-lbl { display: block; font-family: var(--mono2); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-fade); margin-bottom: 8px; }
 .agentdash-abilities.is-locked { opacity: 0.4; filter: grayscale(0.4); pointer-events: none; user-select: none; }
+
+/* ============================ /my-citizens ============================ */
+/* Holder roster — every owned FREELON with activation status + runs left.
+   Activated agents reuse the gold "awakened" glow language from the cards. */
+.mycit-wrap { max-width: 1240px; margin: 0 auto; padding: var(--sec-y, 48px) var(--pad); }
+.mycit-head { margin-bottom: var(--s-5, 24px); }
+.mycit-head .kicker { color: var(--ink-dim); font-family: var(--mono2); font-size: 11px; letter-spacing: 0.28em; }
+.mycit-head h1 { font-family: var(--display); font-size: var(--t-h1, 40px); line-height: 0.95; letter-spacing: -0.02em; margin: var(--s-3, 12px) 0 var(--s-3, 12px); text-transform: uppercase; }
+.mycit-head p { color: var(--ink-2); font-size: 16px; line-height: 1.5; max-width: 60ch; }
+.mycit-connect { margin-top: var(--s-5, 24px); }
+.mycit-err { color: var(--state-danger, #FF5A4D); font-family: var(--mono2); font-size: 13px; margin-bottom: 16px; }
+.mycit-empty { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; color: var(--ink-2); }
+
+.mycit-filters { display: flex; gap: 8px; margin-bottom: var(--s-4, 20px); flex-wrap: wrap; }
+.mycit-filter {
+  font-family: var(--mono2); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 7px 14px; border-radius: var(--r-pill, 999px); border: 1px solid var(--line);
+  background: transparent; color: var(--ink-2); cursor: pointer; transition: all 0.15s ease;
+}
+.mycit-filter:hover { color: var(--ink); border-color: var(--ink-dim); }
+.mycit-filter.on { background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600; }
+
+.mycit-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.mycit-card {
+  display: block; border: 1px solid var(--line); border-top: 2px solid var(--civ, var(--gold));
+  border-radius: 8px; overflow: hidden; background: var(--surface, var(--bg-lifted));
+  text-decoration: none; color: var(--ink); transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.mycit-card:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--gold), transparent 50%); }
+.mycit-art { position: relative; aspect-ratio: 1; overflow: hidden; background: #000; }
+.mycit-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mycit-meta { padding: 9px 11px; display: flex; flex-direction: column; gap: 3px; }
+.mycit-id { font-family: var(--mono2); font-size: 11px; color: var(--gold); letter-spacing: 0.14em; }
+.mycit-tier { font-family: var(--mono2); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); }
+.mycit-runs { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.06em; color: var(--gold-bright, var(--gold)); margin-top: 2px; }
+.mycit-locked { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.06em; color: var(--ink-fade, var(--ink-dim)); margin-top: 2px; }
+
+/* Activated card glow — gold rim + breathing halo + ⬡ glyph (reuses awaken-breathe-card). */
+.mycit-card.is-activated {
+  border-color: var(--gold) !important; border-top-color: var(--gold) !important;
+  animation: awaken-breathe-card 3.6s ease-in-out infinite;
+}
+.mycit-card.is-activated .mycit-glyph {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 3px;
+  font-size: 11px; line-height: 1; color: var(--bg); background: var(--gold);
+  box-shadow: 0 2px 8px -2px color-mix(in oklab, var(--gold), transparent 40%);
+}
+@media (prefers-reduced-motion: reduce) { .mycit-card.is-activated { animation: none; } }
+.mycit-noeth { margin-top: var(--s-3, 12px); font-size: 13px; color: var(--ink-dim); line-height: 1.55; }
+.mycit-noeth a { color: var(--gold); text-decoration: underline; }

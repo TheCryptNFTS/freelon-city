@@ -2,6 +2,19 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useHolder } from "@/lib/useHolder";
+
+// Returning-holder tools — only shown in the sheet once a holding wallet is
+// connected, mirroring the wallet-aware desktop nav. Keeps the newcomer sheet
+// condensed while giving holders their map (roster / games / pulse) back.
+const HOLDER_GROUP: NavGroup = {
+  heading: "YOUR TOOLS",
+  links: [
+    { href: "/my-citizens", label: "My Citizens", gold: true },
+    { href: "/play", label: "Play" },
+    { href: "/dashboard", label: "Dashboard" },
+  ],
+};
 
 // Route compression 2026-05-25 — mobile nav reduced from 33 links to
 // 11. 2026-05-26 community feedback (Nonz): "easier to see everything
@@ -48,6 +61,8 @@ const GROUPS: NavGroup[] = [
 ];
 
 export function MobileNav() {
+  const h = useHolder();
+  const groups = h.address && h.isHolder ? [...GROUPS, HOLDER_GROUP] : GROUPS;
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -105,7 +120,7 @@ export function MobileNav() {
     >
       <nav ref={navRef} onClick={(e) => e.stopPropagation()}>
         <span className="kicker">⬡ FREELON CITY · NAVIGATION</span>
-        {GROUPS.map((g, gi) => (
+        {groups.map((g, gi) => (
           <div key={g.heading ?? `g${gi}`} className="mobile-sheet__group">
             {g.heading && (
               <div className="mobile-sheet__groupHeading">{g.heading}</div>
