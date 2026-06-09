@@ -159,6 +159,10 @@ export function AgentWorkspace(props: Props) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [sending, setSending] = useState(false);
+  // True while a run is blocked waiting on the wallet signature popup (proof
+  // expired / fresh device). Drives "Waiting for your wallet signature…" copy so
+  // a pending signature never masquerades as a stuck "Rendering…" spinner.
+  const [awaitingSig, setAwaitingSig] = useState(false);
   const [composer, setComposer] = useState("");
   const [mode, setMode] = useState<"chat" | "image">("chat");
   const [abilityId, setAbilityId] = useState<string>("");
@@ -500,7 +504,15 @@ export function AgentWorkspace(props: Props) {
       // with creds; the server accepts an inline {address,signature} as proof.
       // (Also covers plain `auth_required` for a sessionless caller.)
       if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
-        creds = await sign(missionId);
+        // Surface the wallet-signature wait so the spinner copy switches from
+        // "Rendering…" to "Waiting for your wallet signature…" (the popup can sit
+        // unsigned for minutes — that's not a hang, it needs the user to approve).
+        setAwaitingSig(true);
+        try {
+          creds = await sign(missionId);
+        } finally {
+          setAwaitingSig(false);
+        }
         continue;
       }
       if (res.ok && d?.ok && d.output?.ok !== false && d.output?.body) {
@@ -944,8 +956,16 @@ export function AgentWorkspace(props: Props) {
                 <div className={`${styles.bubble} ${styles.renderBubble}`}>
                   <span className={styles.hexSpinner} aria-hidden>⬡</span>
                   <span className={styles.renderCol}>
-                    <span className={styles.renderLabel}>Rendering {name}…</span>
-                    <span className={styles.renderHint}>Usually ~15s — stay here, it&apos;ll appear right in this chat.</span>
+                    <span className={styles.renderLabel}>{awaitingSig ? "Waiting for your wallet signature…" : `Rendering ${name}…`}</span>
+                    <span className={styles.renderHint}>{awaitingSig ? "Approve the request in your wallet to continue — nothing is charged until you sign." : "Usually ~15s — stay here, it\u2019ll appear right in this chat."}</span>
+                  </span>
+                </div>
+              ) : awaitingSig ? (
+                <div className={`${styles.bubble} ${styles.renderBubble}`}>
+                  <span className={styles.hexSpinner} aria-hidden>⬡</span>
+                  <span className={styles.renderCol}>
+                    <span className={styles.renderLabel}>Waiting for your wallet signature…</span>
+                    <span className={styles.renderHint}>Approve the request in your wallet to continue — nothing is charged until you sign.</span>
                   </span>
                 </div>
               ) : (
