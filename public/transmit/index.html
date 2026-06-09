@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FREELON CITY · Citizen Transmission</title>
+<style>
+  :root{ --gold:#c9a24b; --gold-dim:#8a7234; --line:#1c1e24; --txt:#e8e6df; --mut:#7c7a72; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#050506;color:var(--txt);
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px}
+  .top{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);padding-bottom:14px;flex-wrap:wrap}
+  .top h1{font-size:15px;letter-spacing:.42em;font-weight:700;margin:0;color:var(--gold);text-transform:uppercase}
+  .top .sub{font-size:11px;letter-spacing:.2em;color:var(--mut);text-transform:uppercase}
+  .phrase{width:100%;font-size:11px;letter-spacing:.14em;color:var(--gold-dim);margin-top:10px;text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:420px 1fr;gap:34px;margin-top:26px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  label.l{display:block;font-size:10px;letter-spacing:.26em;color:var(--mut);text-transform:uppercase;margin:0 0 7px}
+  .field{margin-bottom:18px}
+  input,select{width:100%;background:#0a0b0e;border:1px solid var(--line);color:var(--txt);
+    padding:13px 14px;font-size:15px;letter-spacing:.04em;border-radius:3px;outline:none}
+  input:focus,select:focus{border-color:var(--gold-dim)}
+  select{appearance:none;cursor:pointer}
+  .row{display:flex;gap:10px}
+  button{cursor:pointer;border:1px solid var(--gold-dim);background:transparent;color:var(--gold);
+    padding:13px 14px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-radius:3px;
+    transition:.15s;font-weight:700}
+  button:hover{background:var(--gold);color:#0a0a0a;border-color:var(--gold)}
+  button.primary{background:var(--gold);color:#0a0a0a;border-color:var(--gold);width:100%;margin-bottom:12px}
+  button.ghost{border-color:var(--line);color:var(--mut);font-weight:600}
+  button.ghost:hover{background:#15171c;color:var(--txt);border-color:var(--line)}
+  .actions{display:flex;gap:10px}.actions button{flex:1}
+  .stage{display:flex;flex-direction:column;align-items:center;gap:18px}
+  .canvas-shell{width:100%;max-width:520px;position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#000}
+  canvas{display:block;width:100%;height:auto}
+  .cap{width:100%;max-width:520px}
+  .cap label{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:.24em;color:var(--mut);text-transform:uppercase;margin-bottom:8px}
+  .cap textarea{width:100%;height:190px;background:#0a0b0e;border:1px solid var(--line);color:var(--txt);border-radius:3px;padding:13px;font-size:13px;line-height:1.6;font-family:inherit;resize:vertical}
+  .copybtn{cursor:pointer;color:var(--gold);background:none;border:none;padding:0;font-size:10px;letter-spacing:.24em;text-transform:uppercase}
+  .hint{font-size:11px;color:var(--mut);line-height:1.65;margin-top:16px;letter-spacing:.02em}
+  .hint b{color:var(--gold-dim);font-weight:600}
+  .status{font-size:11px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase;min-height:14px;margin:4px 0 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>FREELON CITY</h1>
+    <span class="sub">Citizen Identity Engine · Archive Terminal</span>
+    <div class="phrase">Every NFT is a citizen of the city · Every citizen creates differently · Every creation builds the city</div>
+  </div>
+
+  <div class="grid">
+    <div class="controls">
+      <div class="field">
+        <label class="l">Collection</label>
+        <select id="coll">
+          <option value="freelon">FREELONS — Signal Citizens</option>
+          <option value="crypt">The Crypt — Dead Signals</option>
+          <option value="oogie">OOGIES — Unregistered Lifeforms</option>
+          <option value="emile">Emile — Memory Fragments</option>
+          <option value="smiles">Smiles — Collapse Signals</option>
+          <option value="tcg">Crypt TCG — Combat Records</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="l">Token ID <span id="range" style="color:var(--gold-dim)">— 1 to 4040</span></label>
+        <div class="row">
+          <input id="tid" type="number" min="1" value="1450" placeholder="1450" />
+          <button class="ghost" id="rand" style="flex:0 0 110px">Random</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="l">Transmission Type</label>
+        <select id="ttype">
+          <option value="auto">Auto — collection default</option>
+          <option value="first">First Signal Logged</option>
+          <option value="cityid">City ID — Passport</option>
+          <option value="collapse">Collapse Warning</option>
+          <option value="dead">Dead Signal Recovered</option>
+          <option value="memory">Memory Fragment Found</option>
+          <option value="mutation">Lifeform Detected</option>
+          <option value="wanted">Wanted by the Archive</option>
+        </select>
+      </div>
+      <button class="primary" id="go">Transmit</button>
+      <div class="actions"><button id="dl">Download PNG</button></div>
+      <div class="status" id="status"></div>
+      <p class="hint">
+        Every citizen across <b>all six collections</b> already has an identity — a role, a
+        district, a first signal — generated from its real on-chain traits and stable forever.
+        Paste any token ID; the city transmits its dossier back.<br><br>
+        <b>The X mechanic:</b> "Reply with your token ID — the city transmits back."
+      </p>
+    </div>
+
+    <div class="stage">
+      <div class="canvas-shell"><canvas id="card" width="1080" height="1440"></canvas></div>
+      <div class="cap">
+        <label>X Caption <button class="copybtn" id="copy">Copy</button></label>
+        <textarea id="caption" spellcheck="false"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="citizen-engine.js"></script>
+<script>
+const PORTRAIT_CID="bafybeifax6nksc7h7m3duztjbrpy3e4bnyz3k3nj6xqcdleqsnpod622vi"; // FREELON figurative (all 4040)
+const IPFS="https://ipfs.io/ipfs";
+const PROXY=u=>"https://wsrv.nl/?url="+encodeURIComponent(u)+"&w=900&output=jpg"; // CORS-clean transcode for seadn
+const GOLD="#c9a24b", GOLD_D="#8a7234";
+const RANGES={freelon:4040,crypt:5244,oogie:2279,emile:3333,smiles:313,tcg:4129};
+
+const CEREMONY={
+  first:{label:"FIRST SIGNAL LOGGED"}, cityid:{label:"CITY ID"},
+  collapse:{label:"COLLAPSE WARNING"}, dead:{label:"DEAD SIGNAL RECOVERED"},
+  memory:{label:"MEMORY FRAGMENT FOUND"}, mutation:{label:"LIFEFORM DETECTED"},
+  wanted:{label:"WANTED BY THE ARCHIVE"},
+};
+
+const $=id=>document.getElementById(id);
+const cv=$("card"), ctx=cv.getContext("2d");
+const pad4=n=>String(n).padStart(4,"0");
+let FREELON_DB=null; const COLL_CACHE={};
+
+function loadImg(src){return new Promise(res=>{if(!src)return res(null);const im=new Image();im.crossOrigin="anonymous";im.onload=()=>res(im);im.onerror=()=>res(null);im.src=src;});}
+async function getData(coll){
+  if(coll==="freelon"){ if(!FREELON_DB) FREELON_DB=await (await fetch("citizens.min.json")).json(); return FREELON_DB; }
+  if(!COLL_CACHE[coll]) COLL_CACHE[coll]=await (await fetch("coll-"+coll+".min.json")).json();
+  return COLL_CACHE[coll];
+}
+function caps(x,y,str,size,color,ls,align){ctx.fillStyle=color;ctx.textAlign=align||"left";
+  ctx.font="700 "+size+'px "Helvetica Neue",Arial,sans-serif';ctx.letterSpacing=(ls||0)+"px";
+  ctx.fillText(str,x,y);ctx.letterSpacing="0px";}
+function hexPath(cx,cy,r,rot){ctx.beginPath();for(let i=0;i<6;i++){const a=rot+i*Math.PI/3,px=cx+r*Math.cos(a),py=cy+r*Math.sin(a);i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrapC(text,cx,y,maxW,lh,max){const words=text.split(" ");let line="",yy=y,lines=0;
+  for(const w of words){const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxW&&line){ctx.fillText(line,cx,yy);line=w;yy+=lh;if(++lines>=max-1)break;}else line=t;}
+  ctx.fillText(line,cx,yy);return yy;}
+
+function portraitFor(coll,id,rec){
+  if(coll==="freelon") return {src:`${IPFS}/${PORTRAIT_CID}/${pad4(id)}.jpg`};
+  if(!rec||!rec.img) return {src:null};
+  if(/\.mp4(\?|$)/i.test(rec.img)) return {src:null, motion:true}; // Emile = video, no still frame
+  return {src:PROXY(rec.img)};
+}
+
+async function render(){
+  const coll=$("coll").value, max=RANGES[coll]||4040;
+  let id=Math.max(1,Math.min(max, parseInt($("tid").value)||1)); $("tid").value=id;
+  $("range").textContent="— 1 to "+max;
+  $("status").textContent="receiving signal…";
+
+  const data=await getData(coll);
+  const rec = data ? data[id] : null;
+
+  // build dossier from REAL traits
+  let traits;
+  if(coll==="freelon"){ const d=rec||{}; traits={c:d.c,d:d.d,k:d.k,t:d.t,s:d.s,h:d.h,n:d.n,a:d.a,g:d.g}; }
+  else traits={role: rec?rec.role:""};
+  const D=CitizenEngine.dossier(coll,id,traits);
+  const accent=D.accent;
+  const tsel=$("ttype").value;
+  const ceremony = tsel==="auto" ? D.firstUseLabel : (CEREMONY[tsel].label);
+
+  const port=portraitFor(coll,id,rec);
+  const img=await loadImg(port.src);
+
+  const W=1080,H=1440;
+  // background
+  let bg=ctx.createRadialGradient(W/2,540,80,W/2,680,980);
+  bg.addColorStop(0,"#15171c");bg.addColorStop(.55,"#0a0b0e");bg.addColorStop(1,"#050506");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalAlpha=.05;ctx.strokeStyle=accent;ctx.lineWidth=1;
+  for(let gy=120;gy<H;gy+=104)for(let gx=70;gx<W;gx+=120){hexPath(gx+((Math.floor(gy/104))%2?60:0),gy,30,Math.PI/6);ctx.stroke();}
+  ctx.restore();
+
+  // frame + ticks
+  const m=34;ctx.strokeStyle="rgba(201,162,75,.55)";ctx.lineWidth=1.5;rr(m,m,W-2*m,H-2*m,3);ctx.stroke();
+  ctx.strokeStyle=GOLD;ctx.lineWidth=2.5;const tk=30;
+  [[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]].forEach(([x,y,sx,sy])=>{ctx.beginPath();ctx.moveTo(x+sx*tk,y);ctx.lineTo(x,y);ctx.lineTo(x,y+sy*tk);ctx.stroke();});
+
+  // header
+  caps(64,86,"FREELON CITY ARCHIVE",20,GOLD,5);
+  ctx.fillStyle="#ff3b30";ctx.beginPath();ctx.arc(W-198,80,7,0,7);ctx.fill();
+  caps(W-178,86,"REC · LIVE",16,"#b9b6ad",3);
+  ctx.strokeStyle="rgba(201,162,75,.3)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(64,108);ctx.lineTo(W-64,108);ctx.stroke();
+  caps(W/2,156,"— SIGNAL DETECTED —",18,accent,7,"center");
+
+  // portrait window
+  const px=150,py=192,pw=W-300,ph=520;
+  ctx.save();const glow=ctx.createRadialGradient(px+pw/2,py+ph/2,40,px+pw/2,py+ph/2,pw/1.4);
+  glow.addColorStop(0,accent+"44");glow.addColorStop(1,"transparent");ctx.fillStyle=glow;ctx.fillRect(px-60,py-60,pw+120,ph+120);ctx.restore();
+  ctx.fillStyle="#000";rr(px,py,pw,ph,4);ctx.fill();
+  ctx.save();rr(px,py,pw,ph,4);ctx.clip();
+  if(img){const s=Math.max(pw/img.width,ph/img.height),dw=img.width*s,dh=img.height*s;
+    ctx.drawImage(img,px+(pw-dw)/2,py+(ph-dh)/2-ph*0.02,dw,dh);}
+  else{ // placeholder: drawn hex sigil (Emile video / offline)
+    ctx.fillStyle="#0c0d10";ctx.fillRect(px,py,pw,ph);
+    ctx.save();ctx.strokeStyle=accent;ctx.globalAlpha=.7;ctx.lineWidth=3;hexPath(px+pw/2,py+ph/2-10,90,Math.PI/6);ctx.stroke();
+    ctx.globalAlpha=.3;ctx.lineWidth=1.5;hexPath(px+pw/2,py+ph/2-10,130,Math.PI/6);ctx.stroke();ctx.restore();
+    caps(px+pw/2,py+ph/2+150,port.motion?"MOTION ARCHIVE":"SIGNAL OFFLINE",18,"#5a5852",5,"center");}
+  let fade=ctx.createLinearGradient(0,py+ph-150,0,py+ph);fade.addColorStop(0,"transparent");fade.addColorStop(1,"rgba(5,5,6,.88)");
+  ctx.fillStyle=fade;ctx.fillRect(px,py+ph-150,pw,150);ctx.restore();
+  ctx.strokeStyle="rgba(201,162,75,.7)";ctx.lineWidth=1.5;rr(px,py,pw,ph,4);ctx.stroke();
+  caps(px+22,py+ph-26,"#"+pad4(id),34,"#fff",2);
+  // type chip top-left of portrait
+  ctx.save();ctx.font='700 16px "Helvetica Neue",Arial,sans-serif';ctx.letterSpacing="2px";
+  const chip=D.type.toUpperCase();const cw=ctx.measureText(chip).width+28;
+  ctx.fillStyle="rgba(5,5,6,.7)";rr(px+18,py+18,cw,34,3);ctx.fill();
+  ctx.strokeStyle=accent;ctx.lineWidth=1;rr(px+18,py+18,cw,34,3);ctx.stroke();
+  ctx.fillStyle=accent;ctx.textAlign="left";ctx.fillText(chip,px+32,py+41);ctx.letterSpacing="0px";ctx.restore();
+
+  // ceremony + name
+  caps(W/2,772,ceremony,24,accent,6,"center");
+  ctx.textAlign="center";ctx.fillStyle="#f3f1ea";ctx.font='700 50px "Helvetica Neue",Arial,sans-serif';
+  const nm=(coll==="freelon"&&traits.n&&traits.n.length<=20)?traits.n:("Citizen #"+pad4(id));
+  ctx.fillText(nm,W/2,832);
+
+  // FIRST SIGNAL — the hero quote
+  caps(W/2,884,"FIRST SIGNAL",13,GOLD_D,4,"center");
+  ctx.save();ctx.fillStyle=accent;ctx.textAlign="center";ctx.font='400 60px Georgia,serif';
+  ctx.fillText("\u201C",W/2-330,912);ctx.restore();
+  ctx.textAlign="center";ctx.fillStyle="#d9d6cd";ctx.font='400 26px Georgia,serif';
+  wrapC(D.firstSignal,W/2,924,760,38,4);
+
+  // passport strip: DISTRICT / ROLE / KNOWN FOR
+  const sy=1110;
+  ctx.strokeStyle="rgba(201,162,75,.25)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(110,sy-34);ctx.lineTo(W-110,sy-34);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(110,sy+58);ctx.lineTo(W-110,sy+58);ctx.stroke();
+  const cols=[["DISTRICT",D.district,accent],["CITY ROLE",D.role,"#f3f1ea"],["KNOWN FOR",D.knownFor,"#f3f1ea"]];
+  const colW=(W-220)/3;
+  cols.forEach((c,i)=>{const cx=110+colW*i+colW/2;
+    if(i){ctx.strokeStyle="rgba(201,162,75,.25)";ctx.beginPath();ctx.moveTo(110+colW*i,sy-22);ctx.lineTo(110+colW*i,sy+46);ctx.stroke();}
+    caps(cx,sy-2,c[0],13,GOLD_D,3,"center");
+    ctx.textAlign="center";ctx.fillStyle=c[2];ctx.font='700 22px "Helvetica Neue",Arial,sans-serif';
+    let v=String(c[1]);if(v.length>18)v=v.slice(0,17)+"…";ctx.fillText(v.toUpperCase(),cx,sy+36);});
+
+  // stat row
+  const ry=1228;
+  caps(120,ry,"RECORDS SEALED",15,GOLD_D,3);
+  caps(120,ry+40,String(D.records).padStart(2,"0"),40,"#f3f1ea",2);
+  caps(W-120,ry,"STATUS",15,GOLD_D,3,"right");
+  const dorm=D.status==="DORMANT";
+  caps(W-120,ry+38,D.status,28,dorm?"#7c7a72":accent,3,"right");
+
+  // footer
+  ctx.strokeStyle="rgba(201,162,75,.3)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(64,1306);ctx.lineTo(W-64,1306);ctx.stroke();
+  ctx.font='600 19px "SF Mono",Menlo,monospace';ctx.fillStyle=GOLD;ctx.textAlign="left";ctx.letterSpacing="2px";
+  ctx.fillText(D.serial,64,1356);ctx.letterSpacing="0px";
+  caps(64,1390,"freeloncity.com",15,"#7c7a72",2);
+  caps(64,1414,D.collectionName.toUpperCase(),12,GOLD_D,3);
+  const scx=W-118,scy=1360;ctx.save();ctx.strokeStyle=GOLD;ctx.lineWidth=2;hexPath(scx,scy,48,Math.PI/6);ctx.stroke();
+  ctx.lineWidth=1;ctx.strokeStyle="rgba(201,162,75,.5)";hexPath(scx,scy,38,Math.PI/6);ctx.stroke();
+  ctx.fillStyle=GOLD;ctx.textAlign="center";ctx.font='700 13px "Helvetica Neue",Arial,sans-serif';ctx.letterSpacing="2px";
+  ctx.fillText("CITY",scx,scy-2);ctx.fillText("SEAL",scx,scy+15);ctx.letterSpacing="0px";ctx.restore();
+
+  // scanlines
+  ctx.save();ctx.globalAlpha=.04;ctx.fillStyle="#000";for(let y=0;y<H;y+=3)ctx.fillRect(0,y,W,1);ctx.restore();
+
+  $("status").textContent = img ? "transmission sealed." : (port.motion?"sealed (motion citizen — still offline)":"sealed (portrait offline)");
+  buildCaption(D,ceremony);
+}
+
+function buildCaption(D,ceremony){
+  $("caption").value =
+`SIGNAL DETECTED — ${ceremony}
+
+Citizen #${D.idPadded} · ${D.type} of FREELON CITY
+District: ${D.district} · Known for: ${D.knownFor}
+"${D.firstSignal}"
+${String(D.records).padStart(2,"0")} records sealed. Status: ${D.status.toLowerCase()}.
+
+Reply with your token ID — the city transmits back.
+freeloncity.com`;
+}
+
+$("go").onclick=render;
+$("coll").onchange=()=>{const m=RANGES[$("coll").value];if((parseInt($("tid").value)||1)>m)$("tid").value=1;render();};
+$("rand").onclick=()=>{$("tid").value=1+Math.floor(Math.random()*(RANGES[$("coll").value]||4040));render();};
+$("tid").addEventListener("keydown",e=>{if(e.key==="Enter")render();});
+$("ttype").onchange=render;
+$("dl").onclick=()=>{const a=document.createElement("a");a.download="freelon-"+$("coll").value+"-"+pad4(parseInt($("tid").value)||1)+".png";a.href=cv.toDataURL("image/png");a.click();};
+$("copy").onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText($("caption").value);};
+render();
+</script>
+</body>
+</html>
