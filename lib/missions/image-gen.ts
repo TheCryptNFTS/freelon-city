@@ -197,6 +197,47 @@ export const SCENES: Record<string, { label: string; desc: string }> = {
     label: "Noir File",
     desc: "under a single hard film-noir spotlight in deep shadow, drifting smoke, venetian-blind light bars across the figure, classified-record tension",
   },
+  // ── WAVE 2 (2026-06-09) — more cinematic variety from POSTER_LOOK_BANK.md ─────
+  "stained-glass": {
+    label: "Stained Glass",
+    desc: "framed in a towering gothic cathedral stained-glass window, the figure rendered as a saint of the signal, colored light pouring through the panes, sacred and still",
+  },
+  "desert-monolith": {
+    label: "Dune Pilgrim",
+    desc: "a lone pilgrim crossing an endless dune sea under twin moons, a distant monolith on the horizon, vast warm dusk light, 2001-meets-Dune awe",
+  },
+  "data-cathedral": {
+    label: "Data Cathedral",
+    desc: "inside a cathedral of glowing data-glass and floating glyphs, sacred geometry, raking light through tall columns, quiet and immense",
+  },
+  "ember-forge": {
+    label: "Signal Forge",
+    desc: "before a towering wall of signal-fire in a dark war-hall, drifting embers and sparks, hero-lit from below, heat-haze rising",
+  },
+  "circuit-relic": {
+    label: "Excavated Relic",
+    desc: "presented as a freshly excavated circuit-relic half-buried in dark earth, gold traces and dirt, lit like a museum dig-find, archaeology of the future",
+  },
+  "monsoon-temple": {
+    label: "Lost Temple",
+    desc: "in a rain-drenched jungle-overgrown temple ruin, gold idols under hanging vines, warm storm light breaking through, Apocalypto-meets-sci-fi",
+  },
+  "chrome-liquid": {
+    label: "Liquid Chrome",
+    desc: "the figure half-dissolving into reflective liquid chrome and mercury, surreal distortion, high-fashion sci-fi, stark studio rim-light",
+  },
+  "bioluminescent-deep": {
+    label: "Deep Signal",
+    desc: "drifting in pressure-black deep ocean, surrounded by slow bioluminescent gold motes, eerie calm, a single faraway glow",
+  },
+  "victory-banners": {
+    label: "Triumph",
+    desc: "raised on a dais above drifting banners and embers, a vast hall fading into shadow behind, triumphant and monumental, hero-lit",
+  },
+  "vhs-surveillance": {
+    label: "Surveillance",
+    desc: "a grainy low-light surveillance still, faint scanlines and a corner timestamp overlay, CAM-07 framing, found-footage tension",
+  },
 };
 
 export function isValidScene(key: string): boolean {
