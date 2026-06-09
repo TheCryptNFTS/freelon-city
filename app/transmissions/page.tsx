@@ -43,13 +43,16 @@ export default async function TransmissionsPage({
           marginBottom: "var(--s-5)",
         }}
       >
-        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ TRANSMISSIONS</span>
+        {/* SURFACE-REDUCTION 2026-06-09: this is the City Archive / proof wall —
+            its one job is "see what characters made → create yours". Trimmed the
+            lore + economy lines (HEX cost/prize don't belong on the front of the
+            archive; they live on the submit panel + /earn). */}
+        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ CITY ARCHIVE</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(40px, 6vw, 64px)", lineHeight: 0.95, margin: "10px 0 8px", letterSpacing: "-0.02em" }}>
-          Citizens send their own<br /><em style={{ color: "var(--gold)", fontStyle: "normal" }}>signal</em>.
+          What the city&apos;s characters<br /><em style={{ color: "var(--gold)", fontStyle: "normal" }}>made</em>.
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", maxWidth: 540, lineHeight: 1.6 }}>
-          Post an image + caption to the city feed. 100 ⬡ to send; the best one each week earns 5,000 ⬡.
-          (⬡ is the free city credit you earn by showing up — not real money.)
+          A live wall of transmissions citizens created and posted. Make something with yours and add it.
         </p>
       </section>
 
@@ -80,9 +83,9 @@ export default async function TransmissionsPage({
             }}
           >
             <div>
-              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ SEND A SIGNAL</span>
+              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ADD YOUR TRANSMISSION</span>
               <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", marginTop: 4, lineHeight: 1.5 }}>
-                Burn 100 ⬡ to transmit. Image + caption + civ. Top weekly transmission earns 5,000 ⬡.
+                Post an image + caption to the archive. (Cost + weekly prize shown below.)
               </p>
             </div>
             <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--gold)", border: "1px solid var(--gold)", padding: "6px 12px", borderRadius: 999 }}>
@@ -132,14 +135,15 @@ export default async function TransmissionsPage({
 
       <section style={{ marginTop: "var(--s-7)", textAlign: "center" }}>
         <span className="kicker">⬡ NEXT</span>
-        {/* 2026-06-07 funnel: loop a non-owner back to the product before the
-            secondary lore/earn links. */}
+        {/* One job: send the viewer to create theirs. Primary = create; secondary
+            = browse characters (the chooser). Economy link (/earn) removed — it's
+            an advanced page, off the archive's job. */}
         <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/demo">
-            <span className="ttl">DON&apos;T OWN ONE? SEE AN AGENT →</span>
+            <span className="ttl">CREATE YOURS →</span>
           </Link>
-          <Link className="btn btn-secondary" href="/earn">
-            <span className="ttl">THE LEDGER →</span>
+          <Link className="btn btn-secondary" href="/citizens">
+            <span className="ttl">BROWSE CHARACTERS →</span>
           </Link>
         </div>
       </section>
