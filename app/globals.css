@@ -8232,3 +8232,9 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 @media (prefers-reduced-motion: reduce) { .mycit-card.is-activated { animation: none; } }
 .mycit-noeth { margin-top: var(--s-3, 12px); font-size: 13px; color: var(--ink-dim); line-height: 1.55; }
 .mycit-noeth a { color: var(--gold); text-decoration: underline; }
+
+/* /proof — before/after grid stacks on mobile (the → arrow rotates to ↓) */
+@media (max-width: 640px) {
+  .proof-grid { grid-template-columns: 1fr !important; }
+  .proof-grid > [aria-hidden] { transform: rotate(90deg); }
+}
