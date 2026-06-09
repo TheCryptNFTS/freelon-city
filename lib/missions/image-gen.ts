@@ -238,6 +238,47 @@ export const SCENES: Record<string, { label: string; desc: string }> = {
     label: "Surveillance",
     desc: "a grainy low-light surveillance still, faint scanlines and a corner timestamp overlay, CAM-07 framing, found-footage tension",
   },
+  // ── WAVE 3 (2026-06-09) — more cinematic variety from POSTER_LOOK_BANK.md ─────
+  "marble-relief": {
+    label: "Marble Relief",
+    desc: "carved into a classical marble bas-relief frieze with gold inlay, a procession behind, antiquity-meets-future, museum lighting",
+  },
+  "shattered-mirror": {
+    label: "Shattered Mirror",
+    desc: "reflected and fractured across a wall of shattered mirror shards, identity-splinter theme, sharp light edges, surreal and cold",
+  },
+  "ash-snow": {
+    label: "Ash Snow",
+    desc: "standing as grey ash falls like snow over ruined streets, muted desaturation, a single warm gold ember glowing on the figure, melancholic grandeur",
+  },
+  "blueprint-schematic": {
+    label: "Schematic",
+    desc: "rendered as a technical blueprint of the figure, white linework on deep blueprint-blue, annotation marks and exploded-diagram callouts, cold and precise",
+  },
+  "throne-storm": {
+    label: "Storm Throne",
+    desc: "seated on a high throne as a lightning storm rages through tall broken windows behind, regal and ominous, rain and gold light",
+  },
+  "undercity-tunnel": {
+    label: "Undercity",
+    desc: "deep in a flooded undercity tunnel, knee-deep black water, a single shaft of light from a grate above, dripping concrete and gold reflections",
+  },
+  "orbital-window": {
+    label: "Orbital",
+    desc: "before a vast orbital station window with the curve of a dark planet below, cold starlight and warm interior glow, lonely sci-fi scale",
+  },
+  "festival-lanterns": {
+    label: "Lantern Night",
+    desc: "amid a night festival of floating gold lanterns rising over a dark city, warm bokeh, quiet awe, the figure watching them ascend",
+  },
+  "obsidian-throne-hall": {
+    label: "Obsidian Hall",
+    desc: "alone in a colossal obsidian hall lined with dim gold braziers, mirror-black floor, monumental emptiness, a single distant light",
+  },
+  "wanted-broadcast": {
+    label: "Wanted",
+    desc: "framed like an official city WANTED broadcast: weathered metal-parchment texture, aged warning borders and stamps, harsh frontal light, space reserved for record text",
+  },
 };
 
 export function isValidScene(key: string): boolean {
