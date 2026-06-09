@@ -3,8 +3,6 @@ import Link from "next/link";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
 import { HeroAtmosphere } from "@/components/HeroAtmosphere";
-import { CitizenShowcase } from "@/components/CitizenShowcase";
-import { HeroMarketStat } from "@/components/HeroMarketStat";
 import TransformsWall from "@/components/TransformsWall";
 import { ActivationProof } from "@/components/ActivationProof";
 import { YourAgentsRail } from "@/components/YourAgentsRail";
@@ -118,13 +116,9 @@ export default async function Home() {
             <ActivationProof />
           </div>
 
-          {/* Lore badge relocated 2026-06-08 — it competed with the
-              10-second comprehension window in the hero. Now a depth reward
-              AFTER "How It Works" (below). */}
-
-          {/* 2026-05-28 collector pass — live floor + sealed-supply line.
-              Client-side fetch, never blocks the hero LCP. */}
-          <HeroMarketStat />
+          {/* SURFACE-REDUCTION 2026-06-09: removed HeroMarketStat (floor/supply
+              pill) from above the fold — market data is not the front door. The
+              floor still lives on /dashboard. Lore badge sits below How-It-Works. */}
         </div>
       </section>
 
@@ -148,14 +142,9 @@ export default async function Home() {
             <li key={i}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
           ))}
         </ol>
-        <div className="how-roles">
-          <span className="how-roles-lbl">ROLES IT CAN GROW INTO</span>
-          <div className="how-roles-row">
-            {["Writer", "Strategist", "Sales Agent", "Researcher", "Designer", "Red Team"].map((r) => (
-              <span key={r} className="how-role">{r}</span>
-            ))}
-          </div>
-        </div>
+        {/* SURFACE-REDUCTION 2026-06-09: removed the "ROLES IT CAN GROW INTO"
+            list (Writer/Strategist/Sales Agent/Researcher/Designer/Red Team) —
+            it read like generic ChatGPT-with-NFTs and weakened the pitch. */}
       </section>
 
       {/* Lore flavour — relocated here 2026-06-08 from the hero. Lore is a
@@ -163,14 +152,11 @@ export default async function Home() {
           is understood. Same markup, just moved. */}
       <span className="term-badge flicker" style={{ display: "block", textAlign: "center", margin: "var(--s-5) auto" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
 
-      {/* CITIZEN SHOWCASE — the homepage finally shows the product. A
-          4040-PFP project that displayed zero Freelons couldn't "show, not
-          tell"; this slow band of real portraits (1/1s + honoraries) fixes
-          that the moment a visitor scrolls past the hero. */}
-      <CitizenShowcase />
-
-      {/* PROOF WITHOUT A PAYWALL — a live wall of real transforms owners made.
-          Self-hides until the feed has entries, so it never shows empty. */}
+      {/* SURFACE-REDUCTION 2026-06-09: collapsed two stacked citizen bands
+          (CitizenShowcase + TransformsWall) into ONE preview. Kept TransformsWall
+          — "see what citizens actually MAKE" is the stronger proof for the
+          create-loop story and self-hides when empty. The portrait showcase
+          lives on /citizens (the chooser). */}
       <TransformsWall />
 
       {/* ── CLOSING CTA — one clean ending, agents only. 2026-06-04 newcomer-path
