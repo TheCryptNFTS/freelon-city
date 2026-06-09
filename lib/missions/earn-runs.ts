@@ -37,7 +37,13 @@ export const EARN_LABEL: Record<EarnReason, string> = {
 export async function awardHex(wallet: string, reason: EarnReason): Promise<{ hex: number; balance: number }> {
   const hex = EARN_HEX[reason];
   const { creditWalletHex } = await import("@/lib/wallet-hex-store");
-  const rec = await creditWalletHex(wallet, hex, { kind: "quest", note: `Earned: ${EARN_LABEL[reason]} (+${hex}⬡)` }, { farmable: true });
+  // NOT farmable. These are RARE, idempotent MILESTONES — a 7/30-day streak or a
+  // confirmed referral fires at most once per event (SET-NX guarded in
+  // claimEarnedRuns), not a repeatable faucet. The FARMABLE_DAILY_CAP (250⬡)
+  // exists to bound repeatable sources (the daily 10⬡ claim, sweeps); applying
+  // it here would crush a once-in-30-days 5000⬡ milestone to 250⬡ and gut the
+  // loyalty reward. The repeatable daily claim is correctly capped elsewhere.
+  const rec = await creditWalletHex(wallet, hex, { kind: "quest", note: `Earned: ${EARN_LABEL[reason]} (+${hex}⬡)` });
   return { hex, balance: rec.balance };
 }
 
