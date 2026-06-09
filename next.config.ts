@@ -147,7 +147,12 @@ const config: NextConfig = {
               // Cards (Combat Archives) relic art is served from *.seadn.io
               // (i2c.seadn.io). Without it the god card images were
               // silently CSP-blocked.
-              "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link https://*.seadn.io",
+              // 2026-06-09: added Vercel Blob host — agent-generated transmission
+              // images (lib/missions/image-gen) are stored in Vercel Blob and
+              // served from *.public.blob.vercel-storage.com. Without it every
+              // generated render + the agent gallery was silently CSP-blocked
+              // (200 from the blob, but the document refused to display it).
+              "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link https://*.seadn.io https://*.public.blob.vercel-storage.com",
               // 2026-06-01: Emile is a video-only collection — its on-chain
               // record is an .mp4 served from raw2.seadn.io. The per-collection
               // explorer renders these in <video>, so the media must be
