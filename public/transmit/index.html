@@ -181,13 +181,19 @@ async function render(){
   const m=34;ctx.strokeStyle="rgba(201,162,75,.55)";ctx.lineWidth=1.5;rr(m,m,W-2*m,H-2*m,3);ctx.stroke();
   ctx.strokeStyle=GOLD;ctx.lineWidth=2.5;const tk=30;
   [[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]].forEach(([x,y,sx,sy])=>{ctx.beginPath();ctx.moveTo(x+sx*tk,y);ctx.lineTo(x,y);ctx.lineTo(x,y+sy*tk);ctx.stroke();});
+  // civ-colour spine bar — the shared family signature with the agent-render
+  // plate (image-stamp.tsx draws the same left bar). Ties both surfaces together.
+  ctx.fillStyle=accent;ctx.fillRect(m,m,7,H-2*m);
 
   // header
   caps(64,86,"FREELON CITY ARCHIVE",20,GOLD,5);
   ctx.fillStyle="#ff3b30";ctx.beginPath();ctx.arc(W-198,80,7,0,7);ctx.fill();
   caps(W-178,86,"REC · LIVE",16,"#b9b6ad",3);
   ctx.strokeStyle="rgba(201,162,75,.3)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(64,108);ctx.lineTo(W-64,108);ctx.stroke();
-  caps(W/2,156,"— SIGNAL DETECTED —",18,accent,7,"center");
+  // FC-ARCHIVE provenance line — same grammar the agent-render plate burns in,
+  // so a deluxe dossier card and a baked render read as the SAME record.
+  caps(64,134,"FC-ARCHIVE · "+pad4(id)+" · REC "+new Date().toISOString().slice(0,10),13,"#C9CDD6",2);
+  caps(W/2,176,"— SIGNAL DETECTED —",18,accent,7,"center");
 
   // portrait window
   const px=150,py=192,pw=W-300,ph=520;
