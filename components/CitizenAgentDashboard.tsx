@@ -169,6 +169,31 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     } catch { /* non-fatal */ }
   }
 
+  /** Recover a lost image render. deploy-citizen saves the image to history
+   *  BEFORE it replies, and a render runs ~15-40s — long enough that a flaky
+   *  mobile connection can hang/drop the response while the render SUCCEEDS
+   *  server-side. Poll history (~90s) for an image URL we didn't have before
+   *  the attempt and return it, so the holder gets the image instead of a false
+   *  "couldn't generate". `knownBefore` = image URLs present pre-attempt. */
+  async function pollForNewImage(knownBefore: Set<string>): Promise<string | null> {
+    const delays = [3000, 4000, 5000, 5000, 6000, 6000, 7000, 7000, 8000, 8000, 8000, 8000];
+    for (const wait of delays) {
+      await new Promise((r) => setTimeout(r, wait));
+      try {
+        const d = await (await fetch(`/api/citizens/${citizenId}/agent`, { cache: "no-store" })).json();
+        const hist: Work[] = Array.isArray(d.history) ? d.history : [];
+        const fresh = hist.filter((w) => w.kind === "image" && w.body && !knownBefore.has(w.body));
+        if (fresh.length) {
+          fresh.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0)); // newest first
+          if (d.unlock) setUnlock(d.unlock);
+          setHistory(hist);
+          return fresh[0].body;
+        }
+      } catch { /* keep polling */ }
+    }
+    return null;
+  }
+
   if (h.loading || o.loading) {
     // Reserve the anchor so the "RUN THIS AGENT" CTA always has a target.
     return <section className="agentdash agentdash-locked" id="run" />;
@@ -331,29 +356,44 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     setImgBusy(busyId); setImgErr(null); setImgOut(null);
     const input = kind === "style" ? `style:${key}` : key;
     const base: Record<string, unknown> = { missionId: "deploy-citizen", input };
+    // Snapshot known image URLs so we can detect the NEW render even if the
+    // client never receives the response (mobile drop mid-render).
+    const knownBefore = new Set<string>(history.filter((w) => w.kind === "image" && w.body).map((w) => w.body));
+    const show = (url: string) => { setImgOut({ url, label }); refreshAgent(); };
     try {
-      let creds: { address: string; signature: string } | null = null;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const res = await fetch(`/api/citizens/${citizenId}/mission`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(creds ? { ...base, ...creds } : base),
-        });
-        const d = await res.json().catch(() => ({}));
-        if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
-          creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-citizen".`);
-          continue;
+      // The render saves to history BEFORE replying and takes ~15-40s, so a
+      // stalled/dropped fetch must NOT lose the image. RACE the request against
+      // a background history poll — whichever surfaces the new image first wins.
+      const requestPath = (async (): Promise<string | null> => {
+        let creds: { address: string; signature: string } | null = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const res = await fetch(`/api/citizens/${citizenId}/mission`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(creds ? { ...base, ...creds } : base),
+          });
+          const d = await res.json().catch(() => ({}));
+          if (res.status === 401 && (d?.error === "auth_required" || d?.error === "wallet_proof_required") && !creds) {
+            creds = await signOrThrow(`I am deploying FREELON CITY citizen #${citizenId} on mission "deploy-citizen".`);
+            continue;
+          }
+          return res.ok && d?.ok && d.output?.meta?.kind === "image" && d.output?.body ? d.output.body : null;
         }
-        if (res.ok && d?.ok && d.output?.meta?.kind === "image" && d.output?.body) {
-          setImgOut({ url: d.output.body, label });
-          refreshAgent();
-        } else {
-          setImgErr(d?.message || d?.error || "Couldn't generate the image — your ⬡ was not spent on a failed render.");
-        }
-        return;
-      }
+        return null;
+      })().catch(() => null);
+      const pollPath = pollForNewImage(knownBefore);
+
+      const winner = await Promise.race([
+        requestPath.then((u) => u || pollPath),
+        pollPath.then((u) => u || requestPath),
+      ]);
+      if (winner) show(winner);
+      else setImgErr("Couldn't generate the image — your ⬡ was not spent on a failed render.");
     } catch (e) {
-      setImgErr((e as Error).message || "Couldn't generate the image.");
+      // Network throw — the render may still have landed; check history before erroring.
+      const recovered = await pollForNewImage(knownBefore).catch(() => null);
+      if (recovered) show(recovered);
+      else setImgErr((e as Error).message || "Couldn't generate the image.");
     } finally {
       setImgBusy(null);
     }
