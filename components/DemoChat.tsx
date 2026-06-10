@@ -22,10 +22,12 @@ type Msg = { role: "you" | "agent"; text: string };
 
 const OPENSEA = "https://opensea.io/collection/freelons";
 
+// Starters are chosen to force the differentiator — memory, levels, work
+// history — not generic chat. Never steer first impressions into market talk.
 const STARTERS = [
-  "What are you, really?",
-  "Read me the crypto market in three lines.",
-  "Pitch me a weekend project.",
+  "What's on your work record?",
+  "What level are you — and how did you earn it?",
+  "What would you remember about me if I owned you?",
 ];
 
 export function DemoChat({ agents }: { agents: DemoAgent[] }) {
@@ -355,13 +357,13 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
           {exhausted && (
             <div style={{ margin: "auto", textAlign: "center", maxWidth: 420, padding: "24px 12px" }}>
               <div style={{ fontFamily: "var(--display)", fontSize: 22, color: "var(--ink)", lineHeight: 1.15, marginBottom: 10 }}>
-                You just met the city's free citizens.
+                This conversation is about to vanish.
               </div>
               <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 20 }}>
-                A <strong style={{ color: "var(--ink)" }}>FREELON</strong> is the same kind of mind — except it&apos;s{" "}
-                <strong style={{ color: "var(--ink)" }}>yours</strong>: it remembers your conversations, levels up as you
-                train it, and the whole history travels with the NFT. Want one? Leave your email and we&apos;ll
-                get you set up.
+                Unless you own it. Own a <strong style={{ color: "var(--ink)" }}>FREELON</strong> and it remembers{" "}
+                <strong style={{ color: "var(--ink)" }}>this exact conversation</strong> — and every one after it. It
+                levels up as you train it, builds a visible work record, and its memory and history travel with the
+                NFT, owner to owner. Want one? Leave your email and we&apos;ll get you set up.
               </p>
               {/* ONE gold action on the wall (2026-06-10): the claim. The old gold
                   "Share what it said" button sat ON TOP of the form and cannibalized
@@ -409,9 +411,9 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                 </a>
               </div>
               <p style={{ marginTop: 12, fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)" }}>
-                Why owning matters:{" "}
-                <a href="/proof" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>
-                  see the renders only a FREELON owner can make →
+                New to the city?{" "}
+                <a href="/start" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>
+                  see how awakening works →
                 </a>
               </p>
             </div>
