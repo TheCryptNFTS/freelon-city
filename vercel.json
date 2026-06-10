@@ -6,6 +6,10 @@
       "schedule": "4 4 * * *"
     },
     {
+      "path": "/api/cron/signal-report",
+      "schedule": "0 18 * * 0"
+    },
+    {
       "path": "/api/cron/agent-transmission",
       "schedule": "17 16 * * *"
     },

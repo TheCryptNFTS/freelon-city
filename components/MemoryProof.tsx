@@ -27,6 +27,30 @@ const CHIPS = [
   "I design brutalist interfaces",
 ];
 
+// THE JOB MENU (V1 SIGNAL OS, 2026-06-10): the job beat gains a CHOICE so the
+// staged loop teaches "you pick the work" — jobs are pull, not push. Outputs
+// stay deterministic templates: no LLM, no budget spend, no reward claims.
+const JOBS = [
+  {
+    id: "plan",
+    label: "Plan my next move",
+    out: (f: string) =>
+      `Job done. Three moves, from what I know about you: lean in — “${f}” is leverage. Ship one thing this week. Tell the city when you do.`,
+  },
+  {
+    id: "name",
+    label: "Name what I'm building",
+    out: (f: string) =>
+      `Done. Name it after the habit, not the dream — “${f}” already sounds like a name waiting. I'd cut it to two words and own them.`,
+  },
+  {
+    id: "bio",
+    label: "Write my one-liner",
+    out: (f: string) =>
+      `Done. Try: “${f}” — unapologetic, present tense. That's not a bio, it's a position. I'll hold the longer story.`,
+  },
+] as const;
+
 const OPENSEA = "https://opensea.io/collection/freelons";
 const MAX = 80;
 
@@ -42,6 +66,7 @@ export function MemoryProof() {
   const [fact, setFact] = useState("");
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState<Phase>(0);
+  const [job, setJob] = useState<(typeof JOBS)[number] | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const startedRef = useRef(false);
 
@@ -72,9 +97,10 @@ export function MemoryProof() {
     set(5, at[3]);
   }
 
-  function runJob() {
+  function runJob(j: (typeof JOBS)[number]) {
     if (phase !== 5) return;
     trackEvent("memory_proof_job");
+    setJob(j);
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -89,6 +115,7 @@ export function MemoryProof() {
     setPhase(0);
     setFact("");
     setInput("");
+    setJob(null);
   }
 
   return (
@@ -99,6 +126,23 @@ export function MemoryProof() {
           <div className="mproof__name">{a.name}</div>
           <div className="mproof__kicker" style={{ color: a.color }}>● AWAKE · A CITIZEN OF FREELON CITY</div>
         </div>
+        {/* Honesty chip, visible DURING the loop, not just in the footnote —
+            "unclear demo vs live" is a documented trust wound. */}
+        <span
+          style={{
+            marginLeft: "auto",
+            fontFamily: "var(--mono2)",
+            fontSize: 9.5,
+            letterSpacing: "0.2em",
+            color: "var(--ink-dim)",
+            border: "1px solid var(--line)",
+            borderRadius: 999,
+            padding: "3px 9px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          STAGED PREVIEW
+        </span>
         {phase > 0 && (
           <button type="button" className="mproof__reset" onClick={reset}>↺ again</button>
         )}
@@ -144,13 +188,21 @@ export function MemoryProof() {
               </div>
             )}
 
-            {/* THE JOB BEAT — optional second act: memory was the hook, work is
-                the loop. One click stages job → output → XP + public record. */}
+            {/* THE JOB BEAT — second act: memory was the hook, work is the
+                loop. The visitor PICKS the job (jobs are pull) → output →
+                XP + rep + public record. Still deterministic, still zero-cost. */}
             {phase === 5 && (
               <div style={{ marginTop: 4 }}>
-                <button type="button" className="mproof__chip" onClick={runJob}>
-                  Now give {a.name} a job →
-                </button>
+                <p style={{ margin: "0 0 8px", fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)" }}>
+                  Now give {a.name} its first job — you pick the work:
+                </p>
+                <div className="mproof__chips">
+                  {JOBS.map((j) => (
+                    <button key={j.id} type="button" className="mproof__chip" onClick={() => runJob(j)}>
+                      {j.label} →
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -159,8 +211,7 @@ export function MemoryProof() {
             {phase >= 7 && (
               <div className="mproof__row mproof__row--agent">
                 <span className="mproof__bubble mproof__bubble--agent">
-                  Job done. Three moves, from what I know about you: lean in — “{fact}” is
-                  leverage. Ship one thing this week. Tell the city when you do.
+                  {(job ?? JOBS[0]).out(fact)}
                 </span>
               </div>
             )}
@@ -168,6 +219,7 @@ export function MemoryProof() {
             {phase >= 8 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 <div className="mproof__memchip"><span className="dot" />XP +10 · IT LEVELS AS IT WORKS</div>
+                <div className="mproof__memchip"><span className="dot" />REP +1 · RELIABLE</div>
                 <div className="mproof__memchip"><span className="dot" />WRITTEN TO ITS PUBLIC RECORD</div>
               </div>
             )}

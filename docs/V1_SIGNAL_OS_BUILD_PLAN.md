@@ -1,5 +1,14 @@
 # V1 SIGNAL OS — BUILD PLAN (Execution Commander)
 
+> **EXECUTED 2026-06-10 (same day, gap-fill scope).** Recon showed the repo had
+> already shipped most of §4–§5 (hero locked, CityWeekBand = ProofOfRecord,
+> home-close eco line = CityStrip, /start iterated, /collections cards live).
+> What was actually built: desktop Start nav link; homepage live-status line;
+> MemoryProof job CHOICE + REP delta + STAGED PREVIEW label (= §6 demo loop);
+> /collections SMILES+TCG intro, threads bar, TCG "PLAY THE GAME →" → /crypt-tcg;
+> /start universe line + LIVE/COMING block. tsc + prod build + browser-verified.
+> Changes uncommitted — review then commit.
+
 Status: 2026-06-10. Build-ready. Produced from locked decision docs + repo recon, NOT a fresh audit
 (deep audit is running in a parallel session; security sequence is CLOSED as of 2026-06-10, commit 299c9a0).
 

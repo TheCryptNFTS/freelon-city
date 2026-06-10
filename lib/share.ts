@@ -205,6 +205,38 @@ export function tweetCivPride(input: { civName: string; doctrine: string; popula
 }
 
 /**
+ * THE SIGNAL REPORT — the weekly city ritual (2026-06-10). One template, two
+ * mouths: the Sunday @freeloncity cron (api/cron/signal-report) and the
+ * one-tap POST THE REPORT button on /report. Deterministic data only (winner
+ * civ + notable count), no value claims; the ?ref=sr-<week> tail lets
+ * referral_landing attribute every visit the ritual pulls in. Kept under 280
+ * incl. the t.co link — the unfurl card (api/og/report) carries the product
+ * anchor so the text doesn't have to.
+ */
+export function tweetSignalReport(input: {
+  week: string;
+  winnerName: string | null;
+  notableCount: number;
+}): string {
+  const claim = input.winnerName
+    ? `${input.winnerName.toUpperCase()} pressed the strongest claim.`
+    : `The frequency was quiet — the next claim is open.`;
+  const lives =
+    input.notableCount > 0
+      ? `${input.notableCount} citizens built a public life this week — every job, level and memory on the token's record.`
+      : `The record is open — the first citizen to act writes the city's first page.`;
+  return [
+    `⬡ ${HANDLE} · THE SIGNAL REPORT · ${input.week}`,
+    ``,
+    claim,
+    lives,
+    ``,
+    `${HASHTAGS}`,
+    `${SITE}/report?ref=sr-${input.week}`,
+  ].join("\n");
+}
+
+/**
  * Dashboard / numbers share — generic stat share.
  */
 export function tweetDashboard(text: string): string {

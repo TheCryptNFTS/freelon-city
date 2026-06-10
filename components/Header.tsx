@@ -32,6 +32,11 @@ export function Header() {
               own → see an agent → chat. */}
           <Link href="/citizens" className="nav-link nav-start">FREELONS</Link>
           <Link href="/collections" className="nav-link">Collections</Link>
+          {/* V1 SIGNAL OS (2026-06-10): Start restored to the desktop spine — the
+              mobile sheet already carries "New here? Start" but desktop newcomers
+              had no explainer path except the small hero text link. Keeps the
+              06-08 radical condense intact (still no Explore ▾ / Earn / Play). */}
+          <Link href="/start" className="nav-link">Start</Link>
           {/* Returning-holder tools — only render once a holding wallet is
               connected, so the newcomer front door stays condensed. */}
           <HeaderHolderLinks />

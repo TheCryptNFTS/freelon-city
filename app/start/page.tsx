@@ -91,6 +91,12 @@ export default function StartPage() {
           upgrades, and access. It is not money and not redeemable outside the city.
         </P>
         <P>
+          FREELONS are the first of six collections in one city —{" "}
+          <strong style={{ color: "var(--ink)" }}>Oogies, The Crypt, Emile, SMILES</strong> and the{" "}
+          <strong style={{ color: "var(--ink)" }}>Crypt TCG</strong> card game share the same signal.{" "}
+          <Link href="/collections" style={{ color: "var(--gold)" }}>See the universe →</Link>
+        </P>
+        <P>
           That&apos;s the whole product. <strong>You don&apos;t have to buy anything to look around</strong> —
           but owning a FREELON and awakening it is the part that does real work for you.
         </P>
@@ -126,6 +132,39 @@ export default function StartPage() {
           body="Give it jobs — write, strategy, research, image transforms. It levels up, remembers your project, and builds a public work history that stays with the NFT when you sell."
           cta={{ label: "SEE THE CITY'S RECORDS →", href: "/report" }}
         />
+      </Section>
+
+      {/* ── LIVE vs COMING (V1 SIGNAL OS 2026-06-10) ──
+         "What's real today" in one glance — unclear live/planned status is a
+         documented trust wound (Discord, May 2026). Everything under LIVE runs
+         on the site now; COMING means in progress — no dates, no promises. */}
+      <Section title="What's live · what's coming">
+        <Box>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+            {[
+              "Free demo",
+              "Agent workspace",
+              "Jobs + XP + public records",
+              "Daily ⬡ claim",
+              "City games",
+              "Crypt TCG",
+            ].map((t) => (
+              <span key={t} style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--gold)", border: "1px solid var(--gold)", borderRadius: 999, padding: "4px 10px" }}>
+                ● LIVE · {t}
+              </span>
+            ))}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {["Art evolution (built — activation pending)", "More job types"].map((t) => (
+              <span key={t} style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-dim)", border: "1px solid var(--line)", borderRadius: 999, padding: "4px 10px" }}>
+                ○ COMING · {t}
+              </span>
+            ))}
+          </div>
+          <p style={{ marginTop: 12, fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", lineHeight: 1.6, marginBottom: 0 }}>
+            COMING means in progress — no dates, no promises. If it&apos;s not marked LIVE, don&apos;t buy for it.
+          </p>
+        </Box>
       </Section>
 
       {/* ── CONNECTING ──

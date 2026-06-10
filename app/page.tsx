@@ -156,6 +156,12 @@ export default async function Home() {
             <li key={i}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
           ))}
         </ol>
+        {/* V1 SIGNAL OS (2026-06-10): one live-status line. Holders told us they
+            can't tell what's live vs roadmap — this is the cheapest trust win.
+            Factual: all four steps run on the site today. No promises made. */}
+        <p style={{ marginTop: "var(--s-3)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.08em", color: "var(--ink-dim)", textAlign: "center" }}>
+          <span style={{ color: "var(--gold)" }}>●</span> All four steps are live on the site today — this is not a roadmap.
+        </p>
         {/* SURFACE-REDUCTION 2026-06-09: removed the "ROLES IT CAN GROW INTO"
             list (Writer/Strategist/Sales Agent/Researcher/Designer/Red Team) —
             it read like generic ChatGPT-with-NFTs and weakened the pitch. */}

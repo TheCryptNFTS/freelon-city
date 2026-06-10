@@ -56,7 +56,11 @@ export default async function CollectionsIndex() {
     },
     ...slugs.map((slug) => ({
       slug,
-      href: `/collections/${slug}`,
+      // Crypt TCG is the GAME — its card opens the playable game, not the token
+      // browser (records stay browsable at /collections/crypttradingcards via
+      // the game page). The lore status chip stays; the CTA says what you DO.
+      href: slug === "crypttradingcards" ? "/crypt-tcg" : `/collections/${slug}`,
+      play: slug === "crypttradingcards",
       title: COLLECTION_META[slug].title,
       status: COLLECTION_META[slug].status,
       statusColor: COLLECTION_META[slug].statusColor,
@@ -83,8 +87,20 @@ export default async function CollectionsIndex() {
           own and train.{" "}
           <strong style={{ color: "var(--ink)" }}>Oogies</strong> the wild ones.{" "}
           <strong style={{ color: "var(--ink)" }}>The Crypt</strong> the dead ones.{" "}
-          <strong style={{ color: "var(--ink)" }}>Emile</strong> the emotional ones. One signal, many
+          <strong style={{ color: "var(--ink)" }}>Emile</strong> the emotional ones.{" "}
+          <strong style={{ color: "var(--ink)" }}>SMILES</strong> the lost ones. And{" "}
+          <strong style={{ color: "var(--ink)" }}>Crypt TCG</strong> is the card game built from
+          The Crypt&apos;s combat records — the one you play instead of talk to. One signal, many
           collections — talk to any of them; train and keep a FREELON.
+        </p>
+        {/* V1 SIGNAL OS (2026-06-10): the three systems that cross every
+            collection — stated once, plainly, on the page where all six meet.
+            Wording per COPY_LEGAL_CHECKLIST ("stays with the NFT", never
+            "on the token" / on-chain implications). */}
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--ink-dim)", marginTop: 12 }}>
+          <strong style={{ color: "var(--gold)" }}>Jobs</strong> — citizens work ·{" "}
+          <strong style={{ color: "var(--gold)" }}>Memory</strong> — what they learn stays with the NFT ·{" "}
+          <strong style={{ color: "var(--gold)" }}>Reputation</strong> — the record is public
         </p>
       </header>
 
@@ -149,7 +165,11 @@ export default async function CollectionsIndex() {
                 <span style={{ fontFamily: "var(--mono2)", fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: c.statusColor, fontWeight: 700, marginTop: -2 }}>{c.kicker}</span>
                 <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>{c.blurb}</p>
                 <span style={{ marginTop: "auto", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)" }}>
-                  {(c as { agentic?: boolean }).agentic ? "MEET THE AGENTS →" : `BROWSE ${c.total.toLocaleString()} →`}
+                  {(c as { play?: boolean }).play
+                    ? "PLAY THE GAME →"
+                    : (c as { agentic?: boolean }).agentic
+                      ? "MEET THE AGENTS →"
+                      : `BROWSE ${c.total.toLocaleString()} →`}
                 </span>
               </article>
             </Link>

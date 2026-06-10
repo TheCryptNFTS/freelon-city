@@ -5,6 +5,8 @@ import { topCitizens } from "@/lib/progression-store";
 import { getCitizen } from "@/lib/citizens";
 import { epithetFor } from "@/lib/epithets";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
+import { ReportShare } from "@/components/ReportShare";
+import { ReferralBeacon } from "@/components/ReferralBeacon";
 
 // THE SIGNAL REPORT — the weekly city ritual (the "spectatorship" keystone of the
 // playable-identity loop). Reads the EXISTING hardened data: civ-wars standings
@@ -15,17 +17,37 @@ import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 // state rather than rendering a dead board.
 export const revalidate = 600;
 
-export const metadata: Metadata = {
-  title: "The Signal Report · FREELON CITY",
-  description:
-    "The weekly record of the city — which civilization pressed its claim, and the citizens who built a public life this week.",
-  openGraph: {
-    title: "The Signal Report · FREELON CITY",
-    description: "The week in the city — the winning civilization and its most notable citizens.",
-    images: [{ url: "/api/og/universe", width: 1200, height: 630 }],
-    type: "website",
-  },
-};
+// Weekly OG card (2026-06-10): the unfurl shows THIS week's winner + count via
+// /api/og/report — each week is a fresh URL so X/Discord scrapers re-fetch
+// instead of serving a stale generic card. Fails soft to the quiet-week card.
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "The Signal Report · FREELON CITY";
+  let og = "/api/og/report";
+  let description =
+    "The weekly record of the city — which civilization pressed its claim, and the citizens who built a public life this week.";
+  try {
+    const civ = await getCivWeekStandings();
+    const winner = civ.totalActive > 0 ? civ.standings[0] : null;
+    let n = 0;
+    try {
+      const rows = await topCitizens("level", 12);
+      for (const r of rows) {
+        if (getCitizen(r.tokenId)) n++;
+        if (n >= 8) break;
+      }
+    } catch { /* count stays 0 — the card renders its open-record state */ }
+    og = `/api/og/report?w=${encodeURIComponent(civ.week)}&civ=${encodeURIComponent(winner?.name ?? "")}&c=${encodeURIComponent(winner?.color ?? "")}&n=${n}`;
+    if (winner) {
+      description = `${civ.week} — ${winner.name} pressed the strongest claim. The citizens building a public life, on the record.`;
+    }
+  } catch { /* fall through to the generic card */ }
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: [{ url: og, width: 1200, height: 630 }], type: "website" },
+    twitter: { card: "summary_large_image", title, description, images: [og] },
+  };
+}
 
 type Notable = { tokenId: number; value: number; name: string; epithet: string | null; civColor: string; civName: string };
 
@@ -70,6 +92,9 @@ export default async function ReportPage() {
 
   return (
     <div className="home-page" style={{ maxWidth: 1080, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+      {/* Ritual attribution — shared report links carry ?ref=sr-<week>; the
+          beacon turns those arrivals into referral_landing events. */}
+      <ReferralBeacon />
       {/* HERO */}
       <section className="field-glow" style={{ textAlign: "center", marginBottom: "var(--s-6)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE SIGNAL REPORT</span>
@@ -186,15 +211,18 @@ export default async function ReportPage() {
         </section>
       )}
 
-      {/* CTA */}
+      {/* CTA — the ritual action is the ONE gold here (2026-06-10): the report
+          exists to be carried; distribution is the documented bottleneck.
+          Holders posting the week's record IS the flywheel — sending a citizen
+          stays one click away as the secondary. */}
       <section style={{ textAlign: "center" }}>
-        <span className="kicker">⬡ WRITE YOUR PAGE</span>
+        <span className="kicker">⬡ CARRY THE SIGNAL</span>
         <div className="ui-cta-row" style={{ justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary btn-lg" href="/citizens"><span className="ttl">SEND A CITIZEN →</span></Link>
-          <Link className="btn btn-secondary btn-lg" href="/canon"><span className="ttl">THE CANON →</span></Link>
+          <ReportShare week={civ.week} winnerName={winner?.name ?? null} notableCount={notables.length} />
+          <Link className="btn btn-secondary btn-lg" href="/citizens"><span className="ttl">SEND A CITIZEN →</span></Link>
         </div>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", marginTop: "var(--s-3)" }}>
-          Every citizen builds a public life. Its record travels with the NFT.
+          The city posts its record every Sunday. Every citizen builds a public life — its record travels with the NFT.
         </p>
       </section>
     </div>
