@@ -202,7 +202,28 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 </span>
               </div>
               <div style={{ marginTop: 10 }}>
-                {w.kind === "image" ? (
+                {w.kind === "image" && w.body ? (
+                  // The actual artifact. Image URLs are PUBLIC PROOF per
+                  // docs/HISTORY_VISIBILITY_POLICY.md (unlike text bodies) —
+                  // showing the real render is what makes "visible work
+                  // history" believable instead of XP arithmetic (2026-06-10).
+                  <a href={w.body} target="_blank" rel="noreferrer" style={{ display: "inline-block" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={w.body}
+                      alt={`${w.abilityLabel || w.ability} — ${w.task}`}
+                      loading="lazy"
+                      style={{
+                        display: "block",
+                        maxWidth: 280,
+                        maxHeight: 280,
+                        width: "100%",
+                        borderRadius: 10,
+                        border: "1px solid rgba(245,242,232,0.16)",
+                      }}
+                    />
+                  </a>
+                ) : w.kind === "image" ? (
                   <span
                     style={{
                       display: "inline-block",

@@ -109,13 +109,20 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // Daily check-in (today's line if already generated) + level rank + whether
   // the public work-log has entries — all cheap, all fail-quiet so they never
   // block the profile render.
-  const [todayCheckIn, levelRank, agentWorkCount, activation, progress] = await Promise.all([
+  const [todayCheckIn, levelRank, agentWork, activation, progress] = await Promise.all([
     getCheckIn(tid).catch(() => null),
     getRankByLevel(tid).catch(() => null),
-    getAgentHistory(tid).then((h) => h.length).catch(() => 0),
+    getAgentHistory(tid).catch(() => []),
     unlockStatus(tid).catch(() => null),
     getProgress(tid).catch(() => null),
   ]);
+  const agentWorkCount = agentWork.length;
+  // LATEST WORK (2026-06-10): the most recent image artifact, shown as public
+  // proof on the dossier. Image URLs are PUBLIC per
+  // docs/HISTORY_VISIBILITY_POLICY.md (text body/brief stay owner-only) —
+  // a real render is what turns "visible work history" from a claim into
+  // something a buyer can see. History is newest-first (agent-history unshift).
+  const latestWorkImage = agentWork.find((w) => w.kind === "image" && !!w.body) ?? null;
   // PUBLIC LIFE (2026-06-10): the playable-identity moat made visible. Counts
   // only (level / work-log size / artifacts) — public proof per
   // docs/HISTORY_VISIBILITY_POLICY.md; raw work bodies stay owner-only. The
@@ -202,6 +209,40 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <div style={{ margin: "var(--s-3) 0" }}>
             <ActivationProof compact />
           </div>
+          {/* LATEST WORK — the newest image artifact as visible public proof.
+              Self-hides when the citizen has produced no image work yet. */}
+          {latestWorkImage && (
+            <section className="panel-premium" style={{ padding: "var(--s-4)", margin: "var(--s-3) 0 0" }}>
+              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ LATEST WORK · PUBLIC RECORD</span>
+              <Link href={`/citizens/${tid}/log`} style={{ display: "block", marginTop: 10 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={latestWorkImage.body}
+                  alt={`${latestWorkImage.abilityLabel || latestWorkImage.ability} — ${latestWorkImage.task}`}
+                  loading="lazy"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    maxWidth: 360,
+                    borderRadius: 10,
+                    border: "1px solid color-mix(in srgb, var(--gold) 35%, transparent)",
+                  }}
+                />
+              </Link>
+              <div
+                style={{
+                  marginTop: 8,
+                  fontFamily: "var(--mono2)",
+                  fontSize: 11,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: "var(--ink-dim)",
+                }}
+              >
+                {latestWorkImage.abilityLabel || latestWorkImage.ability} · {latestWorkImage.task}
+              </div>
+            </section>
+          )}
           {agentWorkCount > 0 && (
             <div className="worklog-cta-row">
               <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>
