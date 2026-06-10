@@ -11,7 +11,6 @@ const HOLDER_GROUP: NavGroup = {
   heading: "YOUR TOOLS",
   links: [
     { href: "/my-citizens", label: "My Citizens", gold: true },
-    { href: "/play", label: "Play" },
     { href: "/dashboard", label: "Dashboard" },
   ],
 };
@@ -56,6 +55,9 @@ const GROUPS: NavGroup[] = [
     links: [
       { href: "/citizens",  label: "FREELONS", gold: true },
       { href: "/collections", label: "Collections" },
+      // 2026-06-10 Discord ("are the games still there?"): Play is back for
+      // everyone — the free no-wallet games are a hook, not holder chrome.
+      { href: "/play",      label: "Play · free" },
       { href: "/start",     label: "New here? Start" },
     ],
   },

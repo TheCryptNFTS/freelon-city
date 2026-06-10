@@ -5,9 +5,10 @@ import { useHolder } from "@/lib/useHolder";
 /**
  * Wallet-aware nav links. The front door stays condensed for logged-OUT
  * newcomers (founder's "radical condense"); but once a wallet is CONNECTED, a
- * returning holder gets their map back — My Citizens (roster), Play (games),
- * Dashboard (pulse) — without re-bloating the newcomer path. Renders nothing
- * until a holding wallet is present.
+ * returning holder gets their map back — My Citizens (roster) and Dashboard
+ * (pulse) — without re-bloating the newcomer path. Renders nothing until a
+ * holding wallet is present. (Play moved to the universal nav 2026-06-10 —
+ * the free games are a newcomer hook, not a holder tool.)
  */
 export function HeaderHolderLinks() {
   const h = useHolder();
@@ -15,7 +16,6 @@ export function HeaderHolderLinks() {
   return (
     <>
       <Link href="/my-citizens" className="nav-link nav-holder">My Citizens</Link>
-      <Link href="/play" className="nav-link nav-holder">Play</Link>
       <Link href="/dashboard" className="nav-link nav-holder">Dashboard</Link>
     </>
   );

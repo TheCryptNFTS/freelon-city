@@ -37,6 +37,11 @@ export function Header() {
               had no explainer path except the small hero text link. Keeps the
               06-08 radical condense intact (still no Explore ▾ / Earn / Play). */}
           <Link href="/start" className="nav-link">Start</Link>
+          {/* 2026-06-10 Discord feedback ("are the games still there? I am
+              lost"): Play restored for EVERYONE — hex-match + proof are free,
+              no-wallet hooks, and hiding them read as "the games are gone".
+              Softens the 06-08 condense by exactly one link. */}
+          <Link href="/play" className="nav-link">Play</Link>
           {/* Returning-holder tools — only render once a holding wallet is
               connected, so the newcomer front door stays condensed. */}
           <HeaderHolderLinks />
