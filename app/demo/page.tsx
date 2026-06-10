@@ -76,9 +76,12 @@ export default function DemoPage() {
           Meet a <em>citizen.</em> Free.
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 600 }}>
-          Five collections, one city — every face here is a live AI character. Pick one and ask it
+          Six collections, one city — every face here is a live AI character. Pick one and ask it
           anything. Then meet the <strong style={{ color: "var(--ink)" }}>FREELON</strong> — the
           citizen you can own, train and keep.
+        </p>
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", letterSpacing: "0.04em", marginTop: 8 }}>
+          5 free turns. No wallet needed.
         </p>
       </header>
 

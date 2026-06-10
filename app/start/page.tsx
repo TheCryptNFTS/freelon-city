@@ -297,6 +297,8 @@ export default function StartPage() {
           <Lingo term="awaken" def="A one-time ETH payment that switches your FREELON on. It stays awake through resale — and adds bonus ⬡ to your city balance." />
           <Lingo term="agent" def="What your FREELON is once it's awake — it takes jobs (writing, strategy, research, image transforms), remembers your project, and gets better the more you use it." />
           <Lingo term="hex (⬡)" def="The city's credits. You earn them free or get them when you awaken a FREELON, and spend them to run jobs. Not money, not redeemable outside the city." />
+          <Lingo term="realign" def="Switching a citizen to a different civilization — a ⬡ city-credit sink you spend hex on." />
+          <Lingo term="signal" def="The city's core lore — its energy and story; also the name of the weekly Signal Report." />
         </dl>
       </Section>
 

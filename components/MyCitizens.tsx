@@ -82,7 +82,7 @@ export function MyCitizens() {
           <p>Reading the chain…</p>
         ) : (
           <p>
-            <strong>{total}</strong> held · <strong style={{ color: "var(--gold)" }}>{activatedCount}</strong> activated
+            <strong>{total}</strong> held · <strong style={{ color: "var(--gold)" }}>{activatedCount}</strong> awakened
             {activatedCount > 0 ? " (agents switched on)" : " — none switched on yet"}.
             {data?.truncated ? " Showing your first 200." : ""}
           </p>
@@ -99,7 +99,7 @@ export function MyCitizens() {
               className={`mycit-filter ${filter === f ? "on" : ""}`}
               onClick={() => setFilter(f)}
             >
-              {f === "all" ? `All ${total}` : f === "activated" ? `Activated ${activatedCount}` : `Not yet ${total - activatedCount}`}
+              {f === "all" ? `All ${total}` : f === "activated" ? `Awakened ${activatedCount}` : `Dormant ${total - activatedCount}`}
             </button>
           ))}
         </div>
@@ -128,7 +128,7 @@ export function MyCitizens() {
               <div className="mycit-art">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imageUrl(c.id)} alt={c.name} loading="lazy" />
-                {activated && <span className="mycit-glyph" aria-label="Activated">⬡</span>}
+                {activated && <span className="mycit-glyph" aria-label="Awakened">⬡</span>}
               </div>
               <div className="mycit-meta">
                 <span className="mycit-id">#{c.id.toString().padStart(4, "0")}</span>
@@ -136,7 +136,7 @@ export function MyCitizens() {
                 {activated ? (
                   <span className="mycit-runs">⬡ {u.credits} runs left</span>
                 ) : (
-                  <span className="mycit-locked">Not activated</span>
+                  <span className="mycit-locked">Dormant</span>
                 )}
               </div>
             </Link>

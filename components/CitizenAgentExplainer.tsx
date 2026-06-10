@@ -30,20 +30,20 @@ export function CitizenAgentExplainer({ tokenId }: { tokenId: number }) {
         <ol className="agent-howto-steps">
           <li><strong>Sync your X handle</strong> → the city sorts you into a tribe and shows you that tribe&apos;s face. <em>That citizen is an example — you don&apos;t own it.</em></li>
           <li><strong>Own one</strong> → buy a FREELON on OpenSea. Now it&apos;s yours.</li>
-          <li><strong>Unlock it</strong> → a one-time ETH payment activates its AI agent (and drops bonus ⬡ in your wallet).</li>
+          <li><strong>Awaken it</strong> → one ETH payment, once. It wakes and works (and drops bonus ⬡ in your wallet).</li>
           <li><strong>Put it to work</strong> → give it jobs (write, strategy, research, images). It levels up, remembers your project, and builds a work history that stays with the NFT.</li>
         </ol>
-        <p className="agent-howto-foot"><strong>Aligned ≠ owned.</strong> Syncing shows your tribe&apos;s face; owning means buying the FREELON; unlocking turns its agent on.</p>
+        <p className="agent-howto-foot"><strong>Aligned ≠ owned.</strong> Syncing shows your tribe&apos;s face; owning means buying the FREELON; awakening turns its agent on.</p>
       </div>
 
-      {/* WHAT YOU PAY & WHEN — the pricing made legible up front, so buy → unlock
+      {/* WHAT YOU PAY & WHEN — the pricing made legible up front, so buy → awaken
           → run isn't three surprises. Three steps, plain words. */}
       <div className="agent-pay-explainer">
         <span className="kicker">⬡ WHAT YOU PAY &amp; WHEN</span>
         <ol className="agent-pay-steps">
           <li><strong>Own it</strong> — buy the FREELON on OpenSea. One purchase, in ETH.</li>
-          <li><strong>Unlock it</strong> — a one-time ETH payment turns the agent on (it stays on, even if you sell) and drops bonus ⬡ in your wallet.</li>
-          <li><strong>Run jobs</strong> — each job spends a little ⬡. You earn ⬡ free every day, or use the bonus the unlock gave you.</li>
+          <li><strong>Awaken it</strong> — a one-time ETH payment turns the agent on (it stays on, even if you sell) and drops bonus ⬡ in your wallet.</li>
+          <li><strong>Run jobs</strong> — each job spends a little ⬡. You earn ⬡ free every day, or use the bonus the awakening gave you.</li>
         </ol>
       </div>
 
@@ -97,7 +97,7 @@ export function CitizenAgentExplainer({ tokenId }: { tokenId: number }) {
 
       <p className="agent-explainer-lead">
         It&apos;s yours — a character you can turn into anything, that remembers what you build together and
-        gets sharper every time you use it. Not a chatbot you rent; a worker you own. Six things it does:
+        gets sharper every time you use it. Not a chatbot you rent; a citizen that works for you. Six things it does:
       </p>
       <ul className="agent-explainer-grid">
         {ABILITIES.map((a) => (

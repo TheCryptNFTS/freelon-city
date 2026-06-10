@@ -124,15 +124,15 @@ export function WorkspaceUnlock({
   return (
     <div style={card}>
       <div style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: accent, fontWeight: 700 }}>
-        ⬡ Unlock your agent{tier ? ` · ${tier}` : ""}
+        ⬡ Awaken this FREELON{tier ? ` · ${tier}` : ""}
       </div>
       <p style={{ fontSize: 13, color: "var(--ink-2, #b8b8c0)", lineHeight: 1.55, margin: "10px 0 0" }}>
-        A one-time ETH unlock switches on every premium ability — strategy, research, red-team, dossier &amp; branded image generation — <strong style={{ color: "#ece9e2" }}>forever</strong>, and drops <strong style={{ color: "#ece9e2" }}>bonus ⬡</strong> in your wallet. The unlock + training history stay with the FREELON when it changes hands.
+        A one-time ETH awakening switches on every premium ability — strategy, research, red-team, dossier &amp; branded image generation — <strong style={{ color: "#ece9e2" }}>forever</strong>, and drops <strong style={{ color: "#ece9e2" }}>bonus ⬡</strong> in your wallet. The awakening + training history stay with the FREELON when it changes hands.
       </p>
 
       {step === "idle" && (
         <button type="button" style={btn} disabled={busy} onClick={getQuote}>
-          {address ? `UNLOCK${priceEth ? ` · ${priceEth} ETH` : ""} →` : "CONNECT WALLET TO UNLOCK →"}
+          {address ? `AWAKEN${priceEth ? ` · ${priceEth} ETH` : ""} →` : "CONNECT WALLET TO AWAKEN →"}
         </button>
       )}
       {step === "quoting" && <p style={{ fontSize: 12, color: "var(--ink-dim, #8a8a92)", marginTop: 12 }}>Getting your price…</p>}
@@ -151,7 +151,7 @@ export function WorkspaceUnlock({
             <span>I understand this is an on-chain, non-refundable payment.</span>
           </label>
           <button type="button" style={{ ...btn, opacity: !accepted || step === "confirming" ? 0.5 : 1 }} disabled={busy || !accepted || step === "confirming"} onClick={pay}>
-            {step === "confirming" ? "UNLOCKING…" : `PAY ${quote.amountEth} ETH & UNLOCK →`}
+            {step === "confirming" ? "AWAKENING…" : `PAY ${quote.amountEth} ETH & AWAKEN →`}
           </button>
           <div style={{ marginTop: 12, borderTop: "1px solid var(--line-2, #2a2a30)", paddingTop: 12 }}>
             <span style={{ fontSize: 11, color: "var(--ink-dim, #8a8a92)" }}>Already sent it yourself? Paste the tx hash:</span>
@@ -168,7 +168,7 @@ export function WorkspaceUnlock({
               disabled={busy || !accepted || !/^0x[a-fA-F0-9]{64}$/.test(txInput)}
               onClick={() => claim(txInput)}
             >
-              {busy ? "VERIFYING…" : "I'VE PAID — UNLOCK →"}
+              {busy ? "VERIFYING…" : "I'VE PAID — AWAKEN →"}
             </button>
           </div>
         </>

@@ -210,7 +210,7 @@ export default async function Home() {
             this one sentence tells the visitor the OTHER collections are becoming
             agents too, and points to /collections (the full story). No price claims. */}
         <p className="home-close__eco">
-          FREELONS are the first. <strong>Emile, The Crypt and Oogies</strong> awaken too — one signal, many collections.{" "}
+          FREELONS are the first. <strong>Emile, The Crypt, Oogies and Smiles</strong> awaken too — one signal, many collections.{" "}
           <Link href="/collections">Explore the collections →</Link>
         </p>
         {/* 2026-06-06 buy-handoff polish — OWN A FREELON jumps straight to
