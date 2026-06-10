@@ -5,10 +5,25 @@ import { ReferralBeacon } from "@/components/ReferralBeacon";
 
 export const dynamic = "force-dynamic";
 
+// T3 2026-06-11 — explicit share tags (a page-level openGraph block replaces
+// the layout's wholesale, so the branded default image is restated here).
+const DEMO_DESC =
+  "Talk to a citizen of FREELON CITY — a live AI character, free, no wallet needed. Then meet the FREELON: the one you can own and train.";
 export const metadata = {
   title: "Meet a Citizen · Free",
-  description:
-    "Talk to a citizen of FREELON CITY — a live AI character, free, no wallet needed. Then meet the FREELON: the one you can own and train.",
+  description: DEMO_DESC,
+  openGraph: {
+    title: "Meet a citizen — free, no wallet needed",
+    description: DEMO_DESC,
+    images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Meet a citizen — free, no wallet needed",
+    description: DEMO_DESC,
+    images: ["/api/og/universe?b=2"],
+  },
 };
 
 // One iconic token per sister collection, art pinned to a local still. The

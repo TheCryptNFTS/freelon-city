@@ -15,16 +15,25 @@ import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
 import { ChromeGate } from "@/components/ChromeGate";
 
+// T3 2026-06-11 — share defaults must SELL. Every page without its own
+// openGraph/twitter block inherits these, and "404 — FREELON CITY" as an
+// og:title made shared links preview as a broken page on X. The 404 motif
+// stays in on-page lore + inside the OG image renderers (app/api/og/*) —
+// never again in the share-card TITLE tags. Under 155 chars, copy-safe.
+const SHARE_TITLE = "FREELON CITY — own and train an AI citizen";
+const SHARE_DESC =
+  "Own and train an AI citizen of FREELON CITY. Its memory and work history travel with the NFT — through every sale. Try one free, no wallet needed.";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.freeloncity.com"),
   title: {
     default: "404 — FREELON CITY",
     template: "%s · FREELON CITY",
   },
-  description: "4040 AI characters you own and train. Each FREELON is an agent that remembers your work — and its whole history travels with the NFT.",
+  description: SHARE_DESC,
   openGraph: {
-    title: "404 — FREELON CITY",
-    description: "4040 AI characters you own and train. Each FREELON remembers your work, and its history travels with the NFT.",
+    title: SHARE_TITLE,
+    description: SHARE_DESC,
     type: "website",
     // Site-wide default OG → the branded product card (every page without its
     // own OG inherits this). Was a flat static /og/home.jpg.
@@ -32,8 +41,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "404 — FREELON CITY",
-    description: "4040 AI characters you own and train. Each FREELON remembers your work, and its history travels with the NFT.",
+    title: SHARE_TITLE,
+    description: SHARE_DESC,
     images: ["/api/og/universe?b=2"],
   },
 };

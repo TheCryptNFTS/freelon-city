@@ -5,9 +5,25 @@ import { isAgenticCollection } from "@/lib/agent-subject";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
 import { GraveyardSection } from "@/components/archive/GraveyardSection";
 
+// T3 2026-06-11 — explicit share tags (a page-level openGraph block replaces
+// the layout's wholesale, so the branded default image is restated here).
+const COLLECTIONS_DESC =
+  "Every collection in the FREELON CITY universe — each token is an AI agent you can open and chat with.";
 export const metadata = {
   title: "The Universe · Collections",
-  description: "Every collection in the FREELON CITY universe — each token is an AI agent you can open and chat with.",
+  description: COLLECTIONS_DESC,
+  openGraph: {
+    title: "One city, six collections",
+    description: COLLECTIONS_DESC,
+    images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "One city, six collections",
+    description: COLLECTIONS_DESC,
+    images: ["/api/og/universe?b=2"],
+  },
 };
 
 // Some collections' first on-chain record is video-only (Emile is .mp4),

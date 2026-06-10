@@ -8,7 +8,27 @@ import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import Link from "next/link";
 
-export const metadata = { title: "FREELONS · 4,040 Citizens You Can Own & Train" };
+// T3 2026-06-11 — explicit share tags so X previews sell the roster instead of
+// inheriting a generic default (page-level openGraph replaces the layout's, so
+// the branded default image is restated here).
+const CITIZENS_DESC =
+  "Browse all 4,040 citizens of FREELON CITY — ten civilizations, nine shapes, four 1/1s. Every FREELON is an AI you can awaken and train.";
+export const metadata = {
+  title: "FREELONS · 4,040 Citizens You Can Own & Train",
+  description: CITIZENS_DESC,
+  openGraph: {
+    title: "4,040 citizens you can own & train",
+    description: CITIZENS_DESC,
+    images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "4,040 citizens you can own & train",
+    description: CITIZENS_DESC,
+    images: ["/api/og/universe?b=2"],
+  },
+};
 
 // ISR: the curated/trait data is static, but the TopAgents rail reads the live
 // progression leaderboard — revalidate so the showcase reflects real training.

@@ -19,9 +19,23 @@ import { TOTAL } from "@/lib/constants";
 // card from app/layout.tsx.
 const PAGE_DESC =
   "Two minutes to understand FREELON CITY: own a FREELON, awaken it, and put it to work — its history stays with the NFT.";
+// T3 2026-06-11 — explicit share tags (a page-level openGraph block replaces
+// the layout's wholesale, so the branded default image is restated here).
 export const metadata: Metadata = {
   title: "Start Here · 2-Min Guide",
   description: PAGE_DESC,
+  openGraph: {
+    title: "Start here — the 2-minute guide",
+    description: PAGE_DESC,
+    images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Start here — the 2-minute guide",
+    description: PAGE_DESC,
+    images: ["/api/og/universe?b=2"],
+  },
 };
 
 export default function StartPage() {

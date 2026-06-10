@@ -26,14 +26,17 @@ export const metadata: Metadata = {
     // (portrait + "AN AI CHARACTER YOU OWN" + pitch). The six-collections scope
     // card still exists behind ?v=universe but nothing links it — the product
     // card wins for cold traffic, deliberately.
-    title: "404 — FREELON CITY",
+    // T3 2026-06-11 — share title sells the product; og:title "404 — FREELON
+    // CITY" previewed as a broken page on X. The 404 motif stays on-page and
+    // inside the OG image renderer, never in the share-card title tags.
+    title: "FREELON CITY — own and train an AI citizen",
     description: HOME_DESC,
     images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "404 — FREELON CITY",
+    title: "FREELON CITY — own and train an AI citizen",
     description: HOME_DESC,
     images: ["/api/og/universe?b=2"],
   },
