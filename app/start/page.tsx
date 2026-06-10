@@ -147,6 +147,7 @@ export default function StartPage() {
               "Jobs + XP + public records",
               "Daily ⬡ claim",
               "City games",
+              "Crypt TCG · solo vs AI",
             ].map((t) => (
               <span key={t} style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--gold)", border: "1px solid var(--gold)", borderRadius: 999, padding: "4px 10px" }}>
                 ● LIVE · {t}
@@ -154,12 +155,10 @@ export default function StartPage() {
             ))}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {/* Crypt TCG moved LIVE→COMING 2026-06-10: the game exists (separate
-                build) but no on-site path reaches it yet — /crypt-tcg is still
-                the sealed archive page. This chip sits inside the "don't buy
-                for it" trust box; it must never claim LIVE while the door is
-                shut. Flip back when /crypt-tcg links the real game. */}
-            {["Crypt TCG (playable build in reconstruction)", "Art evolution (built — activation pending)", "More job types"].map((t) => (
+            {/* Crypt TCG flipped back to LIVE 2026-06-10: the game shipped and
+                /crypt-tcg now links the real playable build (solo vs AI).
+                Ranked PvP is the remaining COMING beat. */}
+            {["Crypt TCG · ranked PvP", "Art evolution (built — activation pending)", "More job types"].map((t) => (
               <span key={t} style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-dim)", border: "1px solid var(--line)", borderRadius: 999, padding: "4px 10px" }}>
                 ○ COMING · {t}
               </span>

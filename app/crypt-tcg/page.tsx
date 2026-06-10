@@ -21,11 +21,10 @@ import { CIVILIZATIONS } from "@/lib/constants";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
-// 2026-06-10 trust fix: the OG card must not promise "build a deck and
-// battle" while the page itself says TERMINAL SEALED — align the shareable
-// description with the page's reconstruction status until the game is linked.
+// 2026-06-10: the game shipped — the door is live. OG promises play because
+// the page delivers a real solo-vs-AI match.
 const PAGE_DESC =
-  "Crypt TCG — the FREELON CITY card game, in reconstruction. Ten commanders, one for each civilization. The terminal opens soon.";
+  "Crypt TCG — the FREELON CITY card game. Ten commanders, one for each civilization. Build a deck and battle the AI now — ranked play coming.";
 export const metadata: Metadata = {
   title: "Crypt TCG · The Card Game",
   description: PAGE_DESC,
@@ -42,6 +41,10 @@ export const metadata: Metadata = {
     images: ["/og/combat-archives.jpg"],
   },
 };
+
+// 2026-06-10: the game shipped. Door points at the deployed build; env var
+// lets it flip to play.freeloncity.com later with no code change.
+const GAME_URL = process.env.NEXT_PUBLIC_CRYPT_GAME_URL || "https://crypt-game.vercel.app";
 
 type Fragment = {
   glyph: string;
@@ -76,9 +79,9 @@ const FRAGMENTS: Fragment[] = [
   {
     glyph: "◈",
     label: "ARCHIVE INTERFACE",
-    copy: "The terminal that lets carriers enter the relic record is being rebuilt. Premature access has been disabled.",
-    status: "DECAYING",
-    color: "var(--state-unstable)",
+    copy: "The terminal is open. Carriers can enter the relic record now — solo runs against the AI, with ranked play surfacing next.",
+    status: "RECOVERED",
+    color: "var(--state-active)",
   },
 ];
 
@@ -123,39 +126,34 @@ export default async function CombatArchivesPage() {
           }}
         >
           Ten commanders, one for each civilization. Collect cards, build a
-          deck, and battle. The full game is in final reconstruction — the
-          card system is being readied before it opens to holders.
+          deck, and battle. The first playable build is live — jump into a
+          solo match against the AI right now.
         </p>
 
-        {/* Status pill — the brand-consistent "coming soon" */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            marginTop: "var(--s-4)",
-            padding: "8px 16px 8px 12px",
-            border: "1px solid var(--state-unstable)55",
-            background: "var(--tint-surge)",
-            borderRadius: 999,
-            fontFamily: "var(--mono2)",
-            fontSize: 11,
-            letterSpacing: "0.22em",
-            color: "var(--state-unstable)",
-            textTransform: "uppercase",
-          }}
-        >
+        {/* PLAY CTA — the game is live (solo vs AI). Ranked PvP is the next
+            beat; the door is honest about both. GAME_URL is env-overridable. */}
+        <div style={{ marginTop: "var(--s-4)", display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
+          <a href={GAME_URL} target="_blank" rel="noreferrer" className="btn btn-primary btn-lg">
+            <span className="ttl">ENTER THE TERMINAL · PLAY →</span>
+          </a>
           <span
             style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: "var(--state-unstable)",
-              boxShadow: "0 0 10px var(--state-unstable)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              fontFamily: "var(--mono2)",
+              fontSize: 11,
+              letterSpacing: "0.16em",
+              color: "var(--ink-dim)",
+              textTransform: "uppercase",
             }}
-            aria-hidden
-          />
-          ⬡ RECONSTRUCTION UNSTABLE · TERMINAL SEALED
+          >
+            <span
+              style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--state-active)", boxShadow: "0 0 10px var(--state-active)" }}
+              aria-hidden
+            />
+            LIVE · solo vs AI &nbsp;·&nbsp; ranked PvP coming
+          </span>
         </div>
 
         {floor && (
@@ -436,7 +434,7 @@ export default async function CombatArchivesPage() {
         }}
       >
         <span className="kicker" style={{ color: "var(--gold)" }}>
-          ⬡ WHEN THE TERMINAL OPENS
+          ⬡ INSIDE THE TERMINAL
         </span>
         <p
           style={{
@@ -469,9 +467,9 @@ export default async function CombatArchivesPage() {
       <section style={{ textAlign: "center" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
-          <Link className="btn btn-primary" href="/archive">
-            <span className="ttl">ENTER THE ARCHIVE →</span>
-          </Link>
+          <a className="btn btn-primary" href={GAME_URL} target="_blank" rel="noreferrer">
+            <span className="ttl">PLAY THE GAME →</span>
+          </a>
           <Link className="btn btn-secondary" href="/civilizations">
             <span className="ttl">10 CIVILIZATIONS →</span>
           </Link>
