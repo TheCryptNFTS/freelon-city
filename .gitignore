@@ -8,3 +8,6 @@ node_modules/
 
 # Local image-render test artifacts (scene/look samples) — never commit
 public/generated/looktest/
+
+# Playwright screenshot harness output (npm run shots) — never commit
+screenshots/
