@@ -7,6 +7,7 @@ import { getCitizen } from "@/lib/citizens";
 import { COST, CarrierState, POINTS } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { requireXSession } from "@/lib/require-x";
+import { requireProvenWallet } from "@/lib/x-session";
 import { walletFromSession, foldCarrierIntoWallet } from "@/lib/hex-spend";
 import { debitWalletHex, getWalletHex, InsufficientHexError } from "@/lib/wallet-hex-store";
 
@@ -90,6 +91,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   if (wallet) {
+    // Spending wallet-ledger ⬡ requires a PROVEN wallet (one-time signature).
+    // `session.bind` is attacker-chooseable at OAuth start, so it can never
+    // authorize a debit — otherwise an attacker could bind a victim's wallet
+    // and burn their HEX on unlocks keyed to the attacker's own handle.
+    // Same gate as /api/shop/buy; closed 2026-06-10 (ultracode audit).
+    if (!requireProvenWallet(req, wallet)) {
+      return NextResponse.json(
+        { error: "wallet proof required — sign once with your wallet to spend ⬡" },
+        { status: 401 },
+      );
+    }
     await foldCarrierIntoWallet(handle, wallet);
     try {
       await debitWalletHex(wallet, cost, { kind: "manual", note: `Unlock #${cid} (${action})` });

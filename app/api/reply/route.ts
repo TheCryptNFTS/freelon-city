@@ -3,7 +3,8 @@
  * Body: { addr: "0x…", replyUrl: "https://x.com/<handle>/status/<id>" }
  *
  * Carrier submits the URL of their reply to a @4040hex post. We verify:
- *   1. Their wallet has a bound X session (HMAC cookie check).
+ *   1. Their session has PROVEN control of the payout wallet (signature
+ *      via /api/x/prove — bind alone is never payment-grade).
  *   2. The reply URL parses to a tweet ID.
  *   3. X API confirms: tweet exists, author = bound handle, in_reply_to
  *      matches a tweet ID we autoposted in the last 30 days.
@@ -20,7 +21,7 @@
  */
 import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
-import { isSameOrigin, requireSessionBound, getSessionFromRequest } from "@/lib/x-session";
+import { isSameOrigin, requireProvenWallet, getSessionFromRequest } from "@/lib/x-session";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { creditWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
@@ -99,8 +100,12 @@ export async function POST(req: Request) {
   if (!isValidAddress(addr)) {
     return NextResponse.json({ error: "invalid_address" }, { status: 400 });
   }
-  if (!requireSessionBound(req, addr)) {
-    return NextResponse.json({ error: "session_required" }, { status: 401 });
+  // ⬡ credits to a wallet require a PROVEN wallet (one-time signature via
+  // /api/x/prove). `bind` is attacker-chooseable at OAuth start — gating on it
+  // let one X account direct reply bounties at arbitrary wallets across
+  // rebinds (HEX_ECONOMY_RED_TEAM rule 5). Closed 2026-06-10.
+  if (!requireProvenWallet(req, addr)) {
+    return NextResponse.json({ error: "wallet_proof_required" }, { status: 401 });
   }
   const session = getSessionFromRequest(req);
   const boundHandle = (session?.xHandle || "").toLowerCase().replace(/^@/, "");

@@ -32,7 +32,8 @@ type NavLink = { href: string; label: string; gold?: boolean };
 type NavGroup = { heading: string | null; links: NavLink[] };
 
 // 2026-05-31 — mobile sheet rebuilt to MIRROR the desktop nav exactly
-// (Header.tsx top items + HeaderArchives More groups). Previously the two
+// (Header.tsx top items; the old HeaderArchives "More" dropdown was deleted
+// 2026-06-10 — dead chrome, imported nowhere). Previously the two
 // navs had drifted into different groupings/labels. Top block now leads
 // with the newcomer's path (New? · Play) the same way the laptop nav
 // does; Combat Archives + Shop live under CITY. One source of truth in

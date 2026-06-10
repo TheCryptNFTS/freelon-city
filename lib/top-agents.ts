@@ -24,7 +24,10 @@ export type TopAgent = {
 export async function topTrainedAgents(limit = 8): Promise<TopAgent[]> {
   // Pull a wider slice by level, then keep only the specialized ones (a citizen
   // that only ran the cosmetic toy is still a drifter and shouldn't headline).
-  const rows = await topCitizens("level", limit * 4).catch(() => []);
+  // includeDemo: this rail's consumers (TopAgents, CitizenResume) render the
+  // "· EXAMPLE" label themselves — the demo flag is surfaced, never hidden.
+  // Callers that must EXCLUDE demo (carrier-of-week crown) filter on .demo.
+  const rows = await topCitizens("level", limit * 4, { includeDemo: true }).catch(() => []);
   if (rows.length === 0) return [];
 
   const progs = await Promise.all(rows.map((r) => getProgress(r.tokenId).catch(() => null)));

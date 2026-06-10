@@ -21,8 +21,11 @@ import { CIVILIZATIONS } from "@/lib/constants";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
+// 2026-06-10 trust fix: the OG card must not promise "build a deck and
+// battle" while the page itself says TERMINAL SEALED — align the shareable
+// description with the page's reconstruction status until the game is linked.
 const PAGE_DESC =
-  "Crypt TCG — the FREELON CITY trading card game. Ten commanders, one for each civilization. Build a deck and battle.";
+  "Crypt TCG — the FREELON CITY card game, in reconstruction. Ten commanders, one for each civilization. The terminal opens soon.";
 export const metadata: Metadata = {
   title: "Crypt TCG · The Card Game",
   description: PAGE_DESC,

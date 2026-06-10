@@ -5,6 +5,7 @@ import {
   levelForXp,
   xpForLevel,
   topCitizens,
+  seedProgress,
 } from "@/lib/progression-store";
 import { ECONOMY } from "@/lib/economy-constants";
 
@@ -78,5 +79,44 @@ describe("topCitizens leaderboard (in-memory)", () => {
     for (let i = 1; i < rows.length; i++) {
       expect(rows[i - 1].value).toBeGreaterThanOrEqual(rows[i].value);
     }
+  });
+});
+
+describe("topCitizens demo filter (2026-06-10 — the Sunday-broadcast guard)", () => {
+  it("excludes founder-seeded display-models by default", async () => {
+    // Seed a display-model that would otherwise DOMINATE every metric.
+    const seeded = 9100;
+    await seedProgress({
+      tokenId: seeded,
+      skill: "strategy",
+      points: 40,
+      focus: "test-display-model",
+      targetLevel: 46,
+      reputation: 9_999,
+      jobsCompleted: 999,
+    });
+    const rec = await getProgress(seeded);
+    expect(rec.demo).toBe(true);
+
+    // Default call (what CityWeekBand, /report, the signal-report cron and
+    // the v1 leaderboard use): the seeded token must NOT appear, even at #1.
+    for (const metric of ["level", "rep", "jobs"] as const) {
+      const rows = await topCitizens(metric, 50);
+      expect(rows.some((r) => r.tokenId === seeded)).toBe(false);
+    }
+
+    // Real citizens (from the tests above) still rank.
+    const jobs = await topCitizens("jobs", 50);
+    expect(jobs.length).toBeGreaterThan(0);
+  });
+
+  it("includeDemo surfaces the row WITH the flag (for '· EXAMPLE' labelling)", async () => {
+    const rows = await topCitizens("level", 50, { includeDemo: true });
+    const seededRow = rows.find((r) => r.tokenId === 9100);
+    expect(seededRow).toBeDefined();
+    expect(seededRow?.demo).toBe(true);
+    // Real citizens carry no flag at all.
+    const real = rows.find((r) => r.tokenId === 9003);
+    if (real) expect(real.demo).toBeUndefined();
   });
 });

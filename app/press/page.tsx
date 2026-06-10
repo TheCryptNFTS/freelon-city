@@ -38,16 +38,17 @@ export default function PressPage() {
       {/* ── ONE-LINERS ── */}
       <Section title="One-liners">
         <Quote>
-          FREELON CITY is a 4040-citizen on-chain civilization on Ethereum where
-          carriers earn hex by moving, not waiting.
+          FREELON CITY is a civilization of 4040 NFT citizens on Ethereum where
+          carriers earn ⬡ city credit by moving, not waiting.
         </Quote>
         <Quote>
-          The city pays carriers in hex for active work — sweeps, bounties, sales,
-          daily posts — and refuses to recognize citizens listed under floor.
+          The city rewards carriers with ⬡ city credit (off-chain points — not
+          money, not redeemable) for active work — sweeps, bounties, daily posts.
         </Quote>
         <Quote>
-          A signal civilization on Ethereum. 4040 hard-capped citizens. Hex
-          economy. Dump-deterrent canon. The city remembers everything.
+          A signal civilization on Ethereum. 4040 hard-capped citizens. An
+          off-chain ⬡ credit layer. Dump-deterrent canon. The city remembers
+          everything.
         </Quote>
       </Section>
 

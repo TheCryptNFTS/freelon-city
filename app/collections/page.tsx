@@ -56,9 +56,11 @@ export default async function CollectionsIndex() {
     },
     ...slugs.map((slug) => ({
       slug,
-      // Crypt TCG is the GAME — its card opens the playable game, not the token
-      // browser (records stay browsable at /collections/crypttradingcards via
-      // the game page). The lore status chip stays; the CTA says what you DO.
+      // Crypt TCG is the GAME — its card opens /crypt-tcg. Until that page
+      // links the actual playable build, the CTA must not promise PLAY
+      // (2026-06-10 trust fix: "PLAY THE GAME →" landed on a sealed archive
+      // page — a dead-end loop). Restore the PLAY wording only when
+      // /crypt-tcg is the game's real front door.
       href: slug === "crypttradingcards" ? "/crypt-tcg" : `/collections/${slug}`,
       play: slug === "crypttradingcards",
       title: COLLECTION_META[slug].title,
@@ -166,7 +168,7 @@ export default async function CollectionsIndex() {
                 <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>{c.blurb}</p>
                 <span style={{ marginTop: "auto", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)" }}>
                   {(c as { play?: boolean }).play
-                    ? "PLAY THE GAME →"
+                    ? "SEE THE GAME →"
                     : (c as { agentic?: boolean }).agentic
                       ? "MEET THE AGENTS →"
                       : `BROWSE ${c.total.toLocaleString()} →`}

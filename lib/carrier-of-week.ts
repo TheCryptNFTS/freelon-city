@@ -191,8 +191,12 @@ export async function resolveCarrierOfWeek(opts: { force?: boolean; at?: Date } 
 
   try {
     // MERIT pick — top of the level leaderboard among SPECIALIZED agents.
-    const top: TopAgent[] = await topTrainedAgents(1).catch(() => []);
-    const winner = top[0];
+    // Founder-seeded display-models (demo flag) are NEVER eligible for the
+    // crown: the laurel is permanent public proof and the OG card renders
+    // "Crowned on merit" — crowning seeded data would broadcast a fake
+    // winner (closed 2026-06-10, before the first signal-report auto-post).
+    const top: TopAgent[] = await topTrainedAgents(8).catch(() => []);
+    const winner = top.find((a) => !a.demo);
     if (!winner) {
       // Nothing eligible yet. Release the gate so next week (or a later run
       // once data exists) can crown. Never persist an empty winner.

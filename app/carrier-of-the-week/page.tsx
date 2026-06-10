@@ -9,7 +9,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Carrier of the Week — FREELON CITY",
-  description: "Each week the city crowns one FREELON on its on-chain merit. Recognition only.",
+  description: "Each week the city crowns one FREELON on its public work record. Recognition only.",
   openGraph: { images: [{ url: "/api/og/carrier", width: 1200, height: 630 }] },
   twitter: { card: "summary_large_image", images: ["/api/og/carrier"] },
 };
@@ -34,8 +34,8 @@ export default async function CarrierOfTheWeekPage() {
         <span className="kicker" style={{ color: GOLD }}>⬡ THE WEEKLY CROWN</span>
         <h1 style={{ margin: "8px 0 6px", letterSpacing: "-0.01em" }}>Carrier of the Week</h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", margin: 0 }}>
-          Each ISO week the city crowns one FREELON, judged on its on-chain merit — level,
-          skill and training history. Recognition only.
+          Each ISO week the city crowns one FREELON, judged on its publicly recorded merit —
+          level, skill and training history. Recognition only.
         </p>
       </header>
 
@@ -51,7 +51,7 @@ export default async function CarrierOfTheWeekPage() {
         >
           <p style={{ fontFamily: "var(--mono2)", fontSize: 14, color: "var(--ink-2)", margin: 0 }}>
             No carrier crowned yet. The first crown is awarded once citizens have logged
-            real on-chain work.{" "}
+            real recorded work.{" "}
             <Link href="/citizens" style={{ color: GOLD }}>Meet the citizens →</Link>
           </p>
         </section>
@@ -170,7 +170,7 @@ export default async function CarrierOfTheWeekPage() {
           How the crown is judged
         </h3>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 680 }}>
-          The Carrier of the Week is the FREELON sitting highest on the city&rsquo;s on-chain
+          The Carrier of the Week is the FREELON sitting highest on the city&rsquo;s public
           merit leaderboard — level, specialized skill and training history. It is a contest of
           work, not luck. One FREELON is crowned per week. The only reward is recognition: a
           featured slot here and a permanent laurel on the token&rsquo;s memory log. It carries no

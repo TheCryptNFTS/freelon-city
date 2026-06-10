@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { markStep, getQuests, QUEST_REWARDS, QUEST_TARGETS, type QuestId } from "@/lib/quests-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
-import { isSameOrigin, requireSessionBound, verifySession, X_SESSION_COOKIE } from "@/lib/x-session";
+import { isSameOrigin, requireProvenWallet, verifySession, X_SESSION_COOKIE } from "@/lib/x-session";
 
 export const dynamic = "force-dynamic";
 
@@ -48,13 +48,18 @@ export async function POST(
   if (!stepId) return NextResponse.json({ error: "missing_stepId" }, { status: 400 });
 
   // Auth: require an X session that matches the key being mutated.
-  //   - wallet key (0x…): require session bound to that wallet
+  //   - wallet key (0x…): require a PROVEN wallet — quest completion credits
+  //     real ⬡ to this key (lib/quests-store.ts markStep), and `bind` is
+  //     attacker-chooseable at OAuth start, so bind-auth let one X account
+  //     farm quest rewards into arbitrary wallets (capped, but a rule-5
+  //     violation). Upgraded bind→proof 2026-06-10.
   //   - handle key (handle:…): require session whose xHandle matches
+  //     (handle keys credit nothing — progress tracking only).
   // Previously: no auth — anyone could POST quest progress for any
   // wallet or handle (rate-limit was the only gate).
   if (/^0x[a-f0-9]{40}$/.test(key)) {
-    if (!requireSessionBound(req, key)) {
-      return NextResponse.json({ error: "session_required" }, { status: 401 });
+    if (!requireProvenWallet(req, key)) {
+      return NextResponse.json({ error: "wallet_proof_required" }, { status: 401 });
     }
   } else if (key.startsWith("handle:")) {
     const cookieHeader = req.headers.get("cookie") || "";

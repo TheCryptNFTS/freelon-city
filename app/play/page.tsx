@@ -218,7 +218,7 @@ export default function PlayHub() {
           color: "var(--ink-fade)",
         }}
       >
-        PROTOTYPES · SCORES + PROGRESS SAVED LOCALLY · NOT YET ON-CHAIN
+        PROTOTYPES · SCORES + PROGRESS SAVED LOCALLY · NOT ON-CHAIN
       </p>
 
       {/* 2026-06-07 funnel: the arcade has no own/unlock path — loop a visitor

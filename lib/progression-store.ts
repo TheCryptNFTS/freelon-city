@@ -451,7 +451,14 @@ export async function addCitizenMemory(
 
 export type LeaderboardMetric = "level" | "rep" | "jobs";
 
-export type LeaderboardRow = { tokenId: number; value: number };
+export type LeaderboardRow = {
+  tokenId: number;
+  value: number;
+  /** Founder display-model flag, carried through from the record (see
+   *  CitizenProgress.demo). Only present when topCitizens is called with
+   *  includeDemo — default calls filter these rows out entirely. */
+  demo?: boolean;
+};
 
 const LB_KEY: Record<LeaderboardMetric, string> = {
   level: LB_LEVEL,
@@ -464,25 +471,41 @@ const LB_KEY: Record<LeaderboardMetric, string> = {
  * In dev (no Upstash) sorts the in-memory Map. Citizens with zero of the
  * metric are filtered out so empty leaderboards read as empty, not as a wall
  * of level-1 zeros.
+ *
+ * DEMO FILTER (2026-06-10): founder-seeded display-models (CitizenProgress
+ * .demo, set only by the seed tool) are EXCLUDED by default so they can never
+ * headline a public proof surface unlabeled — homepage CityWeekBand, /report,
+ * the Sunday signal-report X cron, and the v1 leaderboard API all call this.
+ * Pass `includeDemo: true` only on surfaces that render the "· EXAMPLE"
+ * label themselves (lib/top-agents → TopAgents/CitizenResume).
  */
 export async function topCitizens(
   metric: LeaderboardMetric,
   limit = 50,
+  opts: { includeDemo?: boolean } = {},
 ): Promise<LeaderboardRow[]> {
+  const includeDemo = opts.includeDemo === true;
   if (!hasUpstash) {
     const field = metric === "level" ? "level" : metric === "rep" ? "reputation" : "jobsCompleted";
     return Array.from(memory.values())
-      .map((r) => ({ tokenId: r.tokenId, value: r[field] as number }))
+      .map((r) => ({
+        tokenId: r.tokenId,
+        value: r[field] as number,
+        ...(r.demo ? { demo: true } : {}),
+      }))
       .filter((r) => r.value > (metric === "level" ? 1 : 0))
+      .filter((r) => includeDemo || !r.demo)
       .sort((a, b) => b.value - a.value)
       .slice(0, limit);
   }
   try {
+    // Over-fetch 2× so filtering demo rows can still fill `limit`.
+    const fetchN = Math.min(Math.max(limit * 2, limit), 200);
     const flat = (await upstash([
       "ZREVRANGE",
       LB_KEY[metric],
       "0",
-      String(limit - 1),
+      String(fetchN - 1),
       "WITHSCORES",
     ])) as string[] | null;
     if (!Array.isArray(flat)) return [];
@@ -497,7 +520,31 @@ export async function topCitizens(
       if (metric !== "level" && value <= 0) continue;
       rows.push({ tokenId, value });
     }
-    return rows;
+    // Enrich with the demo flag — the ZSET stores only tokenId+score, the
+    // flag lives on the JSON record. One MGET for the whole slice.
+    if (rows.length > 0) {
+      try {
+        const raw = (await upstash([
+          "MGET",
+          ...rows.map((r) => KEY(r.tokenId)),
+        ])) as (string | null)[] | null;
+        if (!Array.isArray(raw)) throw new Error("mget_unavailable");
+        for (let i = 0; i < rows.length; i++) {
+          const s = raw[i];
+          if (!s) continue;
+          try {
+            if ((JSON.parse(s) as CitizenProgress).demo) rows[i].demo = true;
+          } catch { /* unparseable record → treated as real (flag absent) */ }
+        }
+      } catch {
+        // Enrichment failed: fail HONEST. Without the flag we cannot tell
+        // display-models from real citizens, so public callers get nothing
+        // (their empty-states self-hide) rather than possibly-seeded rows.
+        if (!includeDemo) return [];
+      }
+    }
+    const out = includeDemo ? rows : rows.filter((r) => !r.demo);
+    return out.slice(0, limit);
   } catch {
     return [];
   }

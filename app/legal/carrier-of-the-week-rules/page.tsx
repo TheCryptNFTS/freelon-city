@@ -10,7 +10,8 @@ export const metadata: Metadata = {
  * Official Rules for the "Carrier of the Week" recognition program.
  *
  * This is NOT a sweepstakes. There is no purchase, no paid entry, no AMOE, and
- * NO element of chance — the winner is selected on objective on-chain MERIT.
+ * NO element of chance — the winner is selected on objective, publicly recorded
+ * MERIT (server-side progression records — NOT on-chain; never claim on-chain).
  * The only reward is recognition (a featured slot + a non-transferable laurel on
  * the token). It has no cash value and is not transferable, mirroring the
  * Terms §6 "no resale value, not transferable" precedent. noindex.
@@ -43,7 +44,7 @@ export default function CarrierOfTheWeekRules() {
       <h2>3. No entry, no purchase, no payment.</h2>
       <p>
         There is nothing to enter, buy, or pay. Every eligible citizen token is automatically
-        considered each ISO week based solely on its publicly recorded on-chain progression. No
+        considered each ISO week based solely on its publicly recorded progression. No
         in-app credit (&ldquo;⬡&rdquo;) is required, spent, or awarded, and no payment increases or
         affects standing in any way.
       </p>
@@ -51,7 +52,7 @@ export default function CarrierOfTheWeekRules() {
       <h2>4. How the winner is selected (skill / merit).</h2>
       <p>
         Each ISO week the Sponsor selects one (1) citizen token that ranks highest on the city&rsquo;s
-        objective on-chain merit leaderboard — measured by level, specialized skill, and recorded
+        objective merit leaderboard — measured by level, specialized skill, and recorded
         training history. Selection is determined by these objective criteria, not by chance, lottery,
         or random draw. The Sponsor&rsquo;s server records of progression are final and binding on all
         questions of selection. One citizen is recognized per ISO week.
@@ -68,7 +69,7 @@ export default function CarrierOfTheWeekRules() {
 
       <h2>6. Conditions.</h2>
       <ul>
-        <li>Attempts to manipulate, falsify, or game the on-chain progression record may result in disqualification.</li>
+        <li>Attempts to manipulate, falsify, or game the progression record may result in disqualification.</li>
         <li>The Sponsor may modify, suspend, or cancel the program for any reason, including technical failure or suspected fraud.</li>
         <li>No purchase of any FREELON NFT or other asset is required to be recognized.</li>
         <li>The Sponsor&rsquo;s decision is final in all matters relating to selection.</li>

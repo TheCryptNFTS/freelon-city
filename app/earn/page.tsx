@@ -149,7 +149,7 @@ export default async function EarnPage() {
           {/* Plain-English gloss for the degen vocabulary below (content audit:
               "snipe / red signal / sweep" were undefined on a newcomer surface). */}
           <span style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.02em", width: "100%", order: 3, marginTop: 4 }}>
-            ⬡ A &ldquo;red signal&rdquo; = a FREELON listed cheap (below floor). Buy one, hold it a few days, earn ⬡.
+            ⬡ A &ldquo;red signal&rdquo; = a FREELON listed below floor. Holding one a few days earns ⬡ — city credit, not money, not redeemable.
           </span>
           {hasLive && (
             <span

@@ -60,6 +60,7 @@ export function ReplySubmit() {
     bad_origin: "BAD ORIGIN — REFRESH AND TRY AGAIN",
     invalid_address: "WALLET ADDRESS INVALID",
     session_required: "SIGN IN WITH X (BOUND TO THIS WALLET) FIRST",
+    wallet_proof_required: "SIGN ONCE WITH YOUR WALLET (CONNECT ON /SYNC) TO EARN ⬡",
     invalid_url: "URL MUST BE A TWITTER / X TWEET URL",
     handle_mismatch: "URL HANDLE DOESN'T MATCH YOUR BOUND X HANDLE",
     author_mismatch: "TWEET AUTHOR DOESN'T MATCH YOUR BOUND X HANDLE",
