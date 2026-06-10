@@ -30,6 +30,7 @@ import { getCitizenMeta, type CitizenMeta } from "@/lib/citizen-meta";
 import { tweetTribute, tweetIntent } from "@/lib/share";
 import { getAgentHistory } from "@/lib/agent-history";
 import { unlockStatus } from "@/lib/missions/unlock-store";
+import { TransmissionLoop } from "@/components/TransmissionLoop";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -207,18 +208,17 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
-          {/* RECOVERED TRANSMISSION — a cinematic battle-record still for the
-              1/1s + honoraries, generated FROM the citizen's real render
-              (2026-06-11; replaced the weak cutscene videos per founder). */}
+          {/* RECOVERED TRANSMISSION — an ambient battle-record loop for the
+              1/1s + honoraries: Grok img2vid animated FROM the citizen's
+              transmission still (itself generated from the real render), so
+              the character is faithful; the still is the poster/fallback. */}
           {hasCutscene && (
             <section className="transmission-cut">
               <span className="kicker" style={{ color: "var(--gold)" }}>⬡ RECOVERED TRANSMISSION · COMBAT RECORD</span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className="transmission-cut__img"
-                src={`/transmission-stills/${tid}.jpg`}
+              <TransmissionLoop
+                src={`/transmission-stills/${tid}.mp4`}
+                poster={`/transmission-stills/${tid}.jpg`}
                 alt={`Combat record — citizen #${id4}`}
-                loading="lazy"
               />
             </section>
           )}
