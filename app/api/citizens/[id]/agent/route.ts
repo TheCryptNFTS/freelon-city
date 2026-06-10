@@ -63,6 +63,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { SCENES, STYLES } = await import("@/lib/missions/image-gen");
   const { VIDEO_STYLES } = await import("@/lib/missions/video-gen");
   const scenes = Object.entries(SCENES).map(([key, s]) => ({ key, label: s.label }));
+  // Reveal forms — which versions of THIS token's art exist as render
+  // references (figurative always; geometric for the ~1900 regen tokens).
+  const { formsForCitizen } = await import("@/lib/reveal-forms");
+  const forms = formsForCitizen(cid);
   const styles = Object.entries(STYLES).map(([key, s]) => ({ key, label: s.label, category: s.category }));
   const videoStyles = Object.entries(VIDEO_STYLES).map(([key, s]) => ({ key, label: s.label }));
   const imageHexCost = premiumHexFor("deploy-citizen");
@@ -80,6 +84,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     unlock, // { unlocked, credits, tier, priceEth, grantPerUnlock }
     abilities,
     scenes,
+    forms, // [{ key, label, refUrl }] — reference-art picker (length 1 = no picker)
     styles,
     videoStyles,
     imageHexCost,

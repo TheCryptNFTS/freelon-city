@@ -51,6 +51,10 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   // Image generation (deploy-citizen): scene/style picker + its own busy/result state.
   const [scenes, setScenes] = useState<{ key: string; label: string }[]>([]);
   const [styles, setStyles] = useState<{ key: string; label: string; category: string }[]>([]);
+  // Reveal forms — which version of the citizen's art renders reference
+  // (only the ~1900 geometric-regen tokens get a second option).
+  const [forms, setForms] = useState<{ key: string; label: string; refUrl: string }[]>([]);
+  const [formKey, setFormKey] = useState("figurative");
   const [imageHexCost, setImageHexCost] = useState(0);
   const [imgBusy, setImgBusy] = useState<string | null>(null); // sceneKey while generating
   const [imgOut, setImgOut] = useState<{ url: string; label: string } | null>(null);
@@ -123,6 +127,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         setHistory(Array.isArray(d.history) ? d.history : []);
         if (Array.isArray(d.scenes)) setScenes(d.scenes);
         if (Array.isArray(d.styles)) setStyles(d.styles);
+        if (Array.isArray(d.forms)) setForms(d.forms);
         if (Array.isArray(d.videoStyles)) setVideoStyles(d.videoStyles);
         if (typeof d.imageHexCost === "number") setImageHexCost(d.imageHexCost);
         if (typeof d.videoHexCost === "number") setVideoHexCost(d.videoHexCost);
@@ -356,7 +361,9 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     if (imgBusy) return;
     const busyId = `${kind}:${key}`;
     setImgBusy(busyId); setImgErr(null); setImgOut(null);
-    const input = kind === "style" ? `style:${key}` : key;
+    // "@<form>" suffix picks the reference art (omitted for the default).
+    const formSuffix = formKey !== "figurative" ? `@${formKey}` : "";
+    const input = (kind === "style" ? `style:${key}` : key) + formSuffix;
     const base: Record<string, unknown> = { missionId: "deploy-citizen", input };
     // Snapshot known image URLs so we can detect the NEW render even if the
     // client never receives the response (mobile drop mid-render).
@@ -1049,6 +1056,28 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
                 ⬡ IMAGE STUDIO{paymentsLive && imageHexCost > 0 ? ` · ${imageHexCost.toLocaleString()}⬡ EACH` : ""}
               </span>
               <p className="agentdash-images-sub">Render your FREELON — every image is branded + ready to share.</p>
+
+              {forms.length > 1 && (
+                <>
+                  {/* This token has more than one reveal form — the holder picks
+                      which version of their citizen the renders are based on. */}
+                  <span className="agentdash-images-grp">YOUR CITIZEN&apos;S FORM</span>
+                  <div className="agentdash-scenes">
+                    {forms.map((f) => (
+                      <button
+                        key={f.key}
+                        type="button"
+                        className="agentdash-scene"
+                        style={formKey === f.key ? { borderColor: "var(--gold)", color: "var(--gold)" } : undefined}
+                        aria-pressed={formKey === f.key}
+                        onClick={() => setFormKey(f.key)}
+                      >
+                        {formKey === f.key ? "✓ " : ""}{f.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {styles.length > 0 && (
                 <>

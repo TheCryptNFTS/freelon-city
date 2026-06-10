@@ -12,6 +12,7 @@
 import type { MissionContext, MissionOutput } from "@/lib/missions/types";
 import { deriveSpec } from "@/lib/specialization";
 import { generateCitizenScene, isValidScene, isValidStyle, SCENES, STYLES } from "@/lib/missions/image-gen";
+import { isValidFormKey } from "@/lib/reveal-forms";
 
 function id4(n: number): string {
   return n.toString().padStart(4, "0");
@@ -20,7 +21,14 @@ function id4(n: number): string {
 export async function deployResolver(ctx: MissionContext): Promise<MissionOutput> {
   // Input is either a scene KEY ("throne-room") or a style KEY prefixed "style:"
   // ("style:transformers-robot"). Both are server-allowlisted (no free prompt).
-  const raw = ctx.input.trim();
+  // An optional "@<form>" suffix ("neon-city@geometric") picks which reveal
+  // form of the citizen is the reference art — validated against what this
+  // token actually HAS; anything else silently falls back to figurative.
+  const raw0 = ctx.input.trim();
+  const at = raw0.lastIndexOf("@");
+  const formPart = at > 0 ? raw0.slice(at + 1).trim() : "";
+  const raw = at > 0 ? raw0.slice(0, at).trim() : raw0;
+  const formKey = formPart && isValidFormKey(ctx.citizen.id, formPart) ? formPart : undefined;
   const isStyle = raw.startsWith("style:");
   const renderKey = isStyle ? raw.slice("style:".length).trim() : raw;
   const valid = isStyle ? isValidStyle(renderKey) : isValidScene(renderKey);
@@ -37,8 +45,8 @@ export async function deployResolver(ctx: MissionContext): Promise<MissionOutput
 
   const spec = deriveSpec(ctx.progress);
   const result = isStyle
-    ? await generateCitizenScene({ citizen: ctx.citizen, spec, styleKey: renderKey })
-    : await generateCitizenScene({ citizen: ctx.citizen, spec, sceneKey: renderKey });
+    ? await generateCitizenScene({ citizen: ctx.citizen, spec, styleKey: renderKey, formKey })
+    : await generateCitizenScene({ citizen: ctx.citizen, spec, sceneKey: renderKey, formKey });
 
   if (!result.ok) {
     // Make image failures OBSERVABLE — the raw code (no_blob_store / openai_400 /

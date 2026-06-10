@@ -61,6 +61,8 @@ type AgentData = {
   unlock: Unlock;
   abilities: AbilityView[];
   scenes: Scene[];
+  /** Reveal forms of this token's art (reference-art picker; length 1 = no picker). */
+  forms?: { key: string; label: string; refUrl: string }[];
   imageHexCost?: number;
   history: WorkItem[];
 };
@@ -172,6 +174,9 @@ export function AgentWorkspace(props: Props) {
   const [abilityId, setAbilityId] = useState<string>("");
   const [taskKey, setTaskKey] = useState<string>("");
   const [sceneKey, setSceneKey] = useState<string>("");
+  // Which reveal form of the citizen the render references — only the ~1900
+  // geometric-regen tokens have a second option (figurative = site canon).
+  const [formKey, setFormKey] = useState<string>("figurative");
   // Image scene picker collapses to a compact "Scene · {selected} · change" bar
   // so all 32 chips don't stay sprawled across the composer during/after a render.
   const [scenesOpen, setScenesOpen] = useState(false);
@@ -601,7 +606,8 @@ export function AgentWorkspace(props: Props) {
       // no longer leave the holder staring at a spinner with nothing delivered.
       try {
         const requestPath = (async (): Promise<string | null> => {
-          const r = await runMission("deploy-citizen", sceneKey);
+          // "@<form>" suffix picks the reference art (omitted for the default).
+          const r = await runMission("deploy-citizen", formKey !== "figurative" ? `${sceneKey}@${formKey}` : sceneKey);
           return r.ok && r.output?.meta?.kind === "image" ? r.output.body : null;
         })().catch(() => null);
         const pollPath = pollForNewImage(knownBefore);
@@ -1080,6 +1086,22 @@ export function AgentWorkspace(props: Props) {
                     onClick={() => setTaskKey(t.key)}
                   >
                     {t.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {mode === "image" && (agent?.forms?.length ?? 0) > 1 && (
+              // Reference-art picker — this token has more than one reveal
+              // form; the holder chooses which version of their citizen renders.
+              <div className={styles.chipRow}>
+                {agent!.forms!.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    className={`${styles.chip} ${f.key === formKey ? styles.chipOn : ""}`}
+                    onClick={() => setFormKey(f.key)}
+                  >
+                    Art · {f.label}
                   </button>
                 ))}
               </div>

@@ -449,6 +449,10 @@ export async function generateCitizenScene(args: {
   /** Either a scene key (changes setting) OR a style key (transforms the figure). */
   sceneKey?: string;
   styleKey?: string;
+  /** Which reveal form to use as the reference art ("figurative" default /
+   *  "geometric" where the token has one). Resolver-validated; unknown keys
+   *  fall back to figurative inside formRefUrl. */
+  formKey?: string;
   timeoutMs?: number;
 }): Promise<ImageGenResult> {
   if (!hasImageProvider()) return { ok: false, error: "no_api_key" };
@@ -460,13 +464,14 @@ export async function generateCitizenScene(args: {
     return { ok: false, error: isStyle ? "invalid_style" : "invalid_scene" };
   }
 
-  // Reference art: fetch the citizen's hosted image (works on serverless; the
-  // old ../ship local folder isn't deployed). Timeout-guarded.
+  // Reference art: fetch the holder-chosen reveal form of the citizen's hosted
+  // image (figurative default; geometric where it exists). Timeout-guarded.
+  const { formRefUrl } = await import("@/lib/reveal-forms");
   let refBytes: Buffer;
   try {
     const refController = new AbortController();
     const rt = setTimeout(() => refController.abort(), 15_000);
-    const refRes = await fetch(imageUrl(args.citizen.id), { signal: refController.signal }).finally(() => clearTimeout(rt));
+    const refRes = await fetch(formRefUrl(args.citizen.id, args.formKey), { signal: refController.signal }).finally(() => clearTimeout(rt));
     if (!refRes.ok) return { ok: false, error: "reference_art_missing" };
     refBytes = Buffer.from(await refRes.arrayBuffer());
   } catch {
