@@ -8,7 +8,7 @@ import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import Link from "next/link";
 
-export const metadata = { title: "FREELONS · Trainable AI Agents" };
+export const metadata = { title: "FREELONS · 4,040 Citizens You Can Own & Train" };
 
 // ISR: the curated/trait data is static, but the TopAgents rail reads the live
 // progression leaderboard — revalidate so the showcase reflects real training.
@@ -89,11 +89,13 @@ export default async function Citizens() {
           grid → one "Notable citizens" fold (the 1/1s + honoraries + legendaries +
           top-agents, MOVED off the chooser, not deleted) → PFP fold. */}
       <section className="citizens-hero field-glow">
-        <span className="kicker">⬡ FREELONS · 4040 TRAINABLE AGENTS</span>
+        <span className="kicker">⬡ FREELONS · 4040 CITIZENS</span>
         <h1>Choose a <em>FREELON</em></h1>
         <p className="lead">
-          Each <GlossaryTerm term="citizen">FREELON</GlossaryTerm> is a trainable
-          <strong> AI agent you own</strong>. Pick one to create with it.
+          Each <GlossaryTerm term="citizen">FREELON</GlossaryTerm> is an
+          <strong> AI character you own and train</strong> — its work becomes a
+          visible record that stays with the token. Pick one to create with it.{" "}
+          <Link href="/proof" style={{ color: "var(--gold)", whiteSpace: "nowrap" }}>See what owners render →</Link>
         </p>
 
         {/* OWNER-FIRST 2026-06-09: connect → see YOUR characters → click straight

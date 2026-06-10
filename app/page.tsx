@@ -6,6 +6,8 @@ import { HeroAtmosphere } from "@/components/HeroAtmosphere";
 import TransformsWall from "@/components/TransformsWall";
 import { ActivationProof } from "@/components/ActivationProof";
 import { YourAgentsRail } from "@/components/YourAgentsRail";
+import { MemoryProof } from "@/components/MemoryProof";
+import { CityWeekBand } from "@/components/CityWeekBand";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -15,14 +17,15 @@ import { YourAgentsRail } from "@/components/YourAgentsRail";
 // OG + Twitter), so it must deliver the pitch, not lore. Matches the canonical
 // 10-second line + the on-page hero subline. Lore lives on the page, not here.
 const HOME_DESC =
-  "4,040 AI characters you own and train. Each FREELON is an agent that remembers your work — and its whole history travels with the NFT. Try one free.";
+  "4,040 AI characters you own and train. Yours builds a visible work history that travels with the NFT — through every sale. Try one free.";
 export const metadata: Metadata = {
   title: { absolute: "404 — FREELON CITY · Bring identity back." },
   description: HOME_DESC,
   openGraph: {
-    // 2026-05-31 — dynamic universe card (names the six collections + arcade
-    // up front) replaces the single-PFP /og/home.jpg, so the very first thing
-    // a shared link previews is the SCOPE, not "another Freelons drop".
+    // 2026-06-10 — /api/og/universe with NO query serves the branded FreelonCard
+    // (portrait + "AN AI CHARACTER YOU OWN" + pitch). The six-collections scope
+    // card still exists behind ?v=universe but nothing links it — the product
+    // card wins for cold traffic, deliberately.
     title: "404 — FREELON CITY",
     description: HOME_DESC,
     images: [{ url: "/api/og/universe", width: 1200, height: 630 }],
@@ -51,20 +54,18 @@ export const dynamic = "force-dynamic";
 // block. To restore one to the homepage, re-add its <section> + matching import.
 
 export default async function Home() {
-  // "SEE AN AGENT" — point cold (non-holder) traffic at the FREE public demo so
-  // a stranger can actually TALK to a live agent in ten seconds, then hit the
+  // "MEET A CITIZEN" — point cold (non-holder) traffic at the FREE public demo so
+  // a stranger can actually TALK to a live citizen in ten seconds, then hit the
   // OWN A FREELON wall. Holder-aware override still happens in the Header.
   const seeAgentHref = "/demo";
   return (
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */
     <div className="home-page">
-      {/* HERO — 2026-05-28 rebuilt (founder: "4 clean boxes and that epic
-          background", cut the giant text wall). Full-bleed Mars-city
-          backdrop; the 4 intent-doors ARE the hero. The old giant "THE CITY
-          REMEMBERS" headline + split panel + gloss are gone — Box 1 ("What
-          is this?") carries comprehension; the mythic line lives on in
-          /canon, not as a homepage wall. */}
+      {/* HERO — current form (since 06-03 funnel restructure): h1 + one literal
+          subline + 2 CTAs + the /start text link over the full-bleed city
+          backdrop. The 2026-05-28 "4 intent-doors" layout this comment used to
+          describe was retired in the 06-03/06-09 passes. */}
       <section className="hero--landing" aria-label="FREELON CITY">
         {/* Full-bleed Mars-city backdrop + dark gradient live in
             .hero--landing (globals.css). The static image now drifts; drop
@@ -94,15 +95,17 @@ export default async function Home() {
             Where memory becomes <strong>character</strong>.
           </h1>
           <p className="hero-landing__tag">
-            4,040 AI characters you own and train — yours remembers everything you build
-            together, and the whole history travels with the NFT.
+            4,040 citizens of FREELON CITY — AI characters you own and train. The work
+            yours does becomes a visible history that travels with the NFT.
           </p>
-          {/* ONE primary (SEE AN AGENT — experience it first), OWN secondary.
+          {/* ONE primary (MEET A CITIZEN — experience it first), OWN secondary.
               EARN HEX lives in the header; the closing CTA repeats OWN at the buy
-              moment. Deduped 2026-06-06 (each action appears once per surface). */}
+              moment. Deduped 2026-06-06 (each action appears once per surface).
+              "Citizen", never "agent", on cold surfaces — AWAKEN canon; the label
+              also matches the /demo headline so the scent trail holds. */}
           <div className="hero-landing__cta hero-cta-row">
             <Link className="btn btn-primary btn-lg" href={seeAgentHref}>
-              <span className="ttl">SEE AN AGENT →</span>
+              <span className="ttl">MEET A CITIZEN · FREE →</span>
             </Link>
             <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
               <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
@@ -122,6 +125,17 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ── MEMORY PROOF — the "understanding by demonstration" beat (2026-06-09).
+          A cold visitor doesn't grasp "a character that remembers you" from copy;
+          they grasp it by watching it happen with their OWN words. Deterministic +
+          zero-cost (no LLM, no free-run budget, no abuse surface — see
+          components/MemoryProof.tsx), it stages the remember-loop, then hands off to
+          the live agent at /demo. This is the proof; How It Works below is the how. */}
+      <section className="memory-proof reveal" aria-label="See a citizen remember you">
+        <span className="kicker memory-proof__kicker" style={{ color: "var(--gold)" }}>⬡ SEE IT REMEMBER YOU</span>
+        <MemoryProof />
+      </section>
+
       {/* "Why own a FREELON?" section removed 2026-06-07 (founder: "too complex")
           — it restated the hero tag AND "How it works" below as a third copy of
           the same value prop. The hero says it once; How It Works shows the loop. */}
@@ -135,8 +149,8 @@ export default async function Home() {
         <ol className="how-steps">
           {[
             "Own a FREELON — it's your character",
-            "Unlock its agent with a one-time ETH payment",
-            "Train it — give it jobs; it earns XP, remembers you, and builds a history",
+            "Awaken it — a one-time ETH payment switches it on, and it stays awake through resale",
+            "Train it — give it jobs; it earns XP, remembers you, and builds a public record",
             "Keep it or sell it — the character and its whole history travel with the NFT",
           ].map((s, i) => (
             <li key={i}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
@@ -150,7 +164,7 @@ export default async function Home() {
       {/* Lore flavour — relocated here 2026-06-08 from the hero. Lore is a
           depth reward, not a first-impression element; it sits AFTER the loop
           is understood. Same markup, just moved. */}
-      <span className="term-badge flicker" style={{ display: "block", textAlign: "center", margin: "var(--s-5) auto" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
+      <span className="term-badge term-badge--static" style={{ display: "block", textAlign: "center", margin: "var(--s-5) auto" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
 
       {/* SURFACE-REDUCTION 2026-06-09: collapsed two stacked citizen bands
           (CitizenShowcase + TransformsWall) into ONE preview. Kept TransformsWall
@@ -158,6 +172,12 @@ export default async function Home() {
           create-loop story and self-hides when empty. The portrait showcase
           lives on /citizens (the chooser). */}
       <TransformsWall />
+
+      {/* ── THIS WEEK IN THE CITY — the public-life proof beat (2026-06-10).
+          Wires the Signal Report keystone into the front door: winner civ + the
+          most storied citizens, directly above the buy moment. Reuses /report's
+          hardened read-only queries; self-hides while the stadium is empty. */}
+      <CityWeekBand />
 
       {/* ── CLOSING CTA — one clean ending, agents only. 2026-06-04 newcomer-path
           simplification (founder: "agents are the main thing"): the homepage was
@@ -168,24 +188,25 @@ export default async function Home() {
           re-add its section + matching import (history: git + components/_archive). */}
       <section className="home-close reveal">
         <p className="home-close__line">4,040 characters. Make one yours. See what it becomes.</p>
-        {/* 2026-06-08 — multi-collection agent line. FREELONS stays the flagship;
-            this one sentence tells the visitor the OTHER collections are becoming
-            agents too, and points to /collections (the full story). No price claims. */}
-        <p className="home-close__note">
-          FREELONS are the first. Emile, The Crypt and Oogies are agents too — one signal, many collections.{" "}
-          <Link href="/collections">Explore the collections →</Link>
-        </p>
         {/* The close is the BUY moment (after the showcase) — OWN is primary here,
-            mirroring the hero where SEE AN AGENT is primary. Try at the top, buy
-            at the bottom. */}
+            mirroring the hero where MEET A CITIZEN is primary. Try at the top, buy
+            at the bottom. The multi-collection line sits BELOW the buttons
+            (2026-06-10): an exploration link must not interrupt the purchase beat. */}
         <div className="home-close__cta">
           <a className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
             <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
           </a>
           <Link className="btn btn-secondary btn-lg" href={seeAgentHref}>
-            <span className="ttl">SEE AN AGENT →</span>
+            <span className="ttl">MEET A CITIZEN · FREE →</span>
           </Link>
         </div>
+        {/* 2026-06-08 — multi-collection agent line. FREELONS stays the flagship;
+            this one sentence tells the visitor the OTHER collections are becoming
+            agents too, and points to /collections (the full story). No price claims. */}
+        <p className="home-close__eco">
+          FREELONS are the first. <strong>Emile, The Crypt and Oogies</strong> awaken too — one signal, many collections.{" "}
+          <Link href="/collections">Explore the collections →</Link>
+        </p>
         {/* 2026-06-06 buy-handoff polish — OWN A FREELON jumps straight to
             OpenSea, which lands NFT-curious newcomers cold. One line sets the
             expectation (wallet needed, secured on Ethereum) and points the

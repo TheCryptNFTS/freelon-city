@@ -6,9 +6,9 @@ import { ReferralBeacon } from "@/components/ReferralBeacon";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Talk to an Agent",
+  title: "Meet a Citizen · Free",
   description:
-    "Every citizen of FREELON CITY is an AI character you can chat with. Here are free ones — no wallet needed. Talk to them, then meet the ones you own.",
+    "Talk to a citizen of FREELON CITY — a live AI character, free, no wallet needed. Then meet the FREELON: the one you can own and train.",
 };
 
 // One iconic token per sister collection, art pinned to a local still. The
@@ -72,13 +72,13 @@ export default function DemoPage() {
     <div style={{ maxWidth: 760, margin: "var(--s-6) auto", padding: "0 var(--pad)" }}>
       <header style={{ marginBottom: "var(--s-4)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ FREE · NO WALLET NEEDED</span>
-        <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(30px, 5vw, 48px)", lineHeight: 1.02, margin: "12px 0 8px" }}>
-          Meet a <em style={{ color: "var(--gold)", fontStyle: "normal" }}>citizen.</em> Free.
+        <h1 className="page-h1" style={{ margin: "12px 0 8px" }}>
+          Meet a <em>citizen.</em> Free.
         </h1>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 600 }}>
-          Every collection in FREELON CITY is a kind of citizen — Freelons, the Crypt, Oogies, Emile. Each one is a live AI
-          character. Pick a citizen, ask it anything — then own a <strong style={{ color: "var(--ink)" }}>FREELON</strong>, the
-          one that&apos;s yours to train and keep.
+          Five collections, one city — every face here is a live AI character. Pick one and ask it
+          anything. Then meet the <strong style={{ color: "var(--ink)" }}>FREELON</strong> — the
+          citizen you can own, train and keep.
         </p>
       </header>
 

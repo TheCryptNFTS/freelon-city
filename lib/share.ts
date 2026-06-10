@@ -74,13 +74,15 @@ export function tweetCarrier(input: {
   doctrine: string;
 }): string {
   const id4 = input.patronId.toString().padStart(4, "0");
+  // One literal anchor line before the hashtags (2026-06-10): a shared post IS
+  // a front door, and the pure-lore version contained zero "what is this".
   return [
     `⬡ ${HANDLE} · I'M A CARRIER OF ${input.civName.toUpperCase()}.`,
     ``,
     `${input.doctrine.toUpperCase()}.`,
     `Patron citizen · #${id4}`,
     ``,
-    `The signal moves through us.`,
+    `FREELON CITY — 4,040 AI characters you can own.`,
     `${HASHTAGS}`,
     `${SITE}/sync`,
   ].join("\n");
@@ -196,7 +198,7 @@ export function tweetCivPride(input: { civName: string; doctrine: string; popula
     `${input.doctrine.toUpperCase()}.`,
     `${input.population} of 4040 carry this signal.`,
     ``,
-    `Which civ are you?`,
+    `FREELON CITY — 4,040 AI characters you can own. Which civ are you?`,
     `${HASHTAGS}`,
     `${SITE}/civilizations`,
   ].join("\n");
@@ -556,8 +558,8 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
   {
     id: "snipe-flex",
     category: "own-post",
-    hook: "I SNIPED A RED SIGNAL",
-    body: `⬡ ${HANDLE} · sniped a RED SIGNAL.\n\n____ ⬡ bounty locked in. The city pays carriers who move first.\n\n${HASHTAGS}`,
+    hook: "I CLAIMED A BOUNTY",
+    body: `⬡ ${HANDLE} · claimed a RED SIGNAL bounty.\n\n____ ⬡ credited. The city rewards carriers who move first.\n\n${HASHTAGS}`,
   },
   {
     id: "carrier-call",

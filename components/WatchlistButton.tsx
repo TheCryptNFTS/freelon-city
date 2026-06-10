@@ -213,7 +213,7 @@ export function WatchlistButton({ tokenId }: Props) {
         </>
       )}
       <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", letterSpacing: "0.1em", lineHeight: 1.5, margin: 0 }}>
-        Watchers get a 24h private snipe window if this citizen flags as a Red Signal — before the public feed sees it. Snapshot is frozen at flag time; adding after doesn&apos;t help.
+        Watchers are notified first if this citizen flags as a Red Signal — a 24h early-notice window. Snapshot is frozen at flag time; adding after doesn&apos;t help.
       </p>
       {error && (
         <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--state-danger)" }}>{error}</p>

@@ -41,13 +41,13 @@ export function ActivationProof({ compact = false }: { compact?: boolean }) {
   if (!count || count < 1) return null;
 
   const latest = recent[0];
-  const plural = count === 1 ? "agent" : "agents";
+  const plural = count === 1 ? "citizen" : "citizens";
 
   return (
     <div className={`activation-proof${compact ? " activation-proof--compact" : ""}`}>
       <span className="activation-proof__dot" aria-hidden />
       <span className="activation-proof__count">
-        {count.toLocaleString()} {plural} unlocked
+        {count.toLocaleString()} {plural} awakened
       </span>
       {latest && (
         <span className="activation-proof__latest">

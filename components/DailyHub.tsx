@@ -29,7 +29,10 @@ type Daily = {
 const DAILIES: Daily[] = [
   {
     game: "proof",
-    label: "Proof of Signal",
+    // Label spells out it's the GAME (2026-06-10) — "Proof of Signal" alone
+    // collided with /proof (the render-moat page); anyone told "check proof"
+    // could land on an arcade game. Route unchanged.
+    label: "Proof of Signal · daily game",
     href: "/play/proof",
     accent: "var(--gold-bright)",
     resultKey: (t) => `freelon:proof:v2:${t}`,

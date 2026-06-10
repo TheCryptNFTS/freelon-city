@@ -35,7 +35,7 @@ export async function CivWarSection() {
           )}
         </h2>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", maxWidth: 520 }}>
-          Every snipe, sale, and active hex event scores for the civilization of the citizen involved.
+          Every bounty claim, sale, and active hex event scores for the civilization of the citizen involved.
           Winning civ at week&apos;s end earns +10% on all earnings next cycle. Tribal.
         </p>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: "var(--s-4)", fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
@@ -49,7 +49,7 @@ export async function CivWarSection() {
       <section style={{ marginTop: "var(--s-4)", padding: "var(--s-4)", borderRadius: 14, border: "1px solid var(--line)", background: "rgba(255,255,255,0.02)" }}>
         <span className="kicker">⬡ HOW SCORING WORKS</span>
         <ul style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", margin: "var(--s-2) 0 0", paddingLeft: 18, lineHeight: 1.7 }}>
-          <li>Every active hex event (snipe, sale, sweep, listing bounty, naming burn) tagged with a token id scores for that citizen&apos;s civilization.</li>
+          <li>Every active hex event (bounty claim, sale, sweep, listing bounty, naming burn) tagged with a token id scores for that citizen&apos;s civilization.</li>
           <li>Daily X claims and quest payouts are <em>neutral</em> — they don&apos;t score for any civ.</li>
           <li>Week resets every Monday 00:00 UTC.</li>
           <li>Winning civ earns +10% on all hex earnings the following week. Settles at week&apos;s end.</li>
@@ -109,7 +109,7 @@ export async function CivWarSection() {
       ) : (
         <section style={{ margin: "var(--s-5) 0", padding: "var(--s-5)", border: "1px dashed var(--line-2)", borderRadius: 14, textAlign: "center" }}>
           <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-            No scoring events yet this week · be the first to snipe / sell / sweep a citizen of your civ
+            No scoring events yet this week · be the first to claim a bounty / sell / sweep a citizen of your civ
           </p>
         </section>
       )}

@@ -26,7 +26,7 @@ export const revalidate = 120;
 export const metadata: Metadata = {
   title: "Dashboard · Pulse",
   description:
-    "Live city economy in one place. Hex Index, floor by civilization, holder distribution, trait heat, snipe board, civ wars, top earners.",
+    "Live city economy in one place. Hex Index, floor by civilization, holder distribution, trait heat, bounty board, civ wars, top earners.",
   openGraph: { images: [{ url: "/api/og/hex-index", width: 1200, height: 630 }] },
   twitter: { card: "summary_large_image", images: ["/api/og/hex-index"] },
 };
@@ -45,7 +45,7 @@ function fmtInt(n: number | null | undefined): string {
 const SUBNAV: Array<{ id: string; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "heat", label: "Heat" },
-  { id: "snipes", label: "Snipes" },
+  { id: "snipes", label: "Bounties" },
   { id: "civ-war", label: "Civ War" },
   { id: "earners", label: "Earners" },
   { id: "progression", label: "Citizens" },

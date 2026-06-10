@@ -46,7 +46,7 @@ const GROUPS: NavGroup[] = [
   {
     heading: null,                                          // primary CTA, ungrouped
     links: [
-      { href: "/demo", label: "⬡ SEE AN AGENT", gold: true },
+      { href: "/demo", label: "⬡ MEET A CITIZEN", gold: true },
       { href: "https://opensea.io/collection/freelons", label: "Own a Freelon" },
     ],
   },

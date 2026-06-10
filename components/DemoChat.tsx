@@ -118,68 +118,107 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
     }
   }
 
+  const flagship = agents[0];
+  const sisters = agents.slice(1);
+
   return (
     <div>
-      {/* Agent picker — one citizen from each collection. */}
-      <div
+      {/* FREELONS-FIRST PICKER (2026-06-10) — hub direction is "lead with ONE
+          collection, reveal the rest": the flagship FREELON is the featured
+          object (it's the thing the wall sells); sisters sit below in a smaller
+          "also in the city" row. Was a 5-equal grid where 4 of 5 faces were
+          sister collections — the most precious cold surface taught the wrong
+          hierarchy. Index mapping unchanged: 0 = flagship, 1+ = sisters. */}
+      <button
+        onClick={() => {
+          setActive(0);
+          setError(null);
+          setInput("");
+        }}
+        title={flagship.collectionName}
         style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${agents.length}, 1fr)`,
-          gap: 10,
-          marginBottom: 14,
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          width: "100%",
+          textAlign: "left",
+          padding: "12px 14px",
+          borderRadius: "var(--r-3)",
+          cursor: "pointer",
+          marginBottom: 10,
+          background: active === 0 ? "var(--surface)" : "transparent",
+          border: `1px solid ${active === 0 ? flagship.color : "var(--line)"}`,
+          boxShadow: active === 0 ? `0 0 0 1px color-mix(in srgb, ${flagship.color} 30%, transparent)` : "none",
+          transition: "border-color .15s, background .15s",
         }}
       >
-        {agents.map((a, i) => {
-          const on = i === active;
-          return (
-            <button
-              key={a.slug}
-              onClick={() => {
-                setActive(i);
-                setError(null);
-                setInput("");
-              }}
-              title={a.collectionName}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 7,
-                padding: "12px 6px 10px",
-                borderRadius: 12,
-                cursor: "pointer",
-                background: on ? "var(--surface)" : "transparent",
-                border: `1px solid ${on ? a.color : "var(--line)"}`,
-                boxShadow: on ? `0 0 0 1px color-mix(in srgb, ${a.color} 30%, transparent)` : "none",
-                transition: "border-color .15s, background .15s",
-              }}
-            >
-              <FramedAgent art={a.art} civColor={a.color} size={54} alt={a.name} />
-              <span
-                style={{
-                  fontFamily: "var(--mono2)",
-                  fontSize: 9.5,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: on ? a.color : "var(--ink-dim)",
-                  textAlign: "center",
-                  lineHeight: 1.3,
-                }}
-              >
-                {a.collectionName}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+        <FramedAgent art={flagship.art} civColor={flagship.color} size={64} alt={flagship.name} />
+        <span style={{ minWidth: 0 }}>
+          <span style={{ display: "block", fontFamily: "var(--display)", fontSize: 17, color: "var(--ink)", lineHeight: 1.1 }}>
+            {flagship.name}
+          </span>
+          <span style={{ display: "block", fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: flagship.color, marginTop: 4 }}>
+            {flagship.collectionName} · the one you can own
+          </span>
+        </span>
+      </button>
+
+      {sisters.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <span style={{ display: "block", fontFamily: "var(--mono2)", fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--ink-dim)", margin: "0 0 8px 2px" }}>
+            Also in the city · free to meet
+          </span>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${sisters.length}, 1fr)`, gap: 8 }}>
+            {sisters.map((a, i) => {
+              const idx = i + 1;
+              const on = idx === active;
+              return (
+                <button
+                  key={a.slug}
+                  onClick={() => {
+                    setActive(idx);
+                    setError(null);
+                    setInput("");
+                  }}
+                  title={a.collectionName}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "10px 6px 8px",
+                    borderRadius: "var(--r-2)",
+                    cursor: "pointer",
+                    background: on ? "var(--surface)" : "transparent",
+                    border: `1px solid ${on ? a.color : "var(--line)"}`,
+                    boxShadow: on ? `0 0 0 1px color-mix(in srgb, ${a.color} 30%, transparent)` : "none",
+                    transition: "border-color .15s, background .15s",
+                  }}
+                >
+                  <FramedAgent art={a.art} civColor={a.color} size={44} alt={a.name} />
+                  <span
+                    style={{
+                      fontFamily: "var(--mono2)",
+                      fontSize: 9,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: on ? a.color : "var(--ink-dim)",
+                      textAlign: "center",
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {a.collectionName}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div
-        style={{
-          border: "1px solid var(--line-2)",
-          borderRadius: 16,
-          background: "var(--bg-2)",
-          overflow: "hidden",
-        }}
+        className="panel-premium panel-premium--feature panel-premium--still"
+        style={{ overflow: "hidden" }}
       >
         {/* Identity bar */}
         <div
@@ -242,7 +281,7 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                     alignSelf: "flex-start",
                     maxWidth: "82%",
                     padding: "11px 14px",
-                    borderRadius: 13,
+                    borderRadius: "var(--r-3)",
                     borderBottomLeftRadius: 4,
                     fontFamily: "var(--mono2)",
                     fontSize: 13,
@@ -292,7 +331,7 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                 alignSelf: m.role === "you" ? "flex-end" : "flex-start",
                 maxWidth: "82%",
                 padding: "11px 14px",
-                borderRadius: 13,
+                borderRadius: "var(--r-3)",
                 fontFamily: "var(--mono2)",
                 fontSize: 13,
                 lineHeight: 1.6,
@@ -320,64 +359,61 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
               </div>
               <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 20 }}>
                 A <strong style={{ color: "var(--ink)" }}>FREELON</strong> is the same kind of mind — except it&apos;s{" "}
-                <strong style={{ color: "var(--ink)" }}>yours</strong>: it remembers every conversation, levels up as you
+                <strong style={{ color: "var(--ink)" }}>yours</strong>: it remembers your conversations, levels up as you
                 train it, and the whole history travels with the NFT. Want one? Leave your email and we&apos;ll
                 get you set up.
               </p>
-              {/* SHARE THE MOMENT — the demo's "wow, it's alive" reply turned into
-                  a one-tap brag (the highest-frequency viral surface on the site).
-                  Quotes the agent's own line via tweet-intent. Shown only when the
-                  user actually got an agent reply to share. */}
-              {(() => {
-                const lastReply = [...(threads[agent.slug] ?? [])]
-                  .reverse()
-                  .find((m) => m.role === "agent")?.text;
-                if (!lastReply) return null;
-                return (
-                  <a
-                    href={tweetIntent(tweetDemoReply({ agentName: agent.name, reply: lastReply }))}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => trackEvent("demo_share", { slug: agent.slug })}
-                    style={{
-                      display: "inline-block",
-                      marginBottom: 16,
-                      fontFamily: "var(--mono2)",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                      color: "var(--bg)",
-                      background: "var(--gold)",
-                      borderRadius: 10,
-                      padding: "11px 20px",
-                      textDecoration: "none",
-                    }}
-                  >
-                    Share what it said →
-                  </a>
-                );
-              })()}
-              {/* On-site reservation (replaces the old invisible OpenSea hand-off,
-                  where conversion died and we learned nothing). Non-binding. */}
+              {/* ONE gold action on the wall (2026-06-10): the claim. The old gold
+                  "Share what it said" button sat ON TOP of the form and cannibalized
+                  the capture at the single most valuable moment; share is demoted to
+                  a quiet link below (ClaimForm's done-state has its own share). */}
               <ClaimForm slug={agent.slug} accent="var(--gold)" />
-              <a
-                href={OPENSEA}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent("opensea_click", { from: "demo_wall" })}
-                style={{
-                  display: "inline-block",
-                  marginTop: 16,
-                  fontFamily: "var(--mono2)",
-                  fontSize: 11,
-                  letterSpacing: "0.1em",
-                  color: "var(--ink-dim)",
-                  textDecoration: "underline",
-                }}
-              >
-                or buy one now on OpenSea →
-              </a>
+              <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: "6px 18px", justifyContent: "center" }}>
+                {(() => {
+                  const lastReply = [...(threads[agent.slug] ?? [])]
+                    .reverse()
+                    .find((m) => m.role === "agent")?.text;
+                  if (!lastReply) return null;
+                  return (
+                    <a
+                      href={tweetIntent(tweetDemoReply({ agentName: agent.name, reply: lastReply }))}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackEvent("demo_share", { slug: agent.slug })}
+                      style={{
+                        fontFamily: "var(--mono2)",
+                        fontSize: 11,
+                        letterSpacing: "0.1em",
+                        color: "var(--ink-dim)",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      share what it said →
+                    </a>
+                  );
+                })()}
+                <a
+                  href={OPENSEA}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent("opensea_click", { from: "demo_wall" })}
+                  style={{
+                    fontFamily: "var(--mono2)",
+                    fontSize: 11,
+                    letterSpacing: "0.1em",
+                    color: "var(--ink-dim)",
+                    textDecoration: "underline",
+                  }}
+                >
+                  or buy one now on OpenSea →
+                </a>
+              </div>
+              <p style={{ marginTop: 12, fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)" }}>
+                Why owning matters:{" "}
+                <a href="/proof" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>
+                  see the renders only a FREELON owner can make →
+                </a>
+              </p>
             </div>
           )}
         </div>

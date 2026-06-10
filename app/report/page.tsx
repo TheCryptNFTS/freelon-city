@@ -73,8 +73,8 @@ export default async function ReportPage() {
       {/* HERO */}
       <section className="field-glow" style={{ textAlign: "center", marginBottom: "var(--s-6)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE SIGNAL REPORT</span>
-        <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(34px, 5.5vw, 58px)", lineHeight: 1.0, margin: "12px 0 10px", letterSpacing: "-0.02em" }}>
-          The week in the <em style={{ color: "var(--gold)", fontStyle: "normal" }}>city</em>.
+        <h1 className="page-h1">
+          The week in the <em>city</em>.
         </h1>
         <p className="lead" style={{ maxWidth: 560, margin: "0 auto", color: "var(--ink-2)" }}>
           {civ.week} · who pressed their claim, and the citizens building a public life.
@@ -99,7 +99,9 @@ export default async function ReportPage() {
                 <div key={s.slug} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={{ width: 140, fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0 }}>{s.name}</span>
                   <div style={{ flex: 1, height: 10, borderRadius: 999, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
-                    <div style={{ width: `${Math.max(4, (s.active / maxActive) * 100)}%`, height: "100%", background: s.color, borderRadius: 999 }} />
+                    {/* one-time grow-in (2026-06-10) — the "city moved" page was
+                        dead-static; the standings now draw themselves on load. */}
+                    <div className="report-bar-fill" style={{ width: `${Math.max(4, (s.active / maxActive) * 100)}%`, height: "100%", background: s.color, borderRadius: 999 }} />
                   </div>
                   <span style={{ width: 44, textAlign: "right", fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", flexShrink: 0 }}>{s.active}</span>
                 </div>
@@ -124,7 +126,7 @@ export default async function ReportPage() {
           </h2>
         </header>
         {notables.length > 0 ? (
-          <div className="ui-auto-fit-cards" style={{ ["--min-w" as string]: "200px" }}>
+          <div className="ui-auto-fit-cards report-cards" style={{ ["--min-w" as string]: "200px" }}>
             {notables.map((n) => (
               <Link
                 key={n.tokenId}

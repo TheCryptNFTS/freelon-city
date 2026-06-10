@@ -7,7 +7,7 @@ export default function Privacy() {
   return (
     <LegalShell title="Privacy" updated="2026-06-09">
       <h2>1. The short version.</h2>
-      <p>We keep data collection minimal. You don&apos;t need an account to browse, and our analytics are cookieless and anonymous. The one place we collect personal information is if you choose to reserve a FREELON (&quot;Claim this FREELON&quot;) — there you give us an email and, optionally, a wallet address, described in section 3a below. Everything else on this site is anonymous.</p>
+      <p>We keep data collection minimal. You don&apos;t need an account to browse, and our analytics are cookieless and anonymous. The one place we collect personal information is if you choose to reserve a FREELON (&quot;Claim this FREELON&quot;) — there you give us an email and, optionally, a wallet address, plus the referral code of the link you arrived through, described in section 3a below. Aside from that reservation data, we don&apos;t build profiles of you, and general browsing stays anonymous.</p>
 
       <h2>2. What runs on your device.</h2>
       <ul>
@@ -20,7 +20,7 @@ export default function Privacy() {
       <ul>
         <li><strong>HTTP request logs</strong> — IP address, user agent, path, and timestamp. Retained by our hosting provider (Vercel) for standard durations. Used for security and debugging.</li>
         <li><strong>OpenSea proxy responses</strong> — we relay OpenSea&apos;s public collection stats. We cache results for 5 minutes. We do not log who requested them.</li>
-        <li><strong>Citizen progress</strong> — when a FREELON is given jobs, the resulting progress (its level, reputation, skills, and a short capped log of past jobs) is stored on our server keyed to the <em>token ID of the NFT</em> — not to you, your wallet, or an account. It belongs to the token and travels with it: whoever holds that FREELON sees the same record. There is no person behind it to identify.</li>
+        <li><strong>Citizen progress</strong> — when a FREELON is given jobs, the resulting progress (its level, reputation, skills, and a short capped log of past jobs) is stored on our server keyed to the <em>token ID of the NFT</em> — not to you, your wallet, or an account. It belongs to the token and travels with it: whoever holds that FREELON sees the same record. This progress is keyed to the token, not to an account or your identity — though reservation or referral data you separately provide (section 3a) can be linked to you.</li>
         <li><strong>City activity counters</strong> — anonymous gameplay state (daily claims, streaks, signal balances) used to run the city, not to profile you.</li>
       </ul>
 

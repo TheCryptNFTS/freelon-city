@@ -184,12 +184,12 @@ export default async function EarnPage() {
           {hasLive ? (
             <>
               <h2 style={{ fontFamily: "var(--display)", fontSize: 28, marginBottom: 6, letterSpacing: "-0.01em" }}>
-                Snipe a Red Signal
+                Claim a Red Signal bounty
               </h2>
               <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 14 }}>
                 <strong style={{ color: "#FF5A4D", fontFamily: "var(--display)", fontSize: 18 }}>+{live.topBounty} ⬡</strong> top bounty
-                across {live.redSignalCount} listing{live.redSignalCount === 1 ? "" : "s"} below 90% floor.
-                Buy on OpenSea, hold {ECONOMY.SNIPE_HOLD_DAYS} days, bounty auto-credits.
+                across {live.redSignalCount} flagged listing{live.redSignalCount === 1 ? "" : "s"}.
+                Collect one on OpenSea, hold it {ECONOMY.SNIPE_HOLD_DAYS} days, and the bounty credits to your city balance.
               </p>
               <Link href="/dashboard" className="btn btn-primary">
                 <span className="ttl">VIEW RED SIGNALS →</span>

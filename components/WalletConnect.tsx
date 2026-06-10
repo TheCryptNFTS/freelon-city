@@ -228,7 +228,7 @@ export function WalletConnect() {
   let badge: string;
   if (status === "checking" || count === null) badge = "SCANNING SIGNAL…";
   else if (status === "error") badge = "SIGNAL LOST · TAP TO RETRY";
-  else if (isHolder) badge = `HOLDER · ${count} CITIZEN${count !== 1 ? "S" : ""}`;
+  else if (isHolder) badge = `${count} CITIZEN${count !== 1 ? "S" : ""}`;
   else badge = "0 CITIZENS";
 
   // Deep-link the badge so a connected holder can jump straight into

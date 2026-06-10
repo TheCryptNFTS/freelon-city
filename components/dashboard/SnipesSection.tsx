@@ -137,7 +137,7 @@ export async function SnipesSection() {
         <section className="empty-hero">
           <span className="kicker">⬡ THE MARKET IS BALANCED</span>
           <h3 className="empty-hero-title">The market is balanced</h3>
-          <p className="empty-hero-sub">The city sees what the floor sees. Rare citizens near floor will surface here when the market drifts.</p>
+          <p className="empty-hero-sub">The city sees what the market sees. When a listing flags a bounty, it surfaces here.</p>
         </section>
       ) : (
         <div className="undervalued-grid">

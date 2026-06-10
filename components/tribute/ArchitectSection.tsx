@@ -27,7 +27,7 @@ export function ArchitectSection() {
           <Principle
             n="01"
             title="Active beats passive."
-            body="Hex flows to carriers who move — sweeps, snipes, sales, daily posts. Sitting still pauses the meter. The city rewards work, not waiting."
+            body="Hex flows to carriers who move — sweeps, bounties, sales, daily posts. Sitting still pauses the meter. The city rewards work, not waiting."
           />
           <Principle
             n="02"

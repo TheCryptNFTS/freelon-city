@@ -55,8 +55,9 @@ export function Footer() {
           <h2 className="site-footer__heading">Navigate</h2>
           <ul>
             <li><Link href="/citizens">FREELONS</Link></li>
+            <li><Link href="/report">The Signal Report</Link></li>
+            <li><Link href="/demo">Meet a Citizen</Link></li>
             <li><Link href="/collections">Collections</Link></li>
-            <li><Link href="/demo">See an Agent</Link></li>
             <li><Link href="/start">Start</Link></li>
             <li><Link href="/crypt-tcg">Crypt TCG · soon</Link></li>
           </ul>

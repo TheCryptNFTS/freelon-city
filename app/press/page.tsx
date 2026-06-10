@@ -42,7 +42,7 @@ export default function PressPage() {
           carriers earn hex by moving, not waiting.
         </Quote>
         <Quote>
-          The city pays carriers in hex for active work — sweeps, snipes, sales,
+          The city pays carriers in hex for active work — sweeps, bounties, sales,
           daily posts — and refuses to recognize citizens listed under floor.
         </Quote>
         <Quote>

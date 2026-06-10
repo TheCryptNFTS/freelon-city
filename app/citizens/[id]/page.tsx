@@ -20,7 +20,7 @@ import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
 import { getArtifacts } from "@/lib/city-week";
 import { DispatchPanel } from "@/components/DispatchPanel";
-import { getRankByLevel } from "@/lib/progression-store";
+import { getRankByLevel, getProgress } from "@/lib/progression-store";
 import { getDeepLore, unlockCost } from "@/lib/deep-lore";
 import { getName } from "@/lib/name-store";
 import { getRealignment } from "@/lib/realignment-store";
@@ -109,12 +109,18 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // Daily check-in (today's line if already generated) + level rank + whether
   // the public work-log has entries — all cheap, all fail-quiet so they never
   // block the profile render.
-  const [todayCheckIn, levelRank, agentWorkCount, activation] = await Promise.all([
+  const [todayCheckIn, levelRank, agentWorkCount, activation, progress] = await Promise.all([
     getCheckIn(tid).catch(() => null),
     getRankByLevel(tid).catch(() => null),
     getAgentHistory(tid).then((h) => h.length).catch(() => 0),
     unlockStatus(tid).catch(() => null),
+    getProgress(tid).catch(() => null),
   ]);
+  // PUBLIC LIFE (2026-06-10): the playable-identity moat made visible. Counts
+  // only (level / work-log size / artifacts) — public proof per
+  // docs/HISTORY_VISIBILITY_POLICY.md; raw work bodies stay owner-only. The
+  // life cells render ONLY once the token has any record (empty-stadium rule).
+  const hasLife = (progress?.level ?? 1) > 1 || agentWorkCount > 0 || artifacts.length > 0;
   // An ACTIVATED citizen (paid ETH unlock) gets a visible "awakened" glow on its
   // portrait — a reward for the owner + a sell ("the lit ones are alive").
   const isActivated = activation?.unlocked === true;
@@ -233,8 +239,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </ul>
           </div>
 
-          {/* COLLECTOR FACTS — rarity rank + provenance. Factual marketplace
-              data only; no computed "value" score. */}
+          {/* COLLECTOR FACTS + CITY RECORD — rarity/provenance, then the token's
+              LIFE (level, public work log, artifacts). Factual data only; the
+              life cells self-hide until a record exists. */}
           <div className="citizen-meta-strip">
             <div className="cm-cell">
               <span className="cm-lbl">Rarity rank</span>
@@ -248,7 +255,58 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               <span className="cm-lbl">Last sale</span>
               <span className="cm-val">{meta.lastSaleEth != null ? `${meta.lastSaleEth.toFixed(4)} ETH` : "—"}</span>
             </div>
+            {hasLife && (
+              <>
+                <div className="cm-cell">
+                  <span className="cm-lbl">Level</span>
+                  <span className="cm-val">LV {progress?.level ?? 1}{levelRank ? <small> · city #{levelRank}</small> : null}</span>
+                </div>
+                <div className="cm-cell">
+                  <span className="cm-lbl">Work log</span>
+                  <span className="cm-val">{agentWorkCount}</span>
+                </div>
+                <div className="cm-cell">
+                  <span className="cm-lbl">Artifacts</span>
+                  <span className="cm-val">{artifacts.length}</span>
+                </div>
+              </>
+            )}
           </div>
+
+          {/* ARTIFACTS — public, status-only, travels with the token. Moved OUT
+              of the owner fold (2026-06-10): this is the public record a buyer
+              should see, not an owner control. Self-hides at zero. */}
+          {artifacts.length > 0 && (
+            <section className="panel-premium" style={{ padding: "var(--s-4)", marginTop: "var(--s-3)" }}>
+              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ARTIFACTS · {artifacts.length}</span>
+              <p style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "var(--ink-dim)", margin: "4px 0 12px" }}>
+                Week-stamped marks earned in the city. They travel with the NFT.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {artifacts.map((a) => (
+                  <span
+                    key={a.id}
+                    title={a.title}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 11px",
+                      borderRadius: 999, border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)",
+                      background: "color-mix(in srgb, var(--gold) 8%, transparent)",
+                      fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink)", letterSpacing: "0.04em",
+                    }}
+                  >
+                    <span style={{ color: "var(--gold)" }}>⬡</span>{a.title}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* CITY DISPATCH — moved OUT of the owner fold (2026-06-10). The panel
+              self-gates: owners get the send control, everyone else only ever
+              sees the public dispatch log, and it renders nothing for a token
+              with no history. The just-shipped "send it out, it returns with a
+              story" moment shouldn't live in a drawer. */}
+          <DispatchPanel citizenId={tid} name={customName?.name || c.transmission_name || c.name || `Citizen #${id4}`} />
 
           <dl className="trait-grid">
             {FIELDS.map((f) => (
@@ -290,31 +348,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <EvolvePanel citizenId={tid} />
             <CitizenResume tokenId={tid} />
             <CitizenProgressPanel tokenId={tid} />
-            <DispatchPanel citizenId={tid} name={customName?.name || c.transmission_name || c.name || `Citizen #${id4}`} />
-            {artifacts.length > 0 && (
-              <section className="panel-premium" style={{ padding: "var(--s-4)", marginTop: "var(--s-3)" }}>
-                <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ARTIFACTS · {artifacts.length}</span>
-                <p style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "var(--ink-dim)", margin: "4px 0 12px" }}>
-                  Week-stamped marks earned in the city. They travel with the NFT.
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {artifacts.map((a) => (
-                    <span
-                      key={a.id}
-                      title={a.title}
-                      style={{
-                        display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 11px",
-                        borderRadius: 999, border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)",
-                        background: "color-mix(in srgb, var(--gold) 8%, transparent)",
-                        fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink)", letterSpacing: "0.04em",
-                      }}
-                    >
-                      <span style={{ color: "var(--gold)" }}>⬡</span>{a.title}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
             <CitizenNameEditor citizenId={tid} currentName={customName?.name ?? null} />
             <CitizenRealignEditor
               citizenId={tid}

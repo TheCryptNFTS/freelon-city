@@ -14,25 +14,14 @@ import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
 import { TOTAL } from "@/lib/constants";
 
-// Phase 1 metadata 2026-05-26 — route-specific text, reuses
-// /og/home.jpg.
+// 2026-06-10 — the old hardcoded /og/home.jpg override (wrong 3:2 aspect, off
+// the new brand system) is gone; the page now inherits the branded default
+// card from app/layout.tsx.
 const PAGE_DESC =
-  "Two minutes to understand FREELON CITY: own a FREELON, unlock its AI agent, and put it to work.";
+  "Two minutes to understand FREELON CITY: own a FREELON, awaken it, and put it to work — its history stays with the NFT.";
 export const metadata: Metadata = {
   title: "Start Here · 2-Min Guide",
   description: PAGE_DESC,
-  openGraph: {
-    title: "Start Here · 2-Min Guide",
-    description: PAGE_DESC,
-    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Start Here · 2-Min Guide",
-    description: PAGE_DESC,
-    images: ["/og/home.jpg"],
-  },
 };
 
 export default function StartPage() {
@@ -49,19 +38,11 @@ export default function StartPage() {
          needed.") + abstract ("the city is big, the steps are small")
          — gave the visitor reassurance, not a reason. New version: states
          what you'll know by the end of the page and what you'll have. */}
-      <section style={{ marginBottom: "var(--s-5)" }}>
+      <section className="field-glow" style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ START HERE · 2-MIN TOUR</span>
-        <h1
-          style={{
-            fontFamily: "var(--display)",
-            fontSize: "clamp(40px, 6vw, 64px)",
-            lineHeight: 0.96,
-            letterSpacing: "-0.02em",
-            margin: "10px 0 14px",
-          }}
-        >
+        <h1 className="page-h1" style={{ margin: "10px 0 14px" }}>
           FREELON CITY is 4,040<br />
-          <em style={{ color: "var(--gold)", fontStyle: "normal" }}>AI characters you own.</em>
+          <em>AI characters you own.</em>
         </h1>
         <p
           style={{
@@ -73,16 +54,16 @@ export default function StartPage() {
           }}
         >
           Here&apos;s the whole thing in one line: <strong style={{ color: "var(--ink)" }}>own a FREELON,
-          unlock its agent with ETH, then train it and put it to work</strong> — transform it into any style, give it real jobs,
-          and everything it learns becomes a work history that stays with the NFT when you sell.
+          awaken it with a one-time ETH payment, then train it and put it to work</strong> — transform it into any style,
+          give it real jobs, and everything it does becomes a visible work history that stays with the NFT when you sell.
         </p>
         {/* 2026-06-07 de-dupe (founder: "too complex"): the standalone "JUST WANT
-            TO START?" gold box duplicated this hero with the same SEE AN AGENT
-            button. Folded its one action into the hero so the page opens on ONE
-            focal box, not two. No wallet needed to look. */}
+            TO START?" gold box duplicated this hero with the same demo button.
+            Folded its one action into the hero so the page opens on ONE focal
+            box, not two. No wallet needed to look. */}
         <div style={{ marginTop: "var(--s-4)", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <Link className="btn btn-primary btn-lg" href="/demo">
-            <span className="ttl">SEE AN AGENT →</span>
+            <span className="ttl">MEET A CITIZEN · FREE →</span>
           </Link>
           <span style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)" }}>
             no wallet needed · everything below is optional reading
@@ -98,11 +79,11 @@ export default function StartPage() {
          previously never mentioned anywhere in this guide. */}
       <Section title="The 30-second version">
         <P>
-          A <strong style={{ color: "var(--gold)" }}>FREELON</strong> is a trainable AI
-          agent you own — one of {TOTAL.toLocaleString()} NFTs on Ethereum. Give it jobs
-          (write, strategize, research, red-team) and it levels up, develops a role, and
-          builds a work history that stays with the NFT. A trained FREELON is different
-          from a blank one.
+          A <strong style={{ color: "var(--gold)" }}>FREELON</strong> is an AI citizen
+          you own and train — one of {TOTAL.toLocaleString()} NFTs on Ethereum. Give it
+          jobs (write, strategize, research, red-team) and it levels up, develops a role,
+          and builds a <strong style={{ color: "var(--ink)" }}>public work history</strong> that
+          stays with the NFT. A trained FREELON is different from a blank one.
         </P>
         <P>
           <strong style={{ color: "var(--gold)" }}>HEX (⬡)</strong> is the shared reward
@@ -111,8 +92,40 @@ export default function StartPage() {
         </P>
         <P>
           That&apos;s the whole product. <strong>You don&apos;t have to buy anything to look around</strong> —
-          but owning a FREELON and unlocking its agent is the part that does real work for you.
+          but owning a FREELON and awakening it is the part that does real work for you.
         </P>
+      </Section>
+
+      {/* "Do I need to buy?" section removed 2026-06-07 — its content (look
+          around free vs. own to get the agent) is already covered by "The four
+          steps" below + the "Prefer to look around free first?" section. */}
+
+      {/* ── THE FOUR STEPS (citizen-first) ── */}
+      <Section title="The four steps">
+        <Step
+          n="1"
+          title="Meet a citizen"
+          body="Talk to a live citizen, free, no wallet needed — a real taste of the thing you'd be buying."
+          cta={{ label: "MEET A CITIZEN →", href: "/demo" }}
+        />
+        <Step
+          n="2"
+          title="Own one"
+          body="Find a FREELON you like and buy it on OpenSea. If the exact one you want isn't listed, OpenSea lets you make an offer to its owner. Once it's yours, the character, the levels, and the work history all belong to the NFT."
+          cta={{ label: "OPENSEA COLLECTION ↗", href: "https://opensea.io/collection/freelons", external: true }}
+        />
+        <Step
+          n="3"
+          title="Awaken it"
+          body={`A one-time ETH payment awakens your FREELON — it stays awake through resale — and adds bonus ⬡ to your city balance to spend on jobs. Open your FREELON's page to awaken it.`}
+          cta={{ label: "BROWSE CITIZENS →", href: "/citizens" }}
+        />
+        <Step
+          n="4"
+          title="Put it to work"
+          body="Give it jobs — write, strategy, research, image transforms. It levels up, remembers your project, and builds a public work history that stays with the NFT when you sell."
+          cta={{ label: "SEE THE CITY'S RECORDS →", href: "/report" }}
+        />
       </Section>
 
       {/* ── CONNECTING ──
@@ -120,7 +133,9 @@ export default function StartPage() {
          "can't have wallet + X connected at once", and mobile users unable to
          connect at all. The code bugs are fixed; this section heads off the
          remaining USER-side gotcha: on a phone you must use your wallet's
-         in-app browser, not Safari/Chrome. */}
+         in-app browser, not Safari/Chrome.
+         2026-06-10: moved BELOW the four steps — a newcomer learns what the
+         product is before being handed wallet/MetaMask mechanics. */}
       <Section title="Connecting (and staying connected)" collapsible>
         <Box>
           <P>
@@ -182,38 +197,6 @@ export default function StartPage() {
         </Faq>
       </Section>
 
-      {/* "Do I need to buy?" section removed 2026-06-07 — its content (look
-          around free vs. own to get the agent) is already covered by "The four
-          steps" below + the "Prefer to look around free first?" section. */}
-
-      {/* ── THE FOUR STEPS (agent-first) ── */}
-      <Section title="The four steps">
-        <Step
-          n="1"
-          title="See an agent work"
-          body="Open any FREELON and look at what its agent does — a real example, no wallet needed. This is the thing you're buying."
-          cta={{ label: "SEE AN AGENT →", href: "/demo" }}
-        />
-        <Step
-          n="2"
-          title="Own one"
-          body="Find a FREELON you like and buy it on OpenSea. If the exact one you want isn't listed, OpenSea lets you make an offer to its owner. Once it's yours, the agent, the levels, and the work history all belong to the NFT."
-          cta={{ label: "OPENSEA COLLECTION ↗", href: "https://opensea.io/collection/freelons", external: true }}
-        />
-        <Step
-          n="3"
-          title="Unlock it"
-          body={`One-time ETH payment switches the agent on — permanent, it survives a resale — and drops bonus ⬡ in your wallet to spend on jobs. Open your FREELON's page to unlock.`}
-          cta={{ label: "BROWSE CITIZENS →", href: "/citizens" }}
-        />
-        <Step
-          n="4"
-          title="Put it to work"
-          body="Give it jobs — write, strategy, research, image transforms. It levels up, remembers your project, and builds a work history that stays with the NFT when you sell."
-          cta={{ label: "SEE IT IN ACTION →", href: "/citizens/1" }}
-        />
-      </Section>
-
       {/* ── PREFER FREE FIRST? (the city-game, demoted) ──
          The free sync/claim/civ path used to be the primary funnel; it's now
          one collapsed aside so a newcomer isn't taught the game before the
@@ -222,7 +205,7 @@ export default function StartPage() {
         <Box>
           <P>No wallet, no purchase — you can still play:</P>
           <Ul>
-            <Li><strong>Sync your X handle</strong> on <Link href="/sync" style={{ color: "var(--gold)" }}>/sync</Link> — the city sorts you into a tribe and shows you that tribe&apos;s face.</Li>
+            <Li><strong>Sync your X handle</strong> on <Link href="/sync" style={{ color: "var(--gold)" }}>/sync</Link> — the city assigns you one of ten civilizations and shows you its patron citizen.</Li>
             <Li><strong>Claim {ECONOMY.DAILY_CLAIM} ⬡ a day</strong> just for showing up. Streaks add more (+{ECONOMY.STREAK_7_BONUS} at 7 days, +{ECONOMY.STREAK_30_BONUS} at 30).</Li>
             <Li><strong>Browse</strong> all {TOTAL.toLocaleString()} citizens and post on the city wall.</Li>
           </Ul>
@@ -267,10 +250,10 @@ export default function StartPage() {
          /archive and /combat-archives. */}
       <Section title="The lingo (so nothing is confusing)" collapsible>
         <dl style={{ display: "grid", gap: 12, fontFamily: "var(--mono2)", fontSize: 13 }}>
-          <Lingo term="FREELON" def={`The NFT. There are ${TOTAL.toLocaleString()} of them on Ethereum — sealed supply, no more will be made. Each one is a trainable AI agent.`} />
-          <Lingo term="agent" def="What your FREELON does once it's unlocked — it takes jobs (writing, strategy, research, image transforms), remembers your project, and gets better the more you use it." />
-          <Lingo term="unlock" def="A one-time ETH payment that switches your FREELON's agent on. Permanent — it survives a resale — and drops bonus ⬡ in your wallet." />
-          <Lingo term="hex (⬡)" def="The city's credits. You earn them free or get them when you unlock, and spend them to run agent jobs. Not money, not redeemable outside the city." />
+          <Lingo term="FREELON" def={`The NFT. There are ${TOTAL.toLocaleString()} of them on Ethereum — sealed supply, no more will be made. Each one is an AI citizen you can own and train.`} />
+          <Lingo term="awaken" def="A one-time ETH payment that switches your FREELON on. It stays awake through resale — and adds bonus ⬡ to your city balance." />
+          <Lingo term="agent" def="What your FREELON is once it's awake — it takes jobs (writing, strategy, research, image transforms), remembers your project, and gets better the more you use it." />
+          <Lingo term="hex (⬡)" def="The city's credits. You earn them free or get them when you awaken a FREELON, and spend them to run jobs. Not money, not redeemable outside the city." />
         </dl>
       </Section>
 
@@ -338,10 +321,10 @@ export default function StartPage() {
             margin: "10px 0 var(--s-3)",
           }}
         >
-          See what an <em style={{ color: "var(--gold)", fontStyle: "normal" }}>agent</em> actually does.
+          See what a <em style={{ color: "var(--gold)", fontStyle: "normal" }}>citizen</em> actually does.
         </h2>
         <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: "var(--s-2)" }}>
-          <Link className="btn btn-primary" href="/demo"><span className="ttl">SEE AN AGENT →</span></Link>
+          <Link className="btn btn-primary" href="/demo"><span className="ttl">MEET A CITIZEN · FREE →</span></Link>
         </div>
         <p
           style={{
@@ -404,14 +387,16 @@ function Section({
   );
 }
 
+/* 2026-06-10 re-skin: Box/Step/Faq move from flat inline rgba boxes onto the
+   house premium-panel recipe (globals.css) — /start read like a different,
+   cheaper site than the surfaces it onboards people into. Layout-only styles
+   stay inline; surface/border/radius come from the recipe. */
 function Box({ children }: { children: React.ReactNode }) {
   return (
     <div
+      className="panel-premium panel-premium--still"
       style={{
         padding: "var(--s-3) var(--s-4)",
-        border: "1px solid var(--line)",
-        background: "rgba(255,255,255,0.02)",
-        borderRadius: 12,
         marginBottom: "var(--s-3)",
       }}
     >
@@ -453,11 +438,9 @@ function Step({
 }) {
   return (
     <article
+      className="panel-premium panel-premium--still"
       style={{
         padding: "var(--s-3) var(--s-4)",
-        border: "1px solid var(--line)",
-        background: "rgba(255,255,255,0.02)",
-        borderRadius: 12,
         marginBottom: 10,
       }}
     >
@@ -496,11 +479,9 @@ function Lingo({ term, def }: { term: string; def: string }) {
 function Faq({ q, children }: { q: string; children: React.ReactNode }) {
   return (
     <details
+      className="panel-premium"
       style={{
         padding: "10px var(--s-4)",
-        border: "1px solid var(--line)",
-        background: "rgba(255,255,255,0.02)",
-        borderRadius: 10,
         marginBottom: 8,
       }}
     >

@@ -7,21 +7,12 @@ import { CATEGORIES, ITEMS, itemsByCategory } from "@/lib/shop";
 // /og/home.jpg.
 const PAGE_DESC =
   "Physical artefacts from FREELON CITY. Carrier garments, sealed objects, and archive fragments.";
+// 2026-06-10 — the hardcoded /og/home.jpg override (wrong 3:2 aspect, off the
+// new brand system) is gone; the page inherits the branded default card from
+// app/layout.tsx.
 export const metadata: Metadata = {
   title: "Shop · Artefacts of the Archive",
   description: PAGE_DESC,
-  openGraph: {
-    title: "Shop · Artefacts of the Archive",
-    description: PAGE_DESC,
-    images: [{ url: "/og/home.jpg", width: 1536, height: 1024 }],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Shop · Artefacts of the Archive",
-    description: PAGE_DESC,
-    images: ["/og/home.jpg"],
-  },
 };
 
 export default function ShopPage() {
@@ -50,10 +41,9 @@ export default function ShopPage() {
           Objects from <em>the signal.</em>
         </h1>
         <p className="lead">
-          Physical fragments from FREELON CITY. Carrier garments, sealed
-          objects, and archive pieces tied to the world forming around the
-          missing HEX. Paid in <strong>⬡ hex</strong> — the free city credit you
-          earn by showing up, not real money.
+          Physical objects from FREELON CITY — carrier garments, sealed
+          artefacts, archive prints. Paid in <strong>⬡ hex</strong> — the free city
+          credit you earn by showing up, not real money.
         </p>
       </section>
 
@@ -73,7 +63,7 @@ export default function ShopPage() {
         {/* 2026-06-07 funnel: shop is a HEX sink off the core loop — repoint its
             primary back to the product so a non-owner doesn't dead-end here. */}
         <div style={{ marginTop: "var(--s-3)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}>
-          <Link className="btn btn-primary" href="/demo"><span className="ttl">DON&apos;T OWN A FREELON? SEE AN AGENT →</span></Link>
+          <Link className="btn btn-primary" href="/demo"><span className="ttl">DON&apos;T OWN A FREELON? MEET A CITIZEN →</span></Link>
           <Link className="btn btn-secondary" href="/sync"><span className="ttl">ENTER THE CITY →</span></Link>
         </div>
       </section>

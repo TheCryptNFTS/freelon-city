@@ -7,6 +7,7 @@ import { WorkspaceUnlock } from "./WorkspaceUnlock";
 import { AgentPowers } from "./AgentPowers";
 import { CitizenJobsBoard } from "./CitizenJobsBoard";
 import { LevelUpCelebration } from "./LevelUpCelebration";
+import { DispatchPanel } from "./DispatchPanel";
 import { cityNotice } from "@/lib/city-notice";
 import { proveWallet } from "@/lib/wallet-proof";
 import { resolveCityDestinations, type CityLink } from "@/lib/city-destinations";
@@ -486,20 +487,49 @@ export function AgentWorkspace(props: Props) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ addr: address, civ: civSlug, caption, imageUrl }),
       });
+    const fail = (body: string) => {
+      setPublishState((s) => ({ ...s, [imageUrl]: "error" }));
+      cityNotice({ title: "Couldn't post to the City Archive", body, delta: "⬡ ARCHIVE" });
+    };
     try {
       let res = await doPost();
       let j = await res.json().catch(() => ({}));
       if (res.status === 401 && j?.error === "wallet_proof_required") {
         const proof = await proveWallet(address);
-        if (!proof.ok) { setPublishState((s) => ({ ...s, [imageUrl]: "error" })); return; }
+        if (!proof.ok) {
+          fail(
+            proof.reason === "no_wallet"
+              ? "Open this in your wallet's browser to transmit."
+              : proof.reason === "rejected"
+              ? "Signature declined — needed once to transmit."
+              : "Couldn't prove wallet — retry.",
+          );
+          return;
+        }
         res = await doPost();
         j = await res.json().catch(() => ({}));
       }
-      if (!res.ok) { setPublishState((s) => ({ ...s, [imageUrl]: "error" })); return; }
+      if (!res.ok) {
+        const map: Record<string, string> = {
+          invalid_address: "Address malformed.",
+          invalid_civ: "Invalid civilization.",
+          invalid_caption: "Caption out of bounds.",
+          image_url_must_be_https: "Image must be HTTPS.",
+          image_url_too_long: "Image URL too long.",
+          image_url_not_recognized: "Image URL unrecognized — must end in .jpg/.png/.webp.",
+          session_required: "X session required.",
+          not_a_carrier: "Carrier status required — hold ≥1 citizen.",
+          insufficient_hex: `HEX balance low — need ${j.required ?? 100}⬡, have ${j.balance ?? "?"}⬡.`,
+          debit_failed: "HEX debit failed — retry.",
+          balance_unknown_retry: "Signal lost — retry.",
+        };
+        fail(map[j.error] || `Transmission rejected — ${j.error || "unknown"}.`);
+        return;
+      }
       setPublishState((s) => ({ ...s, [imageUrl]: "done" }));
       cityNotice({ title: "Posted to the City Archive", body: "Your transmission is live on the wall.", delta: "⬡ ARCHIVE" });
     } catch {
-      setPublishState((s) => ({ ...s, [imageUrl]: "error" }));
+      fail("Network error — retry.");
     }
   }
 
@@ -1173,6 +1203,16 @@ export function AgentWorkspace(props: Props) {
                 </button>
               ))}
             </div>
+          </section>
+        )}
+
+        {/* CITY DISPATCH — the public-record action, where owners actually live
+            (2026-06-10; it was buried in the profile's owner fold). Self-gates:
+            owners get the send control, visitors only ever see the log, and it
+            renders nothing for a citizen with no history. FREELONS only. */}
+        {!slug && (
+          <section className={styles.infoSec}>
+            <DispatchPanel citizenId={tokenId} name={name} />
           </section>
         )}
 

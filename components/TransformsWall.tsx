@@ -43,7 +43,10 @@ export default function TransformsWall({ limit = 12 }: { limit?: number }) {
     <section className="transforms-wall reveal">
       <span className="kicker">⬡ MADE IN FREELON CITY · REAL OUTPUTS</span>
       <p className="transforms-wall-sub">
-        Real transforms owners made from their own citizens. Yours could be next.
+        Real transforms owners made from their own citizens. Yours could be next.{" "}
+        {/* /proof handoff (2026-06-10): turns "nice renders" into "renders only
+            an owner can make" — the argument that converts. */}
+        <Link href="/proof" style={{ color: "var(--gold)" }}>How only an owner can make these →</Link>
       </p>
       <div className="transforms-wall-grid">
         {live.map((t) => {

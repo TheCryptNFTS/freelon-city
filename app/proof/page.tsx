@@ -47,14 +47,14 @@ export default function ProofPage() {
       {/* HERO */}
       <section className="field-glow" style={{ textAlign: "center", marginBottom: "var(--s-6)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ PROOF</span>
-        <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(34px, 5.5vw, 60px)", lineHeight: 1.0, margin: "12px 0 14px", letterSpacing: "-0.02em" }}>
+        <h1 className="page-h1" style={{ margin: "12px 0 14px" }}>
           Anyone can prompt an AI.<br />
-          Only your <em style={{ color: "var(--gold)", fontStyle: "normal" }}>FREELON</em> renders <em style={{ color: "var(--gold)", fontStyle: "normal" }}>your</em> character.
+          Only your <em>FREELON</em> renders <em>your</em> character.
         </h1>
         <p className="lead" style={{ maxWidth: 620, margin: "0 auto", color: "var(--ink-2)", lineHeight: 1.6 }}>
-          Same face. Same number. Same history. Dropped into any world — and the
-          City Archive knows which ones are real. The prompt below is free. The
-          character is yours.
+          Same face. Same number. Same history. Dropped into any world — and every
+          render carries the token&apos;s archive stamp, so the real ones are checkable.
+          The prompt below is free. The character is yours.
         </p>
       </section>
 
@@ -134,7 +134,7 @@ export default function ProofPage() {
         <span className="kicker">⬡ TRY IT</span>
         <div className="ui-cta-row" style={{ justifyContent: "center", marginTop: "var(--s-2)" }}>
           <Link className="btn btn-primary btn-lg" href="/demo">
-            <span className="ttl">SEE AN AGENT →</span>
+            <span className="ttl">MEET A CITIZEN · FREE →</span>
           </Link>
           <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
             <span className="ttl">OWN A FREELON →</span>

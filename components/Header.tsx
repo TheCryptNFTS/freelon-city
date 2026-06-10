@@ -60,7 +60,7 @@ export function Header() {
           margin: 0 auto;
           padding: 0 var(--pad);
         }
-        .brand { display: inline-flex; align-items: center; gap: 12px; }
+        .brand { display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0; }
         .brand-logo { display: block; }
         .brand-text {
           font-family: var(--mono2);
@@ -68,8 +68,9 @@ export function Header() {
           letter-spacing: 0.24em;
           text-transform: uppercase;
           color: var(--ink);
+          white-space: nowrap;
         }
-        .desktop-nav { display: flex; gap: 18px; align-items: center; }
+        .desktop-nav { display: flex; gap: 14px; align-items: center; }
         .nav-link {
           font-family: var(--mono2);
           font-size: var(--t-mono-sm);

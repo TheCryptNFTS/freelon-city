@@ -13,7 +13,7 @@ const KIND_LABEL: Record<string, { label: string; color: string }> = {
   "transmission-boosted": { label: "BOOST",     color: "#A989C7" },
   "civ-wars-monday":      { label: "CIV WARS",  color: "#7AB7FF" },
   "civ-wars-mid-week":    { label: "CIV WARS",  color: "#7AB7FF" },
-  "snipe-matured":        { label: "SNIPE",     color: "var(--state-active)" },
+  "snipe-matured":        { label: "BOUNTY",    color: "var(--state-active)" },
   "fresh-citizen":        { label: "WELCOME",   color: "var(--gold)" },
 };
 

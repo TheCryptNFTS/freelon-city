@@ -62,8 +62,8 @@ export default function GuardPage() {
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", marginBottom: 14 }}>
           The guard is a real FREELON — the same agent you can own and train.
         </p>
-        <Link className="btn btn-primary" href="/citizens/1">
-          <span className="ttl">SEE AN AGENT →</span>
+        <Link className="btn btn-primary" href="/demo">
+          <span className="ttl">MEET A CITIZEN · FREE →</span>
         </Link>
       </section>
     </div>
