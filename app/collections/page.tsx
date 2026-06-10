@@ -129,13 +129,14 @@ export default async function CollectionsIndex() {
                   height: "100%",
                 }}
               >
-                {/* Square frame + contain so the WHOLE record shows. The art is
-                    square (PFPs) or portrait (the Anubis god-card); a landscape
-                    crop was chopping ~37% off the top/bottom. */}
-                <div style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 8, overflow: "hidden", border: `1px solid ${c.statusColor}33`, background: "rgba(0,0,0,0.5)" }}>
+                {/* Square frame, art FILLS it (cover) so the gallery reads as
+                    premium full-bleed renders, not thumbnails letterboxed in
+                    black bars (visual audit flagship 2026-06-10). Near-square
+                    PFP art crops ~0; the one portrait centre-crops cleanly. */}
+                <div style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 8, overflow: "hidden", border: `1px solid ${c.statusColor}33`, background: `linear-gradient(135deg, ${c.statusColor}14, rgba(0,0,0,0.55))` }}>
                   {c.img && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.img} alt={`${c.title} record`} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", filter: "saturate(0.85) contrast(1.02)" }} />
+                    <img src={c.img} alt={`${c.title} record`} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block", filter: "saturate(0.92) contrast(1.03)" }} />
                   )}
                   {(c as { agentic?: boolean }).agentic && (
                     <span

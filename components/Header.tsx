@@ -56,7 +56,7 @@ export function Header() {
       <style>{`
         .site-header {
           border-bottom: 1px solid var(--line);
-          background: rgba(10,12,18,0.85);
+          background: rgba(11,11,13,0.82);
           backdrop-filter: blur(16px) saturate(120%);
           -webkit-backdrop-filter: blur(16px) saturate(120%);
           position: sticky;
