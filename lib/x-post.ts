@@ -12,6 +12,7 @@
  *   X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET  — @4040hex user access token/secret
  */
 import crypto from "node:crypto";
+import { takePostBudget } from "@/lib/x-budget";
 
 /** True only when all four X credentials are present. Callers dry-run otherwise. */
 export function hasXCredentials(): boolean {
@@ -27,6 +28,12 @@ export function hasXCredentials(): boolean {
  *  8s timeout (2026-06-10): a hung X call used to pin the cron function until
  *  the platform killed it — which could strand week-level dedupe keys. */
 export async function postTweet(text: string): Promise<unknown> {
+  // The three voice crons (daily-signal, agent-transmission, signal-report)
+  // post through here — class "critical": only a fully spent daily budget
+  // stops them (lib/x-budget).
+  if (!(await takePostBudget("critical"))) {
+    throw new Error("x_daily_post_budget_exhausted");
+  }
   const url = "https://api.x.com/2/tweets";
   const oauth = buildOauthHeader("POST", url);
   const res = await fetch(url, {

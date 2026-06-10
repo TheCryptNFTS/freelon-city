@@ -15,6 +15,7 @@
  */
 
 import { oauth1Header } from "@/lib/x-dm";
+import { takePostBudget } from "@/lib/x-budget";
 
 export function postingCapable(): boolean {
   return !!(
@@ -104,6 +105,13 @@ export async function postTweet(
   if (!postingCapable()) return { ok: false, reason: "creds_missing" };
   if (!text) return { ok: false, reason: "empty_text" };
   if (text.length > 280) text = text.slice(0, 277) + "…";
+
+  // Daily write budget (lib/x-budget): CTA reply tweets are "optional" — the
+  // first to drop when the day runs hot; main pulse/burst/weekly posts are
+  // "standard" and keep a small reserve for the voice crons.
+  if (!(await takePostBudget(opts.replyToId ? "optional" : "standard"))) {
+    return { ok: false, reason: "daily_post_budget" };
+  }
 
   const url = "https://api.x.com/2/tweets";
   const auth = oauth1Header({ method: "POST", url });
