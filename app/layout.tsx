@@ -28,13 +28,13 @@ export const metadata: Metadata = {
     type: "website",
     // Site-wide default OG → the branded product card (every page without its
     // own OG inherits this). Was a flat static /og/home.jpg.
-    images: [{ url: "/api/og/universe", width: 1200, height: 630 }],
+    images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "404 — FREELON CITY",
     description: "4040 AI characters you own and train. Each FREELON remembers your work, and its history travels with the NFT.",
-    images: ["/api/og/universe"],
+    images: ["/api/og/universe?b=2"],
   },
 };
 
