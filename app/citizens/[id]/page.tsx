@@ -55,9 +55,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-// Tokens with a commissioned battle-cutscene video in /public/cutscenes/.
-// The four 1/1s (origin / patient-zero / genesis / final-signal) + honoraries
-// (vitalik 21, beeple 123, elon 333, hobbs 555, zagabond 777, waleswoosh 3690).
+// Tokens with a cinematic battle-record still in /public/transmission-stills/
+// (2026-06-11, generated from each citizen's REAL render via OpenRouter after
+// the commissioned cutscene videos were cut for quality). The four 1/1s
+// (origin / patient-zero / genesis / final-signal) + honoraries (vitalik 21,
+// beeple 123, elon 333, hobbs 555, zagabond 777, waleswoosh 3690).
 const CUTSCENE_TOKENS = new Set([1, 21, 123, 333, 404, 555, 777, 1337, 3690, 4040]);
 
 const FIELDS: Array<{ key: keyof CitizenLike; label: string }> = [
@@ -137,10 +139,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // portrait — a reward for the owner + a sell ("the lit ones are alive").
   const isActivated = activation?.unlocked === true;
 
-  // RECOVERED TRANSMISSION (2026-06-10): commissioned battle-cutscene videos
-  // exist for the four 1/1s + six honoraries (asset-review drop, now served
-  // from /public/cutscenes/<tokenId>.mp4). Click-to-play with the citizen's
-  // own art as poster — zero page weight until played (preload=metadata).
+  // RECOVERED TRANSMISSION (2026-06-11): a cinematic battle-record still for
+  // the four 1/1s + six honoraries, generated from the citizen's real render.
   const hasCutscene = CUTSCENE_TOKENS.has(tid);
 
   const rank = rarityRank(tid);
@@ -207,19 +207,18 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
-          {/* RECOVERED TRANSMISSION — the commissioned battle-cutscene for the
-              1/1s + honoraries. Click-to-play (poster = the citizen's art,
-              preload=metadata) so it adds zero weight until watched. */}
+          {/* RECOVERED TRANSMISSION — a cinematic battle-record still for the
+              1/1s + honoraries, generated FROM the citizen's real render
+              (2026-06-11; replaced the weak cutscene videos per founder). */}
           {hasCutscene && (
             <section className="transmission-cut">
               <span className="kicker" style={{ color: "var(--gold)" }}>⬡ RECOVERED TRANSMISSION · COMBAT RECORD</span>
-              <video
-                className="transmission-cut__video"
-                src={`/cutscenes/${tid}.mp4`}
-                poster={imageUrl(tid)}
-                controls
-                preload="metadata"
-                playsInline
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="transmission-cut__img"
+                src={`/transmission-stills/${tid}.jpg`}
+                alt={`Combat record — citizen #${id4}`}
+                loading="lazy"
               />
             </section>
           )}
