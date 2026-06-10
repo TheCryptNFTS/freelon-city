@@ -1218,10 +1218,10 @@ export function HexMatch() {
           title="Hex Match"
           accent="var(--neon-cyan)"
           steps={[
-            { glyph: "◇", text: "Swap two adjacent hex-eyes to line up three or more of one color." },
-            { glyph: "✦", text: "Match four or more to forge a special tile — chain it to clear whole lines and blocks." },
-            { glyph: "✷", text: "Swap two special tiles into each other to detonate both at once — the biggest combo in the game." },
-            { glyph: "∞", text: "Endless: rack up the biggest combo before the timer dies. Daily: one seeded board, same for everyone." },
+            { glyph: "◇", text: "Tap a hex-eye, then a touching one, to swap them. Line up three or more of one colour to clear and score." },
+            { glyph: "⬡", text: "The goal: hit the level's target score before your moves run out. Clear it and the next level demands more." },
+            { glyph: "✷", text: "Match 4+ to forge a special tile. Swap two specials into each other to detonate both — the biggest blast in the game." },
+            { glyph: "∞", text: "Endless: no finish line — push levels, beat your best, log the leaderboard. Daily: one board, same for everyone, keep the streak." },
           ]}
         />
       </div>
