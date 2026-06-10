@@ -26,9 +26,15 @@ export function postingCapable(): boolean {
 }
 
 /**
- * Download an image and upload it to X v1.1 media/upload. Returns the
- * media_id_string on success, null on any failure (network, X error,
- * unsupported MIME).
+ * Download an image and upload it to X v2 media upload. Returns the media id
+ * on success, null on any failure (network, X error, unsupported MIME).
+ *
+ * 2026-06-10 — migrated off upload.twitter.com/1.1/media/upload.json: X sunset
+ * ALL v1.1 media endpoints on 2025-06-09, so for the past year this returned
+ * null on every call and the swallow-everything failure model meant every
+ * sales-pulse / sweep-burst post silently went out TEXT-ONLY. The v2 endpoint
+ * (POST api.x.com/2/media/upload) accepts the same one-shot multipart upload
+ * and the same OAuth 1.0a user-context header.
  *
  * X size cap: 5 MB for JPEG/PNG/GIF/WebP. We fetch with a 5s timeout
  * so a slow Pinata gateway can't hang the cron.
@@ -48,10 +54,10 @@ export async function uploadMedia(imageUrl: string): Promise<string | null> {
   }
   if (buf.byteLength === 0 || buf.byteLength > 5 * 1024 * 1024) return null;
 
-  // X v1.1 media upload — simple form with one "media" file part.
+  // X v2 media upload — simple form with one "media" file part.
   // OAuth signature for multipart uploads covers ONLY oauth_* params,
   // matching the existing helper's behaviour (no body params signed).
-  const url = "https://upload.twitter.com/1.1/media/upload.json";
+  const url = "https://api.x.com/2/media/upload";
   const auth = oauth1Header({ method: "POST", url });
   if (!auth) return null;
 
@@ -65,6 +71,7 @@ export async function uploadMedia(imageUrl: string): Promise<string | null> {
     : bytes[0] === 0x52 && bytes[1] === 0x49 ? "image/webp"
     : "image/jpeg";
   form.append("media", new Blob([buf], { type: mime }), `freelon.${mime.split("/")[1]}`);
+  form.append("media_category", "tweet_image");
 
   try {
     const res = await fetch(url, {
@@ -73,8 +80,9 @@ export async function uploadMedia(imageUrl: string): Promise<string | null> {
       body: form,
     });
     if (!res.ok) return null;
-    const j = (await res.json()) as { media_id_string?: string };
-    return j.media_id_string || null;
+    // v2 shape: { data: { id, media_key } } — id is what /2/tweets media_ids wants.
+    const j = (await res.json()) as { data?: { id?: string } };
+    return j.data?.id || null;
   } catch {
     return null;
   }

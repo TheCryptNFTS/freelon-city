@@ -11,7 +11,7 @@ export default function Dmca() {
       <p style={{ fontFamily: "var(--mono2)", fontSize: 14, color: "var(--gold)" }}>
         contact@freeloncity.com
       </p>
-      <p>For project announcements, follow <a href="https://twitter.com/freeloncity" target="_blank" rel="noreferrer">@freeloncity on X</a>.</p>
+      <p>For project announcements, follow <a href="https://x.com/4040hex" target="_blank" rel="noreferrer">@4040hex on X</a>.</p>
 
       <h2>2. DMCA notice.</h2>
       <p>To report content on freeloncity.com that you believe infringes a copyright you own or are authorized to enforce, send a written notice to the address above that contains:</p>

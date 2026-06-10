@@ -7,7 +7,7 @@
  *   CRON_SECRET                 — random string. Cron requests must carry it as Bearer.
  *   X_API_KEY                   — X API v2 OAuth 1.0a consumer key
  *   X_API_SECRET                — consumer secret
- *   X_ACCESS_TOKEN              — user access token (for the @freeloncity account)
+ *   X_ACCESS_TOKEN              — user access token (for the @4040hex account)
  *   X_ACCESS_TOKEN_SECRET       — user access token secret
  *
  * If credentials are missing the endpoint returns a dry-run payload — useful

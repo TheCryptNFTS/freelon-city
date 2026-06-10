@@ -206,7 +206,7 @@ export function tweetCivPride(input: { civName: string; doctrine: string; popula
 
 /**
  * THE SIGNAL REPORT — the weekly city ritual (2026-06-10). One template, two
- * mouths: the Sunday @freeloncity cron (api/cron/signal-report) and the
+ * mouths: the Sunday @4040hex cron (api/cron/signal-report) and the
  * one-tap POST THE REPORT button on /report. Deterministic data only (winner
  * civ + notable count), no value claims; the ?ref=sr-<week> tail lets
  * referral_landing attribute every visit the ritual pulls in. Kept under 280

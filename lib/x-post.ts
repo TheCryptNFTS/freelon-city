@@ -2,12 +2,14 @@
  * Shared X (Twitter) posting helper — OAuth 1.0a signed POST to the v2 API.
  *
  * Extracted from the daily-signal cron so multiple cron jobs (daily-signal,
- * agent-transmission) post through ONE audited code path instead of copy-pasted
- * OAuth signing. Posting account is @freeloncity.
+ * agent-transmission, signal-report) post through ONE audited code path instead
+ * of copy-pasted OAuth signing. Posting account is @4040hex (founder-confirmed
+ * 2026-06-10 — @freeloncity was never the account; the runtime account is
+ * whoever owns X_ACCESS_TOKEN, so verify the token pair was minted as @4040hex).
  *
  * Required env (Vercel project settings):
  *   X_API_KEY, X_API_SECRET                — OAuth 1.0a consumer key/secret
- *   X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET  — @freeloncity user access token/secret
+ *   X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET  — @4040hex user access token/secret
  */
 import crypto from "node:crypto";
 
@@ -21,7 +23,9 @@ export function hasXCredentials(): boolean {
   );
 }
 
-/** OAuth 1.0a signed POST to X v2 /2/tweets. Throws on non-2xx (caller logs). */
+/** OAuth 1.0a signed POST to X v2 /2/tweets. Throws on non-2xx (caller logs).
+ *  8s timeout (2026-06-10): a hung X call used to pin the cron function until
+ *  the platform killed it — which could strand week-level dedupe keys. */
 export async function postTweet(text: string): Promise<unknown> {
   const url = "https://api.x.com/2/tweets";
   const oauth = buildOauthHeader("POST", url);
@@ -29,6 +33,7 @@ export async function postTweet(text: string): Promise<unknown> {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: oauth },
     body: JSON.stringify({ text }),
+    signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) {
     const body = await res.text();

@@ -24,7 +24,7 @@ Real mailbox, calendar, drive. Worth it once volume picks up.
 Test: send a message to `contact@freeloncity.com`, confirm it arrives.
 
 ### 1.3 X (Twitter) account
-- Create or claim `@freeloncity`
+- The live account is `@4040hex` (founder-confirmed 2026-06-10 — `@freeloncity` was never created)
 - Set profile picture to `/public/social/pfp-1024.png`
 - Set banner to `/public/social/banner-1500x500.jpg`
 - Bio suggestion:
@@ -168,7 +168,7 @@ Before you flip DNS:
 
 - [ ] Domain registered
 - [ ] `contact@freeloncity.com` mailbox exists + reachable
-- [ ] `@freeloncity` X account exists
+- [x] `@4040hex` X account exists (the live posting account)
 - [ ] Vercel project connected to repo
 - [ ] `OPENSEA_API_KEY` in Vercel env
 - [ ] One real-device smoke test

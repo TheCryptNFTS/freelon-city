@@ -36,7 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
         if (n >= 8) break;
       }
     } catch { /* count stays 0 — the card renders its open-record state */ }
-    og = `/api/og/report?w=${encodeURIComponent(civ.week)}&civ=${encodeURIComponent(winner?.name ?? "")}&c=${encodeURIComponent(winner?.color ?? "")}&n=${n}`;
+    // No c= param — the OG route whitelists the civ name and derives the color
+    // server-side (anti-spoof hardening, 2026-06-10).
+    og = `/api/og/report?w=${encodeURIComponent(civ.week)}&civ=${encodeURIComponent(winner?.name ?? "")}&n=${n}`;
     if (winner) {
       description = `${civ.week} — ${winner.name} pressed the strongest claim. The citizens building a public life, on the record.`;
     }

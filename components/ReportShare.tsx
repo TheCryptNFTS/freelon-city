@@ -5,7 +5,7 @@ import { tweetIntent, tweetSignalReport } from "@/lib/share";
 
 /**
  * POST THE REPORT — the one-tap ritual share on /report (2026-06-10).
- * Same template the Sunday @freeloncity cron posts, so a holder's share and
+ * Same template the Sunday @4040hex cron posts, so a holder's share and
  * the city's own post read as one voice. Tracked as report_share; the link
  * carries ?ref=sr-<week> so referral_landing attributes what it pulls in.
  */

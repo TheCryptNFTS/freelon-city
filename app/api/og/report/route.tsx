@@ -10,7 +10,12 @@ export const runtime = "edge";
 //
 //   /api/og/report?w=2026-W24&civ=Pink%20Luxury&c=%23FF5CB4&n=8
 //
-// All inputs are sanitized (week shape, name charset, hex color, count cap).
+// All inputs are sanitized (week shape, count cap), and — hardened 2026-06-10
+// after red-team — the civ param is WHITELISTED against the ten canonical
+// civilization names with the color derived server-side, so nobody can mint an
+// official-looking "CIVILIZATION OF THE WEEK: <arbitrary text>" card in brand
+// framing. An unknown civ renders the quiet-week card. (The c= color param is
+// accepted-and-ignored for old URLs.)
 // No remote images — pure typography on the locked palette + an inline-SVG
 // hex (the ⬡ glyph renders as tofu in Clash Display; same lesson as the
 // dossier stamp). Same-origin Clash font, fail-soft to system-ui.
@@ -22,6 +27,23 @@ const LINE_2 = "rgba(245,242,232,0.16)";
 const GOLD = "#C8A75D";
 const GOLD_BRIGHT = "#E9C984";
 const GOLD_DEEP = "#8A7A40";
+
+// The ten canonical civilizations (name → color), mirrored from
+// lib/constants.ts CIVILIZATIONS. Duplicated here on purpose: importing
+// lib/constants would drag data/citizens.json into the edge bundle. Keep in
+// sync if a civ is ever renamed/recolored (they're locked canon, so: never).
+const CIVS: Record<string, string> = {
+  "blue synthesis": "#00B8FF",
+  "red corruption": "#FF3A2D",
+  "green growth": "#4CFF7A",
+  "purple oracle": "#B85CFF",
+  "white transmission": "#E8F4FF",
+  "pink luxury": "#FF5CB4",
+  "black fracture": "#404045",
+  "gold sovereignty": "#FFD24A",
+  "void 404": "#8A5DFF",
+  "silver machine": "#C9D2DE",
+};
 
 function Hex({ size, color }: { size: number; color: string }) {
   return (
@@ -42,12 +64,14 @@ export async function GET(req: Request) {
 
   const wRaw = u.searchParams.get("w") || "";
   const week = /^[0-9]{4}-W[0-9]{2}$/.test(wRaw) ? wRaw : "THIS WEEK";
-  const civ = (u.searchParams.get("civ") || "")
-    .slice(0, 28)
-    .replace(/[^A-Za-z0-9 '\-]/g, "")
-    .trim();
-  const cRaw = u.searchParams.get("c") || "";
-  const color = /^#[0-9A-Fa-f]{6}$/.test(cRaw) ? cRaw : GOLD;
+  // Whitelist: only a canonical civ name renders; color comes from the map,
+  // never from the request. Anything else → the quiet-week card.
+  const civKey = (u.searchParams.get("civ") || "").trim().toLowerCase();
+  const matched = Object.prototype.hasOwnProperty.call(CIVS, civKey) ? civKey : null;
+  const civ = matched
+    ? matched.replace(/\b[a-z0-9]/g, (ch) => ch.toUpperCase())
+    : "";
+  const color = matched ? CIVS[matched] : GOLD;
   const n = Math.max(0, Math.min(99, parseInt(u.searchParams.get("n") || "0", 10) || 0));
 
   let fonts: { name: string; data: ArrayBuffer; weight: 700; style: "normal" }[] | undefined;

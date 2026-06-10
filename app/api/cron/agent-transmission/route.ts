@@ -2,7 +2,7 @@
  * Vercel cron — the FLAGSHIP FREELON's public voice.
  *
  * Once a day, ONE flagship citizen authors a short in-character transmission and
- * posts it to @freeloncity. This gives the collection a public face (the aixbt
+ * posts it to @4040hex. This gives the collection a public face (the aixbt
  * lesson: one agent, useful + loud in public, IS the marketing) using the same
  * reasoning core that powers owned agents — so it's genuinely THIS citizen
  * speaking, not a template.

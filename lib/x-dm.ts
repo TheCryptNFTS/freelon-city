@@ -7,11 +7,15 @@
  *
  * Endpoint: POST https://api.x.com/2/dm_conversations/with/{user_id}/messages
  *
- * IMPORTANT — free-tier limits:
- *   - X free tier allows ~500 DMs/month total
+ * IMPORTANT — tier limits (corrected 2026-06-10):
+ *   - DM endpoints are NOT included in the X Free tier at all — they need
+ *     Basic or above. On Free, every sendDM() comes back http_403; the 500/mo
+ *     figure that used to live here is the Free tier's POST (tweet) cap, not
+ *     a DM allowance. Even Basic DM limits are tight.
  *   - DM recipient must follow the sending account (X anti-spam)
  *   - We always also write to the on-site inbox so users without DM
- *     setup still see notifications next visit.
+ *     setup still see notifications next visit — on Free, the inbox is the
+ *     ONLY delivery path; that's expected, not a bug.
  *
  * If any required env var is missing, sendDM() returns false silently.
  * Callers should treat DM as best-effort, not a hard guarantee.

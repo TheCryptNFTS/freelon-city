@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { verifyMessage } from "viem";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { verifyOwnership } from "@/lib/owner-of";
@@ -103,6 +104,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   await sendDispatch(cid);
+  // The public dispatch log + meta strip live on the ISR'd dossier — bust it
+  // so the record reflects the send immediately (2026-06-10).
+  revalidatePath(`/citizens/${cid}`);
   const state = await getDispatchState(cid);
   return NextResponse.json({ ok: true, state });
 }

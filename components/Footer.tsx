@@ -36,7 +36,7 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <a href="https://x.com/freeloncity" target="_blank" rel="noreferrer">
+              <a href="https://x.com/4040hex" target="_blank" rel="noreferrer">
                 X ↗
               </a>
             </li>

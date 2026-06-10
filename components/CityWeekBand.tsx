@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { getCivWeekStandings } from "@/lib/city-week";
 import { topCitizens } from "@/lib/progression-store";
 import { getCitizen } from "@/lib/citizens";
@@ -15,13 +16,25 @@ import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 
 type Notable = { tokenId: number; level: number; name: string; epithet: string | null; civColor: string; civName: string };
 
+// The homepage is force-dynamic, so without this every single view paid ~11
+// Upstash REST round-trips (10 SCARD + 1 ZREVRANGE) just for this band —
+// enough to exhaust a free-tier command budget on bot traffic alone
+// (red-team 2026-06-10). Cache the reads at /report's own 600s freshness:
+// the band is a teaser, not a live scoreboard. Errors are not cached, so the
+// fail-to-null behavior below is preserved.
+const getBandData = unstable_cache(
+  async () => Promise.all([getCivWeekStandings(), topCitizens("level", 6)]),
+  ["city-week-band"],
+  { revalidate: 600 },
+);
+
 export async function CityWeekBand() {
   let winnerName: string | null = null;
   let winnerColor: string | null = null;
   let week = "";
   const notables: Notable[] = [];
   try {
-    const [civ, levelRows] = await Promise.all([getCivWeekStandings(), topCitizens("level", 6)]);
+    const [civ, levelRows] = await getBandData();
     week = civ.week;
     const winner = civ.totalActive > 0 ? civ.standings[0] : null;
     if (winner) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { verifyMessage } from "viem";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { verifyOwnership } from "@/lib/owner-of";
@@ -129,6 +130,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     signalReward: 0, // no ⬡ — jobs grant XP/skill/reputation only
     civSlug: citizen.civilization,
   });
+
+  // Bust the dossier's ISR (revalidate 3600): this is the one place the public
+  // Level / Work-log counts change, and an owner who just did a job otherwise
+  // sees an hour-stale meta strip next to a live DispatchPanel (red-team
+  // 2026-06-10). One line beats dropping the whole page to a shorter window.
+  revalidatePath(`/citizens/${cid}`);
 
   const lp = levelProgress(result.progress.xp);
   return NextResponse.json({
