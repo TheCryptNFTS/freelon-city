@@ -94,21 +94,23 @@ async function editAttempt(
   // Images go through OpenRouter ONLY. Direct OpenAI (images/edits) is disabled
   // for renders because that account is billing-capped — falling back to it just
   // produced opaque `billing_hard_limit_reached` 400s. OpenRouter is the same
-  // account that powers chat and is healthy. `quality` is unused on the
-  // OpenRouter chat-completions image path (kept in the signature for the API).
-  void quality;
+  // account that powers chat and is healthy.
   const orKey = process.env.OPENROUTER_API_KEY;
   if (!orKey) return { ok: false, error: "no_api_key" };
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    // Default to a FAST image model. openai/gpt-5-image is high quality but
-    // takes ~85s, which a proxy between Vercel and OpenRouter kills as an idle
-    // connection (~20s) before it returns any bytes → "fetch_failed" in prod
-    // even though it works locally. gemini-2.5-flash-image returns in seconds
-    // (dodging the timeout) and is ~6× cheaper, while still doing a faithful
-    // reference edit. Override with OPENROUTER_IMAGE_MODEL.
-    const model = process.env.OPENROUTER_IMAGE_MODEL || "google/gemini-2.5-flash-image";
+    // Two model tiers, picked by `quality`. Paid holder renders ("high") use a
+    // PREMIUM model — on a charged run, quality IS the product. Free/cheap paths
+    // stay on the fast flash model. openai/gpt-5-image is deliberately NOT the
+    // premium default: at ~85s a proxy between Vercel and OpenRouter kills the
+    // idle connection (~20s) before any bytes return → "fetch_failed" in prod.
+    // gemini-3-pro-image-preview is a big quality jump and returns in ~10–25s.
+    // Overrides: OPENROUTER_IMAGE_MODEL_PREMIUM / OPENROUTER_IMAGE_MODEL.
+    const model =
+      quality === "high"
+        ? process.env.OPENROUTER_IMAGE_MODEL_PREMIUM || "google/gemini-3-pro-image-preview"
+        : process.env.OPENROUTER_IMAGE_MODEL || "google/gemini-2.5-flash-image";
     const content = [
       { type: "text", text: prompt },
       ...refs.map((r) => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${r.toString("base64")}` } })),
@@ -389,13 +391,14 @@ function buildImagePrompt(citizen: Citizen, spec: Specialization, sceneDesc: str
       ? "an untrained citizen"
       : `a ${spec.className} (${spec.rank.label})`;
   return [
-    `Keep the figure in the reference image EXACTLY: ${shapeSilhouette(citizen.shape)}, its faceted sculptural head/helm,`,
-    "the glowing geometric HEX symbol where a face would be, its robes, its exact colour palette and materials.",
-    "Do NOT add a human face, eyes, hair, or turn it into a person or cartoon. Same character, same silhouette.",
+    "Re-render the character from the reference image LIVING inside a new scene — a fresh cinematic shot of the same being, never the original render pasted, composited or sunk into a backdrop.",
+    `Identity is locked: ${shapeSilhouette(citizen.shape)}, its faceted sculptural head/helm, the glowing geometric HEX symbol where a face would be, its robes, its exact colour palette and materials.`,
+    "Do NOT add a human face, eyes, hair, or turn it into a person or cartoon.",
+    `The scene: ${sceneDesc}.`,
+    "Pose the character naturally FOR this scene — a scene-appropriate stance, feet and robes properly grounded with contact shadows, correct scale, lit by the scene's own light so it truly belongs there.",
     `This is FREELON CITY citizen #${id4(citizen.id)} — a ${civName} ${citizen.caste}, ${classLine}, ${citizen.tier}. Render it as ${tierForm(citizen.tier)}.`,
-    `Its hex face glows ${civLight(citizen.civilization)} as the key light source.`,
-    `Only change the SETTING to a cinematic scene: ${sceneDesc}.`,
-    "Premium dark cinematic render on a lifted near-black background (never pure black), strong rim lighting, dramatic volumetric light, a big bright hex eye and an extreme, readable silhouette.",
+    `Its hex face glows ${civLight(citizen.civilization)} as a key light source.`,
+    "One cohesive premium cinematic image: dramatic volumetric light, strong rim lighting, a big bright hex eye and an extreme, readable silhouette.",
     "Collector-grade, reads clearly at 40×40 thumbnail size. No weapons. Square 1:1.",
   ].join(" ");
 }
@@ -477,7 +480,8 @@ export async function generateCitizenScene(args: {
   // 240s default leaves ~60s headroom under the route's 300s ceiling for the
   // reference fetch, signature stamp, and Blob upload — so a real overrun aborts
   // cleanly (→ refundable "timeout") instead of the platform killing the function.
-  const r = await editToB64(prompt, [refBytes], "medium", args.timeoutMs ?? 240_000);
+  // "high" → premium model: deploy-citizen renders are PAID holder runs.
+  const r = await editToB64(prompt, [refBytes], "high", args.timeoutMs ?? 240_000);
   if (!r.ok) return r;
   const b64 = r.b64;
   {
@@ -516,13 +520,13 @@ export async function generateCitizenScene(args: {
 // allowlist. Cost/caps are enforced by the caller (sister route), not here.
 function buildSisterScenePrompt(label: string, collectionName: string, sceneDesc: string): string {
   return [
-    "Keep the SUBJECT in the reference image EXACTLY as it is: same character/object, same shapes,",
-    "same colours, same materials and proportions. Do NOT redesign it, do NOT add or remove features,",
-    "do NOT turn it into a different creature or a generic human.",
+    "Re-render the SUBJECT from the reference image LIVING inside a new scene — a fresh cinematic shot of the same subject, never the original render pasted or composited onto a backdrop.",
+    "Identity is locked: same character/object, same shapes, same colours, same materials and proportions.",
+    "Do NOT redesign it, do NOT add or remove features, do NOT turn it into a different creature or a generic human.",
     `This is "${label}" from the FREELON CITY collection ${collectionName}.`,
-    `Only change the SETTING / background to a cinematic scene: ${sceneDesc}.`,
-    "Composite the original subject naturally into the new scene with matching dramatic light.",
-    "Premium dark cinematic render, collector-grade, readable at thumbnail size.",
+    `The scene: ${sceneDesc}.`,
+    "Place the subject naturally IN the scene — grounded with contact shadows, correct scale, lit by the scene's own light so it truly belongs there.",
+    "One cohesive premium cinematic render, collector-grade, readable at thumbnail size.",
   ].join(" ");
 }
 
@@ -660,7 +664,8 @@ export async function generateCrewTransform(args: {
   if (!a || !b) return { ok: false, error: "reference_art_missing" };
 
   const prompt = buildCrewTransformPrompt(args.citizenA, args.citizenB, STYLES[args.styleKey].desc);
-  const r = await editToB64(prompt, [a, b], "medium", args.timeoutMs ?? 240_000);
+  // "high" → premium model: crew transforms are PAID holder runs.
+  const r = await editToB64(prompt, [a, b], "high", args.timeoutMs ?? 240_000);
   if (!r.ok) return r;
 
   const filename = `deploy/crew-${id4(args.citizenA.id)}-${id4(args.citizenB.id)}-${args.styleKey}-${Date.now()}.png`;

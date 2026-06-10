@@ -10,6 +10,7 @@ type Portfolio = {
   citizens: Cit[];
   unlocked: Record<number, { credits: number; tier: string }>;
   unlockedCount: number;
+  life?: Record<number, { level: number; jobs: number }>;
   balance: number;
   truncated: boolean;
 };
@@ -25,7 +26,7 @@ export function MyCitizens() {
   const [data, setData] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "activated" | "locked">("all");
+  const [filter, setFilter] = useState<"all" | "activated" | "working" | "locked">("all");
 
   useEffect(() => {
     if (!h.address) return;
@@ -61,17 +62,28 @@ export function MyCitizens() {
 
   const citizens = data?.citizens ?? [];
   const unlocked = data?.unlocked ?? {};
+  const life = data?.life ?? {};
   const sorted = [...citizens].sort((a, b) => {
     const ua = unlocked[a.id] ? 1 : 0;
     const ub = unlocked[b.id] ? 1 : 0;
     if (ua !== ub) return ub - ua; // activated first
+    const ja = life[a.id]?.jobs ?? 0;
+    const jb = life[b.id]?.jobs ?? 0;
+    if (ja !== jb) return jb - ja; // then hardest workers
     return a.id - b.id;
   });
   const shown = sorted.filter((c) =>
-    filter === "all" ? true : filter === "activated" ? !!unlocked[c.id] : !unlocked[c.id],
+    filter === "all"
+      ? true
+      : filter === "activated"
+        ? !!unlocked[c.id]
+        : filter === "working"
+          ? (life[c.id]?.jobs ?? 0) > 0
+          : !unlocked[c.id],
   );
   const total = citizens.length;
   const activatedCount = data?.unlockedCount ?? 0;
+  const workingCount = citizens.filter((c) => (life[c.id]?.jobs ?? 0) > 0).length;
 
   return (
     <div className="mycit-wrap">
@@ -93,13 +105,19 @@ export function MyCitizens() {
 
       {total > 0 && (
         <div className="mycit-filters">
-          {(["all", "activated", "locked"] as const).map((f) => (
+          {(["all", "activated", "working", "locked"] as const).map((f) => (
             <button
               key={f}
               className={`mycit-filter ${filter === f ? "on" : ""}`}
               onClick={() => setFilter(f)}
             >
-              {f === "all" ? `All ${total}` : f === "activated" ? `Awakened ${activatedCount}` : `Dormant ${total - activatedCount}`}
+              {f === "all"
+                ? `All ${total}`
+                : f === "activated"
+                  ? `Awakened ${activatedCount}`
+                  : f === "working"
+                    ? `Working ${workingCount}`
+                    : `Dormant ${total - activatedCount}`}
             </button>
           ))}
         </div>
@@ -133,6 +151,12 @@ export function MyCitizens() {
               <div className="mycit-meta">
                 <span className="mycit-id">#{c.id.toString().padStart(4, "0")}</span>
                 <span className="mycit-tier">{c.tier}</span>
+                {life[c.id] && (
+                  <span className="mycit-runs">
+                    LV {life[c.id].level}
+                    {life[c.id].jobs > 0 ? ` · ${life[c.id].jobs} job${life[c.id].jobs === 1 ? "" : "s"}` : ""}
+                  </span>
+                )}
                 {activated ? (
                   <span className="mycit-runs">⬡ {u.credits} runs left</span>
                 ) : (

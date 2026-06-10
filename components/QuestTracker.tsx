@@ -46,8 +46,12 @@ export function QuestTracker({ questId, stepId }: Props) {
           body: JSON.stringify({ key, stepId }),
           keepalive: true,
         })
-          .then((r) => r.json())
-          .then((j: { justCompleted?: boolean; rewardHex?: number }) => {
+          .then(async (r) => {
+            const j = (await r.json().catch(() => ({}))) as {
+              justCompleted?: boolean;
+              rewardHex?: number;
+              error?: string;
+            };
             if (j.justCompleted && j.rewardHex) {
               // Fire a small toast event for any listening UI
               window.dispatchEvent(
@@ -55,9 +59,24 @@ export function QuestTracker({ questId, stepId }: Props) {
                   detail: { questId, reward: j.rewardHex },
                 }),
               );
+              return;
+            }
+            if (!r.ok) {
+              // Failed — don't burn the session dedupe, so the step retries
+              // on the next visit instead of being silently lost.
+              sessionStorage.removeItem(localKey);
+              // Phase 0 gate: wallet keys need a one-time signature. Surface
+              // it ONCE per session instead of failing silently forever.
+              const nagKey = "freelon::quest::proof-nag";
+              if (j.error === "wallet_proof_required" && !sessionStorage.getItem(nagKey)) {
+                sessionStorage.setItem(nagKey, "1");
+                window.dispatchEvent(new CustomEvent("freelon:quest-blocked"));
+              }
             }
           })
-          .catch(() => {});
+          .catch(() => {
+            try { sessionStorage.removeItem(localKey); } catch {}
+          });
       } catch {
         /* never break the page */
       }

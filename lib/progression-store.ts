@@ -467,6 +467,43 @@ const LB_KEY: Record<LeaderboardMetric, string> = {
 };
 
 /**
+ * Bulk level/jobs for a set of citizens in TWO Redis commands (one ZMSCORE per
+ * metric against the leaderboard zsets) — never N blob GETs. Sized for a
+ * 200-token whale portfolio. Tokens with no progression yet aren't in the
+ * zsets (null score) and are simply omitted from the result.
+ */
+export async function bulkLife(
+  tokenIds: number[],
+): Promise<Record<number, { level: number; jobs: number }>> {
+  const out: Record<number, { level: number; jobs: number }> = {};
+  if (tokenIds.length === 0) return out;
+  if (!hasUpstash) {
+    for (const id of tokenIds) {
+      const rec = memory.get(id);
+      if (rec && (rec.level > 1 || rec.jobsCompleted > 0)) {
+        out[id] = { level: rec.level, jobs: rec.jobsCompleted };
+      }
+    }
+    return out;
+  }
+  try {
+    const members = tokenIds.map(String);
+    const [levels, jobs] = (await Promise.all([
+      upstash(["ZMSCORE", LB_LEVEL, ...members]),
+      upstash(["ZMSCORE", LB_JOBS, ...members]),
+    ])) as [(string | number | null)[] | null, (string | number | null)[] | null];
+    tokenIds.forEach((id, i) => {
+      const lv = levels?.[i] != null ? Number(levels[i]) : 0;
+      const jb = jobs?.[i] != null ? Number(jobs[i]) : 0;
+      if (lv > 1 || jb > 0) out[id] = { level: Math.max(1, lv), jobs: jb };
+    });
+  } catch {
+    // Non-fatal — a roster without life badges beats a dead roster.
+  }
+  return out;
+}
+
+/**
  * Top citizens by a metric, via ZREVRANGE WITHSCORES (exact top-N, O(log N)).
  * In dev (no Upstash) sorts the in-memory Map. Citizens with zero of the
  * metric are filtered out so empty leaderboards read as empty, not as a wall

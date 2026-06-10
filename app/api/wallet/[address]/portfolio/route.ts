@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getWalletTokens } from "@/lib/wallet-tokens";
 import { listActivatedTokenIds, getUnlock } from "@/lib/missions/unlock-store";
+import { bulkLife } from "@/lib/progression-store";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
 
 export const runtime = "nodejs";
@@ -25,7 +26,12 @@ export async function GET(
     return NextResponse.json({ error: "invalid-address", tokenIds: [], unlocked: {} }, { status: 400 });
   }
 
-  const activated = await listActivatedTokenIds().catch(() => new Set<number>());
+  // Life (level/jobs) rides along in two bulk ZMSCOREs — it answers the other
+  // half of the whale's question: "which ones have I put to WORK?"
+  const [activated, life] = await Promise.all([
+    listActivatedTokenIds().catch(() => new Set<number>()),
+    bulkLife(tokens.tokenIds),
+  ]);
   const ownedActivated = tokens.tokenIds.filter((id) => activated.has(id));
 
   // Runs-left per activated citizen (bounded by # owned+activated).
@@ -57,5 +63,6 @@ export async function GET(
     citizens, // [{ id, name, tier, civ, color }]
     unlocked, // { [tokenId]: { credits, tier } } — present only for activated agents
     unlockedCount: Object.keys(unlocked).length,
+    life, // { [tokenId]: { level, jobs } } — present only for citizens with progression
   });
 }
