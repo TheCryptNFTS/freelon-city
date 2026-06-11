@@ -10,6 +10,7 @@
     "start": "next start",
     "test": "vitest run",
     "shots": "node scripts/shots.mjs",
+    "lighthouse": "mkdir -p .lighthouse && for r in home:/ start:/start demo:/demo citizens:/citizens collections:/collections crypt-tcg:/crypt-tcg; do n=${r%%:*}; p=${r#*:}; npx lighthouse \"http://localhost:4321$p\" --only-categories=performance,accessibility --output=json --output-path=\".lighthouse/$n.json\" --chrome-flags=--headless=new --quiet; done",
     "test:watch": "vitest",
     "deploy:agent-registry": "node scripts/deploy-agent-registry.mjs",
     "deploy:history-registry": "node scripts/deploy-history-registry.mjs"
