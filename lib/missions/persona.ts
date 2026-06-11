@@ -79,7 +79,7 @@ export function buildPersona(
   citizen: Citizen,
   progress: CitizenProgress,
   dossier?: string | null,
-  opts?: { paid?: boolean; recentWork?: string },
+  opts?: { paid?: boolean; recentWork?: string; cityActivity?: string },
 ): {
   system: string;
   maxTokens: number;
@@ -122,6 +122,13 @@ export function buildPersona(
     // request connects to past work, reference it naturally and offer the next step.
     opts?.recentWork
       ? `WORK YOU'VE ACTUALLY DONE FOR THIS HOLDER (most recent first — reference it when their request connects, and proactively offer the next step):\n${opts.recentWork.slice(0, 600)}`
+      : "",
+    // THE CIVILIZATION THREAD (2026-06-11): the holder's REAL arena record from
+    // the play-event telemetry. Lets the citizen acknowledge the duels its
+    // holder actually fought ("you've been in the arena this week…") — the TCG
+    // and the agents are one city. Empty when they haven't played: never fake.
+    opts?.cityActivity
+      ? `YOUR HOLDER IN THE CITY: ${opts.cityActivity.slice(0, 300)} If it fits naturally, you may acknowledge their arena exploits in passing — one short aside at most, never the focus unless they ask about the card game.`
       : "",
     // The moat: if the holder has built a Dossier, the agent reads it so every
     // mission is tailored to them — the thing a generic chatbot can't do.

@@ -146,7 +146,11 @@ export function makeAbilityResolver(ability: Ability) {
     // Anti-chatbot moat: feed the agent its OWN past work so it can reference it.
     const { getAgentHistory, workDigest } = await import("@/lib/agent-history");
     const recentWork = await getAgentHistory(ctx.citizen.id).then(workDigest).catch(() => "");
-    const persona = buildPersona(ctx.citizen, ctx.progress, dossier?.profile, { paid: ctx.paid, recentWork });
+    // The civilization thread: the agent knows its holder's REAL arena activity
+    // (read-only digest of the play-event telemetry; "" when none — honest).
+    const { getBattleDigest } = await import("@/lib/play-activity");
+    const cityActivity = await getBattleDigest(ctx.walletAddress).catch(() => "");
+    const persona = buildPersona(ctx.citizen, ctx.progress, dossier?.profile, { paid: ctx.paid, recentWork, cityActivity });
     // The agent's persona (identity/level/memory/dossier) + how to do THIS
     // ability + the specific task + the safety guardrail. User brief isolated.
     // Multi-turn: the prior output is CLIENT-SUPPLIED, so it is UNTRUSTED data —
