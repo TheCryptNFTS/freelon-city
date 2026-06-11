@@ -111,7 +111,13 @@ export async function limit(
   return { ok: cur.count <= max, remaining: Math.max(0, max - cur.count), reset: cur.reset };
 }
 
-export function tooManyResponse(state: LimitState) {
+/**
+ * 429 response. `extraHeaders` lets cross-origin routes merge their CORS
+ * headers in — the limit check runs BEFORE a route attaches CORS, and a 429
+ * without Access-Control-Allow-Origin reads as an opaque network error to the
+ * game SPA, so its retry logic can't see Retry-After to back off.
+ */
+export function tooManyResponse(state: LimitState, extraHeaders?: Record<string, string>) {
   return NextResponse.json(
     { error: "rate limited", reset: state.reset },
     {
@@ -120,6 +126,7 @@ export function tooManyResponse(state: LimitState) {
         "Retry-After": String(Math.max(1, Math.ceil((state.reset - Date.now()) / 1000))),
         "X-RateLimit-Remaining": String(state.remaining),
         "X-RateLimit-Reset": String(state.reset),
+        ...(extraHeaders ?? {}),
       },
     },
   );

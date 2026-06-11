@@ -107,7 +107,7 @@ type OsNftsResponse = {
 
 export async function GET(req: Request) {
   const rl = await limit(req, "owned-cards", { max: 30, windowSec: 60 });
-  if (!rl.ok) return tooManyResponse(rl);
+  if (!rl.ok) return tooManyResponse(rl, corsHeaders());
 
   const url = new URL(req.url);
 

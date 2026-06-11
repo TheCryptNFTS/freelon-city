@@ -33,7 +33,7 @@ export async function OPTIONS(req: Request) {
 export async function POST(req: Request) {
   const cors = gameCorsHeaders(req);
   const rl = await limit(req, "auth-verify", { max: 20, windowSec: 60 });
-  if (!rl.ok) return tooManyResponse(rl);
+  if (!rl.ok) return tooManyResponse(rl, cors);
 
   let body: { address?: string; signature?: string };
   try {
