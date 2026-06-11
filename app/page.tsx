@@ -11,6 +11,7 @@ import { ActivationProof } from "@/components/ActivationProof";
 import { YourAgentsRail } from "@/components/YourAgentsRail";
 import { MemoryProof } from "@/components/MemoryProof";
 import { CityWeekBand } from "@/components/CityWeekBand";
+import { CityPulse } from "@/components/CityPulse";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
@@ -131,6 +132,15 @@ export default async function Home() {
           </div>
           <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
 
+          {/* CITY PULSE (2026-06-11) — two honest clocks under the CTAs: Day N
+              since The Crypt's Oct-2023 creation tx (the city's Etherscan-
+              verifiable founding) + countdown to the real Sunday 18:00 UTC
+              Signal Report cron. Client-only, self-hiding; both numbers track
+              real events (see components/CityPulse.tsx). */}
+          <div style={{ marginTop: "var(--s-3)" }}>
+            <CityPulse />
+          </div>
+
           {/* Activation proof — the see→own bridge. Real paid unlocks as social
               proof; self-hides until at least one exists. 2026-06-07. */}
           <div style={{ marginTop: "var(--s-3)" }}>
@@ -236,11 +246,15 @@ export default async function Home() {
             <span className="ttl">MEET A CITIZEN · FREE →</span>
           </Link>
         </div>
-        {/* 2026-06-08 — multi-collection agent line. FREELONS stays the flagship;
-            this one sentence tells the visitor the OTHER collections are becoming
-            agents too, and points to /collections (the full story). No price claims. */}
+        {/* 2026-06-11 — civilization frame (lineage verified on Etherscan).
+            "FREELONS are the first" was FALSE — The Crypt deployed Oct 2023;
+            FREELONS (Apr 2026) are the NEWEST citizens. The city's age is the
+            proof, ownership is the hook (Pudgy-possessive, activity-first),
+            and the sisters are free-to-meet roles, not copies. No price claims. */}
         <p className="home-close__eco">
-          FREELONS are the first. <strong>Emile, The Crypt, Oogies and Smiles</strong> awaken too — one signal, many collections.{" "}
+          One living city of AI citizens — six collections, founded on-chain in 2023.
+          FREELONS are the newest citizens, the ones you can own and train;{" "}
+          <strong>Emile, The Crypt, Oogies and Smiles</strong> are free to meet.{" "}
           <Link href="/collections">Explore the collections →</Link>
         </p>
         {/* 2026-06-06 buy-handoff polish — OWN A FREELON jumps straight to

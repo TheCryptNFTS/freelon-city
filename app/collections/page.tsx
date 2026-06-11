@@ -7,6 +7,7 @@ import { getFloors, formatFloor } from "@/lib/floor-prices";
 import { isAgenticCollection } from "@/lib/agent-subject";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
 import { GraveyardSection } from "@/components/archive/GraveyardSection";
+import { CivTimeline } from "@/components/CivTimeline";
 
 // T3 2026-06-11 — explicit share tags (a page-level openGraph block replaces
 // the layout's wholesale, so the branded default image is restated here).
@@ -67,25 +68,20 @@ export default async function CollectionsIndex() {
   // even with loading="eager" + fetchpriority Lighthouse still measured ~3.9s
   // of load delay (img discovered mid-document, behind the inventory panel).
   // An explicit preload puts it at the front of the request queue.
-  preload("/og/art/freelons.webp", { as: "image", fetchPriority: "high" });
-  const slugs = Object.keys(COLLECTION_META);
+  // (Civilization page 2026-06-11: mint order leads, so the first cover is
+  // The Crypt's local still, not Freelons'.)
+  preload("/og/art/crypt.webp", { as: "image", fetchPriority: "high" });
+  // TRUE mint order (Etherscan creation-tx dates, verified 2026-06-11):
+  // The Crypt → Crypt TCG → OOGIES → Emile → SMILES → Freelons.
+  const slugs = Object.keys(COLLECTION_META).sort(
+    (a, b) => COLLECTION_META[a].order - COLLECTION_META[b].order,
+  );
   const floors = await getFloors([...slugs, "freelons"]);
   const covers = Object.fromEntries(slugs.map((s) => [s, cover(s)]));
 
-  // Freelons leads — it's the flagship and already has its own deep browser.
+  // Civilization page (2026-06-11): the grid reads as city history — oldest
+  // founders first, Freelons LAST as the newest citizens (never "the first").
   const cards = [
-    {
-      slug: "freelons",
-      href: "/citizens",
-      title: "Freelons",
-      status: "LIVE",
-      statusColor: "var(--gold)",
-      kicker: "THE CITIZENS · 4040 TOTAL",
-      blurb: "The 4040 citizens of FREELON CITY. Ten civilizations, seven castes, sixteen shapes.",
-      img: "/og/art/freelons.webp",
-      total: 4040,
-      onsite: true,
-    },
     ...slugs.map((slug) => ({
       slug,
       // Crypt TCG is the GAME — its card opens /crypt-tcg, which is now the
@@ -97,15 +93,32 @@ export default async function CollectionsIndex() {
       status: COLLECTION_META[slug].status,
       statusColor: COLLECTION_META[slug].statusColor,
       kicker: COLLECTION_META[slug].kicker,
+      est: COLLECTION_META[slug].est,
+      epithet: COLLECTION_META[slug].epithet,
       blurb: COLLECTION_META[slug].blurb,
       img: covers[slug]?.img || "",
       total: covers[slug]?.total || 0,
       onsite: true,
       agentic: isAgenticCollection(slug),
     })),
+    {
+      slug: "freelons",
+      href: "/citizens",
+      title: "Freelons",
+      status: "LIVE",
+      statusColor: "var(--gold)",
+      kicker: "THE CITIZENS · 4040 TOTAL",
+      est: "EST. APR 2026 · 4,040",
+      epithet: "The newest citizens.",
+      blurb: "The 4040 citizens of FREELON CITY. Ten civilizations, seven castes, sixteen shapes.",
+      img: "/og/art/freelons.webp",
+      total: 4040,
+      onsite: true,
+      play: false,
+      // Freelons is agentic (its citizens are the flagship agents).
+      agentic: true,
+    },
   ];
-  // Freelons leads and is agentic (its citizens are the flagship agents).
-  cards[0] = { ...cards[0], agentic: true } as typeof cards[0] & { agentic: boolean };
 
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "var(--s-6) auto", padding: "0 var(--pad)" }}>
@@ -139,6 +152,11 @@ export default async function CollectionsIndex() {
       {/* Wallet ownership terminal across the connected collections (folded in
           from the former /archive). */}
       <SignalInventoryPanel />
+
+      {/* THE ERA STRIP (2026-06-11) — six mint dates as city history on one
+          gold line. The field's open gap: nobody narrates lineage on-site
+          (.living-city/web3-worlds.md). Dates verified on Etherscan. */}
+      <CivTimeline />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gridAutoRows: "1fr", gap: "var(--s-3)" }}>
         {cards.map((c, i) => {
@@ -202,7 +220,15 @@ export default async function CollectionsIndex() {
                 {/* The ROLE — each collection is a kind of citizen (founder framing
                     2026-06-08): citizens / wild / dead / emotional. */}
                 <span style={{ fontFamily: "var(--mono2)", fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: c.statusColor, fontWeight: 700, marginTop: -2 }}>{c.kicker}</span>
+                {/* ERA LINE (2026-06-11) — deploy month-year + supply, Space
+                    Mono because it's on-chain data (Etherscan creation-tx
+                    facts, .living-city/lineage.md). */}
+                <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", color: "var(--ink-dim)", fontVariantNumeric: "tabular-nums" }}>{c.est}</span>
                 <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>{c.blurb}</p>
+                {/* EPITHET (2026-06-11) — Parallel's faction-identity pattern:
+                    one ≤5-word line compressed from the lore, set in the
+                    display face so it SPEAKS; the functional verb stays below. */}
+                <p style={{ fontFamily: "var(--display)", fontSize: 15, lineHeight: 1.2, margin: 0, color: "var(--ink)" }}>{c.epithet}</p>
                 {/* ONE functional line per collection under the lore line —
                     Book identity chapter verb list (own+train · talk free ·
                     play). Tells a cold visitor what they can DO here. */}

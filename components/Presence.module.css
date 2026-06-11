@@ -1,0 +1,157 @@
+/* ════════════════════════════════════════════════════════════════════════
+   PRESENCE — the honest hex-eye state language (2026-06-11).
+
+   Reusable CSS kit for the 5-state presence machine from the ai-presence
+   research kit (.living-city/ai-presence.md). HONEST STATE LAW: these
+   classes are only ever wired to REAL state — .breath is the default
+   DORMANT state (nothing is happening, and we say so calmly), .thinking
+   goes on ONLY while a request is actually in flight, the .live dot pulses
+   ONLY when a real process is running. No fake typing, no always-on
+   "online" dots. One shimmer locus per screen max (the status verb).
+
+   Color: civ-colorable via --presence-color; defaults to brand gold.
+   Compose: aura + breath (dormant) → swap breath for thinking (working).
+   All motion freezes under prefers-reduced-motion; labels stay.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── AURA — radial glow behind/within the portrait wrapper. 12–18% opacity,
+      never a hard halo. On wrappers around an opaque frame it reads as a
+      backlight; inside an overflow-hidden shell it reads as a faint inner
+      bloom over the upper third (the eye line). ─────────────────────────── */
+.aura {
+  position: relative;
+}
+.aura::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  background: radial-gradient(
+    circle at 50% 38%,
+    color-mix(in srgb, var(--presence-color, var(--gold, #C8A75D)) 15%, transparent),
+    transparent 62%
+  );
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Modifier — inherit the surface's existing accent (workspace --accent,
+   dossier --civ) so the aura stays a data accent, falling back to gold. */
+.tinted {
+  --presence-color: var(--accent, var(--civ, var(--gold, #C8A75D)));
+}
+
+/* ── DORMANT — resting breath. scale 1→1.015 + brightness 1→1.12 at 4.8s
+      (resting-breath rate). The honest "nothing is happening" state. ────── */
+.breath {
+  animation: presenceBreath 4.8s ease-in-out infinite;
+}
+@keyframes presenceBreath {
+  0%, 100% { transform: scale(1);     filter: brightness(1); }
+  50%      { transform: scale(1.015); filter: brightness(1.12); }
+}
+
+/* ── THINKING — inner activity, not outer spin: a conic gradient rotating
+      INSIDE a center-weighted mask, 2.2s. Fades in over ~380ms (state
+      transitions never hard-cut). Apply ONLY while a request is in flight. */
+.thinking {
+  position: relative;
+}
+.thinking::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--presence-color, var(--gold, #C8A75D)) 24%, transparent) 80deg,
+    color-mix(in srgb, #E9C984 16%, transparent) 110deg,
+    transparent 200deg
+  );
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, rgba(0, 0, 0, 0.7) 34%, transparent 68%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, rgba(0, 0, 0, 0.7) 34%, transparent 68%);
+  mix-blend-mode: screen;
+  animation:
+    presenceSpin 2.2s linear infinite,
+    presenceStateIn 0.38s var(--ease-out-quint, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+@keyframes presenceSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes presenceStateIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── STATUS-VERB SHIMMER — the one allowed shimmer locus. background-clip
+      text, 200%-wide gold gradient sweeping 2s. Status verb ONLY — never
+      body text, never more than one per screen. ─────────────────────────── */
+.verbShimmer {
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--gold, #C8A75D) 55%, var(--ink-dim, rgba(245, 242, 232, 0.66))) 0%,
+    #E9C984 50%,
+    color-mix(in srgb, var(--gold, #C8A75D) 55%, var(--ink-dim, rgba(245, 242, 232, 0.66))) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: presenceShimmer 2s linear infinite;
+}
+@keyframes presenceShimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ── LAST SIGNAL — Space Mono 11px presence line ("LAST SIGNAL 3m").
+      The dot is static by default; it pulses ONLY with .live (a real
+      process running right now). Rendered by components/LastSignal.tsx,
+      which self-hides when there is no real timestamp — never fakes. ────── */
+.lastSignal {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono, 'Space Mono', ui-monospace, Menlo, monospace);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--ink-dim, rgba(245, 242, 232, 0.66));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.signalDot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold, #C8A75D);
+  opacity: 0.5;
+}
+.live .signalDot {
+  opacity: 1;
+  box-shadow: 0 0 8px -1px var(--gold, #C8A75D);
+  animation: presenceDot 2s ease-in-out infinite;
+}
+@keyframes presenceDot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+/* ── REDUCED MOTION — freeze to static glow; every label stays. The label
+      carries presence, motion is enhancement. ────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .breath,
+  .thinking::after,
+  .live .signalDot {
+    animation: none;
+  }
+  .verbShimmer {
+    animation: none;
+    background: none;
+    color: var(--gold, #C8A75D);
+    -webkit-text-fill-color: currentColor;
+  }
+}

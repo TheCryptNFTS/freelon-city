@@ -120,10 +120,14 @@ export default function StartPage() {
           layer across the city — credits you earn by being active and spend on actions,
           upgrades, and access. It is not money and not redeemable outside the city.
         </P>
+        {/* 2026-06-11 — lineage fix (Etherscan-verified): the city was founded
+            on-chain in 2023 (The Crypt); FREELONS (2026) are the NEWEST of the
+            six collections, never "the first". */}
         <P>
-          FREELONS are the first of six collections in one city —{" "}
+          FREELONS are the newest citizens of a city founded on-chain in 2023 — six
+          collections, with{" "}
           <strong style={{ color: "var(--ink)" }}>Oogies, The Crypt, Emile, SMILES</strong> and the{" "}
-          <strong style={{ color: "var(--ink)" }}>Crypt TCG</strong> card game share the same signal.{" "}
+          <strong style={{ color: "var(--ink)" }}>Crypt TCG</strong> card game sharing the same signal.{" "}
           <Link href="/collections" style={{ color: "var(--gold)" }}>See the universe →</Link>
         </P>
         <P>

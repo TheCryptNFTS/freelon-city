@@ -3,9 +3,12 @@
 import { useRef, useState } from "react";
 import { FramedAgent } from "@/components/FramedAgent";
 import { ClaimForm } from "@/components/ClaimForm";
+import { ThinkingVerb } from "@/components/ThinkingVerb";
+import tv from "@/components/ThinkingVerb.module.css";
 import { trackEvent } from "@/lib/track";
 import { tweetIntent, tweetDemoReply } from "@/lib/share";
 import styles from "@/components/DemoSplit.module.css";
+import presence from "@/components/Presence.module.css";
 
 export type DemoAgent = {
   slug: string;
@@ -138,8 +141,16 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
         <div className={styles.railSticky}>
           {/* The ACTIVE agent in the premium framed treatment — same
               FramedAgent object as collections/dossier/workspace. Keyed by
-              slug so the portrait swaps cleanly when you pick another agent. */}
-          <FramedAgent key={agent.slug} art={agent.art} civColor={agent.color} size={224} alt={agent.name} priority />
+              slug so the portrait swaps cleanly when you pick another agent.
+              PRESENCE (2026-06-11, kit: .living-city/ai-presence.md): DORMANT
+              breath + civ-colored aura — the honest resting state. THINKING
+              lives on the identity-bar portrait + ThinkingVerb, not here. */}
+          <div
+            className={`${presence.aura} ${presence.breath}`}
+            style={{ ["--presence-color" as string]: agent.color }}
+          >
+            <FramedAgent key={agent.slug} art={agent.art} civColor={agent.color} size={224} alt={agent.name} priority />
+          </div>
           <div className={styles.railName}>{agent.name}</div>
           <div className={styles.railCollection} style={{ color: agent.color }}>
             {agent.collectionName}
@@ -269,7 +280,9 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
             background: "var(--surface)",
           }}
         >
-          <FramedAgent art={agent.art} civColor={agent.color} size={48} alt={agent.name} />
+          {/* Portrait inner-activity tracks the REAL request flag only: .thinking
+              while busy, back to dormant the moment the reply lands. */}
+          <FramedAgent art={agent.art} civColor={agent.color} size={48} alt={agent.name} className={busy ? tv.thinking : undefined} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontFamily: "var(--display)", fontSize: 18, color: "var(--ink)", lineHeight: 1.1 }}>{agent.name}</div>
             <div style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: agent.color, marginTop: 3 }}>
@@ -372,9 +385,12 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
             </div>
           ))}
 
+          {/* THINKING state (kit: ai-presence) — rendered ONLY while `busy`
+              (a real /api/demo request in flight); verb rotates by message
+              count, deterministically. The verb is this screen's one shimmer. */}
           {busy && (
-            <div style={{ alignSelf: "flex-start", fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", padding: "4px 2px" }}>
-              {agent.name} is thinking…
+            <div style={{ alignSelf: "flex-start", padding: "4px 2px" }}>
+              <ThinkingVerb seed={msgs.length} />
             </div>
           )}
 

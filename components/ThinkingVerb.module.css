@@ -1,0 +1,65 @@
+/* THINKING presence — kit: .living-city/ai-presence.md
+ *
+ * .verb     — the status verb: Space Mono lowercase + the ONE gold shimmer
+ *             locus on screen (background-clip:text, 200% gold gradient, 2s).
+ * .thinking — portrait/avatar inner activity while a request is in flight:
+ *             the kit's stepped eye-brightness flicker (cheap, readable at
+ *             40px, works on <img> and wrappers alike). Remove the class and
+ *             the portrait reverts to its resting/DORMANT treatment.
+ *
+ * Both are reduced-motion-gated: motion freezes, the LABEL carries presence.
+ */
+
+.verb {
+  font-family: var(--mono, "Space Mono", ui-monospace, monospace);
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--gold, #c8a75d);
+  background: linear-gradient(
+    100deg,
+    var(--gold, #c8a75d) 0%,
+    var(--gold, #c8a75d) 38%,
+    #e9c984 50%,
+    var(--gold, #c8a75d) 62%,
+    var(--gold, #c8a75d) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: tvShimmer 2s linear infinite;
+}
+
+@keyframes tvShimmer {
+  from { background-position: 100% 50%; }
+  to   { background-position: -100% 50%; }
+}
+
+/* Inner activity, not outer spin: a 2.2s stepped brightness flicker — the
+   machine is computing, the frame never moves. */
+.thinking {
+  animation: tvThink 2.2s steps(3, jump-none) infinite;
+}
+
+@keyframes tvThink {
+  0%   { filter: brightness(0.98); }
+  40%  { filter: brightness(1.16); }
+  70%  { filter: brightness(1.04); }
+  100% { filter: brightness(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verb {
+    animation: none;
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-fill-color: var(--gold, #c8a75d);
+  }
+  .thinking {
+    animation: none;
+    filter: brightness(1.08);
+  }
+}

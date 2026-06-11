@@ -39,13 +39,28 @@ export type Facet = { type: string; values: string[] };
  */
 export const COLLECTION_META: Record<
   string,
-  { title: string; status: string; statusColor: string; blurb: string; kicker: string }
+  {
+    title: string;
+    status: string;
+    statusColor: string;
+    blurb: string;
+    kicker: string;
+    /** TRUE mint position (1 = oldest). Etherscan creation-tx order, verified 2026-06-11. */
+    order: number;
+    /** Space Mono era line — deploy month-year + supply (OOGIES notes its chain). */
+    est: string;
+    /** Parallel-pattern epithet (≤5 words, compressed from the blurb's lore). */
+    epithet: string;
+  }
 > = {
   "the-crypt-official": {
     title: "The Crypt",
     status: "RECOVERED",
     statusColor: "var(--state-active)",
     kicker: "THE DEAD ONES · ANCIENT RECORDS",
+    order: 1,
+    est: "EST. OCT 2023 · 5,244",
+    epithet: "The dead. The founders.",
     blurb:
       "Dead signals. Forgotten identities. Ancient records recovered beneath the city — the first signals the HEX ever caught.",
   },
@@ -54,6 +69,9 @@ export const COLLECTION_META: Record<
     status: "RECONSTRUCTING",
     statusColor: "var(--state-surge)",
     kicker: "RECOVERED BATTLE SIMULATIONS",
+    order: 2,
+    est: "EST. MAY 2024 · 4,129",
+    epithet: "Sealed combat records.",
     blurb:
       "Recovered battle simulations from The Crypt. Every relic card is a sealed combat record — ten gods, ten civilizations, one signal.",
   },
@@ -62,6 +80,9 @@ export const COLLECTION_META: Record<
     status: "FRAGMENT",
     statusColor: "var(--state-unstable)",
     kicker: "THE WILD ONES · ANCIENT SPECIES",
+    order: 3,
+    est: "EST. DEC 2024 · APECHAIN",
+    epithet: "They heard it first.",
     blurb:
       "An ancient signal species. They heard the HEX before the city existed — fragments of a civilization that predates the collapse.",
   },
@@ -70,6 +91,9 @@ export const COLLECTION_META: Record<
     status: "DECAYING",
     statusColor: "var(--state-surge)",
     kicker: "THE EMOTIONAL ONES · MEMORY FRAGMENTS",
+    order: 4,
+    est: "EST. APR 2025 · 3,333",
+    epithet: "Frozen instants of feeling.",
     blurb:
       "Memory fragments preserved before the signal collapse. Each Emile is a frozen instant — an emotion, a tool, a path not taken.",
   },
@@ -78,6 +102,9 @@ export const COLLECTION_META: Record<
     status: "SEALED",
     statusColor: "var(--state-warning)",
     kicker: "THE LOST ONES · A FAILED CONTROL SYSTEM",
+    order: 5,
+    est: "EST. DEC 2025 · 313",
+    epithet: "The sealed survivors.",
     blurb:
       "A failed emotional control system. 99% of the supply was destroyed in the collapse; only the sealed survivors remain in the record.",
   },

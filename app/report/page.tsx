@@ -6,6 +6,7 @@ import { getCitizen } from "@/lib/citizens";
 import { epithetFor } from "@/lib/epithets";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import { ReportShare } from "@/components/ReportShare";
+import { CityPulse } from "@/components/CityPulse";
 
 // THE SIGNAL REPORT — the weekly city ritual (the "spectatorship" keystone of the
 // playable-identity loop). Reads the EXISTING hardened data: civ-wars standings
@@ -105,6 +106,12 @@ export default async function ReportPage() {
         <p className="lead" style={{ maxWidth: 560, margin: "0 auto", color: "var(--ink-2)" }}>
           {civ.week} · who pressed their claim, and the citizens building a public life.
         </p>
+        {/* CITY PULSE (2026-06-11) — the ritual's own clock: Day N since the
+            2023 on-chain founding + countdown to this page's next edition
+            (the real Sunday 18:00 UTC auto-post). Client-only, self-hiding. */}
+        <div style={{ marginTop: "var(--s-3)" }}>
+          <CityPulse />
+        </div>
       </section>
 
       {/* CIVILIZATION OF THE WEEK */}

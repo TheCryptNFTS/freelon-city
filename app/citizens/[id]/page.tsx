@@ -33,7 +33,9 @@ import { unlockStatus } from "@/lib/missions/unlock-store";
 import { TransmissionLoop } from "@/components/TransmissionLoop";
 import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
 import { RevealOnScroll } from "@/components/RevealOnScroll";
+import { LastSignal } from "@/components/LastSignal";
 import beats from "@/components/DossierBeats.module.css";
+import presence from "@/components/Presence.module.css";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -136,6 +138,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   // a real render is what turns "visible work history" from a claim into
   // something a buyer can see. History is newest-first (agent-history unshift).
   const latestWorkImage = agentWork.find((w) => w.kind === "image" && !!w.body) ?? null;
+  // LAST SIGNAL (2026-06-11, kit: .living-city/ai-presence.md): the most recent
+  // REAL work timestamp — honest presence, derived from the same agentWork load.
+  // History is newest-first, but max() keeps it correct regardless of order.
+  // Null when the token has no work yet; <LastSignal> self-hides on null.
+  const lastSignalTs = agentWork.reduce<number | null>(
+    (max, w) => (typeof w.timestamp === "number" && w.timestamp > 0 && (max === null || w.timestamp > max) ? w.timestamp : max),
+    null
+  );
   // PUBLIC LIFE (2026-06-10): the playable-identity moat made visible. Counts
   // only (level / work-log size / artifacts) — public proof per
   // docs/HISTORY_VISIBILITY_POLICY.md; raw work bodies stay owner-only. The
@@ -164,7 +174,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           {/* Art rises first (slot 0); the sticky positioning stays on the
               aside itself so the wrapper never breaks it. */}
           <RevealOnScroll index={0}>
-            <div className={`img-shell relic-card${isActivated ? " is-activated" : ""}`}>
+            {/* PRESENCE (2026-06-11, kit: .living-city/ai-presence.md) — DORMANT
+                breath + civ aura (.tinted reads --civ). On activated shells the
+                stronger gold awaken-breathe keeps winning (higher specificity). */}
+            <div className={`img-shell relic-card${isActivated ? " is-activated" : ""} ${presence.aura} ${presence.tinted} ${presence.breath}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imageUrl(tid)} alt={c.name} />
               {isActivated && <span className="activated-glyph" aria-label="Activated agent">⬡ AWAKENED</span>}
@@ -297,6 +310,15 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>
                   <span className="ttl">VIEW PUBLIC WORK LOG →</span>
                 </Link>
+              </div>
+            )}
+
+            {/* LAST SIGNAL — when this token last actually produced work. Renders
+                only from a real timestamp (never fakes); dot stays static here
+                because nothing is live on a static dossier. */}
+            {lastSignalTs !== null && (
+              <div style={{ margin: "var(--s-3) 0 0" }}>
+                <LastSignal timestamp={lastSignalTs} />
               </div>
             )}
 

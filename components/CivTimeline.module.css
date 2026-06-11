@@ -1,0 +1,133 @@
+/* CivTimeline — slim horizontal era strip on /collections (2026-06-11).
+   The civilization's lineage as one gold line: 2023 ──●──●──●──●──●──● 2026,
+   each dot a collection at its TRUE mint position (Etherscan creation-tx
+   dates, verified 2026-06-11). Pure CSS, no animation — the timeline is a
+   record, not an activity indicator (honest-state law: nothing here moves
+   because nothing here is happening). Space Mono prints every label;
+   tabular-nums on the years. */
+
+.wrap {
+  margin: 0 0 var(--s-5);
+}
+
+.head {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 0 0 16px;
+}
+.head strong {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* The strip scrolls sideways on narrow screens instead of collapsing —
+   six labelled dots need ~560px to stay legible. */
+.scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 560px;
+  padding: 2px 2px 4px;
+}
+
+/* End years — gold bookends, bold Space Mono. */
+.end {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  height: 58px;
+  margin: 0 32px;
+}
+
+/* The gold line. Extends past the track edges to meet the year bookends,
+   fading at both tips so it reads as "2023 ── … ── 2026". */
+.line {
+  position: absolute;
+  left: -26px;
+  right: -26px;
+  top: 28px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--gold) 20%, transparent),
+    color-mix(in srgb, var(--gold) 70%, transparent) 10%,
+    color-mix(in srgb, var(--gold) 70%, transparent) 90%,
+    color-mix(in srgb, var(--gold) 20%, transparent)
+  );
+}
+
+/* A node = zero-width anchor at the collection's time position; the dot,
+   name (above) and date (below) all centre on it. */
+.node {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+}
+
+.dot {
+  position: absolute;
+  top: 25px;
+  left: -3.5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.name {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.date {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  color: var(--ink-fade);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The newest collection (FREELONS) — bright-gold dot with a static ring.
+   Static, not pulsing: "newest" is a fact, not an activity. */
+.now .dot {
+  background: var(--gold-bright);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold-bright) 22%, transparent);
+}
+.now .name {
+  color: var(--gold-bright);
+  font-weight: 700;
+}

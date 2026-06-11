@@ -12,8 +12,11 @@ import { DispatchPanel } from "./DispatchPanel";
 import { cityNotice } from "@/lib/city-notice";
 import { proveWallet } from "@/lib/wallet-proof";
 import { resolveCityDestinations, type CityLink } from "@/lib/city-destinations";
+import { ThinkingVerb } from "./ThinkingVerb";
+import tv from "./ThinkingVerb.module.css";
 import styles from "./AgentWorkspace.module.css";
 import layout from "./WorkspaceLayout.module.css";
+import presence from "./Presence.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * AGENT WORKSPACE — the ChatGPT/Claude-style home for ONE citizen-agent.
@@ -861,6 +864,9 @@ export function AgentWorkspace(props: Props) {
           <div className={layout.chatCol}>
           {!active || active.messages.length === 0 ? (
             <div className={styles.empty}>
+              {/* PRESENCE (2026-06-11, kit: .living-city/ai-presence.md) —
+                  DORMANT breath + accent aura on the lobby hero. className-only;
+                  .tinted inherits this workspace's --accent (civ color). */}
               <FramedAgent
                 art={art}
                 civColor={color}
@@ -869,6 +875,7 @@ export function AgentWorkspace(props: Props) {
                 name={name}
                 stamp={`#${id4} · ${agent?.className ?? civName} · LV ${agent?.level ?? 1}`}
                 priority
+                className={`${presence.aura} ${presence.tinted} ${presence.breath}`}
               />
               {props.headline && <p className={styles.emptyLede} style={{ marginTop: 14 }}>{props.headline}</p>}
               {tier === "Honorary" && (
@@ -1017,7 +1024,11 @@ export function AgentWorkspace(props: Props) {
           )}
           {sending && (
             <div className={`${styles.msgRow} ${styles.agent}`}>
-              <img src={art} alt="" className={styles.msgAvatar} />
+              {/* THINKING inner-activity on the avatar while the agent is genuinely
+                  working — NOT while awaiting the user's wallet signature (that's
+                  the user's turn, the agent is honestly idle). Row unmounts with
+                  `sending`, so the portrait reverts to dormant automatically. */}
+              <img src={art} alt="" className={`${styles.msgAvatar}${awaitingSig ? "" : ` ${tv.thinking}`}`} />
               {mode === "image" ? (
                 <div className={`${styles.bubble} ${styles.renderBubble}`}>
                   <span className={styles.hexSpinner} aria-hidden>⬡</span>
@@ -1035,7 +1046,12 @@ export function AgentWorkspace(props: Props) {
                   </span>
                 </div>
               ) : (
-                <div className={styles.bubble}><div className={styles.typing}><span/><span/><span/></div></div>
+                /* Kit THINKING state replaces the generic typing dots: status
+                   verb in mono lowercase, the one shimmer on this screen,
+                   rotated deterministically by message count. */
+                <div className={styles.bubble}>
+                  <ThinkingVerb seed={active ? active.messages.length : 0} />
+                </div>
               )}
             </div>
           )}
