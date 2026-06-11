@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArcadeProgress } from "@/components/ArcadeProgress";
+import { PageBeacon } from "@/components/PageBeacon";
 import { DailyHub } from "@/components/DailyHub";
 import { DailyTransmission } from "@/components/play/DailyTransmission";
 import { GamePreview, type GameKind } from "@/components/GamePreview";
@@ -87,6 +88,8 @@ const VISIBLE_GAMES =
 export default function PlayHub() {
   return (
     <div className="manifesto">
+      {/* T11 2026-06-11 — play_entered funnel event (fire-once client beacon). */}
+      <PageBeacon name="play_entered" />
       <section className="manifesto-hero">
         <span className="kicker">⬡ FREELON CITY · ARCADE · PROTOTYPE</span>
         <h1>

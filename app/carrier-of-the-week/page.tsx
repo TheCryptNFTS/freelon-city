@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentCarrier } from "@/lib/carrier-of-week";
 import { imageUrl, openseaUrl } from "@/lib/constants";
-import { ReferralBeacon } from "@/components/ReferralBeacon";
 import { CarrierShare } from "./CarrierShare";
 
 export const revalidate = 60;
@@ -28,8 +27,7 @@ export default async function CarrierOfTheWeekPage() {
 
   return (
     <main style={{ maxWidth: 920, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-6)" }}>
-      <ReferralBeacon />
-
+      {/* ReferralBeacon mount removed T11 2026-06-11 — global in app/layout.tsx. */}
       <header style={{ textAlign: "center", marginBottom: "var(--s-5)" }}>
         <span className="kicker" style={{ color: GOLD }}>⬡ THE WEEKLY CROWN</span>
         <h1 style={{ margin: "8px 0 6px", letterSpacing: "-0.01em" }}>Carrier of the Week</h1>

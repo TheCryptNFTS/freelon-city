@@ -6,7 +6,6 @@ import { getCitizen } from "@/lib/citizens";
 import { epithetFor } from "@/lib/epithets";
 import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
 import { ReportShare } from "@/components/ReportShare";
-import { ReferralBeacon } from "@/components/ReferralBeacon";
 
 // THE SIGNAL REPORT — the weekly city ritual (the "spectatorship" keystone of the
 // playable-identity loop). Reads the EXISTING hardened data: civ-wars standings
@@ -95,8 +94,8 @@ export default async function ReportPage() {
   return (
     <div className="home-page" style={{ maxWidth: 1080, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       {/* Ritual attribution — shared report links carry ?ref=sr-<week>; the
-          beacon turns those arrivals into referral_landing events. */}
-      <ReferralBeacon />
+          ReferralBeacon (global in app/layout.tsx since T11 2026-06-11) turns
+          those arrivals into referral_landing events. */}
       {/* HERO */}
       <section className="field-glow" style={{ textAlign: "center", marginBottom: "var(--s-6)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE SIGNAL REPORT</span>

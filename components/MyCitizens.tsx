@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useHolder } from "@/lib/useHolder";
 import { WalletConnect } from "@/components/WalletConnect";
 import { imageUrl } from "@/lib/constants";
+import { trackEvent } from "@/lib/track";
 
 type Cit = { id: number; name: string; tier: string; civ: string; color: string };
 type Portfolio = {
@@ -126,7 +127,7 @@ export function MyCitizens() {
       {!loading && total === 0 && !err && (
         <div className="mycit-empty">
           <p>No FREELONS in this wallet.</p>
-          <a className="btn btn-primary" href="https://opensea.io/assets/ethereum/0xa79e73c9828db3fcd7c77be7d9f356fb684b5504" target="_blank" rel="noreferrer">
+          <a className="btn btn-primary" href="https://opensea.io/assets/ethereum/0xa79e73c9828db3fcd7c77be7d9f356fb684b5504" target="_blank" rel="noreferrer" onClick={() => trackEvent("opensea_click", { from: "my_citizens_empty" })}>
             <span className="ttl">GET A FREELON ↗</span>
           </a>
         </div>

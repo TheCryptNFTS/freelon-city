@@ -14,6 +14,7 @@ import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
 import { ChromeGate } from "@/components/ChromeGate";
+import { ReferralBeacon } from "@/components/ReferralBeacon";
 
 // T3 2026-06-11 — share defaults must SELL. Every page without its own
 // openGraph/twitter block inherits these, and "404 — FREELON CITY" as an
@@ -122,6 +123,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ScrollReveal />
         <Spotlight />
         <Analytics />
+        {/* T11 2026-06-11 — referral_landing beacon is now GLOBAL: ?ref= arrivals
+            on / and /start (and every other route) were invisible while the
+            beacon only lived on /demo, /report and /carrier-of-the-week. Those
+            per-page mounts were removed (double-fire). Fires once per hard load;
+            layout persists across client navigations, so no re-fires. */}
+        <ReferralBeacon />
         <EasterEggCode />
         <Ghost404 />
         <QuestToast />

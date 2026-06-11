@@ -9,6 +9,7 @@ import {
 import { getFloors, formatFloor } from "@/lib/floor-prices";
 import { isAgenticCollection } from "@/lib/agent-subject";
 import { CollectionBrowser } from "@/components/CollectionBrowser";
+import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 
 // Static params for the five connected collections. Their token data is
 // pre-ingested into data/collections/<slug>.json, so these pages are fully
@@ -52,14 +53,15 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
             : "Browse the full set below, or open any record on OpenSea to trade."}
         </p>
         <div className="ui-cta-row" style={{ marginTop: "var(--s-3)" }}>
-          <a
+          {/* T11 2026-06-11 — opensea_click {from} funnel event; from carries the
+              collection slug (coarse surface label, no user data). */}
+          <TrackedOpenSeaLink
             className="btn btn-primary"
             href={`https://opensea.io/collection/${data.slug}`}
-            target="_blank"
-            rel="noreferrer"
+            from={`collections_${data.slug}`}
           >
             <span className="ttl">VIEW ON OPENSEA ↗</span>
-          </a>
+          </TrackedOpenSeaLink>
           <Link className="btn btn-secondary" href="/archive">
             <span className="ttl">← BACK TO ARCHIVE</span>
           </Link>

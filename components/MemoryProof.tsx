@@ -239,7 +239,10 @@ export function MemoryProof() {
             <Link className="btn btn-primary btn-sm" href="/demo" onClick={() => trackEvent("memory_proof_to_demo")}>
               <span className="ttl">Talk to a live one — free →</span>
             </Link>
-            <a className="btn btn-secondary btn-sm" href={OPENSEA} target="_blank" rel="noreferrer" onClick={() => trackEvent("memory_proof_to_opensea")}>
+            {/* T11 2026-06-11 — folded `memory_proof_to_opensea` into the canonical
+                opensea_click {from} funnel event so all buy-intent clicks share
+                one event name in the Vercel dashboard. */}
+            <a className="btn btn-secondary btn-sm" href={OPENSEA} target="_blank" rel="noreferrer" onClick={() => trackEvent("opensea_click", { from: "memory_proof" })}>
               <span className="ttl">Own a FREELON →</span>
             </a>
           </div>

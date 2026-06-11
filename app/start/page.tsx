@@ -18,6 +18,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
 import { TOTAL } from "@/lib/constants";
+import { PageBeacon } from "@/components/PageBeacon";
+import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 
 // 2026-06-10 — the old hardcoded /og/home.jpg override (wrong 3:2 aspect, off
 // the new brand system) is gone; the page now inherits the branded default
@@ -50,6 +52,8 @@ export default function StartPage() {
        in globals.css for inline-styled cards (Section/Box/Step) so
        they flatten to archival surface. No structural edits. */
     <div className="home-page" style={{ maxWidth: 980, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+      {/* T11 2026-06-11 — start_viewed funnel event (fire-once client beacon). */}
+      <PageBeacon name="start_viewed" />
       {/* ── HERO ── */}
       {/* 2026-05-27 (post-Ogilvy down-funnel): hero rewritten to deliver
          on the homepage h1 promise ("the city remembers what you carry").
@@ -137,7 +141,7 @@ export default function StartPage() {
           n="2"
           title="Own one"
           body="Find a FREELON you like and buy it on OpenSea. If the exact one you want isn't listed, OpenSea lets you make an offer to its owner. Once it's yours, the character, the levels, and the work history all belong to the NFT."
-          cta={{ label: "OPENSEA COLLECTION ↗", href: "https://opensea.io/collection/freelons", external: true }}
+          cta={{ label: "OPENSEA COLLECTION ↗", href: "https://opensea.io/collection/freelons", external: true, from: "start_steps" }}
         />
         <Step
           n="3"
@@ -295,7 +299,9 @@ function Step({
   n: string;
   title: string;
   body: string;
-  cta: { label: string; href: string; external?: boolean };
+  // `from` (T11 2026-06-11): set on OpenSea CTAs to fire the canonical
+  // opensea_click {from} funnel event via TrackedOpenSeaLink.
+  cta: { label: string; href: string; external?: boolean; from?: string };
 }) {
   return (
     <article
@@ -314,7 +320,11 @@ function Step({
       </p>
       {/* Step CTAs are SECONDARY — the page has one primary (SEE AN AGENT) so
           the walkthrough steps don't each compete for the gold treatment. */}
-      {cta.external ? (
+      {cta.external && cta.from ? (
+        <TrackedOpenSeaLink className="btn btn-secondary btn-sm" href={cta.href} from={cta.from}>
+          <span className="ttl">{cta.label}</span>
+        </TrackedOpenSeaLink>
+      ) : cta.external ? (
         <a className="btn btn-secondary btn-sm" href={cta.href} target="_blank" rel="noreferrer">
           <span className="ttl">{cta.label}</span>
         </a>

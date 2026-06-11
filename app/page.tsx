@@ -8,6 +8,7 @@ import { ActivationProof } from "@/components/ActivationProof";
 import { YourAgentsRail } from "@/components/YourAgentsRail";
 import { MemoryProof } from "@/components/MemoryProof";
 import { CityWeekBand } from "@/components/CityWeekBand";
+import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -110,9 +111,10 @@ export default async function Home() {
             <Link className="btn btn-primary btn-lg" href={seeAgentHref}>
               <span className="ttl">MEET A CITIZEN · FREE →</span>
             </Link>
-            <a className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+            {/* T11 2026-06-11 — opensea_click {from} funnel event on the buy CTA. */}
+            <TrackedOpenSeaLink className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" from="home_hero">
               <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
-            </a>
+            </TrackedOpenSeaLink>
           </div>
           <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
 
@@ -202,9 +204,9 @@ export default async function Home() {
             at the bottom. The multi-collection line sits BELOW the buttons
             (2026-06-10): an exploration link must not interrupt the purchase beat. */}
         <div className="home-close__cta">
-          <a className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer">
+          <TrackedOpenSeaLink className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" from="home_close">
             <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
-          </a>
+          </TrackedOpenSeaLink>
           <Link className="btn btn-secondary btn-lg" href={seeAgentHref}>
             <span className="ttl">MEET A CITIZEN · FREE →</span>
           </Link>
