@@ -147,6 +147,12 @@
   padding: 10px 16px;
   border-bottom: 1px solid var(--line);
   background: var(--bg-2);
+  /* Sticky so the BACK button stays reachable while scrolling the chat — on
+     mobile wallet browsers (no chrome back button) a scrolled-away header was
+     half of the "no way back" trap (2026-06-11). */
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 .topTitle { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .topAvatar { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; border: 1px solid var(--line-2); }

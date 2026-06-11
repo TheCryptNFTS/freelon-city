@@ -61,6 +61,30 @@
 }
 .menuBtn:hover { background: var(--surface-2); }
 
+/* Always-visible BACK out of the workspace (2026-06-11 fix — the only back link
+   was buried in the threads drawer, so mobile wallet browsers with no chrome
+   back button trapped holders inside their agent). 44px tap target on mobile. */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--line-2);
+  color: var(--ink-2);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  text-decoration: none;
+}
+.backBtn:hover { background: var(--surface-2); color: var(--ink); }
+@media (max-width: 640px) {
+  .backBtn, .menuBtn { width: 40px; height: 40px; }
+}
+
 /* ── THE ONE CHAT COLUMN (~720px) ──────────────────────────────────────── */
 .chatCol {
   width: 100%;

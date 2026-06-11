@@ -843,6 +843,11 @@ export function AgentWorkspace(props: Props) {
       {/* ── THE CHAT COLUMN — slim header, centered transcript, fold, composer */}
       <main className={`${styles.center} ${layout.centerFill}`}>
         <header className={styles.topbar}>
+          <Link
+            href={slug ? `/collections/${slug}` : `/citizens/${tokenId}`}
+            className={layout.backBtn}
+            aria-label={slug ? "Back to collection" : "Back to citizen"}
+          >←</Link>
           <button className={layout.menuBtn} onClick={() => setSidebarOpen((v) => !v)} aria-label="Toggle chats">☰</button>
           <div className={styles.topTitle}>
             <img src={art} alt={name} className={styles.topAvatar} />
