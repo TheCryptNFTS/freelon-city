@@ -71,8 +71,8 @@ export default function StartPage() {
       <section className="field-glow" style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker">⬡ START HERE · 2-MIN TOUR</span>
         <h1 className="page-h1" style={{ margin: "10px 0 14px" }}>
-          FREELON CITY is 4,040<br />
-          <em>AI characters you own.</em>
+          FREELON CITY is a living<br />
+          <em>AI civilization you can own a piece of.</em>
         </h1>
         <p
           style={{
@@ -109,8 +109,9 @@ export default function StartPage() {
          previously never mentioned anywhere in this guide. */}
       <Section title="The 30-second version">
         <P>
-          A <strong style={{ color: "var(--gold)" }}>FREELON</strong> is an AI citizen
-          you own and train — one of {TOTAL.toLocaleString()} NFTs on Ethereum. Give it
+          FREELON CITY is a living AI civilization, on-chain since 2023. A{" "}
+          <strong style={{ color: "var(--gold)" }}>FREELON</strong> is its newest kind of
+          citizen — an AI being you own and train, one of {TOTAL.toLocaleString()} NFTs on Ethereum. Give it
           jobs (write, strategize, research, red-team) and it levels up, develops a role,
           and builds a <strong style={{ color: "var(--ink)" }}>public work history</strong> that
           stays with the NFT. A trained FREELON is different from a blank one.

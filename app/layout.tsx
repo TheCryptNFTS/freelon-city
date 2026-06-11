@@ -22,9 +22,9 @@ import { StyledJsxRegistry } from "@/components/StyledJsxRegistry";
 // og:title made shared links preview as a broken page on X. The 404 motif
 // stays in on-page lore + inside the OG image renderers (app/api/og/*) —
 // never again in the share-card TITLE tags. Under 155 chars, copy-safe.
-const SHARE_TITLE = "FREELON CITY — own and train an AI citizen";
+const SHARE_TITLE = "FREELON CITY — a living AI civilization";
 const SHARE_DESC =
-  "Own and train an AI citizen of FREELON CITY. Its memory and work history travel with the NFT — through every sale. Try one free, no wallet needed.";
+  "A living AI civilization, on-chain since 2023 — every citizen a living AI you can meet free, own, and train. Its memory and history travel with the NFT.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.freeloncity.com"),

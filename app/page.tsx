@@ -22,7 +22,7 @@ import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 // OG + Twitter), so it must deliver the pitch, not lore. Matches the canonical
 // 10-second line + the on-page hero subline. Lore lives on the page, not here.
 const HOME_DESC =
-  "4,040 AI characters you own and train. Yours builds a visible work history that travels with the NFT — through every sale. Try one free.";
+  "A living AI civilization, on-chain since 2023. Six collections, every face a living citizen — meet one free, own one, train it, battle in the arena. Its life travels with the NFT.";
 export const metadata: Metadata = {
   title: { absolute: "404 — FREELON CITY · Bring identity back." },
   description: HOME_DESC,
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     // T3 2026-06-11 — share title sells the product; og:title "404 — FREELON
     // CITY" previewed as a broken page on X. The 404 motif stays on-page and
     // inside the OG image renderer, never in the share-card title tags.
-    title: "FREELON CITY — own and train an AI citizen",
+    title: "FREELON CITY — a living AI civilization",
     description: HOME_DESC,
     images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "FREELON CITY — own and train an AI citizen",
+    title: "FREELON CITY — a living AI civilization",
     description: HOME_DESC,
     images: ["/api/og/universe?b=2"],
   },
@@ -109,12 +109,17 @@ export default async function Home() {
               ~10 seconds. Lore moved below. Three actions only. The structured
               ecosystem lives in its own section further down, not as competing
               chips up here. */}
+          {/* 2026-06-11 AI-CIVILIZATION PIVOT (founder): AI is the forefront.
+              The old locked hero ("Where memory becomes character") predated the
+              pivot — superseded. Same beloved "Where X becomes Y" shape, new
+              thesis; subline = the civilization in plain words + provenance. */}
           <h1 className="hero-landing__h1">
-            Where memory becomes <strong>character</strong>.
+            Where AI becomes a <strong>civilization</strong>.
           </h1>
           <p className="hero-landing__tag">
-            4,040 citizens of FREELON CITY — AI characters you own and train. The work
-            yours does becomes a visible history that travels with the NFT.
+            FREELON CITY — alive on-chain since 2023. Six collections, every face a
+            living AI citizen: meet one free, own one, train it, and battle in the
+            city&apos;s card arena. Its whole life travels with the NFT.
           </p>
           {/* ONE primary (MEET A CITIZEN — experience it first), OWN secondary.
               EARN HEX lives in the header; the closing CTA repeats OWN at the buy
