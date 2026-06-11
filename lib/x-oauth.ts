@@ -18,7 +18,12 @@ export function generateState(): string {
   return base64url(crypto.randomBytes(32));
 }
 
-export const X_AUTH_URL = "https://twitter.com/i/oauth2/authorize";
+// Browser-facing authorize URL MUST be x.com (2026-06-11, holder-diagnosed):
+// the X app registers x.com universal links — the old twitter.com host broke
+// the login handoff on mobile entirely and hung some desktops. A holder
+// literally fixed it by hand-editing the URL to x.com. The api.twitter.com
+// hosts below are server-side fetches (no browser/app involved) and work.
+export const X_AUTH_URL = "https://x.com/i/oauth2/authorize";
 export const X_TOKEN_URL = "https://api.twitter.com/2/oauth2/token";
 export const X_USER_URL = "https://api.twitter.com/2/users/me";
 
