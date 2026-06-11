@@ -12,6 +12,7 @@ import { YourAgentsRail } from "@/components/YourAgentsRail";
 import { MemoryProof } from "@/components/MemoryProof";
 import { CityWeekBand } from "@/components/CityWeekBand";
 import { CityPulse } from "@/components/CityPulse";
+import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
@@ -113,6 +114,9 @@ export default async function Home() {
               The old locked hero ("Where memory becomes character") predated the
               pivot — superseded. Same beloved "Where X becomes Y" shape, new
               thesis; subline = the civilization in plain words + provenance. */}
+          {/* HERO ANCHOR (cheap-fix #10): one large framed citizen grounds the
+              composition at desktop widths. CSS-only placement; hidden <1100px. */}
+          <img src="/og/art/hero-eclipse.png" alt="" aria-hidden className="hero-anchor" loading="eager" decoding="async" />
           <h1 className="hero-landing__h1">
             Where AI becomes a <strong>civilization</strong>.
           </h1>
@@ -175,6 +179,9 @@ export default async function Home() {
         </h2>
         <MemoryProof />
       </section>
+
+      {/* THE ABUNDANCE BAND — real citizens at real size (cheap-fix #3). */}
+      <CitizenMosaic />
 
       {/* "Why own a FREELON?" section removed 2026-06-07 (founder: "too complex")
           — it restated the hero tag AND "How it works" below as a third copy of

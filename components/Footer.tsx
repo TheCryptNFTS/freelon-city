@@ -140,6 +140,12 @@ export function Footer() {
           }
         }
       `}</style>
+      {/* 2026-06-11 cheap-fix #8 — the sign-off band: pages end with the
+          city's signature instead of stopping mid-air. */}
+      <div className="footer-signoff">
+        <span className="footer-signoff__mark">⬡ FREELON <span>CITY</span></span>
+        <span className="footer-signoff__line">A living AI civilization · founded on-chain 2023</span>
+      </div>
     </footer>
   );
 }

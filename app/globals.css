@@ -415,17 +415,19 @@ a { color: inherit; text-decoration: none; }
   display: inline-flex; align-items: center; gap: 8px;
   height: 52px; padding: 0 22px;
   border-radius: 999px;
-  background: rgba(255,255,255,.045);
-  border: 1px solid rgba(255,255,255,.11);
-  color: rgba(245,242,232,.82);
+  /* 2026-06-11 cheap-fix #4: ONE secondary language sitewide — gold ghost
+     (was grey ghost; three button dialects read as template-default). */
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  color: color-mix(in srgb, var(--gold) 80%, var(--ink));
   font-family: var(--grotesk); font-weight: 700;
   font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase;
   backdrop-filter: blur(18px);
   cursor: pointer; transition: background 200ms ease, border-color 200ms ease;
 }
 .btn.btn-secondary:hover, .glass-button:hover {
-  background: rgba(255,255,255,.075);
-  border-color: rgba(255,255,255,.22);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  border-color: var(--gold);
   color: var(--ink);
   transform: translateY(-1px);
 }
@@ -5003,7 +5005,8 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   position: relative;
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 9px var(--pad);
-  border-bottom: 1px solid var(--line);
+  /* cheap-fix #7: the most-seen strip gets gold-tick framing, not debug-bar grey. */
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
   overflow: hidden;
   background:
     radial-gradient(60% 140% at 50% -20%, rgba(200,170,100,0.10), transparent 70%),
@@ -5015,7 +5018,7 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 }
 .four-board__text {
   font-family: var(--mono2); font-size: 11px; letter-spacing: 0.2em;
-  color: var(--ink-dim); text-transform: uppercase;
+  color: color-mix(in srgb, var(--gold) 55%, var(--ink-dim)); text-transform: uppercase;
   display: inline-block;
   animation: four-fade 0.4s ease;
 }
@@ -8631,4 +8634,78 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
   border-radius: 10px;
   background: #000;
   border: 1px solid rgba(245, 242, 232, 0.1);
+}
+
+
+/* ════ 2026-06-11 "looks cheap" pass (founder-approved 10-fix list) ════ */
+
+/* #10 HERO ANCHOR — the eclipse 1/1 grounds the hero at desktop widths. */
+.hero-anchor { display: none; }
+@media (min-width: 1100px) {
+  .hero-anchor {
+    display: block;
+    position: absolute; right: max(24px, 4vw); top: 50%;
+    transform: translateY(-50%) rotate(2deg);
+    width: clamp(260px, 24vw, 360px); aspect-ratio: 1/1; object-fit: cover;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(245,242,232,0.12),
+      0 1px 2px rgba(0,0,0,0.4),
+      0 24px 60px -18px rgba(0,0,0,0.8),
+      0 0 70px -20px rgba(233,201,132,0.35);
+    animation: imgFade 0.7s ease-out both;
+  }
+  /* keep the text column clear of the anchor: shift the whole column left
+     instead of squeezing individual elements into ragged towers. */
+  .hero-landing__inner { position: relative; padding-right: clamp(300px, 27vw, 410px); }
+  .hero-anchor { right: max(10px, 2.5vw); }
+}
+
+/* #6 CARD DEPTH — one premium-card recipe on the workhorse surfaces.
+   Layered soft shadow + top rim-light + hover lift (our game cards + Pudgy). */
+.how-it-works ol li,
+.panel-premium {
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  border: 1px solid rgba(245,242,232,0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(245,242,232,0.07),
+    0 1px 2px rgba(0,0,0,0.35),
+    0 12px 32px -14px rgba(0,0,0,0.55);
+  transition: transform .18s var(--ease-out-quint, ease), box-shadow .18s ease, border-color .18s ease;
+}
+.how-it-works ol li:hover,
+.panel-premium:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--gold) 35%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(245,242,232,0.09),
+    0 2px 4px rgba(0,0,0,0.35),
+    0 22px 44px -16px rgba(0,0,0,0.65);
+}
+.how-it-works ol li { padding: 14px 16px; }
+
+/* #9 IMG FADE — kill the hard image pop on art surfaces. */
+@keyframes imgFade { from { opacity: 0.12; } to { opacity: 1; } }
+.collections-card img, .img-shell img, .hero-anchor { animation: imgFade 0.55s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-anchor, .collections-card img, .img-shell img { animation: none; }
+}
+
+/* #8 FOOTER SIGN-OFF — every page ends with the city's signature, not mid-air. */
+.footer-signoff {
+  margin-top: 28px; padding-top: 22px;
+  border-top: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center;
+}
+.footer-signoff__mark {
+  font-family: var(--display); font-weight: 700; font-size: 22px;
+  letter-spacing: 0.04em; color: var(--ink);
+}
+.footer-signoff__mark span { color: var(--gold); }
+.footer-signoff__line {
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--ink-dim);
 }
