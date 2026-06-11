@@ -1202,10 +1202,24 @@ a { color: inherit; text-decoration: none; }
   55%  { transform: translateX(130%); }
   100% { transform: translateX(130%); }
 }
+/* The newcomer front door (2026-06-11, holder feedback ×2: "can't find where
+   to start"). The link existed here all along but was styled at footnote
+   volume next to two 60px CTAs — promote it to a slim gold ghost-pill. Same
+   element, same copy, same href; CSS only. */
 .hero-landing__newhere {
-  display: inline-block; margin-top: var(--s-3);
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: var(--s-3); padding: 9px 18px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
   font-family: var(--mono2); font-size: var(--t-mono-sm);
-  letter-spacing: var(--tr-loose); text-transform: uppercase; color: var(--ink-2);
+  letter-spacing: var(--tr-loose); text-transform: uppercase;
+  color: var(--gold);
+  transition: background .15s var(--ease-out-quint, ease), border-color .15s ease;
+}
+.hero-landing__newhere:hover {
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  border-color: var(--gold);
 }
 
 /* ONE interior hero ramp (2026-06-10) — /start, /report, /proof and /demo each
