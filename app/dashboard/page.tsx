@@ -73,6 +73,21 @@ export default async function Dashboard() {
           moves through the city. For holders who want the data; if you&apos;re new,{" "}
           <Link href="/demo" style={{ color: "var(--gold)" }}>see an agent first</Link>.
         </p>
+        {/* 2026-06-11 Discord (Damien): holders came HERE looking for "where do
+            I log in / link my X" and found only stats. One visible door. */}
+        <Link
+          href="/sync"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 8, marginTop: 14,
+            padding: "9px 18px", borderRadius: 999,
+            border: "1px solid color-mix(in srgb, var(--gold) 45%, transparent)",
+            background: "color-mix(in srgb, var(--gold) 7%, transparent)",
+            fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.14em",
+            textTransform: "uppercase", color: "var(--gold)", textDecoration: "none",
+          }}
+        >
+          ⬡ Connect wallet + X →
+        </Link>
       </section>
 
       {/* Sticky in-page sub-nav — pure anchor links, SSR-friendly. */}

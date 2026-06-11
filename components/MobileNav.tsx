@@ -59,6 +59,11 @@ const GROUPS: NavGroup[] = [
       // everyone — the free no-wallet games are a hook, not holder chrome.
       { href: "/play",      label: "Play · free" },
       { href: "/start",     label: "New here? Start" },
+      // 2026-06-11 Discord (Damien spent 20+ min hunting "where to link my X";
+      // Lady Magic had to walk him to a buried Help fold): the account action
+      // holders ask for most gets a visible, always-present door. /sync hosts
+      // the full wallet+X connect flow on every viewport.
+      { href: "/sync",      label: "Connect wallet + X" },
     ],
   },
 ];
