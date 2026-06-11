@@ -59,6 +59,7 @@ export function Footer() {
             <li><Link href="/demo">Meet a Citizen</Link></li>
             <li><Link href="/collections">Collections</Link></li>
             <li><Link href="/start">Start</Link></li>
+            <li><Link href="/help">Help</Link></li>
             <li><Link href="/crypt-tcg">Crypt TCG · play</Link></li>
           </ul>
         </div>
