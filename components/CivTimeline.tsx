@@ -50,6 +50,19 @@ export function CivTimeline() {
           <span className={styles.end}>2026</span>
         </div>
       </div>
+      {/* MOBILE LADDER (2026-06-11): at phone widths the proportional strip
+          collided labels and silently clipped SMILES + Freelons — the newest
+          collections cut out of their own history. Same six facts as a
+          vertical ladder; CSS swaps the two renders by viewport. */}
+      <ol className={styles.ladder}>
+        {ERAS.map((e) => (
+          <li key={e.name} className={e.now ? `${styles.rung} ${styles.nowRung}` : styles.rung}>
+            <span className={styles.dot} aria-hidden="true" />
+            <span className={styles.name}>{e.name}</span>
+            <span className={styles.date}>{e.date}</span>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

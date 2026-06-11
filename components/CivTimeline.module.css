@@ -131,3 +131,45 @@
   color: var(--gold-bright);
   font-weight: 700;
 }
+
+/* ── MOBILE LADDER (2026-06-11) — the strip clipped SMILES/Freelons at phone
+   widths. <640px: hide the proportional strip, show a vertical ladder with a
+   gold spine. Same facts, zero collision, newest era glows. */
+.ladder { display: none; }
+@media (max-width: 639px) {
+  .scroll { display: none; }
+  .ladder {
+    display: flex; flex-direction: column; gap: 0;
+    list-style: none; margin: 14px 0 0; padding: 0 0 0 6px;
+  }
+  .rung {
+    position: relative;
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 9px 0 9px 22px;
+  }
+  /* the spine */
+  .rung::before {
+    content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 1px;
+    background: color-mix(in srgb, var(--gold) 35%, transparent);
+  }
+  .rung:first-child::before { top: 50%; }
+  .rung:last-child::before { bottom: 50%; }
+  .rung .dot {
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #0B0B0D; border: 2px solid var(--gold);
+  }
+  /* Reset the strip's absolute positioning (shared class names). */
+  .rung .name {
+    position: static; transform: none; top: auto; left: auto;
+    font-family: var(--mono2); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .rung .date {
+    position: static; transform: none; top: auto; left: auto;
+    font-family: var(--mono2); font-size: 10.5px; letter-spacing: 0.12em;
+    color: var(--ink-dim); font-variant-numeric: tabular-nums;
+  }
+  .nowRung .dot { background: var(--gold); box-shadow: 0 0 10px rgba(233,201,132,0.55); }
+  .nowRung .name { color: var(--gold); }
+}

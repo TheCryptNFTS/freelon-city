@@ -42,28 +42,36 @@ type NavGroup = { heading: string | null; links: NavLink[] };
 // desktop nav. Cut from 5 groups → 2: the free hook + buy, then the product +
 // collections + onboarding. Earn HEX, Play, Community wall, Shop, Lore were
 // pulled from the sheet (pages still exist by URL, off the newcomer's path).
+// 2026-06-11 REEGS PASS (holder UX feedback + founder approval): the sheet had
+// THREE near-identical FREELON doors stacked (MEET A CITIZEN / OWN A FREELON /
+// FREELONS) — word soup to a newcomer — plus an empty ghost row between the
+// two heading-less groups. Rebuilt per Reegs: categorized, no word twice,
+// buttons not text rows ("menu leads to everything categorized · no slippage
+// between categories · people don't want to see things twice").
 const GROUPS: NavGroup[] = [
   {
-    heading: null,                                          // primary CTA, ungrouped
+    heading: "ENTER · FREE",
     links: [
-      { href: "/demo", label: "⬡ MEET A CITIZEN", gold: true },
-      { href: "https://opensea.io/collection/freelons", label: "Own a Freelon" },
+      { href: "/demo", label: "Meet a citizen", gold: true },
+      { href: "/play", label: "Play the games" },
     ],
   },
   {
-    heading: null,                                          // the spine
+    heading: "THE CITY",
     links: [
-      { href: "/citizens",  label: "FREELONS", gold: true },
-      { href: "/collections", label: "Collections" },
-      // 2026-06-10 Discord ("are the games still there?"): Play is back for
-      // everyone — the free no-wallet games are a hook, not holder chrome.
-      { href: "/play",      label: "Play · free" },
-      { href: "/start",     label: "New here? Start" },
-      // 2026-06-11 Discord (Damien spent 20+ min hunting "where to link my X";
-      // Lady Magic had to walk him to a buried Help fold): the account action
-      // holders ask for most gets a visible, always-present door. /sync hosts
-      // the full wallet+X connect flow on every viewport.
-      { href: "/sync",      label: "Connect wallet + X" },
+      { href: "/citizens", label: "Browse the 4,040" },
+      { href: "/collections", label: "The six collections" },
+      { href: "/start", label: "New here? 2-minute guide" },
+    ],
+  },
+  {
+    heading: "YOURS",
+    links: [
+      { href: "https://opensea.io/collection/freelons", label: "Own a FREELON ↗" },
+      // 2026-06-11 Discord (Damien hunted 20+ min for "where to link my X"):
+      // the most-asked account action keeps a permanent door. /sync hosts the
+      // full wallet+X flow on every viewport.
+      { href: "/sync", label: "Connect wallet + X" },
     ],
   },
 ];
