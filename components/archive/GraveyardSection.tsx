@@ -1,11 +1,18 @@
 /**
- * The Graveyard — folded into /archive (2026-05-31) as <section id="graveyard">.
- * Burned / abandoned citizens: OpenSea transfer records + the city dump
- * ledger. Logic preserved verbatim from the former /graveyard page.
+ * The Graveyard — folded into /archive (2026-05-31) as <section id="graveyard">,
+ * then carried into /collections when /archive became a permanent redirect
+ * (2026-06-08). Burned / abandoned citizens: OpenSea transfer records + the
+ * city dump ledger. Logic preserved verbatim from the former /graveyard page.
  *
- * Self-contained async server component so /archive can simply append it.
+ * Self-contained async server component so any page can simply append it.
  * The OpenSea fetch is cached 300s via fetch revalidate, matching the
  * former page's `revalidate = 300`.
+ *
+ * `limit` (T7 2026-06-11): cap the visible rows so the section doesn't
+ * dominate the page. The remaining rows stay server-rendered inside a
+ * <details> disclosure ("FULL RECORD") — no extra route needed, and since
+ * /archive now 308s to /collections there is no separate full-table page
+ * to link to. Images are lazy, so collapsed rows cost no image fetches.
  */
 import Link from "next/link";
 import Image from "next/image";
@@ -87,7 +94,7 @@ function timeAgo(ts: number | null | undefined) {
   return `${Math.floor(sec / 86400)}d ago`;
 }
 
-export async function GraveyardSection() {
+export async function GraveyardSection({ limit }: { limit?: number } = {}) {
   const [transfers, dumps] = await Promise.all([
     fetchTransfers(),
     listDumpLedger(50).catch((): DumpLedgerEntry[] => []),
@@ -100,6 +107,16 @@ export async function GraveyardSection() {
       t.to !== ZERO &&
       t.from !== t.to,
   );
+  // Most recent first — guaranteed, not just assumed from API order.
+  filtered.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
+  dumps.sort((a, b) => b.ts - a.ts);
+
+  const capped = limit != null && filtered.length > limit;
+  const visible = capped ? filtered.slice(0, limit) : filtered;
+  const overflow = capped ? filtered.slice(limit) : [];
+  const dumpsCapped = limit != null && dumps.length > limit;
+  const visibleDumps = dumpsCapped ? dumps.slice(0, limit) : dumps;
+  const overflowDumps = dumpsCapped ? dumps.slice(limit) : [];
 
   const byToken = new Map<number, TransferRow[]>();
   for (const t of transfers) {
@@ -119,6 +136,116 @@ export async function GraveyardSection() {
     const prior = arr[idx + 1];
     if (!prior?.ts) return null;
     return Math.max(0, Math.floor((row.ts - prior.ts) / 86400));
+  }
+
+  function renderTransferRow(t: TransferRow, i: number) {
+    const held = daysHeld(t);
+    return (
+      <div key={`${t.tokenId}-${t.ts}-${i}`} className="grave-row">
+        <Link href={`/citizens/${t.tokenId}`}>
+          <Image
+            src={heroImageUrl(t.tokenId)}
+            alt={`Citizen #${t.tokenId}`}
+            width={56}
+            height={56}
+            loading="lazy"
+            unoptimized
+          />
+        </Link>
+        <span>
+          <span className="id">#{String(t.tokenId).padStart(4, "0")}</span>{" "}
+          <Link
+            href={`/wallet/${t.from}`}
+            className="addr"
+            style={{ textDecoration: "none" }}
+          >
+            {shortAddr(t.from)}
+          </Link>
+          <span className="arrow">→</span>
+          <Link
+            href={`/wallet/${t.to}`}
+            className="addr"
+            style={{ textDecoration: "none" }}
+          >
+            {shortAddr(t.to)}
+          </Link>
+        </span>
+        {/* HELD + WHEN share a wrapper: display:contents on desktop (they
+            keep their own grid columns), a flex row with a separator on
+            mobile — the old per-child rule pinned both to the SAME grid
+            cell, overlapping the duration with the timestamp. */}
+        <span className="grave-tail">
+          <span className="stat">
+            {held == null ? "—" : `${held}d`}
+          </span>
+          <span
+            style={{
+              color: "var(--ink-dim)",
+              fontFamily: "var(--mono2)",
+              fontSize: 11,
+              letterSpacing: "0.14em",
+            }}
+          >
+            {timeAgo(t.ts)}
+          </span>
+        </span>
+      </div>
+    );
+  }
+
+  function renderDumpRow(d: DumpLedgerEntry, i: number) {
+    const pct = Math.round(d.discount * 100);
+    return (
+      <div
+        key={`${d.tokenId}-${d.ts}-${i}`}
+        className="grave-row"
+        style={{ gridTemplateColumns: "56px 1fr auto auto auto" }}
+      >
+        <Link href={`/citizens/${d.tokenId}`}>
+          <Image
+            src={heroImageUrl(d.tokenId)}
+            alt={`Citizen #${d.tokenId}`}
+            width={56}
+            height={56}
+            loading="lazy"
+            unoptimized
+            style={{ filter: "grayscale(1) brightness(0.45)" }}
+          />
+        </Link>
+        <span>
+          <span className="id">#{String(d.tokenId).padStart(4, "0")}</span>{" "}
+          <Link href={`/wallet/${d.dumper}`} className="addr" style={{ textDecoration: "none", color: "#b8423d" }}>
+            {shortAddr(d.dumper)}
+          </Link>
+          <span className="arrow">→</span>
+          {d.rescuer ? (
+            <Link href={`/wallet/${d.rescuer}`} className="addr" style={{ textDecoration: "none", color: "#9ad4a8" }}>
+              {shortAddr(d.rescuer)}
+            </Link>
+          ) : (
+            <span style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 11 }}>
+              DELISTED
+            </span>
+          )}
+        </span>
+        <span className="grave-tail">
+          <span className="stat" style={{ color: "#b8423d" }}>{pct}%↓</span>
+          <span className="stat" style={{ fontFamily: "var(--mono2)", fontSize: 11 }}>
+            {d.priceEth.toFixed(3)} Ξ
+          </span>
+          <span
+            style={{
+              color: "var(--ink-dim)",
+              fontFamily: "var(--mono2)",
+              fontSize: 11,
+              letterSpacing: "0.14em",
+            }}
+          >
+            {timeAgo(Math.floor(d.ts / 1000))}
+          </span>
+        </span>
+      </div>
+    );
   }
 
   return (
@@ -157,53 +284,16 @@ export async function GraveyardSection() {
               <span>HELD</span>
               <span>WHEN</span>
             </div>
-            {filtered.map((t, i) => {
-              const held = daysHeld(t);
-              return (
-                <div key={`${t.tokenId}-${t.ts}-${i}`} className="grave-row">
-                  <Link href={`/citizens/${t.tokenId}`}>
-                    <Image
-                      src={heroImageUrl(t.tokenId)}
-                      alt={`Citizen #${t.tokenId}`}
-                      width={56}
-                      height={56}
-                      unoptimized
-                    />
-                  </Link>
-                  <span>
-                    <span className="id">#{String(t.tokenId).padStart(4, "0")}</span>{" "}
-                    <Link
-                      href={`/wallet/${t.from}`}
-                      className="addr"
-                      style={{ textDecoration: "none" }}
-                    >
-                      {shortAddr(t.from)}
-                    </Link>
-                    <span className="arrow">→</span>
-                    <Link
-                      href={`/wallet/${t.to}`}
-                      className="addr"
-                      style={{ textDecoration: "none" }}
-                    >
-                      {shortAddr(t.to)}
-                    </Link>
-                  </span>
-                  <span className="stat">
-                    {held == null ? "—" : `${held}d`}
-                  </span>
-                  <span
-                    style={{
-                      color: "var(--ink-dim)",
-                      fontFamily: "var(--mono2)",
-                      fontSize: 11,
-                      letterSpacing: "0.14em",
-                    }}
-                  >
-                    {timeAgo(t.ts)}
-                  </span>
-                </div>
-              );
-            })}
+            {visible.map(renderTransferRow)}
+            {overflow.length > 0 && (
+              <details className="grave-more">
+                <summary>
+                  <span className="grave-more-closed">FULL RECORD · {overflow.length} MORE ↓</span>
+                  <span className="grave-more-open">SHOW LESS ↑</span>
+                </summary>
+                {overflow.map(renderTransferRow)}
+              </details>
+            )}
           </div>
         )}
       </div>
@@ -250,57 +340,16 @@ export async function GraveyardSection() {
               <span>PRICE</span>
               <span>WHEN</span>
             </div>
-            {dumps.map((d, i) => {
-              const pct = Math.round(d.discount * 100);
-              return (
-                <div
-                  key={`${d.tokenId}-${d.ts}-${i}`}
-                  className="grave-row"
-                  style={{ gridTemplateColumns: "56px 1fr auto auto auto" }}
-                >
-                  <Link href={`/citizens/${d.tokenId}`}>
-                    <Image
-                      src={heroImageUrl(d.tokenId)}
-                      alt={`Citizen #${d.tokenId}`}
-                      width={56}
-                      height={56}
-                      unoptimized
-                      style={{ filter: "grayscale(1) brightness(0.45)" }}
-                    />
-                  </Link>
-                  <span>
-                    <span className="id">#{String(d.tokenId).padStart(4, "0")}</span>{" "}
-                    <Link href={`/wallet/${d.dumper}`} className="addr" style={{ textDecoration: "none", color: "#b8423d" }}>
-                      {shortAddr(d.dumper)}
-                    </Link>
-                    <span className="arrow">→</span>
-                    {d.rescuer ? (
-                      <Link href={`/wallet/${d.rescuer}`} className="addr" style={{ textDecoration: "none", color: "#9ad4a8" }}>
-                        {shortAddr(d.rescuer)}
-                      </Link>
-                    ) : (
-                      <span style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 11 }}>
-                        DELISTED
-                      </span>
-                    )}
-                  </span>
-                  <span className="stat" style={{ color: "#b8423d" }}>{pct}%↓</span>
-                  <span className="stat" style={{ fontFamily: "var(--mono2)", fontSize: 11 }}>
-                    {d.priceEth.toFixed(3)} Ξ
-                  </span>
-                  <span
-                    style={{
-                      color: "var(--ink-dim)",
-                      fontFamily: "var(--mono2)",
-                      fontSize: 11,
-                      letterSpacing: "0.14em",
-                    }}
-                  >
-                    {timeAgo(Math.floor(d.ts / 1000))}
-                  </span>
-                </div>
-              );
-            })}
+            {visibleDumps.map(renderDumpRow)}
+            {overflowDumps.length > 0 && (
+              <details className="grave-more">
+                <summary>
+                  <span className="grave-more-closed">FULL RECORD · {overflowDumps.length} MORE ↓</span>
+                  <span className="grave-more-open">SHOW LESS ↑</span>
+                </summary>
+                {overflowDumps.map(renderDumpRow)}
+              </details>
+            )}
           </div>
         )}
       </div>

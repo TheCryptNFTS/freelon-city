@@ -206,8 +206,11 @@ export default async function CollectionsIndex() {
         </p>
       </section>
 
-      {/* THE GRAVEYARD — abandoned citizens, folded in from the former /archive. */}
-      <GraveyardSection />
+      {/* THE GRAVEYARD — abandoned citizens, folded in from the former /archive.
+          Capped to the 5 most recent rows here (T7 2026-06-11) so the ledger
+          doesn't dominate the universe page; the rest sits behind the
+          section's FULL RECORD disclosure. */}
+      <GraveyardSection limit={5} />
     </div>
   );
 }

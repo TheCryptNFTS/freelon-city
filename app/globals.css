@@ -4807,6 +4807,46 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   .grave-headrow, .grave-headrow--5 { display: none; }
 }
 
+/* T7 2026-06-11 — GRAVE TAIL: the trailing stat columns (HELD/WHEN, or
+   discount/price/when on dump rows) share one wrapper. Desktop: display:
+   contents so each span still occupies its own grid column. Mobile: the
+   old :nth-child(n+3) rule pinned EVERY stat to the same "stats" grid
+   cell (grid items blockify, display:inline is ignored), so the duration
+   rendered on top of the timestamp. The wrapper becomes a flex row with
+   a middot separator instead. */
+.grave-tail { display: contents; }
+@media (max-width: 540px) {
+  .grave-row .grave-tail {
+    grid-area: stats;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    color: var(--ink-dim);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .grave-row .grave-tail > * + *::before { content: "· "; }
+}
+
+/* T7 — "FULL RECORD" disclosure: rows beyond the cap stay server-rendered
+   inside <details>; images are lazy so collapsed rows cost nothing. */
+.grave-more > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.grave-more > summary::-webkit-details-marker { display: none; }
+.grave-more > summary:hover { color: var(--gold-bright); }
+.grave-more > summary .grave-more-open { display: none; }
+.grave-more[open] > summary .grave-more-open { display: inline; }
+.grave-more[open] > summary .grave-more-closed { display: none; }
+
 /* ============================ CITY NOTICE ============================ */
 .city-notice-stack {
   position: fixed;
