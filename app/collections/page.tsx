@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { COLLECTION_META, loadCollection } from "@/lib/collections-data";
+import { COLLECTION_META, STATUS_EXPLAINERS, loadCollection } from "@/lib/collections-data";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
 import { isAgenticCollection } from "@/lib/agent-subject";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
@@ -173,7 +173,10 @@ export default async function CollectionsIndex() {
                   )}
                 </div>
                 <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: c.statusColor, fontWeight: 700 }}>
-                  <span>● {c.status}</span>
+                  {/* T8 2026-06-11: status legend — hover explains what the
+                      status means in plain words (can I buy / use this now?).
+                      Same title-attr pattern as the Agent badge above. */}
+                  <span title={STATUS_EXPLAINERS[c.status]} style={{ cursor: "help" }}>● {c.status}</span>
                   {floor && <span style={{ color: "var(--gold)" }}>FLOOR {floor}</span>}
                 </header>
                 <h3 style={{ fontFamily: "var(--display)", fontSize: 22, lineHeight: 1.1, margin: 0, color: "var(--ink)" }}>{c.title}</h3>

@@ -19,6 +19,7 @@ import type { Metadata } from "next";
 import { GODS, godOpenSeaUrl } from "@/lib/gods";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
+import { STATUS_EXPLAINERS } from "@/lib/collections-data";
 
 // Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
 // 2026-06-10: the game shipped — the door is live. OG promises play because
@@ -222,12 +223,16 @@ export default async function CombatArchivesPage() {
                 <span style={{ fontSize: 16 }}>{f.glyph}</span>
                 {f.label}
               </span>
+              {/* T8 2026-06-11: status legend — hover answers "can I buy /
+                  use this right now?" in plain words under the lore. */}
               <span
+                title={STATUS_EXPLAINERS[f.status]}
                 style={{
                   padding: "2px 8px",
                   border: `1px solid ${f.color}55`,
                   borderRadius: 999,
                   fontSize: 9,
+                  cursor: "help",
                 }}
               >
                 ● {f.status}
@@ -373,7 +378,9 @@ export default async function CombatArchivesPage() {
                     fontWeight: 700,
                   }}
                 >
-                  <span>● {g.status}</span>
+                  {/* T8 2026-06-11: status legend tooltip — the god pills are
+                      archive flavor on real 1/1 records (lib/gods.ts). */}
+                  <span title={STATUS_EXPLAINERS[g.status]} style={{ cursor: "help" }}>● {g.status}</span>
                   <span style={{ color: "var(--ink-dim)" }}>#{g.tokenId}</span>
                 </header>
                 <div

@@ -85,6 +85,30 @@ export const COLLECTION_META: Record<
 
 export const COLLECTION_SLUGS = Object.keys(COLLECTION_META);
 
+/**
+ * T8 2026-06-11 — one-line status explainers (FLAGGED FOR OWNER REVIEW).
+ * Rendered as hover tooltips (title attr — same pattern as the Agent badge)
+ * wherever a status pill appears on /collections and /crypt-tcg. Each line
+ * answers "can I buy / use this right now?" in plain words under the lore.
+ * Functional truths these encode (from the code, not vibes): every collection
+ * here is browsable on-site and trades on OpenSea; the TCG's first playable
+ * build is live (solo vs AI, ranked coming); the god-card pills are archive
+ * flavor on real 1/1 records (lib/gods.ts); CORRUPTED fronts no feature.
+ */
+export const STATUS_EXPLAINERS: Record<string, string> = {
+  LIVE: "Live — the active collection. You can collect a FREELON now and awaken it; it works today.",
+  RECOVERED:
+    "Recovered — restored and open. You can use it right now; anything collectible in it trades on OpenSea.",
+  RECONSTRUCTING:
+    "Reconstructing — being rebuilt in the open. The cards are collectible now and the first playable build is live; expect it to keep changing.",
+  FRAGMENT:
+    "Fragment — only part of the record survived. What remains is real: you can browse and collect it today.",
+  DECAYING:
+    "Decaying — the decay is lore, not function. The record is stable; you can browse and collect it today.",
+  SEALED: "Sealed — finished and locked. You can collect it; it will not change.",
+  CORRUPTED: "Corrupted — damaged past use. Nothing to buy or play behind this record yet.",
+};
+
 /** Load one collection's ingested file. Throws if the slug is unknown. */
 export function loadCollection(slug: string): CollectionFile {
   const path = join(process.cwd(), "data", "collections", `${slug}.json`);
