@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { FramedAgent } from "./FramedAgent";
+import { HonoraryDisclaimer } from "./HonoraryDisclaimer";
 import { WorkspaceUnlock } from "./WorkspaceUnlock";
 import { AgentPowers } from "./AgentPowers";
 import { CitizenJobsBoard } from "./CitizenJobsBoard";
@@ -866,6 +867,11 @@ export function AgentWorkspace(props: Props) {
                 priority
               />
               {props.headline && <p className={styles.emptyLede} style={{ marginTop: 14 }}>{props.headline}</p>}
+              {tier === "Honorary" && (
+                <div style={{ marginTop: 8 }}>
+                  <HonoraryDisclaimer name={name} />
+                </div>
+              )}
               {showUnlock ? (
                 // LOCKED — unlock is the only action. Lead with the pay panel; the
                 // abilities show as a dimmed "what you'll unlock" preview, not a
@@ -1179,6 +1185,11 @@ export function AgentWorkspace(props: Props) {
         </div>
         <div className={styles.infoName}>{name}</div>
         <div className={styles.infoMeta}>#{id4} · {tier} · {civName}</div>
+        {tier === "Honorary" && (
+          <div style={{ textAlign: "center" }}>
+            <HonoraryDisclaimer name={name} />
+          </div>
+        )}
         <div className={styles.statRow}>
           <div className={styles.stat}><span>Level</span><strong>{agent?.level ?? "—"}</strong></div>
           <div className={styles.stat}><span>Class</span><strong>{agent?.className ?? "—"}</strong></div>

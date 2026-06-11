@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getHonoraries, getIdentity, civilizationColor } from "@/lib/citizens";
 import { imageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
+import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
 
 export const revalidate = 3600;
 
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
   const og = `/api/og/${h.id}`;
   return {
     title: `Tribute · ${h.honoree} · #${h.id.toString().padStart(4, "0")}`,
-    description: `Citizen #${h.id.toString().padStart(4, "0")} of FREELON CITY carries the name of ${h.honoree}.`,
+    description: `Citizen #${h.id.toString().padStart(4, "0")} of FREELON CITY is named in tribute to ${h.honoree} — homage, not affiliation.`,
     openGraph: { images: [{ url: og, width: 1200, height: 630 }] },
     twitter: { card: "summary_large_image", images: [og] },
   };
@@ -76,9 +77,11 @@ export default async function TributePage({ params }: { params: Promise<{ handle
   // Lead with ⬡ — if honoree_handle starts with @ (common case), leading
   // with it would make X treat the tweet as a reply directed at that
   // account and suppress it for non-followers.
+  // Tribute frame (legal 2026-06-11): the tweet must read as homage by a fan
+  // project, never as a claim that the honoree IS a citizen or is affiliated.
   const tweet =
     `⬡ @4040hex · tribute · ${h.honoree_handle || h.honoree}\n\n` +
-    `Citizen #${id4} of FREELON CITY carries your name.\n` +
+    `Citizen #${id4} of FREELON CITY is named in tribute to you (homage — not affiliated).\n` +
     `Civilization: ${civ?.name}.\n` +
     `Doctrine: ${civ?.doctrine}.\n` +
     `The signal remembers.\n\n` +
@@ -108,6 +111,9 @@ export default async function TributePage({ params }: { params: Promise<{ handle
           )}
           <div className="civ-tag" style={{ color }}>
             {civ?.doctrine?.toUpperCase()} · {civ?.name?.toUpperCase()}
+          </div>
+          <div>
+            <HonoraryDisclaimer name={h.honoree} />
           </div>
           {currentPatron && (
             <a

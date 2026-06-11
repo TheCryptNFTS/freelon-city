@@ -7,6 +7,7 @@ import { useViewerAddr } from "@/lib/use-viewer";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { heroImageUrl } from "@/lib/constants";
 import { markChannel } from "@/lib/secrets-store";
+import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
 
 // EASTER EGG 5 — /channel/[handle]
 // Unlisted (robots noindex, no nav link). Opens if the connected wallet
@@ -35,6 +36,9 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
         ⬡ CHANNEL · @{handle.toUpperCase()} · TOKEN-GATED
       </div>
       <h1 style={{ marginTop: 14, fontSize: 48, fontWeight: 300, lineHeight: 1.1 }}>{honoree}</h1>
+      <div>
+        <HonoraryDisclaimer name={honoree} />
+      </div>
 
       <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "1fr 2fr", gap: 24, alignItems: "start" }}>
         <div style={{ aspectRatio: "1/1", overflow: "hidden", border: `1px solid ${civ?.color || "var(--line)"}` }}>

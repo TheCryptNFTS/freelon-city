@@ -4,6 +4,7 @@ import { getHonoraries } from "@/lib/citizens";
 import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
 import { PatronsSection } from "@/components/tribute/PatronsSection";
 import { ArchitectSection } from "@/components/tribute/ArchitectSection";
+import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
 
 // Patrons wall reads live tithes; revalidate inherited from the folded
 // /patrons page (2026-05-31).
@@ -46,6 +47,9 @@ export default async function TributeIndex() {
           Thirty-five citizens carry the name of a human who shaped the
           signal. Each is permanent in the record.
         </p>
+        <div>
+          <HonoraryDisclaimer />
+        </div>
       </section>
 
       {/* Sticky in-page sub-nav — folds patrons + architect into this hub

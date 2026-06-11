@@ -31,6 +31,7 @@ import { tweetTribute, tweetIntent } from "@/lib/share";
 import { getAgentHistory } from "@/lib/agent-history";
 import { unlockStatus } from "@/lib/missions/unlock-store";
 import { TransmissionLoop } from "@/components/TransmissionLoop";
+import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -180,6 +181,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   {c.honoree_handle} ↗
                 </a>
               )}
+              <div>
+                <HonoraryDisclaimer name={c.honoree} />
+              </div>
             </>
           )}
           {!c.transmission_name && !c.honoree && <h1>Citizen #{id4}</h1>}

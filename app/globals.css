@@ -4056,6 +4056,19 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* Make CityStats card elevated */
 .city-stats { background: var(--surface-2); }
 
+/* ===================== HONORARY DISCLAIMER (legal 2026-06-11) ===================== */
+/* Small inline chip, matches .realigned-badge / .x-verified-tick chrome —
+   muted ink, never a banner. Rendered wherever an honoree's real name shows. */
+.honorary-disclaimer-chip {
+  display: inline-block; margin: var(--s-2) 0;
+  padding: 4px 10px; border: 1px solid var(--line);
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.08em;
+  color: var(--ink-2); background: rgba(255,255,255,0.03); border-radius: 2px;
+  line-height: 1.6; max-width: 60ch;
+}
+.honorary-disclaimer-chip a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+.honorary-disclaimer-chip a:hover { color: var(--gold); }
+
 /* ============================ X VERIFICATION ============================ */
 .x-verified-tick {
   display: inline-block;

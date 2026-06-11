@@ -174,13 +174,15 @@ export function tweetRank(input: { address: string; rank?: number | null; total?
 }
 
 /**
- * Tribute share — used for honorary citizens.
+ * Tribute share — used for honorary citizens. Tribute frame (legal
+ * 2026-06-11): the copy must read as homage, never assert the real person
+ * IS a citizen or is affiliated with the project.
  */
 export function tweetTribute(input: { handle: string; tokenId: number }): string {
   const cleanHandle = input.handle.replace(/^@/, "");
   const id4 = input.tokenId.toString().padStart(4, "0");
   return [
-    `⬡ ${HANDLE} · @${cleanHandle} is citizen #${id4} of FREELON CITY.`,
+    `⬡ ${HANDLE} · Citizen #${id4} is named in tribute to @${cleanHandle} (homage — not affiliated).`,
     ``,
     `35 honorees. The signal remembers.`,
     `${HASHTAGS}`,
