@@ -11,3 +11,4 @@ public/generated/looktest/
 
 # Playwright screenshot harness output (npm run shots) — never commit
 screenshots/
+.lighthouse/
