@@ -39,6 +39,7 @@ export function WorkspaceUnlock({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [noWallet, setNoWallet] = useState(false);
 
   function eth(): Eth | null {
     return typeof window !== "undefined" ? ((window as unknown as { ethereum?: Eth }).ethereum ?? null) : null;
@@ -53,7 +54,18 @@ export function WorkspaceUnlock({
   }
 
   async function getQuote() {
-    if (!address) { onConnect(); return; }
+    if (!address) {
+      // No injected wallet (iPhone Safari, X's in-app browser): the parent's
+      // connect() falls back to alert(), which X's webview SUPPRESSES — the
+      // tap looked like it did nothing (holder report 2026-06-11). Fail loud
+      // and helpful inline instead, with a one-tap wallet-browser deep link.
+      if (!eth()) {
+        setNoWallet(true);
+        return;
+      }
+      onConnect();
+      return;
+    }
     setBusy(true); setErr(null); setNote(null); setStep("quoting");
     try {
       let creds: { address: string; signature: string } | null = null;
@@ -174,6 +186,23 @@ export function WorkspaceUnlock({
         </>
       )}
 
+      {noWallet && (
+        <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--line-2, #2a2a30)", background: "rgba(255,255,255,0.03)" }}>
+          <p style={{ fontSize: 12, color: "var(--ink-2, #b8b8c0)", lineHeight: 1.5, margin: 0 }}>
+            No crypto wallet in this browser, so the awakening can&apos;t start here.
+            Open this page inside your wallet app&apos;s browser and tap AWAKEN there:
+          </p>
+          <a
+            href={`https://metamask.app.link/dapp/${typeof window !== "undefined" ? window.location.host + window.location.pathname : ""}`}
+            style={{ display: "inline-block", marginTop: 8, fontFamily: "var(--mono2)", fontSize: 12, fontWeight: 700, color: accent, textDecoration: "underline" }}
+          >
+            OPEN IN METAMASK →
+          </a>
+          <p style={{ fontSize: 11, color: "var(--ink-dim, #8a8a92)", margin: "6px 0 0" }}>
+            Coinbase / Rainbow: open the app, find its browser tab, and paste this page&apos;s link.
+          </p>
+        </div>
+      )}
       {note && <p style={{ fontSize: 12, color: accent, marginTop: 10 }}>{note}</p>}
       {err && <p style={{ fontSize: 12, color: "#e0a8a4", marginTop: 10 }}>{err}</p>}
       <p style={{ fontSize: 10.5, color: "var(--ink-dim, #6a6a72)", marginTop: 12 }}>
