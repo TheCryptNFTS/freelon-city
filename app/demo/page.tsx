@@ -29,10 +29,10 @@ export const metadata = {
 // flagship FREELON leads (prepended below) as a DEMO-TIER taste — its identity is
 // self-contained in lib/demo-freelon and never touches the owned-agent money path.
 const DEMO_SLUGS: { slug: string; tokenId: number; art: string }[] = [
-  { slug: "the-crypt-official", tokenId: 1, art: "/og/art/crypt.png" },
-  { slug: "oogies", tokenId: 1, art: "/og/art/oogies.png" },
-  { slug: "emile0x1908", tokenId: 1, art: "/og/art/emile.png" },
-  { slug: "smiles-genesis", tokenId: 1, art: "/og/art/smiles.png" },
+  { slug: "the-crypt-official", tokenId: 1, art: "/og/art/crypt-sm.webp" },
+  { slug: "oogies", tokenId: 1, art: "/og/art/oogies-sm.webp" },
+  { slug: "emile0x1908", tokenId: 1, art: "/og/art/emile-sm.webp" },
+  { slug: "smiles-genesis", tokenId: 1, art: "/og/art/smiles-sm.webp" },
 ];
 
 // Short, in-character opening lines — one per agent, keyed by slug. Each matches

@@ -13,10 +13,19 @@ export function imageUrl(tokenId: number) {
 
 // Fast local mirror for the 4 1-of-1s + 35 honoraries — avoids IPFS gateway lag.
 // Falls through to the IPFS URL if the tokenId is not in the local set.
-import citizensData from "@/data/citizens.json";
-const _localIds = (citizensData as Array<{ id: number; tier: string }>)
-  .filter((c) => c.tier === "Honorary" || c.tier === "One of One")
-  .map((c) => c.id);
+//
+// PERF 2026-06-11: this used to `import citizensData from "@/data/citizens.json"`
+// and filter at runtime — which bundled the ENTIRE 1.4MB / 4040-row JSON into
+// the shared client chunk (lib/constants is imported by header components on
+// every route; Lighthouse flagged the chunk site-wide). The tier roster is
+// LOCKED (4 one-of-ones + 35 honoraries, see locked constraints), so the 39
+// ids are inlined. Regenerate if the impossible happens:
+//   node -e "const d=require('./data/citizens.json');console.log(JSON.stringify(d.filter(c=>c.tier==='Honorary'||c.tier==='One of One').map(c=>c.id).sort((a,b)=>a-b)))"
+const _localIds = [
+  1, 21, 42, 69, 88, 100, 111, 123, 169, 222, 333, 369, 404, 420, 444, 555,
+  666, 777, 808, 888, 999, 1000, 1111, 1234, 1337, 1500, 1776, 2000, 2222,
+  2580, 3000, 3333, 3456, 3690, 3777, 3888, 3939, 3999, 4040,
+];
 export const LOCAL_HEROES = new Set<number>(_localIds);
 export function heroImageUrl(tokenId: number) {
   if (LOCAL_HEROES.has(tokenId)) {

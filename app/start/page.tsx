@@ -16,6 +16,7 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
+import { preload } from "react-dom";
 import { ECONOMY } from "@/lib/economy-constants";
 import { TOTAL } from "@/lib/constants";
 import { PageBeacon } from "@/components/PageBeacon";
@@ -46,6 +47,12 @@ export const metadata: Metadata = {
 };
 
 export default function StartPage() {
+  // PERF 2026-06-11: Lighthouse attributed this page's LCP to the .home-page
+  // CSS background textures (prioritize-lcp-image, est. 1,070ms) — CSS-url
+  // images are discovered late. Both tiles are tiny webps now (8KB + 25KB);
+  // preloading them lets the textured surface paint with first render.
+  preload("/textures/archive-grain.webp", { as: "image", fetchPriority: "high" });
+  preload("/textures/hex-grid.webp", { as: "image" });
   return (
     /* Archival visual pass 2026-05-26: .home-page wrapper picks up
        textures + bg from the scoped system + the catch-all override
@@ -313,7 +320,11 @@ function Step({
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
         <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.28em", color: "var(--gold)" }}>STEP {n}</span>
-        <h3 style={{ fontFamily: "var(--display)", fontSize: 19, margin: 0, letterSpacing: "-0.005em" }}>{title}</h3>
+        {/* a11y heading-order 2026-06-11: was h3, but it's the first heading
+            after the page h1 (the Section "titles" are kicker spans, not
+            headings) — h1→h3 skips a level. h2 with identical inline styles;
+            visual unchanged. */}
+        <h2 style={{ fontFamily: "var(--display)", fontSize: 19, margin: 0, letterSpacing: "-0.005em" }}>{title}</h2>
       </div>
       <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.65, margin: "8px 0 12px" }}>
         {body}

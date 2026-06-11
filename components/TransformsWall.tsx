@@ -11,8 +11,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type TransformEntry = { tokenId: number; url: string; style: string; ts: number };
+
+// PERF 2026-06-11 — the wall was rendering RAW transform outputs (~2MB PNGs
+// from Vercel blob) into ~150px tiles; Lighthouse measured ~17MB of image
+// waste on the homepage from this strip alone. Known hosts go through
+// next/image (resized + webp via the optimizer, hosts whitelisted in
+// next.config remotePatterns); unknown/legacy hosts fall back to a plain
+// <img> rather than crashing next/image's host check.
+const OPTIMIZABLE_HOSTS = /(\.public\.blob\.vercel-storage\.com|gateway\.pinata\.cloud|ipfs\.io|dweb\.link)$/;
+function isOptimizable(url: string): boolean {
+  try {
+    return OPTIMIZABLE_HOSTS.test(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
 
 export default function TransformsWall({ limit = 12 }: { limit?: number }) {
   const [items, setItems] = useState<TransformEntry[]>([]);
@@ -58,13 +74,23 @@ export default function TransformsWall({ limit = 12 }: { limit?: number }) {
               className="transforms-wall-item"
               title={`#${id4} · ${t.style}`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={t.url}
-                alt={`FREELON #${id4} — ${t.style}`}
-                loading="lazy"
-                onError={() => setDead((p) => ({ ...p, [`${t.tokenId}-${t.ts}`]: true }))}
-              />
+              {isOptimizable(t.url) ? (
+                <Image
+                  src={t.url}
+                  alt={`FREELON #${id4} — ${t.style}`}
+                  fill
+                  sizes="(max-width: 600px) 50vw, 200px"
+                  onError={() => setDead((p) => ({ ...p, [`${t.tokenId}-${t.ts}`]: true }))}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={t.url}
+                  alt={`FREELON #${id4} — ${t.style}`}
+                  loading="lazy"
+                  onError={() => setDead((p) => ({ ...p, [`${t.tokenId}-${t.ts}`]: true }))}
+                />
+              )}
               <span className="transforms-wall-cap">#{id4} · {t.style}</span>
             </Link>
           );

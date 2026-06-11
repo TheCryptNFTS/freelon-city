@@ -40,10 +40,10 @@ export const maxDuration = 60;
  *  lib/demo-freelon and never routes through the sister token/persona path. */
 const DEMO: Record<string, { tokenId: number; art: string }> = {
   freelons: { tokenId: 0, art: FREELON_DEMO_DISPLAY.art },
-  "the-crypt-official": { tokenId: 1, art: "/og/art/crypt.png" },
-  oogies: { tokenId: 1, art: "/og/art/oogies.png" },
-  emile0x1908: { tokenId: 1, art: "/og/art/emile.png" },
-  "smiles-genesis": { tokenId: 1, art: "/og/art/smiles.png" },
+  "the-crypt-official": { tokenId: 1, art: "/og/art/crypt-sm.webp" },
+  oogies: { tokenId: 1, art: "/og/art/oogies-sm.webp" },
+  emile0x1908: { tokenId: 1, art: "/og/art/emile-sm.webp" },
+  "smiles-genesis": { tokenId: 1, art: "/og/art/smiles-sm.webp" },
 };
 
 /** Resolve a demo agent's display + server-authored persona. The flagship FREELON

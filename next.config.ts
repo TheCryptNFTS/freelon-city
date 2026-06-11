@@ -6,8 +6,19 @@ const config: NextConfig = {
       { protocol: "https", hostname: "gateway.pinata.cloud" },
       { protocol: "https", hostname: "ipfs.io" },
       { protocol: "https", hostname: "dweb.link" },
+      // PERF 2026-06-11: TransformsWall (homepage) renders owner transform
+      // outputs stored in Vercel blob — raw ~2MB PNGs into 150px tiles
+      // (~17MB measured waste). Whitelisting the blob host lets next/image
+      // serve resized webp variants instead.
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
   },
+  // PERF 2026-06-11: experimental.inlineCss was trialled to kill the
+  // render-blocking CSS request, but Next embeds the CSS TWICE per document
+  // (the <style> tag + a copy in the RSC flight payload) — every doc grew
+  // ~95KB gz and the heaviest pages (citizens/home) got slower in the
+  // Lighthouse simulation. Reverted: a separate, immutable, cached CSS file
+  // wins once fonts are self-hosted.
   async rewrites() {
     return [
       { source: "/origin-signal",    destination: "/citizens/1" },

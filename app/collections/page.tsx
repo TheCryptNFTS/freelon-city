@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { preload } from "react-dom";
 import { COLLECTION_META, STATUS_EXPLAINERS, loadCollection } from "@/lib/collections-data";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
 import { isAgenticCollection } from "@/lib/agent-subject";
@@ -26,15 +27,23 @@ export const metadata = {
   },
 };
 
+// PERF 2026-06-11: serve this page as ISR — floors (1h fetch cache) and the
+// graveyard ledger (300s fetch cache) were already revalidating underneath,
+// but without a route-level revalidate the page rendered per-request and the
+// whole document (including the LCP cover <img>) streamed behind the OpenSea
+// floor lookups. 300s matches the graveyard cadence (its "ago" labels are
+// rendered server-side) — same period /citizens uses.
+export const revalidate = 300;
+
 // Some collections' first on-chain record is video-only (Emile is .mp4),
 // which can't render in an <img>. Pin those to a local still mirror.
 // Pin covers to the re-treated local stills so /collections reads as the same
 // gold-on-dark family as /demo (the on-chain first-token art is bright/off-brand
 // for these three: emile is video-only, crypt/oogies are the original bright bg).
 const COVER_OVERRIDE: Record<string, string> = {
-  emile0x1908: "/og/art/emile.png",
-  "the-crypt-official": "/og/art/crypt.png",
-  oogies: "/og/art/oogies.png",
+  emile0x1908: "/og/art/emile.webp",
+  "the-crypt-official": "/og/art/crypt.webp",
+  oogies: "/og/art/oogies.webp",
 };
 
 // One representative token per collection for the cover art (first record).
@@ -52,6 +61,11 @@ function cover(slug: string): { img: string; total: number } {
 }
 
 export default async function CollectionsIndex() {
+  // PERF 2026-06-11: the first card's cover IS this page's LCP element, and
+  // even with loading="eager" + fetchpriority Lighthouse still measured ~3.9s
+  // of load delay (img discovered mid-document, behind the inventory panel).
+  // An explicit preload puts it at the front of the request queue.
+  preload("/og/art/freelons.webp", { as: "image", fetchPriority: "high" });
   const slugs = Object.keys(COLLECTION_META);
   const floors = await getFloors([...slugs, "freelons"]);
   const covers = Object.fromEntries(slugs.map((s) => [s, cover(s)]));
@@ -66,7 +80,7 @@ export default async function CollectionsIndex() {
       statusColor: "var(--gold)",
       kicker: "THE CITIZENS · 4040 TOTAL",
       blurb: "The 4040 citizens of FREELON CITY. Ten civilizations, seven castes, sixteen shapes.",
-      img: "/og/art/freelons.png",
+      img: "/og/art/freelons.webp",
       total: 4040,
       onsite: true,
     },
@@ -125,8 +139,13 @@ export default async function CollectionsIndex() {
       <SignalInventoryPanel />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gridAutoRows: "1fr", gap: "var(--s-3)" }}>
-        {cards.map((c) => {
+        {cards.map((c, i) => {
           const floor = formatFloor(floors[c.slug]);
+          // PERF 2026-06-11: the first card's cover IS the page's LCP element —
+          // lazy-loading it added a 21s load delay on simulated mobile. Only
+          // that card loads eager/high-priority; everything below stays lazy
+          // so nothing competes with the LCP download.
+          const eager = i === 0;
           return (
             <Link
               key={c.slug}
@@ -152,7 +171,7 @@ export default async function CollectionsIndex() {
                 <div style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 8, overflow: "hidden", border: `1px solid ${c.statusColor}33`, background: `linear-gradient(135deg, ${c.statusColor}14, rgba(0,0,0,0.55))` }}>
                   {c.img && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.img} alt={`${c.title} record`} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block", filter: "saturate(0.92) contrast(1.03)" }} />
+                    <img src={c.img} alt={`${c.title} record`} loading={eager ? "eager" : "lazy"} fetchPriority={eager ? "high" : undefined} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block", filter: "saturate(0.92) contrast(1.03)" }} />
                   )}
                   {(c as { agentic?: boolean }).agentic && (
                     <span

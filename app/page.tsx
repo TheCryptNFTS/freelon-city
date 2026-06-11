@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { preload } from "react-dom";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
 import { HeroAtmosphere } from "@/components/HeroAtmosphere";
@@ -62,6 +63,16 @@ export default async function Home() {
   // a stranger can actually TALK to a live citizen in ten seconds, then hit the
   // OWN A FREELON wall. Holder-aware override still happens in the Header.
   const seeAgentHref = "/demo";
+  // PERF 2026-06-11: hero backdrop preload moved here from app/layout.tsx —
+  // it was shipping 125KB of fetchPriority=high bytes to every route while
+  // only this page paints it (.hero--landing::before, globals.css).
+  preload("/lore/city.webp", { as: "image", fetchPriority: "high" });
+  // The .home-page texture tiles are CSS backgrounds, so the preload scanner
+  // can't see them — on /start Lighthouse measured ~1s of LCP load delay from
+  // exactly this. Tiny webps now (8KB + 25KB); preload so the textured
+  // surface paints with the hero instead of popping in after.
+  preload("/textures/archive-grain.webp", { as: "image" });
+  preload("/textures/hex-grid.webp", { as: "image" });
   return (
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */

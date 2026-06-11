@@ -133,6 +133,7 @@ export function MobileNav() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
+                    prefetch={false}
                     onClick={() => setOpen(false)}
                     style={l.gold ? { color: "var(--gold)" } : undefined}
                   >

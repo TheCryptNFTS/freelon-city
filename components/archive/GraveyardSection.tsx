@@ -16,8 +16,20 @@
  */
 import Link from "next/link";
 import Image from "next/image";
+import { unstable_cache } from "next/cache";
 import { heroImageUrl } from "@/lib/constants";
 import { listDumpLedger, type DumpLedgerEntry } from "@/lib/ghost-store";
+
+// PERF 2026-06-11 — listDumpLedger reads Upstash via `cache: "no-store"` REST
+// fetches, which silently forced every page embedding this section (today:
+// /collections) into per-request dynamic rendering. Caching the read with
+// unstable_cache (same pattern as TopAgents / CityWeekBand) keeps the route
+// ISR-able; 300s matches the OpenSea transfers cache below.
+const getDumpLedger = unstable_cache(
+  async () => listDumpLedger(50).catch((): DumpLedgerEntry[] => []),
+  ["graveyard-dump-ledger", "v1"],
+  { revalidate: 300 },
+);
 
 const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
 const COLLECTION_SLUG = "freelons";
@@ -97,7 +109,7 @@ function timeAgo(ts: number | null | undefined) {
 export async function GraveyardSection({ limit }: { limit?: number } = {}) {
   const [transfers, dumps] = await Promise.all([
     fetchTransfers(),
-    listDumpLedger(50).catch((): DumpLedgerEntry[] => []),
+    getDumpLedger(),
   ]);
   const filtered = transfers.filter(
     (t) =>

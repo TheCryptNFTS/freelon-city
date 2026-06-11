@@ -15,6 +15,7 @@ import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
 import { ChromeGate } from "@/components/ChromeGate";
 import { ReferralBeacon } from "@/components/ReferralBeacon";
+import { StyledJsxRegistry } from "@/components/StyledJsxRegistry";
 
 // T3 2026-06-11 — share defaults must SELL. Every page without its own
 // openGraph/twitter block inherits these, and "404 — FREELON CITY" as an
@@ -52,23 +53,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://api.fontshare.com" />
-        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* 2026-05-28 studio-pass Track 2 — "Editorial Graffiti" type system.
-           Clash Display (Fontshare) is the new display face (headlines);
-           Space Mono (Google) replaces IBM Plex Mono for labels/kickers.
-           Satoshi stays as the BODY grotesque (Clash is display-only, not a
-           text face). IBM Plex Mono kept loaded as a fallback for any
-           data-dense surface that needs Space Mono dialed back later. */}
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=clash-grotesk@400,500,600&f[]=satoshi@400,500,700&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
+           Clash Display = display face (headlines); Clash Grotesk = labels/
+           UI (--mono2); Satoshi = body; Space Mono = raw data (--mono).
+           PERF 2026-06-11: the fontshare + Google Fonts CSS links here were
+           ~880ms of render-blocking on every route — all four families are
+           now SELF-HOSTED (public/fonts/*.woff2, @font-face in globals.css,
+           same family names + font-display: swap). Preload only the three
+           faces that paint above the fold; the rest load on demand. */}
+        <link rel="preload" as="font" type="font/woff2" href="/fonts/clash-display-600.woff2" crossOrigin="anonymous" />
+        <link rel="preload" as="font" type="font/woff2" href="/fonts/clash-grotesk-400.woff2" crossOrigin="anonymous" />
+        <link rel="preload" as="font" type="font/woff2" href="/fonts/satoshi-400.woff2" crossOrigin="anonymous" />
         {/* BUG-13 fix 2026-05-26: added /favicon.ico (multi-size ICO
            with 16/32/48px embedded) so browsers' implicit
            /favicon.ico request gets a 200 instead of a 404. The
@@ -77,19 +72,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/favicon.png" />
-        {/* Preload the LCP hero image — the FREELON CITY skyline (123KB
-            webp). 2026-05-28: swapped from the #4040 NFT render to the
-            cityscape so the hero leads with the world, not a product. */}
-        <link
-          rel="preload"
-          as="image"
-          fetchPriority="high"
-          href="/lore/city.webp"
-          type="image/webp"
-        />
+        {/* PERF 2026-06-11: the /lore/city.webp hero-backdrop preload that
+            lived here pushed 125KB of fetchPriority=high bytes onto EVERY
+            route — it is homepage-only art. The preload moved to
+            app/page.tsx (ReactDOM.preload), scoped to the page that paints it. */}
         <link rel="preconnect" href="https://gateway.pinata.cloud" />
       </head>
       <body>
+        <StyledJsxRegistry>
         <a href="#main" className="skip-link">Skip to main content</a>
         {/* Global chrome is hidden on the full-screen agent-workspace routes
             (see ChromeGate) so the Header/Footer can't bleed through the
@@ -134,6 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QuestToast />
         <CityNotice />
         <ErrorReporter />
+        </StyledJsxRegistry>
       </body>
     </html>
   );

@@ -4,15 +4,35 @@
  * to logged-out buyers). Empty until citizens specialize → shows a claim hook.
  */
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { topTrainedAgents } from "@/lib/top-agents";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
 import { imageUrl } from "@/lib/constants";
 
+// PERF 2026-06-11 — /citizens declares revalidate=300 (ISR) but was building
+// as ƒ Dynamic: the Upstash reads here (`cache: "no-store"` REST fetches)
+// silently opted the whole route into per-request rendering, and Lighthouse
+// measured TTFB 1,134ms (2.5× every other route). Caching the reads with
+// unstable_cache (same pattern as CityWeekBand) takes the no-store fetches
+// out of the render path so the route prerenders again. 300s matches the
+// page's own revalidate — the rail is a showcase, not a live scoreboard.
+// NOTE: unstable_cache JSON-serializes its return value, so the activated-ids
+// Set crosses the cache boundary as an array and is rebuilt below.
+const getTopAgentsData = unstable_cache(
+  async (limit: number) => {
+    const agents = await topTrainedAgents(limit).catch(() => []);
+    // "Awakened" glow on activated agents — one cheap fail-quiet set fetch.
+    const { listActivatedTokenIds } = await import("@/lib/missions/unlock-store");
+    const activated = await listActivatedTokenIds().catch(() => new Set<number>());
+    return { agents, activatedIdList: [...activated] };
+  },
+  ["top-agents-rail", "v1"],
+  { revalidate: 300 },
+);
+
 export async function TopAgents({ limit = 8 }: { limit?: number }) {
-  const agents = await topTrainedAgents(limit).catch(() => []);
-  // "Awakened" glow on activated agents — one cheap fail-quiet set fetch.
-  const { listActivatedTokenIds } = await import("@/lib/missions/unlock-store");
-  const activatedIds = await listActivatedTokenIds().catch(() => new Set<number>());
+  const { agents, activatedIdList } = await getTopAgentsData(limit);
+  const activatedIds = new Set<number>(activatedIdList);
 
   return (
     <section className="citizens-section reveal topagents">

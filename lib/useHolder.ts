@@ -1,7 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { createPublicClient, http, fallback } from "viem";
-import { mainnet } from "viem/chains";
 import { CONTRACT } from "@/lib/constants";
 import { VIEWER_ADDR_EVENT } from "@/lib/viewer-cookie";
 
@@ -44,16 +42,30 @@ const FALLBACKS = [
   "https://ethereum-rpc.publicnode.com",
   "https://eth.drpc.org",
 ];
-const publicClient = createPublicClient({
-  chain: mainnet,
-  transport: fallback(
-    [
-      ...(CONFIGURED ? [http(CONFIGURED, { timeout: 5_000 })] : []),
-      ...FALLBACKS.map((u) => http(u, { timeout: 4_000 })),
-    ],
-    { rank: false, retryCount: 1 },
-  ),
-});
+// PERF 2026-06-11: viem was a STATIC import in this hook, and four header
+// components (HexPill / SeeAgent / HolderLinks / MobileNav) use it on every
+// route — shipping the viem chunk to every cold visitor. The client is now
+// built behind a dynamic import the first time a balance actually resolves
+// (i.e. only when a wallet/cookie address exists). Same lazy pattern as
+// components/WalletConnect.tsx.
+async function makePublicClient() {
+  const [viem, chains] = await Promise.all([import("viem"), import("viem/chains")]);
+  return viem.createPublicClient({
+    chain: chains.mainnet,
+    transport: viem.fallback(
+      [
+        ...(CONFIGURED ? [viem.http(CONFIGURED, { timeout: 5_000 })] : []),
+        ...FALLBACKS.map((u) => viem.http(u, { timeout: 4_000 })),
+      ],
+      { rank: false, retryCount: 1 },
+    ),
+  });
+}
+let publicClientPromise: ReturnType<typeof makePublicClient> | null = null;
+function getPublicClient() {
+  if (!publicClientPromise) publicClientPromise = makePublicClient();
+  return publicClientPromise;
+}
 
 // window.ethereum type lives in lib/ethereum.d.ts
 
@@ -97,6 +109,7 @@ export function useHolder(): HolderState {
       // from either source is real.
       let rpcBal = 0;
       try {
+        const publicClient = await getPublicClient();
         const bal = (await publicClient.readContract({
           address: CONTRACT as `0x${string}`,
           abi: ABI,

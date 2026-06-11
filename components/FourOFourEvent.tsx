@@ -72,11 +72,19 @@ export function FourOFourEvent() {
   const bracketLive = useMemo(() => (now ? SLOTS[0].kind === "timed" && SLOTS[0].live?.(now) : false), [now]);
   useEffect(() => { if (bracketLive) { try { markGhost404(); } catch {} setIdx(0); } }, [bracketLive]);
 
-  if (!now) return null;
-  const slot = SLOTS[idx];
+  // PERF/CLS 2026-06-11: this used to be `if (!now) return null` — the whole
+  // banner popped in only AFTER hydration, pushing <main> down on EVERY route
+  // (the recurring ~0.05 CLS) and forcing a late re-paint of each page's LCP
+  // element (Lighthouse render-delay 3-4.6s chained on the JS bundle). The
+  // board is now server-rendered at full height with the first clock-FREE slot
+  // (countdowns need the client clock); the live countdown takes over on the
+  // first tick. Server and first client render both hit the !now branch, so
+  // there is no hydration mismatch.
+  const shownIdx = now ? idx : Math.max(0, SLOTS.findIndex((s) => s.kind === "ever"));
+  const slot = SLOTS[shownIdx];
 
   let text: string;
-  if (slot.kind === "timed") {
+  if (slot.kind === "timed" && now) {
     if (slot.live?.(now)) {
       const closeMs = (() => { const y = now.getUTCFullYear(); const open = Date.UTC(y, now.getUTCMonth(), now.getUTCDate(), 4, 4, 0, 0); return open + BRACKET_WINDOW_MS - now.getTime(); })();
       text = `${slot.liveLabel} · CLOSES IN ${fmt(closeMs)}`;
@@ -87,7 +95,7 @@ export function FourOFourEvent() {
     text = slot.label;
   }
 
-  const active = slot.kind === "timed" && slot.live?.(now);
+  const active = slot.kind === "timed" && !!now && slot.live?.(now);
   const inner = (
     <span className="four-board__text" key={slot.id}>{text}</span>
   );
@@ -113,9 +121,9 @@ export function FourOFourEvent() {
             key={s.id}
             type="button"
             role="tab"
-            aria-selected={i === idx}
+            aria-selected={i === shownIdx}
             aria-label={`Event ${i + 1}`}
-            className={`four-board__dot${i === idx ? " on" : ""}`}
+            className={`four-board__dot${i === shownIdx ? " on" : ""}`}
             onClick={() => setIdx(i)}
           />
         ))}

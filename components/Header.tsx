@@ -30,18 +30,23 @@ export function Header() {
               were removed from the front door — those pages still exist by URL but
               are off the newcomer's critical path. The whole site is now:
               own → see an agent → chat. */}
-          <Link href="/citizens" className="nav-link nav-start">FREELONS</Link>
-          <Link href="/collections" className="nav-link">Collections</Link>
+          {/* PERF 2026-06-11: prefetch={false} on the always-visible nav spine.
+              These four links auto-prefetched their full RSC payloads on EVERY
+              page load (~240KB — /citizens alone is ~107KB, its 4040-row
+              browse dataset). Navigation now fetches on click (~100-300ms),
+              first-load bandwidth goes to the page being viewed. */}
+          <Link href="/citizens" prefetch={false} className="nav-link nav-start">FREELONS</Link>
+          <Link href="/collections" prefetch={false} className="nav-link">Collections</Link>
           {/* V1 SIGNAL OS (2026-06-10): Start restored to the desktop spine — the
               mobile sheet already carries "New here? Start" but desktop newcomers
               had no explainer path except the small hero text link. Keeps the
               06-08 radical condense intact (still no Explore ▾ / Earn / Play). */}
-          <Link href="/start" className="nav-link">Start</Link>
+          <Link href="/start" prefetch={false} className="nav-link">Start</Link>
           {/* 2026-06-10 Discord feedback ("are the games still there? I am
               lost"): Play restored for EVERYONE — hex-match + proof are free,
               no-wallet hooks, and hiding them read as "the games are gone".
               Softens the 06-08 condense by exactly one link. */}
-          <Link href="/play" className="nav-link">Play</Link>
+          <Link href="/play" prefetch={false} className="nav-link">Play</Link>
           {/* Returning-holder tools — only render once a holding wallet is
               connected, so the newcomer front door stays condensed. */}
           <HeaderHolderLinks />
