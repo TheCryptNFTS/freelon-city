@@ -1,0 +1,127 @@
+/* DEMO TWO-COLUMN SPLIT — ChatGPT/Claude centered-chat-with-context-rail.
+   (Visual build order 2026-06-10, FLAGSHIP item.)
+
+   ≥1024px: LEFT a sticky ~280px rail holding the ACTIVE agent's premium framed
+   portrait (FramedAgent — the one recurring object across the product) + name
+   + civ-color accent + the ownership pointer ("THE ONE YOU CAN OWN" → own a
+   FREELON). RIGHT the chat at a ~620px reading measure. Kills the
+   stranded-phone-column-in-a-desert look on wide screens.
+
+   <1024px: .rail is display:none and .split is a plain block — the current
+   single-stack behavior is unchanged. Presentational only: nothing here
+   touches the metered /api/demo path. */
+
+/* Page wrapper (app/demo/page.tsx). Mobile = the old 760px column. */
+.page {
+  max-width: 760px;
+  margin: var(--s-6) auto;
+  padding: 0 var(--pad);
+}
+
+/* Chat column must be allowed to shrink inside the grid track. */
+.chatCol {
+  min-width: 0;
+}
+
+/* Rail hidden below the split breakpoint — single stack stays untouched. */
+.rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  /* 280 rail + 48 gutter + 620 chat = 948 content; padding rides on top so
+     the page header's edges align exactly with the grid's outer edges. */
+  .page {
+    max-width: calc(948px + var(--pad) * 2);
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 620px);
+    gap: 48px;
+    align-items: start;
+  }
+
+  .rail {
+    display: block;
+  }
+
+  .railSticky {
+    /* 72px sticky site header + 24px breath. */
+    position: sticky;
+    top: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ── Rail identity (active agent) ─────────────────────────────────────── */
+.railName {
+  margin-top: 18px;
+  font-family: var(--display);
+  font-size: 26px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* Civ-color accent — color is set inline from the active agent. */
+.railCollection {
+  margin-top: 8px;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ── Ownership pointer (always true: it names the FREELON) ────────────── */
+.railRule {
+  width: 56px;
+  height: 1px;
+  background: var(--line-2);
+  margin: 20px auto 16px;
+}
+
+.railOwnKicker {
+  display: block;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.railOwnLink {
+  display: inline-block;
+  margin-top: 9px;
+  font-family: var(--mono2);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s var(--ease-out-quint, ease);
+}
+.railOwnLink:hover {
+  color: var(--gold-bright);
+}
+
+/* ── Free-turn pill (composer) ─────────────────────────────────────────
+   Visible from turn zero — seeded display-only, corrected by every server
+   response. Number prints in tabular-nums like all data on the site. */
+.turnsPill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 11px;
+  white-space: nowrap;
+}

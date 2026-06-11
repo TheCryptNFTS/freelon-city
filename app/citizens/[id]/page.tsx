@@ -32,6 +32,8 @@ import { getAgentHistory } from "@/lib/agent-history";
 import { unlockStatus } from "@/lib/missions/unlock-store";
 import { TransmissionLoop } from "@/components/TransmissionLoop";
 import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
+import { RevealOnScroll } from "@/components/RevealOnScroll";
+import beats from "@/components/DossierBeats.module.css";
 
 export const dynamicParams = true;
 export const revalidate = 3600;
@@ -83,16 +85,18 @@ type CitizenLike = {
 /**
  * CITIZEN PROFILE — the public, shareable IDENTITY page.
  *
- * 2026-06-07 gut (audit): this page is the buy + share surface, so it leads
- * with identity (art, name, civ, lore, scarcity) and a SINGLE focal action —
- * open the agent workspace. Every owner tool (evolve, jobs, name, realign,
- * check-in, résumé, record) is consolidated into one collapsed, self-hiding
- * shelf so a newcomer sees a one-screen identity page, not an instrument panel.
+ * 2026-06-11 (Book city chapter): restructured into a premium-PDP 3-beat read
+ * — BEAT 1 identity (art, name, civ, epithet, scarcity) → BEAT 2 the public
+ * record (cutscene, latest work artifact w/ relic chrome, work-log link, life
+ * cells, artifacts) → BEAT 3 ONE primary CTA (open the workspace). Everything
+ * else is folded, not deleted: OWNER TOOLS / DEEP RECORDS <details> shelves +
+ * the existing "new here" explainer fold. Beats stage in via RevealOnScroll
+ * (70ms stagger, 600ms quint, once, reduced-motion-gated).
  *
- * Removed in the gut: the 0-1000 "value score" card (read as an appreciation
- * proxy next to real ETH sale data — copy-safety risk) and the SIGNAL-LOST /
- * DUMPED ghost state (degen floor-trading vocabulary, off the premium-collector
- * brand). Both are gone, not hidden.
+ * Removed in the 2026-06-07 gut: the 0-1000 "value score" card (read as an
+ * appreciation proxy next to real ETH sale data — copy-safety risk) and the
+ * SIGNAL-LOST / DUMPED ghost state (degen floor-trading vocabulary, off the
+ * premium-collector brand). Both are gone, not hidden.
  */
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -157,308 +161,308 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     <div className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
       <article className="citizen-grid">
         <aside className="citizen-image">
-          <div className={`img-shell relic-card${isActivated ? " is-activated" : ""}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl(tid)} alt={c.name} />
-            {isActivated && <span className="activated-glyph" aria-label="Activated agent">⬡ AWAKENED</span>}
-          </div>
-          <div className="img-meta">
-            <span className="big-id">#{id4}</span>
-            <span className="big-tier" style={{ color }}>{c.tier}</span>
-          </div>
+          {/* Art rises first (slot 0); the sticky positioning stays on the
+              aside itself so the wrapper never breaks it. */}
+          <RevealOnScroll index={0}>
+            <div className={`img-shell relic-card${isActivated ? " is-activated" : ""}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imageUrl(tid)} alt={c.name} />
+              {isActivated && <span className="activated-glyph" aria-label="Activated agent">⬡ AWAKENED</span>}
+            </div>
+            <div className="img-meta">
+              <span className="big-id">#{id4}</span>
+              <span className="big-tier" style={{ color }}>{c.tier}</span>
+            </div>
+          </RevealOnScroll>
         </aside>
 
         <section className="citizen-body">
-          <span className="stamp">⬡ FREELON CITY · CITIZEN #{id4}</span>
-          <CitizenOwnedByYou citizenId={tid} />
-          {customName?.name && <div className="custom-name">{customName.name}</div>}
-          {c.transmission_name && <h1>{c.transmission_name}</h1>}
-          {c.honoree && !c.transmission_name && (
-            <>
-              <h1>{c.honoree}</h1>
-              {c.honoree_handle && (
-                <a className="honoree-handle" href={`https://twitter.com/${cleanHandle}`} target="_blank" rel="noreferrer">
-                  {c.honoree_handle} ↗
-                </a>
-              )}
-              <div>
-                <HonoraryDisclaimer name={c.honoree} />
-              </div>
-            </>
-          )}
-          {!c.transmission_name && !c.honoree && <h1>Citizen #{id4}</h1>}
-          {(() => {
-            const epithet = epithetFor(c);
-            return epithet ? (
-              <div className="citizen-epithet" style={{ color }}>{epithet}</div>
-            ) : null;
-          })()}
-
-          <div className="civ-line" style={{ color }}>
-            <span className="dot" />
-            {civ?.name?.toUpperCase()} · {c.doctrine?.toUpperCase()}
-          </div>
-          {realign && alignedCivDef && (
-            <div className="realigned-badge">
-              ⬡ ALIGNED TO {alignedCivDef.name.toUpperCase()}
-            </div>
-          )}
-
-          {/* IDENTITY — the lore that makes this a character, kept short. */}
-          {identity && (
-            <div className="identity-block">
-              <div className="headline" style={{ color }}>{identity.headline}</div>
-              <p className="bio">{identity.bio}</p>
-            </div>
-          )}
-
-          {/* RECOVERED TRANSMISSION — an ambient battle-record loop for the
-              1/1s + honoraries: Grok img2vid animated FROM the citizen's
-              transmission still (itself generated from the real render), so
-              the character is faithful; the still is the poster/fallback. */}
-          {hasCutscene && (
-            <section className="transmission-cut">
-              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ RECOVERED TRANSMISSION · COMBAT RECORD</span>
-              <TransmissionLoop
-                src={`/transmission-stills/${tid}.mp4`}
-                poster={`/transmission-stills/${tid}.jpg`}
-                alt={`Combat record — citizen #${id4}`}
-              />
-            </section>
-          )}
-
-          {/* THE ONE HERO — open the agent workspace. The profile is the public,
-              shareable identity page; this single action opens the full
-              workspace (chat, image, history, owner tools) "like opening
-              ChatGPT or Claude". */}
-          <Link href={`/agent/${tid}`} className="workspace-open-cta" style={{ ["--accent" as string]: color }}>
-            <span className="wo-kicker">YOUR AGENT WORKSPACE</span>
-            <span className="wo-title">Open the workspace →</span>
-            <span className="wo-sub">Chat, generate, and build a permanent work history — all in one place, like opening ChatGPT or Claude.</span>
-          </Link>
-          {/* Social proof — real strangers have already unlocked. Self-hides at 0. */}
-          <div style={{ margin: "var(--s-3) 0" }}>
-            <ActivationProof compact />
-          </div>
-          {/* LATEST WORK — the newest image artifact as visible public proof.
-              Self-hides when the citizen has produced no image work yet. */}
-          {latestWorkImage && (
-            <section className="panel-premium" style={{ padding: "var(--s-4)", margin: "var(--s-3) 0 0" }}>
-              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ LATEST WORK · PUBLIC RECORD</span>
-              <Link href={`/citizens/${tid}/log`} style={{ display: "block", marginTop: 10 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={latestWorkImage.body}
-                  alt={`${latestWorkImage.abilityLabel || latestWorkImage.ability} — ${latestWorkImage.task}`}
-                  loading="lazy"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    maxWidth: 360,
-                    borderRadius: 10,
-                    border: "1px solid color-mix(in srgb, var(--gold) 35%, transparent)",
-                  }}
-                />
-              </Link>
-              <div
-                style={{
-                  marginTop: 8,
-                  fontFamily: "var(--mono2)",
-                  fontSize: 11,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  color: "var(--ink-dim)",
-                }}
-              >
-                {latestWorkImage.abilityLabel || latestWorkImage.ability} · {latestWorkImage.task}
-              </div>
-            </section>
-          )}
-          {agentWorkCount > 0 && (
-            <div className="worklog-cta-row">
-              <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>
-                <span className="ttl">VIEW PUBLIC WORK LOG →</span>
-              </Link>
-            </div>
-          )}
-
-          {/* SCARCITY — why this one is collectible. Identity, not a price. Each
-              line carries a rarity meter (rarer = shorter, emptier bar) so "1 of 6"
-              READS rarer than "1 of 412" instead of looking identical. The exact
-              civ×shape×tier combo is flagged RAREST when its population is tiny. */}
-          <div className="scarcity">
-            <span className="kicker">SCARCITY</span>
-            <ul>
-              {[
-                { n: counts.sameCiv, label: `${civ?.name} citizens`, rare: false },
-                { n: counts.sameShape, label: `${c.shape} shapes`, rare: false },
-                { n: counts.sameCombo, label: "with this exact civ × shape × tier", rare: counts.sameCombo <= 25 },
-              ].map((row, i) => (
-                <li
-                  key={i}
-                  data-rare={row.rare ? "true" : undefined}
-                  style={{ "--pct": Math.min(1, Math.max(0.012, row.n / 4040)) } as React.CSSProperties}
-                >
-                  <div className="scar-row">
-                    <span>1 of</span>
-                    <strong>{row.n}</strong>
-                    <span className="scar-label">{row.label}</span>
-                    {row.rare && <span className="scar-rarest">RAREST</span>}
-                  </div>
-                  <span className="scar-bar" aria-hidden="true" />
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* COLLECTOR FACTS + CITY RECORD — rarity/provenance, then the token's
-              LIFE (level, public work log, artifacts). Factual data only; the
-              life cells self-hide until a record exists. */}
-          <div className="citizen-meta-strip">
-            <div className="cm-cell">
-              <span className="cm-lbl">Rarity rank</span>
-              <span className="cm-val">{rank ? `#${rank}` : "—"} <small>/ 4040</small></span>
-            </div>
-            <div className="cm-cell">
-              <span className="cm-lbl">Days held</span>
-              <span className="cm-val">{meta.daysHeld != null ? `${meta.daysHeld}d` : "—"}</span>
-            </div>
-            <div className="cm-cell">
-              <span className="cm-lbl">Last sale</span>
-              <span className="cm-val">{meta.lastSaleEth != null ? `${meta.lastSaleEth.toFixed(4)} ETH` : "—"}</span>
-            </div>
-            {hasLife && (
+          {/* ══ BEAT 1 · IDENTITY — who this is + why it's collectible
+                 (art, name, civ, epithet, scarcity). ══ */}
+          <RevealOnScroll index={1}>
+            <span className="stamp">⬡ FREELON CITY · CITIZEN #{id4}</span>
+            <CitizenOwnedByYou citizenId={tid} />
+            {customName?.name && <div className="custom-name">{customName.name}</div>}
+            {c.transmission_name && <h1>{c.transmission_name}</h1>}
+            {c.honoree && !c.transmission_name && (
               <>
-                <div className="cm-cell">
-                  <span className="cm-lbl">Level</span>
-                  <span className="cm-val">LV {progress?.level ?? 1}{levelRank ? <small> · city #{levelRank}</small> : null}</span>
-                </div>
-                <div className="cm-cell">
-                  <span className="cm-lbl">Work log</span>
-                  <span className="cm-val">{agentWorkCount}</span>
-                </div>
-                <div className="cm-cell">
-                  <span className="cm-lbl">Artifacts</span>
-                  <span className="cm-val">{artifacts.length}</span>
+                <h1>{c.honoree}</h1>
+                {c.honoree_handle && (
+                  <a className="honoree-handle" href={`https://twitter.com/${cleanHandle}`} target="_blank" rel="noreferrer">
+                    {c.honoree_handle} ↗
+                  </a>
+                )}
+                <div>
+                  <HonoraryDisclaimer name={c.honoree} />
                 </div>
               </>
             )}
-          </div>
+            {!c.transmission_name && !c.honoree && <h1>Citizen #{id4}</h1>}
+            {(() => {
+              const epithet = epithetFor(c);
+              return epithet ? (
+                <div className="citizen-epithet" style={{ color }}>{epithet}</div>
+              ) : null;
+            })()}
 
-          {/* ARTIFACTS — public, status-only, travels with the token. Moved OUT
-              of the owner fold (2026-06-10): this is the public record a buyer
-              should see, not an owner control. Self-hides at zero. */}
-          {artifacts.length > 0 && (
-            <section className="panel-premium" style={{ padding: "var(--s-4)", marginTop: "var(--s-3)" }}>
-              <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ARTIFACTS · {artifacts.length}</span>
-              <p style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "var(--ink-dim)", margin: "4px 0 12px" }}>
-                Week-stamped marks earned in the city. They travel with the NFT.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {artifacts.map((a) => (
-                  <span
-                    key={a.id}
-                    title={a.title}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 11px",
-                      borderRadius: 999, border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)",
-                      background: "color-mix(in srgb, var(--gold) 8%, transparent)",
-                      fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink)", letterSpacing: "0.04em",
-                    }}
+            <div className="civ-line" style={{ color }}>
+              <span className="dot" />
+              {civ?.name?.toUpperCase()} · {c.doctrine?.toUpperCase()}
+            </div>
+            {realign && alignedCivDef && (
+              <div className="realigned-badge">
+                ⬡ ALIGNED TO {alignedCivDef.name.toUpperCase()}
+              </div>
+            )}
+
+            {/* IDENTITY — the lore that makes this a character, kept short. */}
+            {identity && (
+              <div className="identity-block">
+                <div className="headline" style={{ color }}>{identity.headline}</div>
+                <p className="bio">{identity.bio}</p>
+              </div>
+            )}
+
+            {/* SCARCITY — why this one is collectible. Identity, not a price. Each
+                line carries a rarity meter (rarer = shorter, emptier bar) so "1 of 6"
+                READS rarer than "1 of 412" instead of looking identical. The exact
+                civ×shape×tier combo is flagged RAREST when its population is tiny. */}
+            <div className="scarcity">
+              <span className="kicker">SCARCITY</span>
+              <ul>
+                {[
+                  { n: counts.sameCiv, label: `${civ?.name} citizens`, rare: false },
+                  { n: counts.sameShape, label: `${c.shape} shapes`, rare: false },
+                  { n: counts.sameCombo, label: "with this exact civ × shape × tier", rare: counts.sameCombo <= 25 },
+                ].map((row, i) => (
+                  <li
+                    key={i}
+                    data-rare={row.rare ? "true" : undefined}
+                    style={{ "--pct": Math.min(1, Math.max(0.012, row.n / 4040)) } as React.CSSProperties}
                   >
-                    <span style={{ color: "var(--gold)" }}>⬡</span>{a.title}
-                  </span>
+                    <div className="scar-row">
+                      <span>1 of</span>
+                      <strong>{row.n}</strong>
+                      <span className="scar-label">{row.label}</span>
+                      {row.rare && <span className="scar-rarest">RAREST</span>}
+                    </div>
+                    <span className="scar-bar" aria-hidden="true" />
+                  </li>
                 ))}
-              </div>
-            </section>
-          )}
+              </ul>
+            </div>
+          </RevealOnScroll>
 
-          {/* CITY DISPATCH — moved OUT of the owner fold (2026-06-10). The panel
-              self-gates: owners get the send control, everyone else only ever
-              sees the public dispatch log, and it renders nothing for a token
-              with no history. The just-shipped "send it out, it returns with a
-              story" moment shouldn't live in a drawer. */}
-          <DispatchPanel citizenId={tid} name={customName?.name || c.transmission_name || c.name || `Citizen #${id4}`} />
-
-          <dl className="trait-grid">
-            {FIELDS.map((f) => (
-              <div key={f.key} className="trait">
-                <dt>{f.label.toUpperCase()}</dt>
-                <dd>{(c as unknown as CitizenLike)[f.key]}</dd>
-              </div>
-            ))}
-            {c.aura && c.aura !== "None" && (
-              <div className="trait"><dt>AURA</dt><dd>{c.aura}</dd></div>
+          {/* ══ BEAT 2 · THE PUBLIC RECORD — what this token has DONE: the
+                 work artifact (relic chrome), the work log, the life cells,
+                 the week-stamped artifacts. ══ */}
+          <RevealOnScroll index={2}>
+            {/* RECOVERED TRANSMISSION — an ambient battle-record loop for the
+                1/1s + honoraries: Grok img2vid animated FROM the citizen's
+                transmission still (itself generated from the real render), so
+                the character is faithful; the still is the poster/fallback. */}
+            {hasCutscene && (
+              <section className="transmission-cut">
+                <span className="kicker" style={{ color: "var(--gold)" }}>⬡ RECOVERED TRANSMISSION · COMBAT RECORD</span>
+                <TransmissionLoop
+                  src={`/transmission-stills/${tid}.mp4`}
+                  poster={`/transmission-stills/${tid}.jpg`}
+                  alt={`Combat record — citizen #${id4}`}
+                />
+              </section>
             )}
-          </dl>
 
-          {/* LORE — collapsed; deep lore is a paid unlock. */}
-          <details className="collector-details">
-            <summary className="collector-summary">Lore &amp; deep signal</summary>
-            {c.tier === "Honorary" && (
-              <QuestTracker questId="archivist" stepId={`honoree:${id4}`} />
+            {/* LATEST WORK — the newest image artifact as visible public proof,
+                presented as a "moment": relic chrome (gold top hairline, layered
+                shadow, hover lift — DossierBeats.module.css). Self-hides when
+                the citizen has produced no image work yet. */}
+            {latestWorkImage && (
+              <section className="panel-premium" style={{ padding: "var(--s-4)", margin: "var(--s-3) 0 0" }}>
+                <span className="kicker" style={{ color: "var(--gold)" }}>⬡ LATEST WORK · PUBLIC RECORD</span>
+                <Link href={`/citizens/${tid}/log`} className={beats.latestWork}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={latestWorkImage.body}
+                    alt={`${latestWorkImage.abilityLabel || latestWorkImage.ability} — ${latestWorkImage.task}`}
+                    loading="lazy"
+                  />
+                </Link>
+                <div className={beats.workCaption}>
+                  {latestWorkImage.abilityLabel || latestWorkImage.ability} · {latestWorkImage.task}
+                </div>
+              </section>
             )}
-            <CitizenDeepLore
-              citizenId={tid}
-              cost={unlockCost(tid)}
-              deepLore={getDeepLore(c)}
-              previewLine={
-                identity?.bio
-                  ? identity.bio.split(/(?<=[.!?])\s+/)[0] || identity.bio.slice(0, 160)
-                  : `Citizen #${id4} of ${civ?.name}.`
-              }
-            />
-          </details>
+            {agentWorkCount > 0 && (
+              <div className="worklog-cta-row">
+                <Link className="btn btn-secondary" href={`/citizens/${tid}/log`}>
+                  <span className="ttl">VIEW PUBLIC WORK LOG →</span>
+                </Link>
+              </div>
+            )}
 
-          {/* OWNER TOOLS — every interactive owner control in one place. Each
-              component self-hides for non-owners, so a newcomer sees nothing
-              here; collapsed so it never walls the identity above. These also
-              live in the workspace — this is the at-a-glance owner shelf. */}
-          <details className="collector-details">
-            <summary className="collector-summary">Owner tools</summary>
-            <CitizenCheckIn citizenId={tid} initial={todayCheckIn} rank={levelRank} />
-            <EvolvePanel citizenId={tid} />
-            <CitizenResume tokenId={tid} />
-            <CitizenProgressPanel tokenId={tid} />
-            <CitizenNameEditor citizenId={tid} currentName={customName?.name ?? null} />
-            <CitizenRealignEditor
-              citizenId={tid}
-              tier={c.tier}
-              originalCiv={c.civilization}
-              currentRealignment={realign}
-            />
-            <WatchlistButton tokenId={tid} />
-            <YourStable />
-          </details>
+            {/* COLLECTOR FACTS + CITY RECORD — rarity/provenance, then the token's
+                LIFE (level, public work log, artifacts). Factual data only; the
+                life cells self-hide until a record exists. */}
+            <div className="citizen-meta-strip">
+              <div className="cm-cell">
+                <span className="cm-lbl">Rarity rank</span>
+                <span className="cm-val">{rank ? `#${rank}` : "—"} <small>/ 4040</small></span>
+              </div>
+              <div className="cm-cell">
+                <span className="cm-lbl">Days held</span>
+                <span className="cm-val">{meta.daysHeld != null ? `${meta.daysHeld}d` : "—"}</span>
+              </div>
+              <div className="cm-cell">
+                <span className="cm-lbl">Last sale</span>
+                <span className="cm-val">{meta.lastSaleEth != null ? `${meta.lastSaleEth.toFixed(4)} ETH` : "—"}</span>
+              </div>
+              {hasLife && (
+                <>
+                  <div className="cm-cell">
+                    <span className="cm-lbl">Level</span>
+                    <span className="cm-val">LV {progress?.level ?? 1}{levelRank ? <small> · city #{levelRank}</small> : null}</span>
+                  </div>
+                  <div className="cm-cell">
+                    <span className="cm-lbl">Work log</span>
+                    <span className="cm-val">{agentWorkCount}</span>
+                  </div>
+                  <div className="cm-cell">
+                    <span className="cm-lbl">Artifacts</span>
+                    <span className="cm-val">{artifacts.length}</span>
+                  </div>
+                </>
+              )}
+            </div>
 
-          {/* NEW HERE — how a FREELON agent works + what you pay, collapsed. */}
-          <details className="citizen-howto">
-            <summary>New here? How a FREELON agent works · what you pay →</summary>
-            <CitizenAgentExplainer tokenId={tid} />
-          </details>
+            {/* ARTIFACTS — public, status-only, travels with the token. Part of
+                the public record a buyer should see. Self-hides at zero. */}
+            {artifacts.length > 0 && (
+              <section className="panel-premium" style={{ padding: "var(--s-4)", marginTop: "var(--s-3)" }}>
+                <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ARTIFACTS · {artifacts.length}</span>
+                <p style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "var(--ink-dim)", margin: "4px 0 12px" }}>
+                  Week-stamped marks earned in the city. They travel with the NFT.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {artifacts.map((a) => (
+                    <span
+                      key={a.id}
+                      title={a.title}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 11px",
+                        borderRadius: 999, border: "1px solid color-mix(in srgb, var(--gold) 40%, transparent)",
+                        background: "color-mix(in srgb, var(--gold) 8%, transparent)",
+                        fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink)", letterSpacing: "0.04em",
+                      }}
+                    >
+                      <span style={{ color: "var(--gold)" }}>⬡</span>{a.title}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+          </RevealOnScroll>
 
-          {/* Share / listing / tribute. Buying lives once below in NEXT SIGNAL. */}
-          <div className="cta-row ui-cta-row">
-            <Link className="btn" href={`/citizens/${tid}/card`}>
-              <span className="ttl">SHAREABLE LISTING CARD →</span>
+          {/* ══ BEAT 3 · THE ONE CTA — open the agent workspace. The profile is
+                 the public, shareable identity page; this single action opens
+                 the full workspace (chat, image, history, owner tools) "like
+                 opening ChatGPT or Claude". ══ */}
+          <RevealOnScroll index={3}>
+            <Link href={`/agent/${tid}`} className="workspace-open-cta" style={{ ["--accent" as string]: color }}>
+              <span className="wo-kicker">YOUR AGENT WORKSPACE</span>
+              <span className="wo-title">Open the workspace →</span>
+              <span className="wo-sub">Chat, generate, and build a permanent work history — all in one place, like opening ChatGPT or Claude.</span>
             </Link>
-            {c.honoree_handle && (
-              <a
-                className="btn btn-primary"
-                href={tweetIntent(tweetTribute({ handle: c.honoree_handle, tokenId: tid }))}
-                target="_blank" rel="noreferrer"
-              >
-                <span className="lbl">TRIBUTE</span>
-                <span className="ttl">TWEET AT {c.honoree_handle?.toUpperCase()} <span className="ar">→</span></span>
-              </a>
-            )}
-            {c.honoree && (
-              <Link className="btn" href={`/tribute/${cleanHandle || tid}`}>
-                <span className="ttl">TRIBUTE PAGE →</span>
-              </Link>
-            )}
-            <ShareButtons citizen={c} siteUrl="https://www.freeloncity.com" />
-          </div>
+            {/* Social proof — real strangers have already unlocked. Self-hides at 0. */}
+            <div style={{ margin: "var(--s-3) 0" }}>
+              <ActivationProof compact />
+            </div>
+          </RevealOnScroll>
+
+          {/* ══ FOLDS — everything else, folded not deleted (2026-06-11 Book
+                 3-beat PDP): owner tools + dispatch in one shelf, traits /
+                 lore / share in a second, the newcomer explainer keeps its
+                 own fold. Each owner component self-hides for non-owners. ══ */}
+          <RevealOnScroll index={4}>
+            <details className="collector-details">
+              <summary className="collector-summary">⬡ OWNER TOOLS</summary>
+              {/* CITY DISPATCH — the "give it a job" board. Self-gates: owners
+                  get the send control, everyone else only ever sees the public
+                  dispatch log; renders nothing for a token with no history. */}
+              <DispatchPanel citizenId={tid} name={customName?.name || c.transmission_name || c.name || `Citizen #${id4}`} />
+              <CitizenCheckIn citizenId={tid} initial={todayCheckIn} rank={levelRank} />
+              <EvolvePanel citizenId={tid} />
+              <CitizenResume tokenId={tid} />
+              <CitizenProgressPanel tokenId={tid} />
+              <CitizenNameEditor citizenId={tid} currentName={customName?.name ?? null} />
+              <CitizenRealignEditor
+                citizenId={tid}
+                tier={c.tier}
+                originalCiv={c.civilization}
+                currentRealignment={realign}
+              />
+              <WatchlistButton tokenId={tid} />
+              <YourStable />
+            </details>
+
+            <details className="collector-details">
+              <summary className="collector-summary">⬡ DEEP RECORDS</summary>
+              <dl className="trait-grid">
+                {FIELDS.map((f) => (
+                  <div key={f.key} className="trait">
+                    <dt>{f.label.toUpperCase()}</dt>
+                    <dd>{(c as unknown as CitizenLike)[f.key]}</dd>
+                  </div>
+                ))}
+                {c.aura && c.aura !== "None" && (
+                  <div className="trait"><dt>AURA</dt><dd>{c.aura}</dd></div>
+                )}
+              </dl>
+
+              {/* LORE — deep lore is a paid unlock. */}
+              {c.tier === "Honorary" && (
+                <QuestTracker questId="archivist" stepId={`honoree:${id4}`} />
+              )}
+              <CitizenDeepLore
+                citizenId={tid}
+                cost={unlockCost(tid)}
+                deepLore={getDeepLore(c)}
+                previewLine={
+                  identity?.bio
+                    ? identity.bio.split(/(?<=[.!?])\s+/)[0] || identity.bio.slice(0, 160)
+                    : `Citizen #${id4} of ${civ?.name}.`
+                }
+              />
+
+              {/* Share / listing / tribute. Buying lives once below in NEXT SIGNAL. */}
+              <div className="cta-row ui-cta-row">
+                <Link className="btn" href={`/citizens/${tid}/card`}>
+                  <span className="ttl">SHAREABLE LISTING CARD →</span>
+                </Link>
+                {c.honoree_handle && (
+                  <a
+                    className="btn btn-primary"
+                    href={tweetIntent(tweetTribute({ handle: c.honoree_handle, tokenId: tid }))}
+                    target="_blank" rel="noreferrer"
+                  >
+                    <span className="lbl">TRIBUTE</span>
+                    <span className="ttl">TWEET AT {c.honoree_handle?.toUpperCase()} <span className="ar">→</span></span>
+                  </a>
+                )}
+                {c.honoree && (
+                  <Link className="btn" href={`/tribute/${cleanHandle || tid}`}>
+                    <span className="ttl">TRIBUTE PAGE →</span>
+                  </Link>
+                )}
+                <ShareButtons citizen={c} siteUrl="https://www.freeloncity.com" />
+              </div>
+            </details>
+
+            {/* NEW HERE — how a FREELON agent works + what you pay, collapsed. */}
+            <details className="citizen-howto">
+              <summary>New here? How a FREELON agent works · what you pay →</summary>
+              <CitizenAgentExplainer tokenId={tid} />
+            </details>
+          </RevealOnScroll>
 
           <nav className="citizen-nav">
             {tid > 1 ? <Link href={`/citizens/${tid - 1}`}>← #{(tid - 1).toString().padStart(4, "0")}</Link> : <span />}

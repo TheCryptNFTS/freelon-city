@@ -13,14 +13,17 @@ import { cityNotice } from "@/lib/city-notice";
 import { proveWallet } from "@/lib/wallet-proof";
 import { resolveCityDestinations, type CityLink } from "@/lib/city-destinations";
 import styles from "./AgentWorkspace.module.css";
+import layout from "./WorkspaceLayout.module.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * AGENT WORKSPACE — the ChatGPT/Claude-style home for ONE citizen-agent.
  *
- * A holder clicks their citizen and lands here: a 3-pane app. LEFT = their
- * saved conversations (threads). CENTER = the chat (text replies + inline
- * generated images). RIGHT = the citizen itself — level, ⬡ balance, unlock
- * status, image gallery, and durable work history.
+ * A holder clicks their citizen and lands here: ONE centered chat column
+ * (~720px, composer pinned at bottom) under a slim header — the Book's
+ * chat-first collapse (2026-06). Threads live in a ☰ drawer (hidden at all
+ * widths until opened); the citizen's level, ⬡ balance, unlock status, agent
+ * powers, dispatch, gallery and durable work history live under the single
+ * "ADVANCED · TOOLS & RECORDS" fold between the chat and the composer.
  *
  * It reuses the LIVE backend untouched:
  *   - GET  /api/citizens/[id]/agent            → abilities, scenes, unlock, history
@@ -734,9 +737,10 @@ export function AgentWorkspace(props: Props) {
   const flavour = createFlavour(slug);
 
   return (
-    <div className={styles.shell} style={cssVars}>
-      {/* ── LEFT: threads ─────────────────────────────────────────────── */}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
+    <div className={layout.shell} style={cssVars}>
+      {/* ── THREADS DRAWER (chat-first collapse: hidden at all widths until ☰,
+          exactly like ChatGPT's sidebar; markup/handlers unchanged) ───── */}
+      <aside className={`${styles.sidebar} ${layout.drawer} ${sidebarOpen ? `${styles.open} ${layout.open}` : ""}`}>
         {/* Persistent NFT hero — the character is the hero of its own workspace,
             always on the left (Billy: "the nft on the left on the chatgpt
             layout"). Stays visible while chatting; the empty-state reveal used
@@ -833,10 +837,10 @@ export function AgentWorkspace(props: Props) {
         </div>
       </aside>
 
-      {/* ── CENTER: chat ──────────────────────────────────────────────── */}
-      <main className={styles.center}>
+      {/* ── THE CHAT COLUMN — slim header, centered transcript, fold, composer */}
+      <main className={`${styles.center} ${layout.centerFill}`}>
         <header className={styles.topbar}>
-          <button className={styles.iconBtn} onClick={() => setSidebarOpen((v) => !v)} aria-label="Toggle chats">☰</button>
+          <button className={layout.menuBtn} onClick={() => setSidebarOpen((v) => !v)} aria-label="Toggle chats">☰</button>
           <div className={styles.topTitle}>
             <img src={art} alt={name} className={styles.topAvatar} />
             <div>
@@ -850,11 +854,11 @@ export function AgentWorkspace(props: Props) {
             ) : (
               <button className={styles.connectBtn} onClick={connect}>Connect</button>
             )}
-            <button className={styles.iconBtn} onClick={() => setInfoOpen((v) => !v)} aria-label="Citizen info">ⓘ</button>
           </div>
         </header>
 
         <div className={styles.transcript} ref={scrollRef}>
+          <div className={layout.chatCol}>
           {!active || active.messages.length === 0 ? (
             <div className={styles.empty}>
               <FramedAgent
@@ -930,38 +934,15 @@ export function AgentWorkspace(props: Props) {
                       ? "Or give it a brief — it remembers your work and grows as you train it."
                       : "An AI character with work history attached to the NFT."}
                   </p>
-                  {grounding && (
-                    <p
-                      className={styles.emptyHint}
-                      style={{ marginTop: 10, color: "var(--accent, var(--gold))", fontStyle: "italic" }}
-                    >
-                      “{grounding}”
-                    </p>
-                  )}
-                  {recall.length > 0 && (
-                    <p
-                      className={styles.emptyHint}
-                      style={{ marginTop: 10, color: "var(--accent, var(--gold))" }}
-                    >
-                      {landing?.isOwner ? `Last time, you and ${name} worked on: ` : `Recent work history attached to ${name}: `}{recall.join(" · ")}
-                    </p>
-                  )}
-                  {/* Free daily training — the zero-cost, can't-fail first action.
-                      FREELONS only (sisters have no /job backing); self-hides for
-                      non-owners. Sits below CREATE as a secondary action. */}
-                  {!slug && <CitizenJobsBoard citizenId={tokenId} />}
-                  <div className={styles.starters}>
-                    {(agent?.abilities ?? []).slice(0, 4).map((a) => (
-                      <button key={a.id} className={styles.starter} onClick={() => pickStarter(a.id)}>
-                        {a.label}<small>{a.blurb}</small>
-                      </button>
-                    ))}
-                  </div>
+                  {/* CHAT-FIRST COLLAPSE (the Book): grounding line, recall strip
+                      and the free-training jobs board moved to the ADVANCED fold
+                      below the chat; the 4 ability starters became suggestion
+                      chips above the composer. Handlers unchanged. */}
                   {/* The collectible-native powers. The launcher tabs live in the
-                      persistent right-rail "Agent Powers" panel, so in the default
+                      "Agent Powers" section of the ADVANCED fold, so in the default
                       (none) empty state this center copy would just duplicate them.
                       Render it only once a power is actually open — it's the
-                      component that draws the open panel (right-rail buttons only
+                      component that draws the open panel (fold buttons only
                       set powersTab), so this keeps the feature fully intact while
                       removing the duplicate launcher row from the lobby. FREELONS only. */}
                   {!slug && powersTab !== "none" && (
@@ -1058,10 +1039,156 @@ export function AgentWorkspace(props: Props) {
               )}
             </div>
           )}
+          </div>
         </div>
+
+        {/* ── THE ONE FOLD — everything non-chat, below the chat. Content moved
+            verbatim from the old always-visible right pane + empty-state lobby
+            (fold, never delete); every handler and conditional unchanged. */}
+        <details className={layout.advanced}>
+          <summary className={layout.advSummary}>ADVANCED · TOOLS &amp; RECORDS</summary>
+          <div className={`${layout.advBody} ${infoOpen ? styles.open : ""}`}>
+            <div className={layout.advCol}>
+              {/* Landing-pad grounding + recall strip (moved from the lobby). */}
+              {grounding && (
+                <p
+                  className={styles.emptyHint}
+                  style={{ marginTop: 0, color: "var(--accent, var(--gold))", fontStyle: "italic" }}
+                >
+                  “{grounding}”
+                </p>
+              )}
+              {recall.length > 0 && (
+                <p
+                  className={styles.emptyHint}
+                  style={{ marginTop: 10, color: "var(--accent, var(--gold))" }}
+                >
+                  {landing?.isOwner ? `Last time, you and ${name} worked on: ` : `Recent work history attached to ${name}: `}{recall.join(" · ")}
+                </p>
+              )}
+              {/* Free daily training — the zero-cost, can't-fail action.
+                  FREELONS only (sisters have no /job backing); self-hides for
+                  non-owners. */}
+              {!slug && <CitizenJobsBoard citizenId={tokenId} />}
+
+              {/* Citizen identity + records (moved from the old right pane). */}
+              <div className={layout.advIdentity}>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 4, marginTop: 14 }}>
+                  <FramedAgent art={art} civColor={color} size={244} alt={name} />
+                </div>
+                <div className={styles.infoName}>{name}</div>
+                <div className={styles.infoMeta}>#{id4} · {tier} · {civName}</div>
+                {tier === "Honorary" && (
+                  <div style={{ textAlign: "center" }}>
+                    <HonoraryDisclaimer name={name} />
+                  </div>
+                )}
+              </div>
+              <div className={styles.statRow}>
+                <div className={styles.stat}><span>Level</span><strong>{agent?.level ?? "—"}</strong></div>
+                <div className={styles.stat}><span>Class</span><strong>{agent?.className ?? "—"}</strong></div>
+                <div className={styles.stat}><span>⬡ Balance</span><strong>{address ? (hex ?? "…") : "—"}</strong></div>
+              </div>
+
+              {agent && agent.paymentsLive && !agent.unlock.unlocked ? (
+                <button
+                  type="button"
+                  className={styles.unlockCta}
+                  style={{ textAlign: "left", width: "100%", cursor: "pointer" }}
+                  onClick={() => { setInfoOpen(false); newThread(); }}
+                >
+                  <strong>Locked</strong>
+                  <span>Unlock with ETH to switch on premium abilities →</span>
+                </button>
+              ) : agent && agent.unlock.unlocked ? (
+                <div className={styles.activated}>⬡ Activated{agent.unlock.credits ? ` · ${agent.unlock.credits} runs` : ""}</div>
+              ) : null}
+
+              {/* AGENT POWERS — each jumps back to a fresh lobby with that
+                  power open. FREELONS only. */}
+              {!slug && (
+                <section className={styles.infoSec}>
+                  <h3>Agent Powers</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {([
+                      ["transmission", "⬡ Daily Transmission"],
+                      ["chronicle", "The Chronicle"],
+                      ["versus", "⬡ Versus"],
+                    ] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => { setInfoOpen(false); newThread(); setPowersTab(key); }}
+                        style={{
+                          textAlign: "left", padding: "9px 12px", borderRadius: 9, cursor: "pointer",
+                          background: "var(--surface)", border: "1px solid var(--line-2)", color: "var(--ink)",
+                          fontFamily: "var(--mono2)", fontSize: 12.5, letterSpacing: "0.02em",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* CITY DISPATCH — the public-record action. Self-gates: owners get
+                  the send control, visitors only ever see the log, and it renders
+                  nothing for a citizen with no history. FREELONS only. */}
+              {!slug && (
+                <section className={styles.infoSec}>
+                  <DispatchPanel citizenId={tokenId} name={name} />
+                </section>
+              )}
+
+              {gallery.length > 0 && (
+                <section className={styles.infoSec}>
+                  <h3>Gallery</h3>
+                  <div className={styles.galGrid}>
+                    {gallery.map((g) => (
+                      <img key={g.id} src={g.body} alt="" className={styles.galThumb} onClick={() => setLightbox(g.body)} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {textWork.length > 0 && (
+                <section className={styles.infoSec}>
+                  <h3>Work history</h3>
+                  <ul className={styles.workList}>
+                    {textWork.slice(0, 12).map((w) => (
+                      <li key={w.id}>
+                        <span className={styles.workAbility}>{w.abilityLabel || w.ability}</span>
+                        {/* Raw saved body is the owner's memory. The PUBLIC agent API
+                            strips text `body` (Prompt 9), so non-owners — and the owner
+                            before the /history/full overlay loads — have NO body here.
+                            Guard with optional chaining: `w.body` can be undefined, and
+                            calling .slice on it crashed the whole workspace (the "SIGNAL
+                            HAS FAULTED" boundary). Only render when body is present. */}
+                        {landing?.isOwner && w.body && <span className={styles.workBody}>{w.body.slice(0, 90)}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
+          </div>
+        </details>
 
         {/* ── Composer ─────────────────────────────────────────────────── */}
         <div className={styles.composer}>
+          <div className={layout.composerCol}>
+          {/* Suggestion chips (ChatGPT suggested prompts) — the 4 ability
+              starters, shown on a fresh chat; same pickStarter trigger. */}
+          {!showUnlock && (!active || active.messages.length === 0) && (agent?.abilities?.length ?? 0) > 0 && (
+            <div className={layout.suggestRow}>
+              {(agent?.abilities ?? []).slice(0, 4).map((a) => (
+                <button key={a.id} type="button" className={layout.suggestChip} title={a.blurb} onClick={() => pickStarter(a.id)}>
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className={styles.modeRow}>
             <button className={`${styles.modeBtn} ${mode === "chat" ? styles.modeOn : ""}`} onClick={() => setMode("chat")}>Chat</button>
             {(agent?.scenes?.length ?? 0) > 0 && (
@@ -1174,112 +1301,9 @@ export function AgentWorkspace(props: Props) {
             </div>
           )}
           <div className={styles.disclaimer}>AI-generated · verify before acting. Your work history stays with the NFT.</div>
+          </div>
         </div>
       </main>
-
-      {/* ── RIGHT: citizen info ───────────────────────────────────────── */}
-      <aside className={`${styles.info} ${infoOpen ? styles.open : ""}`}>
-        <button className={styles.infoClose} onClick={() => setInfoOpen(false)} aria-label="Close">×</button>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
-          <FramedAgent art={art} civColor={color} size={244} alt={name} />
-        </div>
-        <div className={styles.infoName}>{name}</div>
-        <div className={styles.infoMeta}>#{id4} · {tier} · {civName}</div>
-        {tier === "Honorary" && (
-          <div style={{ textAlign: "center" }}>
-            <HonoraryDisclaimer name={name} />
-          </div>
-        )}
-        <div className={styles.statRow}>
-          <div className={styles.stat}><span>Level</span><strong>{agent?.level ?? "—"}</strong></div>
-          <div className={styles.stat}><span>Class</span><strong>{agent?.className ?? "—"}</strong></div>
-          <div className={styles.stat}><span>⬡ Balance</span><strong>{address ? (hex ?? "…") : "—"}</strong></div>
-        </div>
-
-        {agent && agent.paymentsLive && !agent.unlock.unlocked ? (
-          <button
-            type="button"
-            className={styles.unlockCta}
-            style={{ textAlign: "left", width: "100%", cursor: "pointer" }}
-            onClick={() => { setInfoOpen(false); newThread(); }}
-          >
-            <strong>Locked</strong>
-            <span>Unlock with ETH to switch on premium abilities →</span>
-          </button>
-        ) : agent && agent.unlock.unlocked ? (
-          <div className={styles.activated}>⬡ Activated{agent.unlock.credits ? ` · ${agent.unlock.credits} runs` : ""}</div>
-        ) : null}
-
-        {/* PERSISTENT AGENT POWERS — always reachable from the info pane (not just
-            the empty-state lobby). Each jumps back to a fresh lobby with that
-            power open. FREELONS only. */}
-        {!slug && (
-          <section className={styles.infoSec}>
-            <h3>Agent Powers</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {([
-                ["transmission", "⬡ Daily Transmission"],
-                ["chronicle", "The Chronicle"],
-                ["versus", "⬡ Versus"],
-              ] as const).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => { setInfoOpen(false); newThread(); setPowersTab(key); }}
-                  style={{
-                    textAlign: "left", padding: "9px 12px", borderRadius: 9, cursor: "pointer",
-                    background: "var(--surface)", border: "1px solid var(--line-2)", color: "var(--ink)",
-                    fontFamily: "var(--mono2)", fontSize: 12.5, letterSpacing: "0.02em",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* CITY DISPATCH — the public-record action, where owners actually live
-            (2026-06-10; it was buried in the profile's owner fold). Self-gates:
-            owners get the send control, visitors only ever see the log, and it
-            renders nothing for a citizen with no history. FREELONS only. */}
-        {!slug && (
-          <section className={styles.infoSec}>
-            <DispatchPanel citizenId={tokenId} name={name} />
-          </section>
-        )}
-
-        {gallery.length > 0 && (
-          <section className={styles.infoSec}>
-            <h3>Gallery</h3>
-            <div className={styles.galGrid}>
-              {gallery.map((g) => (
-                <img key={g.id} src={g.body} alt="" className={styles.galThumb} onClick={() => setLightbox(g.body)} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {textWork.length > 0 && (
-          <section className={styles.infoSec}>
-            <h3>Work history</h3>
-            <ul className={styles.workList}>
-              {textWork.slice(0, 12).map((w) => (
-                <li key={w.id}>
-                  <span className={styles.workAbility}>{w.abilityLabel || w.ability}</span>
-                  {/* Raw saved body is the owner's memory. The PUBLIC agent API
-                      strips text `body` (Prompt 9), so non-owners — and the owner
-                      before the /history/full overlay loads — have NO body here.
-                      Guard with optional chaining: `w.body` can be undefined, and
-                      calling .slice on it crashed the whole workspace (the "SIGNAL
-                      HAS FAULTED" boundary). Only render when body is present. */}
-                  {landing?.isOwner && w.body && <span className={styles.workBody}>{w.body.slice(0, 90)}</span>}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </aside>
 
       {lightbox && (
         <div className={styles.lightbox} onClick={() => setLightbox(null)}>

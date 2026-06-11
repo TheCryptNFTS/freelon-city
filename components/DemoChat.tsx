@@ -5,6 +5,7 @@ import { FramedAgent } from "@/components/FramedAgent";
 import { ClaimForm } from "@/components/ClaimForm";
 import { trackEvent } from "@/lib/track";
 import { tweetIntent, tweetDemoReply } from "@/lib/share";
+import styles from "@/components/DemoSplit.module.css";
 
 export type DemoAgent = {
   slug: string;
@@ -21,6 +22,11 @@ export type DemoAgent = {
 type Msg = { role: "you" | "agent"; text: string };
 
 const OPENSEA = "https://opensea.io/collection/freelons";
+
+// DISPLAY SEED ONLY — mirrors SESSION_MAX in app/api/demo/[slug]/route.ts so the
+// free-turn pill is visible from turn zero. The server's `remaining` overwrites
+// it on every reply; consumption logic lives server-side and is untouched here.
+const SEEDED_TURNS = 5;
 
 // Starters are chosen to force the differentiator — memory, levels, work
 // history — not generic chat. Never steer first impressions into market talk.
@@ -124,7 +130,37 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
   const sisters = agents.slice(1);
 
   return (
-    <div>
+    // ≥1024px: two-column split (DemoSplit.module.css) — sticky agent rail
+    // left, chat at ~620px measure right. <1024px the rail is display:none and
+    // this renders as the unchanged single stack.
+    <div className={styles.split}>
+      <aside className={styles.rail}>
+        <div className={styles.railSticky}>
+          {/* The ACTIVE agent in the premium framed treatment — same
+              FramedAgent object as collections/dossier/workspace. Keyed by
+              slug so the portrait swaps cleanly when you pick another agent. */}
+          <FramedAgent key={agent.slug} art={agent.art} civColor={agent.color} size={224} alt={agent.name} priority />
+          <div className={styles.railName}>{agent.name}</div>
+          <div className={styles.railCollection} style={{ color: agent.color }}>
+            {agent.collectionName}
+          </div>
+          <div className={styles.railRule} aria-hidden />
+          {/* Ownership pointer — always names the FREELON, so it stays true
+              even while a free sister citizen is active. */}
+          <span className={styles.railOwnKicker}>The one you can own</span>
+          <a
+            href={OPENSEA}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("opensea_click", { from: "demo_rail" })}
+            className={styles.railOwnLink}
+          >
+            own a FREELON →
+          </a>
+        </div>
+      </aside>
+
+      <div className={styles.chatCol}>
       {/* FREELONS-FIRST PICKER (2026-06-10) — hub direction is "lead with ONE
           collection, reveal the rest": the flagship FREELON is the featured
           object (it's the thing the wall sells); sisters sit below in a smaller
@@ -240,21 +276,9 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
               ● AWAKE · {agent.kicker}
             </div>
           </div>
-          {remaining !== null && !exhausted && (
-            <span
-              style={{
-                marginLeft: "auto",
-                fontFamily: "var(--mono2)",
-                fontSize: 10,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--ink-dim)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {remaining} free left
-            </span>
-          )}
+          {/* Free-turn counter moved to a seeded pill beside the composer
+              (2026-06-11) — it used to appear here only after the first server
+              reply, i.e. mid-conversation. */}
         </div>
 
         {/* Transcript */}
@@ -426,6 +450,13 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
             {error && (
               <div style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "#e0a8a4", marginBottom: 8 }}>{error}</div>
             )}
+            {/* Free-turn pill — VISIBLE from turn zero (seeded display-only,
+                see SEEDED_TURNS) and corrected by every server response. */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+              <span className={styles.turnsPill}>
+                {remaining ?? SEEDED_TURNS} free turn{(remaining ?? SEEDED_TURNS) === 1 ? "" : "s"}
+              </span>
+            </div>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -484,6 +515,7 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
             </form>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

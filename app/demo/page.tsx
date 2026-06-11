@@ -1,6 +1,7 @@
 import { getCollectionToken } from "@/lib/collection-persona";
 import { FREELON_DEMO_DISPLAY } from "@/lib/demo-freelon";
 import { DemoChat, type DemoAgent } from "@/components/DemoChat";
+import styles from "@/components/DemoSplit.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,10 @@ export default function DemoPage() {
   const agents: DemoAgent[] = [FREELON_AGENT, ...sisters];
 
   return (
-    <div style={{ maxWidth: 760, margin: "var(--s-6) auto", padding: "0 var(--pad)" }}>
+    // Two-column split ≥1024px (DemoSplit.module.css): the wrapper widens so
+    // DemoChat can stand a sticky agent rail beside a ~620px chat measure.
+    // Below 1024px this is the same 760px single stack as before.
+    <div className={styles.page}>
       <header style={{ marginBottom: "var(--s-4)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ FREE · NO WALLET NEEDED</span>
         <h1 className="page-h1" style={{ margin: "12px 0 8px" }}>

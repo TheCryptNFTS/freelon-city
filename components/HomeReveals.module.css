@@ -1,0 +1,145 @@
+/* ════════════════════════════════════════════════════════════════════════
+   HOME REVEALS + COLLECTIONS CARDS — visual punch-list HIGH-IMPACT items
+   (wvrvof2ot, 2026-06-11). Apple/Linear scroll-reveal rhythm on the homepage
+   sections; Pudgy-style collection-card hover energy on /collections.
+
+   INTEGRATION NOTE (delete when components/RevealOnScroll.tsx lands):
+   the city-dossier agent's RevealOnScroll.tsx did not exist at build time.
+   This module does NOT spin up its own IntersectionObserver — it keys the
+   child stagger off the EXISTING global once-only IO in
+   components/ScrollReveal.tsx (it sets data-rv="0" below the fold, then
+   data-rv="1" + .in once, then unobserves). If RevealOnScroll.tsx ships with
+   the same data-rv contract, nothing here changes; if it uses a different
+   attribute, repoint the [data-rv="0"] selectors below.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Parent reveal repoint — drop the global .reveal 0.9s ad-hoc curve to 0.6s
+   --ease-out-expo (punch list: "drop reveal duration 0.9s→0.6s, swap to
+   expo"). Doubled class beats the single-class global rule deterministically
+   regardless of chunk order. */
+.rv.rv {
+  transition:
+    opacity 0.6s var(--ease-out-expo),
+    transform 0.6s var(--ease-out-expo);
+}
+
+/* Child stagger — Apple/Linear rhythm. Children ride the parent's reveal
+   state with transition-delay: calc(var(--i) * 70ms). Progressive
+   enhancement: with no JS (no data-rv ever set) everything stays visible. */
+.stagger > * {
+  transition:
+    opacity 0.6s var(--ease-out-expo),
+    transform 0.6s var(--ease-out-expo);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+/* --i defaults by position so containers whose children we can't reach with
+   inline styles (the memory-proof section wraps a client component) still
+   stagger; an inline --i (set on the how-steps map) overrides these. */
+.stagger > :nth-child(1) { --i: 0; }
+.stagger > :nth-child(2) { --i: 1; }
+.stagger > :nth-child(3) { --i: 2; }
+.stagger > :nth-child(4) { --i: 3; }
+.stagger > :nth-child(5) { --i: 4; }
+.stagger > :nth-child(6) { --i: 5; }
+.stagger > :nth-child(7) { --i: 6; }
+.stagger > :nth-child(8) { --i: 7; }
+/* Hidden state — .stagger as a descendant (the how-steps <ol>) or on the
+   .rv section itself (memory-proof). */
+.rv[data-rv="0"] .stagger > *,
+.rv[data-rv="0"].stagger > * {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+/* Real <h2> under the existing kickers (eyebrow + heading hierarchy).
+   Clash Display; clamp from the in-family ramp (.ecosystem-tree h2 — the
+   same shared narrow band: .why-own/.how-it-works/.ecosystem-tree). */
+.sectionH2 {
+  margin: 10px 0 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(26px, 4vw, 38px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.sectionH2 em { color: var(--gold); font-style: normal; }
+.sectionH2Center {
+  text-align: center;
+  margin: 0 0 var(--s-3);
+}
+
+/* ── /collections cards ─────────────────────────────────────────────────
+   Hover per panel-premium (lift -4px, border brightens to statusColor,
+   180ms quint) + mount-in stagger (70ms each). --sc is set inline per card.
+   color-mix() because statusColor is a var() reference — the old inline
+   `${statusColor}33` hex-suffix concat is invalid against var() and the
+   browser dropped the whole border/background declaration. */
+.collectionCard {
+  padding: var(--s-4);
+  border: 1px solid color-mix(in srgb, var(--sc, var(--gold)) 20%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--sc, var(--gold)) 4%, transparent),
+    rgba(0, 0, 0, 0.4)
+  );
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  transition:
+    border-color 0.18s var(--ease-out-quint),
+    transform 0.18s var(--ease-out-quint),
+    box-shadow 0.18s var(--ease-out-quint);
+}
+.collectionCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--sc, var(--gold));
+  box-shadow:
+    0 4px 14px -4px rgba(0, 0, 0, 0.55),
+    0 32px 70px -22px rgba(0, 0, 0, 0.72);
+}
+
+/* Mount-in stagger — server-rendered grid, pure CSS entrance, plays once. */
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+.cardIn {
+  animation: cardIn 0.6s var(--ease-out-expo) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* ONE functional line per collection, under the lore line (Book identity
+   chapter verb list: own+train · talk free · play). Space Mono prints data. */
+.funcLine {
+  font-family: var(--mono2);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: -2px 0 0;
+}
+.funcLine strong {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv.rv,
+  .stagger > * {
+    transition: none;
+  }
+  .collectionCard {
+    transition: none;
+  }
+  .collectionCard:hover {
+    transform: none;
+  }
+  .cardIn {
+    animation: none;
+  }
+}

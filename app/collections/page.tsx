@@ -1,5 +1,7 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { preload } from "react-dom";
+import reveals from "@/components/HomeReveals.module.css";
 import { COLLECTION_META, STATUS_EXPLAINERS, loadCollection } from "@/lib/collections-data";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
 import { isAgenticCollection } from "@/lib/agent-subject";
@@ -152,23 +154,21 @@ export default async function CollectionsIndex() {
               href={c.href}
               style={{ display: "block", height: "100%", textDecoration: "none", color: "inherit" }}
             >
+              {/* Punch-list HIGH-IMPACT (2026-06-11): card chrome moved to
+                  HomeReveals.module.css — mount-in stagger (70ms each) +
+                  panel-premium hover (lift -4px, border brightens to
+                  statusColor, 180ms quint). --sc feeds the per-collection
+                  status color; the old `${statusColor}33` hex-suffix concat
+                  was invalid against var() refs and dropped the border. */}
               <article
-                style={{
-                  padding: "var(--s-4)",
-                  border: `1px solid ${c.statusColor}33`,
-                  background: `linear-gradient(135deg, ${c.statusColor}08, rgba(0,0,0,0.4))`,
-                  borderRadius: 12,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                  height: "100%",
-                }}
+                className={`${reveals.collectionCard} ${reveals.cardIn}`}
+                style={{ "--sc": c.statusColor, "--i": i } as CSSProperties}
               >
                 {/* Square frame, art FILLS it (cover) so the gallery reads as
                     premium full-bleed renders, not thumbnails letterboxed in
                     black bars (visual audit flagship 2026-06-10). Near-square
                     PFP art crops ~0; the one portrait centre-crops cleanly. */}
-                <div style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 8, overflow: "hidden", border: `1px solid ${c.statusColor}33`, background: `linear-gradient(135deg, ${c.statusColor}14, rgba(0,0,0,0.55))` }}>
+                <div style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 8, overflow: "hidden", border: `1px solid color-mix(in srgb, ${c.statusColor} 20%, transparent)`, background: `linear-gradient(135deg, color-mix(in srgb, ${c.statusColor} 8%, transparent), rgba(0,0,0,0.55))` }}>
                   {c.img && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={c.img} alt={`${c.title} record`} loading={eager ? "eager" : "lazy"} fetchPriority={eager ? "high" : undefined} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block", filter: "saturate(0.92) contrast(1.03)" }} />
@@ -203,6 +203,18 @@ export default async function CollectionsIndex() {
                     2026-06-08): citizens / wild / dead / emotional. */}
                 <span style={{ fontFamily: "var(--mono2)", fontSize: 9.5, letterSpacing: "0.18em", textTransform: "uppercase", color: c.statusColor, fontWeight: 700, marginTop: -2 }}>{c.kicker}</span>
                 <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>{c.blurb}</p>
+                {/* ONE functional line per collection under the lore line —
+                    Book identity chapter verb list (own+train · talk free ·
+                    play). Tells a cold visitor what they can DO here. */}
+                <p className={reveals.funcLine}>
+                  <strong>
+                    {c.slug === "freelons"
+                      ? "Own + train"
+                      : c.slug === "crypttradingcards"
+                        ? "Play the card game"
+                        : "Talk free"}
+                  </strong>
+                </p>
                 <span style={{ marginTop: "auto", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold)" }}>
                   {(c as { play?: boolean }).play
                     ? "PLAY THE GAME →"

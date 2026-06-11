@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { preload } from "react-dom";
+import reveals from "@/components/HomeReveals.module.css";
 import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
 import { HeroAtmosphere } from "@/components/HeroAtmosphere";
@@ -147,8 +149,15 @@ export default async function Home() {
           zero-cost (no LLM, no free-run budget, no abuse surface — see
           components/MemoryProof.tsx), it stages the remember-loop, then hands off to
           the live agent at /demo. This is the proof; How It Works below is the how. */}
-      <section className="memory-proof reveal" aria-label="See a citizen remember you">
+      {/* Punch-list HIGH-IMPACT (2026-06-11): section rides the global .reveal
+          IO at 0.6s expo (reveals.rv) and its beats stagger in 70ms apart
+          (reveals.stagger — kicker → h2 → the proof shell). Real <h2> under
+          the kicker per the eyebrow+heading hierarchy spec. */}
+      <section className={`memory-proof reveal ${reveals.rv} ${reveals.stagger}`} aria-label="See a citizen remember you">
         <span className="kicker memory-proof__kicker" style={{ color: "var(--gold)" }}>⬡ SEE IT REMEMBER YOU</span>
+        <h2 className={`${reveals.sectionH2} ${reveals.sectionH2Center}`}>
+          Tell it one thing. <em>Watch it stick.</em>
+        </h2>
         <MemoryProof />
       </section>
 
@@ -160,16 +169,21 @@ export default async function Home() {
           grow into. Compressed 6→4 (2026-06-08) to cut newcomer cognitive load:
           the train/earn/history beats are one step now, so the loop reads in one
           glance instead of six near-identical lines. */}
-      <section className="how-it-works reveal">
+      <section className={`how-it-works reveal ${reveals.rv}`}>
         <span className="kicker">⬡ HOW IT WORKS</span>
-        <ol className="how-steps">
+        {/* Punch-list HIGH-IMPACT (2026-06-11): real <h2> under the kicker;
+            the four steps child-stagger 70ms apart off the section's reveal. */}
+        <h2 className={reveals.sectionH2}>
+          One character. <em>Four steps.</em>
+        </h2>
+        <ol className={`how-steps ${reveals.stagger}`}>
           {[
             "Own a FREELON — it's your character",
             "Awaken it — a one-time ETH payment switches it on, and it stays awake through resale",
             "Train it — give it jobs; it earns XP, remembers you, and builds a public record",
             "Keep it or sell it — the character and its whole history travel with the NFT",
           ].map((s, i) => (
-            <li key={i}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
+            <li key={i} style={{ "--i": i } as CSSProperties}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
           ))}
         </ol>
         {/* V1 SIGNAL OS (2026-06-10): one live-status line. Holders told us they
