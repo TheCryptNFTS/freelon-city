@@ -55,6 +55,13 @@ export function Header() {
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>
 
+        {/* 2026-06-11 Discord (Damien, 3rd report): below 980px the entire
+            desktop-nav — incl. the only CONNECT control — is hidden, so a
+            newcomer in a wallet browser sees just a logo + MENU and hunts for a
+            "profile / login" that isn't there. A persistent SIGN IN pill → /sync
+            (the wallet + X hub). Mobile-only; desktop keeps the WalletConnect
+            pill. Lucifer's own in-thread call ("maybe an x button"). */}
+        <Link href="/sync" prefetch={false} className="mobile-signin">Sign in</Link>
         <MobileNav />
       </div>
 
@@ -124,7 +131,23 @@ export function Header() {
           background: var(--tint-gold-2);
           transform: translateY(-1px);
         }
-        @media (max-width: 980px) { .desktop-nav { display: none !important; } }
+        /* Mobile sign-in pill (2026-06-11): the visible "login/profile" door
+           a newcomer expects. Gold-ghost (matches the unified secondary).
+           Hidden on desktop (the WalletConnect pill covers it there). */
+        .mobile-signin {
+          display: none;
+          font-family: var(--mono2); font-size: 11px; letter-spacing: var(--tr-pill);
+          text-transform: uppercase; text-decoration: none;
+          padding: 9px 16px; min-height: 40px; border-radius: 999px;
+          align-items: center;
+          border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+          background: color-mix(in srgb, var(--gold) 8%, transparent);
+          color: var(--gold);
+          margin-left: auto; margin-right: 8px;
+          transition: background .15s ease, border-color .15s ease;
+        }
+        .mobile-signin:active { background: color-mix(in srgb, var(--gold) 16%, transparent); }
+        @media (max-width: 980px) { .desktop-nav { display: none !important; } .mobile-signin { display: inline-flex; } }
         @media (min-width: 981px) { .mobile-trigger, .mobile-sheet { display: none !important; } }
         .nav-more-trigger {
           background: transparent;
