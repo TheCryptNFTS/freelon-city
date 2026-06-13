@@ -60,7 +60,7 @@ export function AdminConsole() {
   const loadOps = useCallback(async (k: string) => {
     setLoading(true); setErr(null);
     try {
-      const r = await fetch(`/api/admin/ops?key=${encodeURIComponent(k)}`, { cache: "no-store" });
+      const r = await fetch(`/api/admin/ops`, { headers: { "x-admin-key": k }, cache: "no-store" });
       if (r.status === 404) { setErr("Admin key not set on the server yet. Set ADMIN_SEED_KEY in Vercel, then redeploy."); setOps(null); return; }
       if (r.status === 403) { setErr("Wrong key. Check the value you set as ADMIN_SEED_KEY in Vercel."); setOps(null); return; }
       const d = await r.json();
@@ -71,11 +71,11 @@ export function AdminConsole() {
 
   async function runPreflight() {
     setErr(null);
-    const q = new URLSearchParams({ key });
+    const q = new URLSearchParams();
     if (tokenId) q.set("tokenId", tokenId);
     if (wallet) q.set("wallet", wallet);
     try {
-      const r = await fetch(`/api/admin/golive-preflight?${q.toString()}`, { cache: "no-store" });
+      const r = await fetch(`/api/admin/golive-preflight?${q.toString()}`, { headers: { "x-admin-key": key }, cache: "no-store" });
       if (r.status === 404) { setErr("Preflight needs ADMIN_SEED_KEY set in Vercel."); return; }
       const d = await r.json();
       setPre(d);
@@ -93,9 +93,9 @@ export function AdminConsole() {
     setRunBrief("");
     setRunLoading(true);
     try {
-      const r = await fetch(`/api/admin/run?key=${encodeURIComponent(key)}`, {
+      const r = await fetch(`/api/admin/run`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", "x-admin-key": key },
         body: JSON.stringify({ tokenId: Number(runToken), missionId: runAbility, brief: msg, priorOutput }),
         cache: "no-store",
       });

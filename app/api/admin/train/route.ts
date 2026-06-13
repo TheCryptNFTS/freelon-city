@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminKeyAuthed } from "@/lib/admin-auth";
 import { runRealMission } from "@/lib/missions/train";
 
 export const runtime = "nodejs";
@@ -23,9 +24,7 @@ export const maxDuration = 300; // real LLM calls in a batch — allow time
 export async function POST(req: Request) {
   const key = process.env.ADMIN_SEED_KEY;
   if (!key) return NextResponse.json({ error: "disabled" }, { status: 404 });
-  const url = new URL(req.url);
-  const given = url.searchParams.get("key") || req.headers.get("x-admin-key") || "";
-  if (given !== key) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!adminKeyAuthed(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const { hasUpstash } = await import("@/lib/upstash-client");
   if (hasUpstash && process.env.SEED_DEMO_ALLOW_UPSTASH !== "1") {

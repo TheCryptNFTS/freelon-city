@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminKeyAuthed } from "@/lib/admin-auth";
 import { getAllCitizens, getCitizen } from "@/lib/citizens";
 import { seedProgress, type SkillKey } from "@/lib/progression-store";
 
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
  *
  * Guarded by ADMIN_SEED_KEY: returns 404 when the env var is unset (disabled),
  * 403 on a wrong key. Run once:
- *   curl -X POST "https://www.freeloncity.com/api/admin/seed-showcase?key=YOUR_KEY"
+ *   curl -X POST "https://www.freeloncity.com/api/admin/seed-showcase" -H "x-admin-key: YOUR_KEY"
  * Remove the env var (or this file) afterwards to re-lock it.
  */
 
@@ -40,9 +41,7 @@ const HEROES: Record<number, { skill: SkillKey; points: number; focus: string }>
 export async function POST(req: Request) {
   const key = process.env.ADMIN_SEED_KEY;
   if (!key) return NextResponse.json({ error: "disabled" }, { status: 404 });
-  const url = new URL(req.url);
-  const given = url.searchParams.get("key") || req.headers.get("x-admin-key") || "";
-  if (given !== key) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!adminKeyAuthed(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const seeded: { id: number; skill: SkillKey; points: number }[] = [];
 

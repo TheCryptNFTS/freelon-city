@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminKeyAuthed } from "@/lib/admin-auth";
 import { computeAnchor } from "@/lib/onchain/anchor-service";
 
 export const runtime = "nodejs";
@@ -12,8 +13,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const key = process.env.ADMIN_SEED_KEY;
   if (!key) return NextResponse.json({ error: "disabled" }, { status: 404 });
-  const given = new URL(req.url).searchParams.get("key") || req.headers.get("x-admin-key") || "";
-  if (given !== key) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!adminKeyAuthed(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const { root, count } = await computeAnchor();
   return NextResponse.json({ ok: true, root, count });

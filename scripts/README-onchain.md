@@ -33,7 +33,7 @@ node scripts/anchor-history.mjs --send
 
 # 3. After it confirms, persist the snapshot so proofs resolve (epoch = the
 #    anchor index the contract returned, starts at 0):
-curl -X POST "https://www.freeloncity.com/api/admin/anchor/save?key=$ADMIN_SEED_KEY" \
+curl -X POST "https://www.freeloncity.com/api/admin/anchor/save" -H "x-admin-key: $ADMIN_SEED_KEY" \
   -H 'content-type: application/json' -d '{"epoch":0}'
 ```
 

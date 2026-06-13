@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminKeyAuthed } from "@/lib/admin-auth";
 import { getCitizen } from "@/lib/citizens";
 import { ownerOf } from "@/lib/owner-of";
 import { PAYMENTS_LIVE, PAYMENT_WALLET } from "@/lib/missions/pricing";
@@ -14,13 +15,13 @@ export const dynamic = "force-dynamic";
  * ADMIN_SEED_KEY (404 when unset). Pass ?tokenId=<a FREELON you own>&wallet=<your
  * wallet> to check ownership + the exact activation price for that token.
  *
- *   curl "http://localhost:3000/api/admin/golive-preflight?key=KEY&tokenId=1&wallet=0x..."
+ *   curl "http://localhost:3000/api/admin/golive-preflight?tokenId=1&wallet=0x..." -H "x-admin-key: KEY"
  */
 export async function GET(req: Request) {
   const key = process.env.ADMIN_SEED_KEY;
   if (!key) return NextResponse.json({ error: "disabled" }, { status: 404 });
   const url = new URL(req.url);
-  if ((url.searchParams.get("key") || "") !== key) {
+  if (!adminKeyAuthed(req)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 

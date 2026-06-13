@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminKeyAuthed } from "@/lib/admin-auth";
 import { getCitizen } from "@/lib/citizens";
 import { getProgress } from "@/lib/progression-store";
 // Barrel import so the catalog's registerMission() side effects run (same reason
@@ -36,9 +37,7 @@ const DEFAULT_TASK: Record<string, string> = {
 export async function POST(req: Request) {
   const key = process.env.ADMIN_SEED_KEY;
   if (!key) return NextResponse.json({ error: "disabled" }, { status: 404 });
-  const url = new URL(req.url);
-  const given = url.searchParams.get("key") || req.headers.get("x-admin-key") || "";
-  if (given !== key) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!adminKeyAuthed(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const body = (await req.json().catch(() => ({}))) as {
     tokenId?: number;

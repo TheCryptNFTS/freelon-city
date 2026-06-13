@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminKeyAuthed } from "@/lib/admin-auth";
 import { getCitizen } from "@/lib/citizens";
 import { seedProgress, type SkillKey } from "@/lib/progression-store";
 import { setCitizenHex } from "@/lib/citizen-value-store";
@@ -19,7 +20,7 @@ export const dynamic = "force-dynamic";
  *
  *   UPSTASH_REDIS_REST_URL="" UPSTASH_REDIS_REST_TOKEN="" \
  *   ADMIN_SEED_KEY=demo next dev -p 3001
- *   curl -X POST "http://localhost:3001/api/admin/seed-demo?key=demo"
+ *   curl -X POST "http://localhost:3001/api/admin/seed-demo" -H "x-admin-key: demo"
  */
 
 type Persona = {
@@ -59,9 +60,7 @@ const DEMO: Record<number, Persona> = {
 export async function POST(req: Request) {
   const key = process.env.ADMIN_SEED_KEY;
   if (!key) return NextResponse.json({ error: "disabled" }, { status: 404 });
-  const url = new URL(req.url);
-  const given = url.searchParams.get("key") || req.headers.get("x-admin-key") || "";
-  if (given !== key) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!adminKeyAuthed(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   // PROD-REDIS GUARD: refuse to write demo data to a real Upstash unless the
   // operator explicitly opts in. Keeps "run it locally" from contaminating prod.

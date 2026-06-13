@@ -180,7 +180,7 @@ TESTS (214) — unlock economics, merkle proofs, copy-clean, résumé, earn-runs
 `PAYMENT_WALLET` (verify on Etherscan you control it — code has a hardcoded default), `ETH_RPC_URL` (real RPC, not public fallbacks), `ADMIN_SEED_KEY` (unlocks the preflight). Then `PAYMENTS_LIVE=true` is the master switch. Rollback = set it back to `false`. Panic-all-off = `AGENT_AGENTS_OFF=1`. Spend ceiling = `AGENT_DAILY_BUDGET_USD`.
 
 **Preflight (read-only):**
-`curl ".../api/admin/golive-preflight?key=KEY&tokenId=<owned>&wallet=<yours>"` — checks citizen exists, you own it, activation price, payment wallet, RPC, LLM key. Don't proceed until `ready: true`.
+`curl ".../api/admin/golive-preflight?tokenId=<owned>&wallet=<yours>" -H "x-admin-key: KEY"` — checks citizen exists, you own it, activation price, payment wallet, RPC, LLM key. Don't proceed until `ready: true`.
 
 ### GO-LIVE RULE — do NOT announce public activation until:
 

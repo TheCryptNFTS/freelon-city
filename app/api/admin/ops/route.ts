@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { adminKeyAuthed } from "@/lib/admin-auth";
 import { opsSnapshot } from "@/lib/missions/ops-log";
 
 export const runtime = "nodejs";
@@ -10,12 +11,12 @@ export const dynamic = "force-dynamic";
  * without waiting for the provider bill or a Discord report. Gated by
  * ADMIN_SEED_KEY (404 when unset).
  *
- *   curl "http://localhost:3000/api/admin/ops?key=KEY"
+ *   curl "http://localhost:3000/api/admin/ops" -H "x-admin-key: KEY"
  */
 export async function GET(req: Request) {
   const key = process.env.ADMIN_SEED_KEY;
   if (!key) return NextResponse.json({ error: "disabled" }, { status: 404 });
-  if ((new URL(req.url).searchParams.get("key") || "") !== key) {
+  if (!adminKeyAuthed(req)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   const snap = await opsSnapshot();
