@@ -16,7 +16,7 @@
  */
 import { NextResponse } from "next/server";
 import { CONTRACT } from "@/lib/constants";
-import { creditWalletHex, getWalletHex, setWalletHex, todayUTC, InsufficientHexError } from "@/lib/wallet-hex-store";
+import { creditWalletHex, creditWalletHexCapped, getWalletHex, setWalletHex, todayUTC, InsufficientHexError } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 
 export const dynamic = "force-dynamic";
@@ -529,43 +529,34 @@ async function creditSweep(
   buyer: string,
   ts: number,
 ): Promise<{ credited: number; bonus: boolean }> {
-  const rec = await getWalletHex(buyer);
-  const today = todayUTC();
-
-  // Reset per-day cap counter
-  if (rec.sweepsResetDay !== today) {
-    rec.sweepsResetDay = today;
-    rec.sweepsToday = 0;
-    await setWalletHex(rec);
-  }
-
-  // Hit daily cap?
-  if (rec.sweepsToday >= DAILY_CAP / PER_SWEEP) {
-    return { credited: 0, bonus: false };
-  }
-
-  // Collapse-mode earn multiplier — when floor is low and the index
-  // is sliding, halve the sweep bounty so inflation stops outpacing burn.
+  // Collapse-mode earn multiplier — when floor is low and the index is sliding,
+  // halve the sweep bounty so inflation stops outpacing burn. Computed BEFORE the
+  // credit so the atomic helper records the right amount.
   const { getCollapseState, applyEarnMultiplier } = await import("@/lib/collapse-mode");
   const collapse = await getCollapseState();
   const sweepHex = applyEarnMultiplier(PER_SWEEP, collapse);
   const noteSuffix = collapse.active ? " (collapse ½)" : "";
 
-  await creditWalletHex(buyer, sweepHex, {
-    kind: "sweep",
-    ts,
-    note: `Sweep · +${sweepHex}⬡${noteSuffix}`,
-  });
-  const after = await getWalletHex(buyer);
-  after.sweepsToday = (after.sweepsToday || 0) + 1;
-  await setWalletHex(after);
+  // Atomic: day-reset + per-day cap check + balance credit + sweepsToday++ inside
+  // ONE wallet lock (red-team 2026-06-14). Replaces the prior unlocked
+  // getWalletHex → creditWalletHex → re-read → setWalletHex(sweepsToday+1), whose
+  // trailing unlocked write could clobber a concurrent user balance mutation
+  // (losing a credit, or restoring just-spent HEX). Mirrors lib/sweep-inline.ts.
+  const { credited, rec } = await creditWalletHexCapped(
+    buyer,
+    sweepHex,
+    { kind: "sweep", ts, note: `Sweep · +${sweepHex}⬡${noteSuffix}` },
+    DAILY_CAP / PER_SWEEP,
+  );
+  if (!credited) return { credited: 0, bonus: false };
 
-  // Streak check: 3 sweeps in last 24h → +100 bonus (one-shot per window)
+  // Streak check: 3 sweeps in last 24h → +100 bonus (one-shot per window). Reads
+  // the post-credit record returned by the locked credit above.
   let bonus = false;
-  const recentSweeps = after.events.filter(
+  const recentSweeps = rec.events.filter(
     (e) => e.kind === "sweep" && Date.now() - e.ts < STREAK_WINDOW_MS,
   ).length;
-  const alreadyBonus = after.events.some(
+  const alreadyBonus = rec.events.some(
     (e) => e.kind === "sweep_streak" && Date.now() - e.ts < STREAK_WINDOW_MS,
   );
   if (recentSweeps >= STREAK_THRESHOLD && !alreadyBonus) {
