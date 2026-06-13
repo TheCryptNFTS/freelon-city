@@ -198,6 +198,11 @@ export function AgentWorkspace(props: Props) {
   const canPublish = publishLive && !slug && !!civSlug;
   const [publishState, setPublishState] = useState<Record<string, "idle" | "busy" | "done" | "error">>({});
   const [syncState, setSyncState] = useState<"off" | "syncing" | "on" | "error">("off");
+  // No injected wallet (iPhone Safari, X's in-app browser): connect() used to
+  // alert(), which X's webview SUPPRESSES — the tap looked dead (holder report
+  // 2026-06-11). Surface a loud inline panel with a wallet-browser deep link
+  // instead. Mirrors WorkspaceUnlock's noWallet path.
+  const [noWallet, setNoWallet] = useState(false);
   // Which Agent Power is open in the lobby. Lifted here so the always-visible
   // info-pane entry can deep-link to a specific power (returning to the lobby).
   const [powersTab, setPowersTab] = useState<"none" | "transmission" | "chronicle" | "versus">("none");
@@ -371,7 +376,9 @@ export function AgentWorkspace(props: Props) {
   }, []);
   const connect = useCallback(async () => {
     const e = eth();
-    if (!e) { alert("Open this page in a wallet browser (MetaMask, Rainbow, etc.) to connect."); return; }
+    // No injected wallet → fail LOUD inline (alert() is swallowed by X's webview).
+    if (!e) { setNoWallet(true); return; }
+    setNoWallet(false);
     try {
       const accts = (await e.request({ method: "eth_requestAccounts" })) as string[];
       const a = accts?.[0]?.toLowerCase();
@@ -864,6 +871,24 @@ export function AgentWorkspace(props: Props) {
             )}
           </div>
         </header>
+
+        {noWallet && !address && (
+          <div role="status" style={{ margin: "10px 12px 0", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--line-2, #2a2a30)", background: "rgba(255,255,255,0.03)" }}>
+            <p style={{ fontSize: 12, color: "var(--ink-2, #b8b8c0)", lineHeight: 1.5, margin: 0 }}>
+              No crypto wallet in this browser, so you can&apos;t connect here. Open this page inside
+              your wallet app&apos;s browser (MetaMask, Rainbow, Coinbase) and tap Connect there:
+            </p>
+            <a
+              href={`https://metamask.app.link/dapp/${typeof window !== "undefined" ? window.location.host + window.location.pathname : ""}`}
+              style={{ display: "inline-block", marginTop: 8, fontFamily: "var(--mono2)", fontSize: 12, fontWeight: 700, color: "var(--accent, var(--gold))", textDecoration: "underline" }}
+            >
+              OPEN IN METAMASK →
+            </a>
+            <p style={{ fontSize: 11, color: "var(--ink-dim, #8a8a92)", margin: "6px 0 0" }}>
+              Coinbase / Rainbow: open the app, find its browser tab, and paste this page&apos;s link.
+            </p>
+          </div>
+        )}
 
         <div className={styles.transcript} ref={scrollRef}>
           <div className={layout.chatCol}>
