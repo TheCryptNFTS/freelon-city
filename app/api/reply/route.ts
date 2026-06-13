@@ -30,7 +30,7 @@ import {
   parentPostedAt,
   replyCountForParent,
   dailyReplyCount,
-  recordReply,
+  recordReplyOnce,
   getReply,
   type ReplyRecord,
 } from "@/lib/reply-store";
@@ -183,7 +183,21 @@ export async function POST(req: Request) {
     bonusPaid: 0,
     bonusScanned: false,
   };
-  await recordReply(rec);
+  // Atomic claim BEFORE paying: only the winner of a same-replyId race credits.
+  // A loser (duplicate / concurrent double-submit) gets a clean already-counted
+  // response, never a second bounty.
+  const won = await recordReplyOnce(rec);
+  if (!won) {
+    return NextResponse.json({
+      ok: true,
+      credited: 0,
+      alreadyCounted: true,
+      burstWinner,
+      eligibleForBonus: true,
+      bonusCheckIn: "24h",
+      bonusAmount: ECONOMY.REPLY_ENGAGEMENT_BONUS,
+    });
+  }
 
   try {
     await creditWalletHex(addr, basePaid, {

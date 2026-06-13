@@ -135,26 +135,49 @@ export async function getReply(replyId: string): Promise<ReplyRecord | null> {
   } catch { return null; }
 }
 
-export async function recordReply(rec: ReplyRecord): Promise<void> {
+/**
+ * Atomically CLAIM-and-record a reply. Returns true if THIS call won the claim
+ * (caller should pay the bounty), false if the replyId was already recorded
+ * (duplicate or concurrent double-submit). Closes the getReply→recordReply
+ * TOCTOU: the old SETEX had no set-if-absent guard, so two concurrent POSTs with
+ * the same replyId — both past the early getReply()==null check, both through the
+ * slow X-API lookup — could both record + both credit the base bounty. The SET NX
+ * here serializes them so only one wins. (Damage was already farmable-capped, so
+ * this is hardening, not a drain — mirrors the daily-claim SET…GET fix.)
+ */
+export async function recordReplyOnce(rec: ReplyRecord): Promise<boolean> {
   const day = todayUTC();
   if (!hasUpstash) {
+    if (memory.byId.has(rec.replyId)) return false;
     memory.byId.set(rec.replyId, rec);
     const dk = `${rec.wallet}:${day}`;
     memory.byDay.set(dk, (memory.byDay.get(dk) ?? 0) + 1);
     const set = memory.byParent.get(rec.parentId) ?? new Set<string>();
     set.add(rec.replyId);
     memory.byParent.set(rec.parentId, set);
-    return;
+    return true;
   }
-  // 30-day TTL on the record; 48h TTL on the daily counter (covers streak math)
+  // Atomic claim: SET NX writes the record iff the replyId is absent. Only the
+  // winner ("OK") proceeds to the counter/index side effects + the credit.
+  let won = false;
+  try {
+    won = (await upstash([
+      "SET", KEY_REPLY(rec.replyId), JSON.stringify(rec), "NX", "EX", String(30 * 86400),
+    ])) === "OK";
+  } catch {
+    return false; // store unreachable — fail closed (no credit) rather than risk a double-pay
+  }
+  if (!won) return false;
+  // 48h TTL on the daily counter (covers streak math); these run exactly once per
+  // replyId now that the claim above gates them.
   await Promise.all([
-    upstash(["SETEX", KEY_REPLY(rec.replyId), String(30 * 86400), JSON.stringify(rec)]),
     upstash(["INCR", KEY_DAY(rec.wallet, day)]),
     upstash(["EXPIRE", KEY_DAY(rec.wallet, day), String(48 * 3600)]),
     upstash(["ZADD", KEY_PARENT(rec.parentId), String(rec.ts), rec.replyId]),
     // Schedule the engagement scan for 24h after the reply landed
     upstash(["ZADD", KEY_PENDING_SCAN, String(rec.ts + 24 * 3600_000), rec.replyId]),
   ]);
+  return true;
 }
 
 export async function updateReply(rec: ReplyRecord): Promise<void> {
