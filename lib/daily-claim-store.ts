@@ -38,8 +38,8 @@ export async function canClaimToday(addr: string): Promise<boolean> {
 /**
  * Atomic claim attempt. Returns true if this caller won the race and
  * should proceed to credit hex; false if another request already claimed
- * today for this wallet. Uses Redis SET NX so two concurrent POSTs
- * cannot both pass.
+ * today for this wallet. Uses an atomic Redis `SET … GET` so two concurrent
+ * POSTs cannot both pass.
  *
  * Closes the daily-claim TOCTOU: canClaimToday() + setLastClaim() was
  * not atomic — two concurrent claims could both see "not yet claimed"
@@ -54,16 +54,14 @@ export async function tryClaimToday(addr: string): Promise<boolean> {
     return true;
   }
   try {
-    // SET NX EX 172800 — only sets if key doesn't already match.
-    // Returns "OK" on success, null when key already existed.
-    const res = await upstash(["SET", KEY(addr), day, "NX", "EX", "172800"]);
-    if (res === "OK") return true;
-    // Key existed — check if it's today's claim or a stale value
-    const cur = (await upstash(["GET", KEY(addr)])) as string | null;
-    if (cur === day) return false;
-    // Stale (yesterday's) value — overwrite atomically with today and proceed
-    await upstash(["SET", KEY(addr), day, "EX", "172800"]);
-    return true;
+    // Atomic claim in ONE round-trip: set today's date (48h TTL) and return the
+    // PRIOR value. `SET key day EX 172800 GET` is a single Redis command, so two
+    // concurrent claims serialize — exactly one sees a prior value !== today and
+    // wins. Replaces the old SET NX → GET → SET sequence whose day-rollover
+    // branch (key holds yesterday — the COMMON case) did a non-atomic
+    // GET-then-SET that let two racing claims both credit the daily 10⬡.
+    const prior = (await upstash(["SET", KEY(addr), day, "EX", "172800", "GET"])) as string | null;
+    return prior !== day;
   } catch {
     // On Upstash failure, fall back to single-attempt semantics. Won't
     // double-credit because the credit path itself fails too.
