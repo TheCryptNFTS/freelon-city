@@ -35,7 +35,7 @@ function allowedOrigin(req: Request): string | null {
 export function gameCorsHeaders(req: Request): Record<string, string> {
   const origin = allowedOrigin(req);
   const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     Vary: "Origin",
   };
