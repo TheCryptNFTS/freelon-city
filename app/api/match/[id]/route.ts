@@ -31,7 +31,7 @@ export async function OPTIONS(req: Request) {
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const cors = gameCorsHeaders(req);
   const rl = await limit(req, "match-get", { max: 240, windowSec: 60 });
-  if (!rl.ok) return tooManyResponse(rl);
+  if (!rl.ok) return tooManyResponse(rl, cors);
 
   const { id } = await ctx.params;
 
