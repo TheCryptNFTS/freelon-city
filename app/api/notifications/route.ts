@@ -38,9 +38,12 @@ export async function POST(req: Request) {
   }
   if (body.action === "prefs" && body.prefs) {
     const validKinds: NotifKind[] = ["decay-warning", "streak-milestone-soon", "watchlist-flag", "transmission-boosted", "civ-wars-monday", "civ-wars-mid-week", "snipe-matured", "fresh-citizen"];
+    // Coerce optOut to an array BEFORE filtering: a non-array truthy value
+    // (string/object) survives `|| []` and then `.filter` throws a 500.
+    const rawOptOut = Array.isArray(body.prefs.optOut) ? body.prefs.optOut : [];
     const cleanPrefs: NotifPrefs = {
       dmEnabled: !!body.prefs.dmEnabled,
-      optOut: (body.prefs.optOut || []).filter((k): k is NotifKind => validKinds.includes(k as NotifKind)),
+      optOut: rawOptOut.filter((k): k is NotifKind => validKinds.includes(k as NotifKind)),
     };
     await setPrefs(addr, cleanPrefs);
     return NextResponse.json({ ok: true, prefs: cleanPrefs });

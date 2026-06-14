@@ -215,6 +215,11 @@ export async function boostTransmission(
 
 export async function reportTransmission(id: string, wallet: string): Promise<{ ok: boolean; alreadyReported?: boolean; hidden?: boolean }> {
   const w = wallet.toLowerCase();
+  // Validate the target FIRST so a failed (missing / non-live) report never
+  // consumes the wallet's one-time report marker — otherwise that wallet could
+  // never report the id again even once it's valid. Mirrors signalTransmission.
+  const t = await getTransmission(id);
+  if (!t || t.status !== "live") return { ok: false };
   if (!hasUpstash) {
     if (memory.reports.has(`${id}:${w}`)) return { ok: false, alreadyReported: true };
     memory.reports.add(`${id}:${w}`);
@@ -223,8 +228,6 @@ export async function reportTransmission(id: string, wallet: string): Promise<{ 
     if (existed === 1 || existed === "1") return { ok: false, alreadyReported: true };
     await upstash(["SETEX", KEY_REPORT(id, w), String(90 * 86400), "1"]);
   }
-  const t = await getTransmission(id);
-  if (!t || t.status !== "live") return { ok: false };
   t.reports++;
   let hidden = false;
   if (t.reports >= 3) {
