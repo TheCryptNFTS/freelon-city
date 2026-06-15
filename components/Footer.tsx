@@ -2,21 +2,68 @@ import Link from "next/link";
 import { METADATA_CID, OPENSEA_BASE, ETHERSCAN_BASE } from "@/lib/constants";
 
 /**
- * Route compression 2026-05-25 — footer simplified from 3-column,
- * 22-link sprawl to 3 minimal columns: ON-CHAIN proof / canonical
- * NAVIGATE / LEGAL. The branding paragraph, the on-chain CID echo
- * row, and the dense link-cloud at the bottom are all gone.
- *
- * Dropped links (still reachable by direct URL — chrome cleanup
- * only, no route deletions):
- *   /vault, /origin, /shapes, /castes, /citizens, /names,
- *   /numbers (moved to More dropdown), /architect, /roadmap,
- *   /press, /lexicon, brand paragraph, image/meta CID rows.
+ * Footer directory (2026-06-14). The top nav is deliberately condensed to the
+ * spine, which left ~30 real pages reachable only by typing the URL — holders
+ * were guessing /shop, /earn, etc. to find them (Billy, Discord). This brings
+ * back a grouped "fat footer" so every public page is one click away WITHOUT
+ * bloating the primary nav. Dynamic pages (/citizens/[id], /agent/[id], …),
+ * /admin, and the hidden /the-fifth-bracket (renders a 404) are intentionally
+ * omitted; deep legal sub-pages live under their own features.
  */
 export function Footer() {
   return (
     <footer className="site-footer">
       <div className="site-footer__cols">
+        <div className="site-footer__col">
+          <h2 className="site-footer__heading">The City</h2>
+          <ul>
+            <li><Link href="/citizens">The 4,040 FREELONS</Link></li>
+            <li><Link href="/collections">The Six Collections</Link></li>
+            <li><Link href="/civilizations">Ten Civilizations</Link></li>
+            <li><Link href="/dashboard">Dashboard</Link></li>
+            <li><Link href="/my-citizens">My Citizens</Link></li>
+          </ul>
+        </div>
+
+        <div className="site-footer__col">
+          <h2 className="site-footer__heading">Play</h2>
+          <ul>
+            <li><Link href="/play">All Games</Link></li>
+            <li><Link href="/crypt-tcg">Crypt TCG</Link></li>
+            <li><Link href="/play/hex-match">Hex Match</Link></li>
+            <li><Link href="/play/restore">Restore the Signal</Link></li>
+            <li><Link href="/play/guard">Guard the Pot</Link></li>
+            <li><Link href="/play/reckoning">The Reckoning</Link></li>
+            <li><Link href="/play/sweep">Sweep Run</Link></li>
+            <li><Link href="/play/cipher">The Cipher</Link></li>
+          </ul>
+        </div>
+
+        <div className="site-footer__col">
+          <h2 className="site-footer__heading">Start here</h2>
+          <ul>
+            <li><Link href="/start">New here? Start</Link></li>
+            <li><Link href="/demo">Meet a Citizen</Link></li>
+            <li><Link href="/sync">Connect wallet + X</Link></li>
+            <li><Link href="/earn">Earn HEX</Link></li>
+            <li><Link href="/shop">Shop</Link></li>
+            <li><Link href="/help">Help</Link></li>
+          </ul>
+        </div>
+
+        <div className="site-footer__col">
+          <h2 className="site-footer__heading">Signal &amp; lore</h2>
+          <ul>
+            <li><Link href="/report">The Signal Report</Link></li>
+            <li><Link href="/canon">Canon</Link></li>
+            <li><Link href="/archive">The Archive</Link></li>
+            <li><Link href="/transmissions">Transmissions</Link></li>
+            <li><Link href="/carrier-of-the-week">Carrier of the Week</Link></li>
+            <li><Link href="/press">Press</Link></li>
+            <li><Link href="/developers">Developers</Link></li>
+          </ul>
+        </div>
+
         <div className="site-footer__col">
           <h2 className="site-footer__heading">On-chain</h2>
           <ul>
@@ -49,28 +96,13 @@ export function Footer() {
         </div>
 
         <div className="site-footer__col">
-          {/* 2026-06-08 radical condense — footer Navigate trimmed to the spine.
-              Archive / Civilizations / Play / Canon / Shop / Developers dropped
-              from chrome (pages still live by URL). Crypt TCG kept, flagged soon. */}
-          <h2 className="site-footer__heading">Navigate</h2>
-          <ul>
-            <li><Link href="/citizens">FREELONS</Link></li>
-            <li><Link href="/report">The Signal Report</Link></li>
-            <li><Link href="/demo">Meet a Citizen</Link></li>
-            <li><Link href="/collections">Collections</Link></li>
-            <li><Link href="/start">Start</Link></li>
-            <li><Link href="/help">Help</Link></li>
-            <li><Link href="/crypt-tcg">Crypt TCG · play</Link></li>
-          </ul>
-        </div>
-
-        <div className="site-footer__col">
           <h2 className="site-footer__heading">Legal</h2>
           <ul>
             <li><Link href="/legal/terms">Terms</Link></li>
             <li><Link href="/legal/privacy">Privacy</Link></li>
             <li><Link href="/legal/honorary-notice">Honorary Notice</Link></li>
             <li><Link href="/legal/dmca">DMCA</Link></li>
+            <li><Link href="/legal">All policies</Link></li>
           </ul>
         </div>
       </div>
@@ -90,8 +122,10 @@ export function Footer() {
         }
         .site-footer__cols {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: var(--s-6);
+          /* Flow the 6 directory columns by width — 6 across on desktop down to
+             2-3 on tablet, then 1 on phones (the 720px rule below). */
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: var(--s-6) var(--s-5);
         }
         .site-footer__col ul {
           list-style: none;
