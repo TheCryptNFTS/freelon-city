@@ -17,6 +17,7 @@
  * Requires: CRON_SECRET (Bearer auth — same as the other crons).
  */
 import { NextResponse } from "next/server";
+import { cronAuthed } from "@/lib/cron-auth";
 import { resolveCarrierOfWeek } from "@/lib/carrier-of-week";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,7 @@ export async function GET(req: Request) {
   if (!secret) {
     return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
   }
-  if (auth !== `Bearer ${secret}`) {
+  if (!cronAuthed(auth)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

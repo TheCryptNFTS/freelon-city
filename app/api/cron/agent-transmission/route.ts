@@ -19,6 +19,7 @@
  *   X_API_KEY/SECRET, X_ACCESS_TOKEN/SECRET — posting creds (see lib/x-post).
  */
 import { NextResponse } from "next/server";
+import { cronAuthed } from "@/lib/cron-auth";
 import { getCitizen } from "@/lib/citizens";
 import { getProgress } from "@/lib/progression-store";
 import { buildPersona } from "@/lib/missions/persona";
@@ -40,7 +41,7 @@ export async function GET(req: Request) {
   // post to X is a spam vector. No secret set → refuse.
   const secret = process.env.CRON_SECRET;
   if (!secret) return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
-  if (req.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!cronAuthed(req.headers.get("authorization"))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

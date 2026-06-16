@@ -14,6 +14,7 @@
  * for testing before the X account is fully configured.
  */
 import { NextResponse } from "next/server";
+import { cronAuthed } from "@/lib/cron-auth";
 import { getDailySignal } from "@/lib/daily-signal";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { postTweet, hasXCredentials } from "@/lib/x-post";
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
   if (!secret) {
     return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
   }
-  if (auth !== `Bearer ${secret}`) {
+  if (!cronAuthed(auth)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

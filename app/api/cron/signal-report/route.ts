@@ -29,6 +29,7 @@
  * Required env: CRON_SECRET, X_API_KEY/_SECRET, X_ACCESS_TOKEN/_SECRET.
  */
 import { NextResponse } from "next/server";
+import { cronAuthed } from "@/lib/cron-auth";
 import { getCivWeekStandings } from "@/lib/city-week";
 import { topCitizens } from "@/lib/progression-store";
 import { getCitizen } from "@/lib/citizens";
@@ -49,7 +50,7 @@ export async function GET(req: Request) {
   if (!secret) {
     return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
   }
-  if (auth !== `Bearer ${secret}`) {
+  if (!cronAuthed(auth)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

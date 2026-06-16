@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cronAuthed } from "@/lib/cron-auth";
 import { listMatchRecords, setMatch, type MatchRecord } from "@/lib/match-store";
 import { HARD_IDLE_MS } from "@/lib/match-pvp";
 import type { MatchState } from "@/lib/crypt-engine/engine/state";
@@ -27,7 +28,7 @@ export async function GET(req: Request) {
   if (!secret) {
     return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
   }
-  if (auth !== `Bearer ${secret}`) {
+  if (!cronAuthed(auth)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

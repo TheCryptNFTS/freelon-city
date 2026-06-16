@@ -15,6 +15,7 @@
  *   UPSTASH_REDIS_REST_URL / _TOKEN
  */
 import { NextResponse } from "next/server";
+import { cronAuthed } from "@/lib/cron-auth";
 import { CONTRACT } from "@/lib/constants";
 import { creditWalletHex, creditWalletHexCapped, getWalletHex, setWalletHex, todayUTC, InsufficientHexError } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
@@ -109,7 +110,7 @@ export async function GET(req: Request) {
   if (!secret) {
     return NextResponse.json({ error: "cron_unconfigured" }, { status: 503 });
   }
-  if (auth !== `Bearer ${secret}`) {
+  if (!cronAuthed(auth)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   if (!process.env.OPENSEA_API_KEY) {

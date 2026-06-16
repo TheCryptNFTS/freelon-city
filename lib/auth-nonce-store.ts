@@ -50,9 +50,10 @@ export async function consumeNonce(addr: string): Promise<string | null> {
     return rec.nonce;
   }
   try {
-    const raw = (await upstash(["GET", KEY(a)])) as string | null;
-    // Delete regardless so the nonce can never be replayed, even on a race.
-    await upstash(["DEL", KEY(a)]);
+    // Atomic read-and-delete (2026-06-16): GET-then-DEL let two concurrent
+    // verifies with the same signature both read the nonce before either deleted
+    // it, minting two sessions. GETDEL makes consume single-use in one op.
+    const raw = (await upstash(["GETDEL", KEY(a)])) as string | null;
     return raw ?? null;
   } catch {
     return null;
