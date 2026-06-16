@@ -1970,7 +1970,7 @@ a { color: inherit; text-decoration: none; }
 .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .result-cell {
   position: relative;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-2); overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-3); overflow: hidden;
   text-decoration: none; color: var(--ink); border-top: 2px solid var(--civ, var(--gold));
   /* Stronger civ signal at thumbnail scale than the 2px top line alone: a faint
      civ-tinted inset glow so each card carries its civilization color. */
@@ -2439,7 +2439,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .one-card {
   background: var(--surface); border: 1px solid var(--line);
-  border-top: 3px solid var(--civ); border-radius: 4px; overflow: hidden;
+  border-top: 3px solid var(--civ); border-radius: 12px; overflow: hidden;
   text-decoration: none; color: var(--ink);
   transition: transform 200ms ease;
 }
@@ -2461,7 +2461,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .honor-card {
   background: var(--surface); border: 1px solid var(--line);
-  border-top: 2px solid var(--civ); border-radius: 4px; overflow: hidden;
+  border-top: 2px solid var(--civ); border-radius: 12px; overflow: hidden;
   text-decoration: none; color: var(--ink); transition: transform 200ms ease;
 }
 .honor-card:hover { transform: translateY(-2px); }
@@ -2478,7 +2478,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .legendary-card {
   background: var(--surface); border: 1px solid var(--line);
-  border-top: 2px solid var(--civ); border-radius: 4px; overflow: hidden;
+  border-top: 2px solid var(--civ); border-radius: 12px; overflow: hidden;
   text-decoration: none; color: var(--ink); transition: transform 200ms ease;
 }
 .legendary-card:hover { transform: translateY(-2px); }
@@ -2498,7 +2498,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .topagent-card {
   background: var(--surface); border: 1px solid var(--line);
-  border-top: 2px solid var(--civ, var(--gold)); border-radius: 6px; overflow: hidden;
+  border-top: 2px solid var(--civ, var(--gold)); border-radius: 12px; overflow: hidden;
   text-decoration: none; color: var(--ink); transition: transform 200ms ease;
 }
 .topagent-card:hover { transform: translateY(-2px); }
@@ -8494,7 +8494,7 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 }
 .mycit-card {
   display: block; border: 1px solid var(--line); border-top: 2px solid var(--civ, var(--gold));
-  border-radius: 8px; overflow: hidden; background: var(--surface, var(--bg-lifted));
+  border-radius: 12px; overflow: hidden; background: var(--surface, var(--bg-lifted));
   text-decoration: none; color: var(--ink); transition: transform 0.18s ease, border-color 0.18s ease;
 }
 .mycit-card:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--gold), transparent 50%); }
