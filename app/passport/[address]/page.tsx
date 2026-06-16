@@ -16,6 +16,8 @@ import {
   type WalletClass,
 } from "@/lib/wallet-classification";
 import { getWalletSet } from "@/lib/signal-set";
+import { getWalletArtefacts } from "@/lib/wallet-artefacts";
+import { ArtefactGallery } from "@/components/ArtefactGallery";
 
 export const revalidate = 120;
 
@@ -53,12 +55,13 @@ export default async function PassportPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, hex, x, hexRecords, set] = await Promise.all([
+  const [tokensRes, hex, x, hexRecords, set, artefacts] = await Promise.all([
     getWalletTokens(norm, 500),
     getWalletHex(norm),
     getXVerification(norm),
     listWalletHexRecords(500),
     getWalletSet(norm),
+    getWalletArtefacts(norm),
   ]);
 
   const tokenIds = tokensRes?.tokenIds ?? [];
@@ -270,6 +273,11 @@ export default async function PassportPage({
           Some holdings are still syncing — alignment is provisional.
         </p>
       ) : null}
+
+      {/* The actual owned tokens across the five sister collections — FREELON-grade
+          cards (art + traits + lore) instead of the bare set chips above. FREELONS
+          gets its own dedicated "CITIZENS OWNED" gallery below. */}
+      <ArtefactGallery groups={artefacts} />
 
       {thumbIds.length > 0 ? (
         <>
