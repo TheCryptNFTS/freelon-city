@@ -56,7 +56,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     ? (CIVILIZATIONS as Record<string, { name: string; doctrine: string; color: string }>)[rivalSlug]
     : null;
   const hasDistrict = DISTRICTS.has(slug);
-  const bannerSrc = hasDistrict ? `/districts/${slug}.jpg` : `/generated/civ-banner-${slug}.png`;
+  // WebP banners (2026-06-16): the source PNGs were ~2.2MB each on a raw <img>
+  // (no next/image on this full-bleed shot) → re-encoded to ~70KB WebP, a 97% cut.
+  const bannerSrc = hasDistrict ? `/districts/${slug}.jpg` : `/generated/civ-banner-${slug}.webp`;
   const citizens = getByCivilization(slug as CivilizationSlug);
   const featured = [
     ...citizens.filter((x) => x.tier === "One of One"),
