@@ -111,6 +111,35 @@ export async function getRound(): Promise<GuardRound> {
 }
 
 /**
+ * Advance to a fresh round — the weekly "Crack the Citizen" reset. Opens a new
+ * vault (status open, attempts 0, fee reset, a fresh server-only secret keyed to
+ * the new round) carrying the env prize label. The PRIOR round's board/secret/
+ * winlock keys are keyed by the OLD round number, so they survive as history and
+ * the new round starts clean. Idempotent-safe: only advances a DECIDED ("won")
+ * round — a live, uncracked vault is never reset out from under its players.
+ * Returns the live round (new if advanced, current if not).
+ */
+export async function startNextRound(): Promise<GuardRound> {
+  const current = await getRound();
+  if (current.status !== "won") return current;
+  const next: GuardRound = {
+    round: current.round + 1,
+    status: "open",
+    attempts: 0,
+    totalBurned: 0,
+    fee: guardPotFee(0),
+    prizeLabel: prizeLabelFromEnv(),
+    openedAt: Date.now(),
+    winner: null,
+    winnerAt: null,
+    winningAttempt: null,
+  };
+  await setJSON(ROUND_KEY, next);
+  await getSecret(next.round); // pre-mint the new round's release token
+  return next;
+}
+
+/**
  * The release token for a round — SERVER ONLY. High-entropy; injected into the
  * guard agent's system prompt as the thing it must never output unless genuinely
  * convinced. A win = the model emits this exact token. Generated + persisted once

@@ -20,6 +20,10 @@
     {
       "path": "/api/cron/match-sweep",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/crack-pulse",
+      "schedule": "0 17 * * 4"
     }
   ]
 }

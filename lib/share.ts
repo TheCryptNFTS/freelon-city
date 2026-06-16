@@ -112,6 +112,44 @@ export function tweetCitizen(input: {
 }
 
 /**
+ * GUARD THE POT / "Crack the Citizen" weekly spectacle post (cron-driven). Two
+ * modes — a fresh CRACK (a named winner just talked the citizen out of the prize)
+ * or a STANDING vault (still uncracked, N have tried). The screenshot-able weekly
+ * loop: self-funding (the ⬡ fee is a burn), bounded (one winner per round), with a
+ * face (the guarding FREELON) and a public CTA. Copy-safe: prize label is
+ * display-only, the ⬡ fee is explicitly a burn, no value/return claims.
+ */
+export function tweetGuardPot(input: {
+  round: number;
+  prizeLabel: string;
+  attempts: number;
+  cracked: boolean;
+  winnerMask?: string;
+}): string {
+  const url = `${SITE}/play/guard?ref=crk-${input.round}`;
+  if (input.cracked) {
+    return [
+      `⬡ ${HANDLE} · THE VAULT IS CRACKED.`,
+      ``,
+      `${input.winnerMask ?? "Someone"} talked the citizen out of ${input.prizeLabel} — after ${input.attempts} tried and failed.`,
+      ``,
+      `A new vault is live. One FREELON. One prize. Can you crack it?`,
+      `${HASHTAGS}`,
+      url,
+    ].join("\n");
+  }
+  return [
+    `⬡ ${HANDLE} · ${input.prizeLabel} sits behind one FREELON.`,
+    ``,
+    `${input.attempts} have tried to talk it out. It hasn't budged.`,
+    ``,
+    `Pay the ⬡ (it burns), send your message, try to crack the vault. Your move.`,
+    `${HASHTAGS}`,
+    url,
+  ].join("\n");
+}
+
+/**
  * Listing card share — direct market signal with last sale + ask.
  */
 export function tweetListing(input: {
