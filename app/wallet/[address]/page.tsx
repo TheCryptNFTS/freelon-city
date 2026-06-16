@@ -16,6 +16,8 @@ import {
   normalizeAddress,
 } from "@/lib/wallet-tokens";
 import { getWalletHex } from "@/lib/wallet-hex-store";
+import { getWalletArtefacts } from "@/lib/wallet-artefacts";
+import { ArtefactGallery } from "@/components/ArtefactGallery";
 import { ECONOMY } from "@/lib/economy-constants";
 import { StampViewerAddr } from "@/components/StampViewerAddr";
 import { CarrierHealthCta } from "@/components/CarrierHealthCta";
@@ -224,12 +226,13 @@ export default async function WalletPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, holders, floor, hexRec, defenderSince] = await Promise.all([
+  const [tokensRes, holders, floor, hexRec, defenderSince, artefacts] = await Promise.all([
     getWalletTokens(norm, 500),
     fetchAllHolders(),
     fetchFloor(),
     getWalletHex(norm).catch(() => null),
     getDefenderSince(norm).catch(() => null),
+    getWalletArtefacts(norm).catch(() => []),
   ]);
   const defenderMonths = defenderSince
     ? Math.floor((Date.now() - defenderSince) / (30 * 86400 * 1000))
@@ -566,6 +569,10 @@ export default async function WalletPage({
           </a>
         )}
       </section>
+
+      {/* The rest of the city this wallet carries — The Crypt, Crypt TCG, OOGIES,
+          Emile, SMILES — as FREELON-grade cards (art + traits), not just a count. */}
+      <ArtefactGallery groups={artefacts} />
 
       <section className="wallet-foot">
         <Link href="/dashboard" className="btn btn-ghost">
