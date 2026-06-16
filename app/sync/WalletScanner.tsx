@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
+import { CIVILIZATIONS } from "@/lib/constants";
+import { CitizenAvatar } from "@/components/CitizenAvatar";
 import { cityNotice } from "@/lib/city-notice";
 import { CANON } from "@/lib/canon";
 
@@ -199,13 +200,11 @@ export function WalletScanner() {
                         {/* THE FACE — the promised payoff: an actual portrait in
                             the matched tribe's color, not a bare token number. */}
                         <div className="ws-face">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            className="ws-face-img"
-                            src={imageUrl(result.citizenMatch!.id)}
+                          <CitizenAvatar
+                            tokenId={result.citizenMatch!.id}
+                            size={120}
+                            ring={result.citizenMatch?.color}
                             alt={`Tribe face #${result.citizenMatch?.id}`}
-                            width={132}
-                            height={132}
                           />
                           <div className="ws-face-meta">
                             <span

@@ -178,7 +178,9 @@ export function FeaturedCitizenPicker({
                 src={imageUrl(tid)}
                 alt={`#${tid}`}
                 loading="lazy"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                /* Head-crop (the citizen's identity is the crystal head, upper third) so
+                   the 72px thumbnail shows a face, not a shrunk full body. */
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 20%", display: "block" }}
               />
               <span
                 style={{
