@@ -17,6 +17,7 @@ export function Footer() {
         <div className="site-footer__col">
           <h2 className="site-footer__heading">The City</h2>
           <ul>
+            <li><Link href="/live">Live · happening now</Link></li>
             <li><Link href="/citizens">The 4,040 FREELONS</Link></li>
             <li><Link href="/collections">The Six Collections</Link></li>
             <li><Link href="/civilizations">Ten Civilizations</Link></li>
