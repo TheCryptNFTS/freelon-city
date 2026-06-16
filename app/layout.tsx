@@ -1,6 +1,6 @@
 import "./globals.css";
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -14,6 +14,7 @@ import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
 import { ChromeGate } from "@/components/ChromeGate";
+import { BottomNav } from "@/components/BottomNav";
 import { ReferralBeacon } from "@/components/ReferralBeacon";
 import { StyledJsxRegistry } from "@/components/StyledJsxRegistry";
 
@@ -33,6 +34,17 @@ export const metadata: Metadata = {
     template: "%s · FREELON CITY",
   },
   description: SHARE_DESC,
+  // PWA / installable-app metadata (2026-06-16). manifest → app/manifest.ts;
+  // appleWebApp makes iOS "Add to Home Screen" launch standalone with the brand
+  // title + a translucent status bar over the warm-black chrome.
+  manifest: "/manifest.webmanifest",
+  applicationName: "FREELON CITY",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FREELON",
+  },
+  formatDetection: { telephone: false },
   openGraph: {
     title: SHARE_TITLE,
     description: SHARE_DESC,
@@ -47,6 +59,17 @@ export const metadata: Metadata = {
     description: SHARE_DESC,
     images: ["/api/og/universe?b=2"],
   },
+};
+
+// Viewport + theme (2026-06-16). themeColor paints the mobile browser/standalone
+// chrome warm-black so the PWA reads as one continuous app surface; viewportFit
+// "cover" lets content extend under the notch while safe-area-inset padding (see
+// globals.css / BottomNav) keeps it clear of the home indicator.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0b0a09",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -71,7 +94,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
            higher-res PNG for browsers that prefer it. */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/favicon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
         {/* PERF 2026-06-11: the /lore/city.webp hero-backdrop preload that
             lived here pushed 125KB of fetchPriority=high bytes onto EVERY
             route — it is homepage-only art. The preload moved to
@@ -109,6 +132,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main">{children}</main>
         <ChromeGate>
         <Footer />
+        {/* App-like mobile bottom tab bar (≤720px). ChromeGate hides it on the
+            full-screen agent workspace, matching Header/Footer. */}
+        <BottomNav />
         </ChromeGate>
         <ScrollReveal />
         <Spotlight />
