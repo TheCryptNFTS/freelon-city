@@ -4,9 +4,9 @@ import { listTransmissions, type TransmissionPublic } from "@/lib/transmissions-
 import { listRecentTransforms, type TransformEntry } from "@/lib/transforms-feed";
 import { topCitizens } from "@/lib/progression-store";
 import { getCitizen } from "@/lib/citizens";
-import { imageUrl } from "@/lib/constants";
 import { CityPulse } from "@/components/CityPulse";
 import { TransmissionCard } from "@/components/TransmissionCard";
+import { CitizenAvatar } from "@/components/CitizenAvatar";
 import { PageBeacon } from "@/components/PageBeacon";
 
 // Live aggregation — never cache; this page's whole job is to read as ALIVE.
@@ -69,9 +69,7 @@ export default async function LivePage() {
                   <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", width: 24 }}>
                     {(i + 1).toString().padStart(2, "0")}
                   </span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl(r.tokenId)} alt={r.citizen.name} width={40} height={40}
-                    style={{ width: 40, height: 40, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+                  <CitizenAvatar tokenId={r.tokenId} size={46} alt={r.citizen.name} />
                   <span style={{ flex: 1, minWidth: 0, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {r.citizen.name}
                   </span>

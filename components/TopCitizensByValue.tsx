@@ -11,7 +11,8 @@
  * called inline from the dashboard server render.
  */
 import Link from "next/link";
-import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
+import { CIVILIZATIONS } from "@/lib/constants";
+import { CitizenAvatar } from "@/components/CitizenAvatar";
 import { getTopCitizensByValue } from "@/lib/citizen-value-store";
 
 async function fetchFloor(): Promise<number> {
@@ -98,22 +99,7 @@ export async function TopCitizensByValue() {
                 className="ui-table-stack__cell"
                 aria-label={`Citizen #${id4}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imageUrl(cit.id)}
-                  alt=""
-                  width={48}
-                  height={48}
-                  loading="lazy"
-                  style={{
-                    width: 48,
-                    height: 48,
-                    objectFit: "cover",
-                    border: `1px solid ${color}55`,
-                    borderRadius: 6,
-                    display: "block",
-                  }}
-                />
+                <CitizenAvatar tokenId={cit.id} size={48} ring={color} alt={`Citizen #${id4}`} />
               </Link>
               <Link
                 href={`/citizens/${cit.id}`}

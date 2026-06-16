@@ -17,7 +17,7 @@
  */
 import Link from "next/link";
 import { getTopSweepers, type SweeperRow } from "@/lib/sweeper-store";
-import { imageUrl } from "@/lib/constants";
+import { CitizenAvatar } from "@/components/CitizenAvatar";
 
 function trimEth(n: number): string {
   return parseFloat(n.toFixed(3)).toString();
@@ -113,15 +113,7 @@ export async function RecentSweepers() {
               <span className="ui-table-stack__label">Recent</span>
               {r.tokenIds.slice(0, 5).map((tid) => (
                 <Link key={tid} href={`/citizens/${tid}`} title={`Citizen #${String(tid).padStart(4, "0")}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={imageUrl(tid)}
-                    alt=""
-                    width={32}
-                    height={32}
-                    loading="lazy"
-                    style={{ width: 32, height: 32, objectFit: "cover", border: "1px solid var(--line)", borderRadius: 4, display: "block" }}
-                  />
+                  <CitizenAvatar tokenId={tid} size={34} alt={`Citizen #${String(tid).padStart(4, "0")}`} />
                 </Link>
               ))}
               {r.tokenIds.length > 5 && (
