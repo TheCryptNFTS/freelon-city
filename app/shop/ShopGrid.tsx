@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatHex } from "@/lib/money-format";
 import { CATEGORIES, ITEMS, type ShopItem } from "@/lib/shop";
 import { loadCarrier, type CarrierState } from "@/lib/carrier";
 import { cityNotice } from "@/lib/city-notice";
@@ -16,7 +17,7 @@ const FAV_KEY = "freelon::shop::favs::v1";
 
 function shareItem(i: ShopItem) {
   const url = `https://www.freeloncity.com/shop`;
-  const text = `${i.name} — ${i.tier} · ${i.cost.toLocaleString()} ⬡ in the FREELON CITY shop\n${url}`;
+  const text = `${i.name} — ${i.tier} · ${formatHex(i.cost)} in the FREELON CITY shop\n${url}`;
   if (typeof navigator !== "undefined" && navigator.share) {
     navigator.share({ title: i.name, text, url }).catch(() => {});
   } else {
@@ -203,7 +204,7 @@ export function ShopGrid() {
       cityNotice({
         title: CANON.RECEIVED,
         body: `${item.name} added to your collection`,
-        delta: `-${item.cost} ⬡`,
+        delta: `-${formatHex(item.cost)}`,
       });
     } catch (e) {
       setError(e instanceof Error ? `${CANON.LOST} · ${e.message}` : `${CANON.LOST} · retry`);
@@ -228,7 +229,7 @@ export function ShopGrid() {
             {usingWallet ? "WALLET HEX BALANCE" : "HEX BALANCE"}
           </div>
         </div>
-        <div className="balance-amount">{balance.toLocaleString()} ⬡</div>
+        <div className="balance-amount">{formatHex(balance)}</div>
       </div>
 
       {error && (
@@ -255,7 +256,7 @@ export function ShopGrid() {
                 <p className="desc">{i.description}</p>
                 <div className="meta">
                   <span>{i.tier}</span>
-                  <span className="cost">{i.cost.toLocaleString()} ⬡</span>
+                  <span className="cost">{formatHex(i.cost)}</span>
                 </div>
                 <div className="owned-tag">⬡ OWNED</div>
               </article>
@@ -307,15 +308,15 @@ export function ShopGrid() {
               <dl className="shop-confirm-stats">
                 <div>
                   <dt>COST</dt>
-                  <dd className="shop-confirm-cost">{pendingItem.cost.toLocaleString()} ⬡</dd>
+                  <dd className="shop-confirm-cost">{formatHex(pendingItem.cost)}</dd>
                 </div>
                 <div>
                   <dt>BALANCE</dt>
-                  <dd>{balance.toLocaleString()} ⬡</dd>
+                  <dd>{formatHex(balance)}</dd>
                 </div>
                 <div>
                   <dt>AFTER</dt>
-                  <dd>{after.toLocaleString()} ⬡</dd>
+                  <dd>{formatHex(after)}</dd>
                 </div>
               </dl>
               <p className="shop-confirm-warn">
@@ -336,7 +337,7 @@ export function ShopGrid() {
                   disabled={busy}
                   onClick={() => confirmBuy(pendingItem)}
                 >
-                  {busy ? "BURNING…" : `BURN ${pendingItem.cost.toLocaleString()} ⬡`}
+                  {busy ? "BURNING…" : `BURN ${formatHex(pendingItem.cost)}`}
                 </button>
               </div>
             </div>
@@ -442,7 +443,7 @@ export function ShopGrid() {
           // looks broken." Insufficient is only the right label for synced
           // carriers who actually checked balance and came up short.
           const isAnon = !carrier?.handle;
-          let label = `BUY · ${i.cost.toLocaleString()} ⬡`;
+          let label = `BUY · ${formatHex(i.cost)}`;
           let disabled = false;
           if (isOwned) {
             label = "OWNED";
@@ -498,7 +499,7 @@ export function ShopGrid() {
                 )}
               </div>
               <div className="meta">
-                <span className="cost">{i.cost.toLocaleString()} ⬡</span>
+                <span className="cost">{formatHex(i.cost)}</span>
               </div>
               <button
                 type="button"
