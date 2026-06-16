@@ -1,6 +1,7 @@
 import { getCollectionToken } from "@/lib/collection-persona";
 import { FREELON_DEMO_DISPLAY } from "@/lib/demo-freelon";
 import { DemoChat, type DemoAgent } from "@/components/DemoChat";
+import { PageBeacon } from "@/components/PageBeacon";
 import styles from "@/components/DemoSplit.module.css";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +89,9 @@ export default function DemoPage() {
     // DemoChat can stand a sticky agent rail beside a ~620px chat measure.
     // Below 1024px this is the same 760px single stack as before.
     <div className={styles.page}>
+      {/* demo_view (2026-06-16) — the demo arrival, so the home→demo cliff is
+          measurable separately from demo_start (which only fires on first message). */}
+      <PageBeacon name="demo_view" />
       <header style={{ marginBottom: "var(--s-4)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ FREE · NO WALLET NEEDED</span>
         <h1 className="page-h1" style={{ margin: "12px 0 8px" }}>

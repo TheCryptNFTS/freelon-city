@@ -142,6 +142,14 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
     return () => { cancelled = true; };
   }, [o.isOwner, citizenId]);
 
+  // agent_view (2026-06-16) — the awaken-screen arrival, the missing UPSTREAM step
+  // of the activation funnel (agent_view → unlock_quote_started → activation_paid).
+  // `owner` separates the post-purchase awaken view from a cold non-owner view.
+  useEffect(() => {
+    trackEvent("agent_view", { citizenId, owner: o.isOwner });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [citizenId, o.isOwner]);
+
   // Fetch one real example transform for the cold-visitor gate (non-owners).
   useEffect(() => {
     let cancelled = false;

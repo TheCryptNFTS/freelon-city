@@ -16,6 +16,7 @@
  */
 import Link from "next/link";
 import type { Metadata } from "next";
+import { TrackedExtLink } from "@/components/TrackedExtLink";
 import { GODS, godOpenSeaUrl } from "@/lib/gods";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { getFloors, formatFloor } from "@/lib/floor-prices";
@@ -134,9 +135,9 @@ export default async function CombatArchivesPage() {
         {/* PLAY CTA — the game is live (solo vs AI). Ranked PvP is the next
             beat; the door is honest about both. GAME_URL is env-overridable. */}
         <div style={{ marginTop: "var(--s-4)", display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
-          <a href={GAME_URL} target="_blank" rel="noreferrer" className="btn btn-primary btn-lg">
+          <TrackedExtLink href={GAME_URL} event="crypt_play_click" from="crypt_tcg_hero" className="btn btn-primary btn-lg">
             <span className="ttl">ENTER THE TERMINAL · PLAY →</span>
-          </a>
+          </TrackedExtLink>
           <span
             style={{
               display: "inline-flex",
@@ -474,9 +475,9 @@ export default async function CombatArchivesPage() {
       <section style={{ textAlign: "center" }}>
         <span className="kicker">⬡ NEXT SIGNAL</span>
         <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
-          <a className="btn btn-primary" href={GAME_URL} target="_blank" rel="noreferrer">
+          <TrackedExtLink className="btn btn-primary" href={GAME_URL} event="crypt_play_click" from="crypt_tcg_close">
             <span className="ttl">PLAY THE GAME →</span>
-          </a>
+          </TrackedExtLink>
           <Link className="btn btn-secondary" href="/civilizations">
             <span className="ttl">10 CIVILIZATIONS →</span>
           </Link>

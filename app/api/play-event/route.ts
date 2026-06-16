@@ -105,7 +105,10 @@ export async function GET(req: Request) {
   }
   if (!hasUpstash) return NextResponse.json({ ok: true, configured: false });
 
-  const EVENTS = ["play_started", "play_started_own_cards", "play_session", "match_completed", "first_win_of_day"];
+  // 2026-06-16: was "first_win_of_day" — but the game renamed that stage to
+  // "first_match_result" (funnel.ts), so this aggregate read zero forever. Match
+  // the event the game actually emits.
+  const EVENTS = ["play_started", "play_started_own_cards", "play_session", "match_completed", "first_match_result"];
   const days: string[] = [];
   const base = Date.parse(today() + "T00:00:00Z");
   for (let i = 0; i < 7; i++) days.push(new Date(base - i * 86400000).toISOString().slice(0, 10));

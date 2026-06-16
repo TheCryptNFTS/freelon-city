@@ -14,6 +14,8 @@ import { CityWeekBand } from "@/components/CityWeekBand";
 import { CityPulse } from "@/components/CityPulse";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
+import { TrackedLink } from "@/components/TrackedLink";
+import { PageBeacon } from "@/components/PageBeacon";
 
 // Phase 1 metadata 2026-05-26 — route-specific text. Homepage uses
 // `title.absolute` to bypass the layout template (otherwise the
@@ -81,6 +83,11 @@ export default async function Home() {
     /* Audit 2026-05-26: .home-page wrapper triggers the scoped
        archival visual system in globals.css. No structure change. */
     <div className="home-page">
+      {/* Top-of-funnel pageview beacon (2026-06-16) — the homepage was the single
+          highest-traffic, previously-UNMEASURED step. With this +
+          meet_citizen_click + demo_view, home_view → meet_citizen_click →
+          demo_view → demo_start becomes a readable funnel. */}
+      <PageBeacon name="home_view" />
       {/* HERO — current form (since 06-03 funnel restructure): h1 + one literal
           subline + 2 CTAs + the /start text link over the full-bleed city
           backdrop. The 2026-05-28 "4 intent-doors" layout this comment used to
@@ -131,9 +138,9 @@ export default async function Home() {
               "Citizen", never "agent", on cold surfaces — AWAKEN canon; the label
               also matches the /demo headline so the scent trail holds. */}
           <div className="hero-landing__cta hero-cta-row">
-            <Link className="btn btn-primary btn-lg" href={seeAgentHref}>
+            <TrackedLink className="btn btn-primary btn-lg" href={seeAgentHref} event="meet_citizen_click" from="home_hero">
               <span className="ttl">MEET A CITIZEN · FREE →</span>
-            </Link>
+            </TrackedLink>
             {/* T11 2026-06-11 — opensea_click {from} funnel event on the buy CTA. */}
             <TrackedOpenSeaLink className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" from="home_hero">
               <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
@@ -254,9 +261,9 @@ export default async function Home() {
           <TrackedOpenSeaLink className="btn btn-primary btn-lg" href="https://opensea.io/collection/freelons" from="home_close">
             <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
           </TrackedOpenSeaLink>
-          <Link className="btn btn-secondary btn-lg" href={seeAgentHref}>
+          <TrackedLink className="btn btn-secondary btn-lg" href={seeAgentHref} event="meet_citizen_click" from="home_close">
             <span className="ttl">MEET A CITIZEN · FREE →</span>
-          </Link>
+          </TrackedLink>
         </div>
         {/* 2026-06-11 — civilization frame (lineage verified on Etherscan).
             "FREELONS are the first" was FALSE — The Crypt deployed Oct 2023;
