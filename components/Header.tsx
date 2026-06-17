@@ -41,7 +41,7 @@ export function Header() {
               mobile sheet already carries "New here? Start" but desktop newcomers
               had no explainer path except the small hero text link. Keeps the
               06-08 radical condense intact (still no Explore ▾ / Earn / Play). */}
-          <Link href="/start" prefetch={false} className="nav-link">Start</Link>
+          <Link href="/help" prefetch={false} className="nav-link">Start</Link>
           {/* 2026-06-10 Discord feedback ("are the games still there? I am
               lost"): Play restored for EVERYONE — hex-match + proof are free,
               no-wallet hooks, and hiding them read as "the games are gone".

@@ -43,7 +43,6 @@ export function Footer() {
         <div className="site-footer__col">
           <h2 className="site-footer__heading">Start here</h2>
           <ul>
-            <li><Link href="/start">New here? Start</Link></li>
             <li><Link href="/demo">Meet a Citizen</Link></li>
             <li><Link href="/sync">Connect wallet + X</Link></li>
             <li><Link href="/earn">Earn HEX</Link></li>

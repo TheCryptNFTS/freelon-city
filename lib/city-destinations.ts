@@ -39,9 +39,9 @@ export const CITY_DESTINATIONS: CityDest[] = [
   },
   {
     key: "start",
-    href: "/start",
+    href: "/help",
     title: "Start Here",
-    blurb: "The 2-minute guide — what FREELON CITY is and how to begin.",
+    blurb: "What FREELON CITY is and how to begin — the help guide.",
     keywords: ["how does this work", "what is this", "getting started", "new here", "i'm new", "im new", "beginner", "how do i start", "explain freelon", "what do i do", "how do i unlock", "how to unlock", "activate", "awaken", "how do i train", "level up", "how training works"],
   },
   {

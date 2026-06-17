@@ -61,7 +61,7 @@ const GROUPS: NavGroup[] = [
     links: [
       { href: "/citizens", label: "Browse the 4,040" },
       { href: "/collections", label: "The six collections" },
-      { href: "/start", label: "New here? 2-minute guide" },
+      { href: "/help", label: "New here? Start at Help" },
     ],
   },
   {

@@ -3,13 +3,9 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { preload } from "react-dom";
 import reveals from "@/components/HomeReveals.module.css";
-import { IdentityGreeting } from "@/components/IdentityGreeting";
 import { HeroVideo } from "@/components/HeroVideo";
-import { HeroAtmosphere } from "@/components/HeroAtmosphere";
 import TransformsWall from "@/components/TransformsWall";
 import { ActivationProof } from "@/components/ActivationProof";
-import { YourAgentsRail } from "@/components/YourAgentsRail";
-import { MemoryProof } from "@/components/MemoryProof";
 import { CityWeekBand } from "@/components/CityWeekBand";
 import { CityPulse } from "@/components/CityPulse";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
@@ -27,7 +23,10 @@ import { PageBeacon } from "@/components/PageBeacon";
 const HOME_DESC =
   "A living AI civilization, on-chain since 2023. Six collections, every face a living citizen — meet one free, own one, train it, battle in the arena. Its life travels with the NFT.";
 export const metadata: Metadata = {
-  title: { absolute: "404 — FREELON CITY · Bring identity back." },
+  // 2026-06-17 (Algorithm review): the cold-facing browser/Google title must not
+  // say "404" — a stranger reads it as a dead link. The 404 motif stays in the
+  // on-page header + interior easter eggs; share/OG title was already de-404'd.
+  title: { absolute: "FREELON CITY — a living AI civilization" },
   description: HOME_DESC,
   openGraph: {
     // 2026-06-10 — /api/og/universe with NO query serves the branded FreelonCard
@@ -98,20 +97,13 @@ export default async function Home() {
             a trailer (components/HeroVideo.tsx) to replace it with motion.
             Everything below sits in one centered column over it. */}
         <HeroVideo />
-        {/* Motion-tier upgrade (2026-06-06): aurora field + pointer-reactive
-            signal glow over the dark city. Asset-free, reduced-motion safe. */}
-        <HeroAtmosphere />
+        {/* 2026-06-17 (Algorithm review · "delete pre-pitch theater"): HeroAtmosphere
+            (aurora + pointer-glow motion) was removed from the cold path — it ran
+            before a stranger knew what the product is, delaying time-to-copy for zero
+            understanding. IdentityGreeting + YourAgentsRail (holder-only, rendered
+            nothing for ~80% of cold traffic) moved off the homepage to the holder
+            surfaces. The hero is now copy-first: anchor → h1 → subline → 2 CTAs. */}
         <div className="hero-landing__inner">
-          {/* Live identity greeting — wallet-aware. For known viewers
-              the page transforms into a personal experience (civ color,
-              handle, citizen count, hex balance). */}
-          <IdentityGreeting />
-
-          {/* Connected-holder home — a real "YOUR AGENTS" rail (their own citizen
-              art, framed, linking into each agent) instead of the old tiny strip.
-              Renders nothing for non-holders, so the newcomer pitch below leads. */}
-          <YourAgentsRail />
-
           {/* 2026-06-03 FREELONS-FIRST FUNNEL (founder restructure): the product
               value prop is the FIRST thing, in plain words a newcomer gets in
               ~10 seconds. Lore moved below. Three actions only. The structured
@@ -146,7 +138,6 @@ export default async function Home() {
               <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
             </TrackedOpenSeaLink>
           </div>
-          <Link className="hero-landing__newhere" href="/start">New here? The 2-minute guide →</Link>
 
           {/* CITY PULSE (2026-06-11) — two honest clocks under the CTAs: Day N
               since The Crypt's Oct-2023 creation tx (the city's Etherscan-
@@ -169,23 +160,10 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── MEMORY PROOF — the "understanding by demonstration" beat (2026-06-09).
-          A cold visitor doesn't grasp "a character that remembers you" from copy;
-          they grasp it by watching it happen with their OWN words. Deterministic +
-          zero-cost (no LLM, no free-run budget, no abuse surface — see
-          components/MemoryProof.tsx), it stages the remember-loop, then hands off to
-          the live agent at /demo. This is the proof; How It Works below is the how. */}
-      {/* Punch-list HIGH-IMPACT (2026-06-11): section rides the global .reveal
-          IO at 0.6s expo (reveals.rv) and its beats stagger in 70ms apart
-          (reveals.stagger — kicker → h2 → the proof shell). Real <h2> under
-          the kicker per the eyebrow+heading hierarchy spec. */}
-      <section className={`memory-proof reveal ${reveals.rv} ${reveals.stagger}`} aria-label="See a citizen remember you">
-        <span className="kicker memory-proof__kicker" style={{ color: "var(--gold)" }}>⬡ SEE IT REMEMBER YOU</span>
-        <h2 className={`${reveals.sectionH2} ${reveals.sectionH2Center}`}>
-          Tell it one thing. <em>Watch it stick.</em>
-        </h2>
-        <MemoryProof />
-      </section>
+      {/* 2026-06-17 (Algorithm review · "the homepage gets one job"): the on-page
+          MemoryProof game was removed from the cold path — it's a demonstration for
+          people who haven't decided to engage. The live proof now lives entirely at
+          /demo (the no-wallet agent), which the hero's primary CTA opens. */}
 
       {/* THE ABUNDANCE BAND — real citizens at real size (cheap-fix #3). */}
       <CitizenMosaic />
