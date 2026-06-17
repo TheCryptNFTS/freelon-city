@@ -400,6 +400,27 @@
   .mlChip{display:inline-block;width:14px;height:8px;border-radius:1px;flex:0 0 14px}
   .mlChip.mlOut{background:transparent;border:2px solid var(--gold-bright)}
   .mlChip.mlHex{background:transparent;border:1px solid var(--gold-bright);border-radius:50%}
+  /* ---- mobile footer utilities → tappable bottom bar (2026-06-17) ----
+     On phones the build sheet (#buildMenu, bottom:6px) covered the 8px-tall
+     #soundBtn/#exportBtn/#importBtn/#resetBtn row, so it was occluded
+     (untappable) AND self-overlapping (import/reset collided). Relocate them
+     to a 4-up 44px bar pinned to the very bottom, and lift the build sheet +
+     its floating controls to clear it. Desktop/tablet (>560px) unchanged. */
+  @media (max-width:560px){
+    #buildMenu{bottom:50px}
+    #hint{display:none}   /* keyboard-centric help; was already occluded on phones, and now sits behind the utility bar */
+    #scanBtn,#crewsBtn{bottom:calc(38vh + 60px)}
+    #returnBtn,#ownCta{bottom:calc(38vh + 104px)}
+    #soundBtn,#exportBtn,#importBtn,#resetBtn{
+      position:fixed;top:auto;bottom:0;left:0;right:auto;width:25vw;height:44px;min-height:44px;
+      margin:0;padding:0;line-height:44px;text-align:center;white-space:nowrap;overflow:hidden;
+      font-size:8px;letter-spacing:.06em;color:rgba(242,234,216,.55);z-index:26;
+      background:rgba(8,7,4,.94);border:none;border-top:1px solid var(--line);box-sizing:border-box}
+    #exportBtn{left:25vw;border-left:1px solid var(--line)}
+    #importBtn{left:50vw;border-left:1px solid var(--line)}
+    #resetBtn{left:75vw;border-left:1px solid var(--line)}
+    body.mapping #soundBtn,body.mapping #exportBtn,body.mapping #importBtn,body.mapping #resetBtn{display:none!important}
+  }
 </style>
 <!-- SELF-HOSTED build (freeloncity.com/mars). This deployed copy diverges from
      the source mars-command/index.html: Three.js core + addons + DRACO decoder
