@@ -93,6 +93,32 @@ const GUARD_CARD = {
 const VISIBLE_GAMES =
   process.env.GUARD_POT_LIVE === "true" ? [GUARD_CARD, ...GAMES] : GAMES;
 
+// MORE WAYS TO PLAY (2026-06-17, Algorithm review · Billy: "people like the mini
+// games"). These prototypes were URL-only after the 06-07 de-sprawl so the main grid
+// stayed clean — but players like them, so they get a COMPACT secondary row here
+// (discoverable, not deletable) without rebuilding the "wall of six". Honest copy,
+// incl. The Reckoning's real ⬡ burn so no holder spends by surprise.
+const MORE_GAMES = [
+  {
+    href: "/play/sweep",
+    kicker: "ARCADE · NO WALLET",
+    title: "Sweep Run",
+    blurb: "Sweep the dead signals before they take the grid — but spare the living. A 30-second reflex hit.",
+  },
+  {
+    href: "/play/reckoning",
+    kicker: "HOLDER · CIV WAR · BURNS ⬡",
+    title: "The Reckoning",
+    blurb: "The weekly civ-vs-civ war. Burn ⬡ to muster for your civilization; the side with the most signal is crowned.",
+  },
+  {
+    href: "/play/cipher",
+    kicker: "ARG · DECODE THE LORE",
+    title: "The Cipher",
+    blurb: "Five fragments of a lost transmission scattered across the lore. Decode each to reassemble what the city was trying to say.",
+  },
+];
+
 export default function PlayHub() {
   return (
     <div className="manifesto">
@@ -215,6 +241,48 @@ export default function PlayHub() {
             </div>
           </Link>
         ))}
+      </section>
+
+      {/* MORE WAYS TO PLAY — the loved prototypes, surfaced compactly (see MORE_GAMES). */}
+      <section style={{ maxWidth: 1120, margin: "44px auto 0" }}>
+        <span className="kicker" style={{ display: "block", marginBottom: 16 }}>⬡ MORE WAYS TO PLAY</span>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {MORE_GAMES.map((g) => (
+            <Link
+              key={g.href}
+              href={g.href}
+              style={{
+                display: "block",
+                textDecoration: "none",
+                border: "1px solid var(--line)",
+                borderTop: "2px solid var(--gold)",
+                borderRadius: 12,
+                background: "var(--bg-2)",
+                padding: "16px 18px 18px",
+                transition: "border-color .18s, transform .18s",
+              }}
+            >
+              <div style={{ fontFamily: "var(--mono)", fontSize: 9.5, letterSpacing: "0.22em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 9 }}>
+                {g.kicker}
+              </div>
+              <div style={{ fontFamily: "var(--display)", fontSize: 19, color: "var(--ink)", marginBottom: 6 }}>
+                {g.title}
+              </div>
+              <p style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--ink-dim)", margin: "0 0 10px" }}>
+                {g.blurb}
+              </p>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 9.5, letterSpacing: "0.22em", color: "var(--ink-fade)", textTransform: "uppercase" }}>
+                PLAY →
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <ArcadeProgress />
