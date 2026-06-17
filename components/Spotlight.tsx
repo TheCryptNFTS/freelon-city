@@ -5,6 +5,15 @@ import { useEffect } from "react";
 // --mx / --my CSS vars on <body> so any surface can use them.
 export function Spotlight() {
   useEffect(() => {
+    // 2026-06-17 (Algorithm review): the cursor-glow is pure decoration and only
+    // matters on a pointer-fine device. Skip the global mousemove listener entirely on
+    // touch (most traffic — it never fires there anyway) and when reduced motion is
+    // requested. Every CSS consumer of --mx/--my has a static fallback, so the glow
+    // simply rests upper-centre instead of trailing the cursor — nothing breaks.
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!fine || reduced) return;
     let raf = 0;
     const onMove = (e: MouseEvent) => {
       if (raf) return;
@@ -15,7 +24,10 @@ export function Spotlight() {
       });
     };
     window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
   return null;
 }

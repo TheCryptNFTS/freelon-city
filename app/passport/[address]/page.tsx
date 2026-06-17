@@ -16,8 +16,6 @@ import {
   type WalletClass,
 } from "@/lib/wallet-classification";
 import { getWalletSet } from "@/lib/signal-set";
-import { getWalletArtefacts } from "@/lib/wallet-artefacts";
-import { ArtefactGallery } from "@/components/ArtefactGallery";
 
 export const revalidate = 120;
 
@@ -55,13 +53,12 @@ export default async function PassportPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, hex, x, hexRecords, set, artefacts] = await Promise.all([
+  const [tokensRes, hex, x, hexRecords, set] = await Promise.all([
     getWalletTokens(norm, 500),
     getWalletHex(norm),
     getXVerification(norm),
     listWalletHexRecords(500),
     getWalletSet(norm),
-    getWalletArtefacts(norm),
   ]);
 
   const tokenIds = tokensRes?.tokenIds ?? [];
@@ -274,10 +271,16 @@ export default async function PassportPage({
         </p>
       ) : null}
 
-      {/* The actual owned tokens across the five sister collections — FREELON-grade
-          cards (art + traits + lore) instead of the bare set chips above. FREELONS
-          gets its own dedicated "CITIZENS OWNED" gallery below. */}
-      <ArtefactGallery groups={artefacts} />
+      {/* 2026-06-17 (holder-surface consolidation): the full FREELON-grade artefact
+          GALLERY now lives only on /wallet (the holdings surface) — it was rendered on
+          both pages. The passport keeps the compact set-alignment CHIPS above (its job
+          is classification, not a holdings catalog) and links to the wallet for the
+          detailed gallery. De-duplicates the surfaces without losing the gallery. */}
+      <p style={{ margin: "var(--s-2) 0 var(--s-4)" }}>
+        <Link className="kicker" href={`/wallet/${norm}`} style={{ color: "var(--gold)", letterSpacing: "0.16em" }}>
+          ⬡ SEE FULL ARTEFACT HOLDINGS →
+        </Link>
+      </p>
 
       {thumbIds.length > 0 ? (
         <>
