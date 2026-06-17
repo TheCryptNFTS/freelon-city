@@ -172,23 +172,22 @@ export default async function Home() {
           — it restated the hero tag AND "How it works" below as a third copy of
           the same value prop. The hero says it once; How It Works shows the loop. */}
 
-      {/* ── HOW IT WORKS — the loop in four steps + the six roles a FREELON can
-          grow into. Compressed 6→4 (2026-06-08) to cut newcomer cognitive load:
-          the train/earn/history beats are one step now, so the loop reads in one
-          glance instead of six near-identical lines. */}
+      {/* ── HOW IT WORKS — the loop in three steps. Compressed 6→4 (2026-06-08)
+          then 4→3 (2026-06-17, Algorithm review): "history travels with the NFT"
+          folded into Train, and the obvious "keep it or sell it" step dropped, so
+          the loop reads in one glance. */}
       <section className={`how-it-works reveal ${reveals.rv}`}>
         <span className="kicker">⬡ HOW IT WORKS</span>
         {/* Punch-list HIGH-IMPACT (2026-06-11): real <h2> under the kicker;
             the four steps child-stagger 70ms apart off the section's reveal. */}
         <h2 className={reveals.sectionH2}>
-          One character. <em>Four steps.</em>
+          One character. <em>Three steps.</em>
         </h2>
         <ol className={`how-steps ${reveals.stagger}`}>
           {[
             "Own a FREELON — it's your character",
             "Awaken it — a one-time ETH payment switches it on, and it stays awake through resale",
-            "Train it — give it jobs; it earns XP, remembers you, and builds a public record",
-            "Keep it or sell it — the character and its whole history travel with the NFT",
+            "Train it — give it jobs; it earns XP, remembers you, and builds a public record that travels with the NFT through any resale",
           ].map((s, i) => (
             <li key={i} style={{ "--i": i } as CSSProperties}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
           ))}
@@ -197,7 +196,7 @@ export default async function Home() {
             can't tell what's live vs roadmap — this is the cheapest trust win.
             Factual: all four steps run on the site today. No promises made. */}
         <p style={{ marginTop: "var(--s-3)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.08em", color: "var(--ink-dim)", textAlign: "center" }}>
-          <span style={{ color: "var(--gold)" }}>●</span> All four steps are live on the site today — this is not a roadmap.
+          <span style={{ color: "var(--gold)" }}>●</span> All three steps are live on the site today — this is not a roadmap.
         </p>
         {/* SURFACE-REDUCTION 2026-06-09: removed the "ROLES IT CAN GROW INTO"
             list (Writer/Strategist/Sales Agent/Researcher/Designer/Red Team) —
