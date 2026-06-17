@@ -71,3 +71,35 @@ export function buildTokenMetadata(slug: string, id: string): TokenMetadata | nu
     attributes,
   };
 }
+
+export type ContractMetadata = {
+  name: string;
+  description: string;
+  image: string;
+  external_link: string;
+};
+
+/**
+ * COLLECTION-LEVEL metadata (the OpenSea `contractURI()` target) — the name,
+ * lore description, logo and link a marketplace shows at the TOP of the collection.
+ * Point a contract's `setContractURI` at /api/collection-contract/<slug>. Returns null
+ * for an unknown slug (caller fails safe). The logo is a representative token's original
+ * art, so it never invents an asset.
+ */
+export function buildContractMetadata(slug: string): ContractMetadata | null {
+  const meta = COLLECTION_META[slug];
+  const coll = collectionBySlug(slug);
+  if (!meta || !coll) return null;
+  const idx = index(slug);
+  // Representative logo: token #1's art, falling back to the first available token.
+  const rep = idx ? idx.get("1") ?? idx.values().next().value : null;
+
+  return {
+    name: meta.title,
+    description:
+      `${meta.blurb}\n\n` +
+      `${coll.role} of FREELON CITY — a living on-chain universe of six collections. ${meta.epithet}`,
+    image: rep?.img ?? "",
+    external_link: `${SITE}/collections/${slug}`,
+  };
+}
