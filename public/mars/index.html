@@ -421,6 +421,40 @@
     #resetBtn{left:75vw;border-left:1px solid var(--line)}
     body.mapping #soundBtn,body.mapping #exportBtn,body.mapping #importBtn,body.mapping #resetBtn{display:none!important}
   }
+  /* ============== IMMERSIVE clean-view + FULLSCREEN (2026-06-17) ==============
+     body.immersive hides ALL chrome for a full-bleed Mars: every .hud element PLUS
+     the non-.hud buttons (footer / scan / crews / return / ownCta). !important +
+     animation:none beats body.playing .hud{opacity:1} and the hudIn keyframe.
+     Transient feedback (#timers/#floaters/#nextSignal/#toast) stays. The two view
+     glyphs survive (faint) so there is ALWAYS a tappable way back; H or ESC also exit. */
+  body.immersive .hud,
+  body.immersive #scanBtn, body.immersive #crewsBtn, body.immersive #returnBtn, body.immersive #ownCta,
+  body.immersive #soundBtn, body.immersive #exportBtn, body.immersive #importBtn,
+  body.immersive #resetBtn, body.immersive #techBtn, body.immersive #recordsBtn{
+    opacity:0!important; pointer-events:none!important; animation:none!important;
+    transition:opacity .45s ease!important;
+  }
+  /* the two view toggles — quiet footer glyphs (desktop), always reachable */
+  #immBtn,#fsBtn{ position:fixed; bottom:4px; z-index:22; background:none; border:none;
+    color:rgba(242,234,216,.4); font-family:inherit; font-size:8px; letter-spacing:.3em;
+    cursor:pointer; padding:6px 8px; display:none; transition:color .18s, opacity .3s; }
+  #immBtn{ left:566px } #fsBtn{ left:642px }
+  body.playing #immBtn, body.playing #fsBtn{ display:block }
+  body.mapping #immBtn, body.mapping #fsBtn, body.fighting #immBtn, body.fighting #fsBtn{ display:none!important }
+  #immBtn:hover,#fsBtn:hover{ color:var(--gold) }
+  body.immersive #immBtn, body.immersive #fsBtn{ opacity:.5!important; pointer-events:auto!important; animation:none!important; }
+  body.immersive #immBtn:hover, body.immersive #fsBtn:hover{ opacity:1!important; color:var(--gold) }
+  /* tablet + phone: two compact tap glyphs in the TOP-RIGHT, clear of the build sheet + bottom bar */
+  @media (max-width:900px){
+    /* right-edge rail at mid-height — clear of the top stat cluster and the bottom controls/sheet */
+    #immBtn,#fsBtn{ top:auto; bottom:auto; left:auto; right:8px; width:48px; height:38px; padding:0;
+      display:none; align-items:center; justify-content:center; text-align:center; line-height:1.05;
+      font-size:7px; letter-spacing:.1em; z-index:28; color:rgba(242,234,216,.7);
+      background:rgba(8,7,4,.66); border:1px solid var(--line); border-radius:8px; }
+    #immBtn{ top:33% } #fsBtn{ top:calc(33% + 44px) }
+    body.playing #immBtn, body.playing #fsBtn{ display:flex }
+    body.mapping #immBtn, body.mapping #fsBtn, body.fighting #immBtn, body.fighting #fsBtn{ display:none!important }
+  }
 </style>
 <!-- SELF-HOSTED build (freeloncity.com/mars). This deployed copy diverges from
      the source mars-command/index.html: Three.js core + addons + DRACO decoder
@@ -484,6 +518,8 @@ setTimeout(function(){
 <div id="floaters"></div>
 <div id="nextSignal"></div>
 <button id="soundBtn">SOUND ON</button>
+<button id="immBtn" title="Hide the HUD for a clean view of Mars (H)">HIDE HUD</button>
+<button id="fsBtn" title="Fullscreen (F)">FULL</button>
 <div class="hud" id="minimapWrap"><canvas id="minimap" width="296" height="296"></canvas></div>
 <button class="hud" id="mapBtn"><span class="mbK">ORBITAL MAP ▸</span><span class="mbT" id="mapBtnTile"></span><span id="mapBtnBadge">▸ CLAIM READY</span></button>
 <div id="mapLegend">
@@ -566,7 +602,7 @@ setTimeout(function(){
   <div class="panelTitle">MISSIONS</div>
   <div id="missionBody"></div>
 </div>
-<div class="hud" id="hint">CLICK or W A S D / HOLD · DRIVE&nbsp;&nbsp;&nbsp;SCAN · REVEAL&nbsp;&nbsp;&nbsp;CLICK SITE · INSPECT&nbsp;&nbsp;&nbsp;DRAG · ORBIT</div>
+<div class="hud" id="hint">CLICK or W A S D / HOLD · DRIVE&nbsp;&nbsp;&nbsp;SCAN · REVEAL&nbsp;&nbsp;&nbsp;CLICK SITE · INSPECT&nbsp;&nbsp;&nbsp;DRAG · ORBIT&nbsp;&nbsp;&nbsp;H · HIDE HUD&nbsp;&nbsp;&nbsp;F · FULLSCREEN</div>
 <div id="rtHud">
   <div class="rtTitle" id="rtTitle">⬡ CONTACT — PURGE THE CORRUPTION</div>
   <div class="rtFoes" id="rtFoes">3 CONTACTS</div>
@@ -4104,6 +4140,7 @@ canvas.addEventListener('wheel', e=>{
 addEventListener('contextmenu',e=>{e.preventDefault(); cancelPlace();});
 addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
+  if(document.body.classList.contains('immersive')){ e.preventDefault(); setImmersive(false); return; }   // ESC = give me my HUD back
   if(rtActive){ e.preventDefault(); endRTCombat(false); return; }   // ESC withdraws from a live fight (resolves as a repel)
   if(mode==='map'){
     if($('factionModal').classList.contains('open')){ pendingClaim=null; $('factionModal').classList.remove('open'); return; }
@@ -4741,6 +4778,42 @@ setInterval(()=>{
   const sb=$('soundBtn');
   sb.textContent=muted?'SOUND OFF':'SOUND ON';
   sb.onclick=()=>{ setMuted(!muted); sb.textContent=muted?'SOUND OFF':'SOUND ON'; };
+}
+
+/* ---- immersive clean-view + fullscreen (2026-06-17) ---- */
+function setImmersive(on){
+  on=!!on;
+  document.body.classList.toggle('immersive',on);
+  const ib=$('immBtn'); if(ib) ib.textContent = on?'SHOW HUD':'HIDE HUD';
+}
+function fsSupported(){ const d=document.documentElement; return !!(d.requestFullscreen||d.webkitRequestFullscreen); }
+function isFs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
+function toggleFS(){
+  const d=document.documentElement;
+  try{
+    if(!isFs()){ const r=d.requestFullscreen||d.webkitRequestFullscreen; if(r){ const p=r.call(d); if(p&&p.catch) p.catch(()=>{}); } }
+    else { const x=document.exitFullscreen||document.webkitExitFullscreen; if(x) x.call(document); }
+  }catch(e){}
+}
+{
+  const ib=$('immBtn'), fb=$('fsBtn');
+  if(ib) ib.onclick=()=>setImmersive(!document.body.classList.contains('immersive'));
+  if(fb){ if(!fsSupported()) fb.style.display='none'; else fb.onclick=toggleFS; }
+  ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{
+    document.body.classList.toggle('fs', isFs());
+    if(fb) fb.textContent = isFs()?'EXIT':'FULL';
+    if(typeof fitRenderer==='function') fitRenderer();
+  }));
+  // H = hide HUD, F = fullscreen — play mode only, never while typing or fighting
+  addEventListener('keydown', e=>{
+    if(mode!=='play'||rtActive||e.repeat) return;
+    const tag=(e.target&&e.target.tagName)||''; if(tag==='INPUT'||tag==='TEXTAREA') return;
+    const k=(e.key||'').toLowerCase();
+    if(k==='h'){ e.preventDefault(); setImmersive(!document.body.classList.contains('immersive')); }
+    else if(k==='f'){ e.preventDefault(); if(fsSupported()) toggleFS(); }
+  });
+  // one-time teaching nudge
+  if(!lsGet('mc_seenImmTip')){ setTimeout(()=>{ try{ toast('PRESS H · CLEAN VIEW OF MARS'); }catch(e){} lsSet('mc_seenImmTip','1'); }, 9000); }
 }
 function renderBuildMenu(){
   const box=$('buildBtns'); box.innerHTML='';
@@ -5641,6 +5714,7 @@ const _coarse = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
 if(_coarse){ const _h=document.getElementById('hint'); if(_h) _h.innerHTML='TAP · DRIVE&nbsp;&nbsp;·&nbsp;&nbsp;SCAN ▸ REVEAL&nbsp;&nbsp;·&nbsp;&nbsp;TAP SITE ▸ INSPECT&nbsp;&nbsp;·&nbsp;&nbsp;DRAG · LOOK&nbsp;&nbsp;·&nbsp;&nbsp;HOLD · STEER'; }   // touch players get touch verbs, not WASD
 function startRTCombat(zone,poi){
   if(rtActive || typeof rover==='undefined') return;
+  setImmersive(false);   // never drop into a fight in clean-view
   cancelPlace(); closeZonePanel();
   if(S.hex<BATTLE_STAKE){ toast('INSUFFICIENT ⬡ FOR SORTIE'); return; }   // the sortie stake (sink) — paid on contact
   S.hex-=BATTLE_STAKE; S.today.spent+=BATTLE_STAKE; trackSpend(BATTLE_STAKE,'battle'); shownHex=S.hex; updateHUD();
@@ -5929,6 +6003,7 @@ setInterval(()=>{ if(mapPhase==='orbit') paintGlobeMarkers(); },500);
 function enterMap(){
   if(mode!=='play'||mapPhase!=='off') return;
   if(rtActive||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')||crossing) return;   // no leaving the arena into the map mid-fight
+  setImmersive(false);   // restore the HUD before the orbital-map transition
   cancelPlace(); closeZonePanel();
   mapSaved={yaw,pitch,dist,fov:camera.fov};
   mode='map'; mapPhase='out'; document.body.classList.add('mapping'); canvas.style.cursor='';
