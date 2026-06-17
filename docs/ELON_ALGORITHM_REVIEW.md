@@ -35,7 +35,7 @@
 5. `[2·H/S]` **Delete `CitizenAgentDashboard.tsx`** (1,333 lines, orphaned, superseded by AgentWorkspace) after confirming no imports.
 6. `[3·H/S]` **Crypt TCG time-to-first-win** — tutorial opponent 8→6 HP; pre-populate the deck builder with the working starter deck ("Use this deck / Customize"); auto-keep mulligan on Easy. Directly answers "the app's too complex."
 7. `[3·H/S]` **Crypt TCG glossary 25→5** — keep only core keywords in `/help`; the other ~9–20 stay tooltip-only. Hide faction-threshold rules behind "Advanced Tactics."
-8. `[2·H/S]` **Delete the dead mini-games** — Cipher (≈0 DAU), Sweep (0 leaderboard entries); move Guard to `/events/guard` (it's a marketing spectacle, not arcade). 8 games → 3 that earn maintenance.
+8. ~~`[2·H/S]` **Delete the dead mini-games**~~ — **REJECTED (Billy, 2026-06-17): "people like the mini games."** The "≈0 DAU / 0 entries" was an unverified agent guess and it's wrong — the arcade is community-loved. KEEP all of them; the only move here is *polish* (visibility on the hub, honest Restore/Reckoning copy), never deletion.
 
 ### Tier 2 — high value, contained
 9. `[2·H/M]` **Auto-posts: 6 → 2 spectacle + 1 rotating feed**, and strip lore from the *brand* templates (split `lib/share.ts` → `share-holder.ts` keeps the poetry, `share-brand.ts` is 5 lean product-first posts). 66% fewer posts, each carrying a real CTA — stop burning @4040hex on impression-farming.
@@ -65,7 +65,7 @@
 - **HeroAtmosphere + MemoryProof + IdentityGreeting-pill + YourAgentsRail** off the cold homepage.
 - **`/passport` + `/my-citizens`** as routes → fold into one `/profile`.
 - **`CitizenAgentDashboard.tsx`** (1,333 lines, orphaned).
-- **Cipher + Sweep** mini-games (dead); **Guard** → `/events`.
+- ~~Cipher + Sweep mini-games~~ — **KEPT** (community-loved, Billy 2026-06-17; the "dead" claim was a wrong agent guess).
 - **`/api/v1/*`** (legacy).
 - **~90% of the proposed automation roadmap.**
 - **Sister-collection agent progression** (unlock/mission/thread-sync) → chat-only.
@@ -93,7 +93,7 @@
 | **Landing / cold visitor** | Three products in one; ceremony before clarity | Copy-first hero; delete `/start`, HeroAtmosphere, MemoryProof; fix the 404 title |
 | **Six collections / universe** | Lore presented as load-bearing; it's supporting story | Reframe "FREELONS + companions"; delete `ArchiveRole`; pre-compute facets |
 | **Citizens & agents** | Two agent surfaces, premise over-extended | Delete CitizenAgentDashboard; FREELONS-only demo; sisters chat-only; abilities 6→3 |
-| **Mini-games (×7)** | Mostly dead/invisible prototypes | Delete Cipher+Sweep; Guard→/events; Proof one-mode; honest Restore copy |
+| **Mini-games (×7)** | **Community-loved — KEEP all** (Billy 2026-06-17) | Polish only: hub visibility, honest Restore/Reckoning copy, Proof one-mode. NO deletions. |
 | **Crypt TCG** | Too steep to learn fast | 8→6 HP tutorial; glossary 25→5; pre-pop deck; hide thresholds; auto-mulligan Easy |
 | **HEX economy** | Mental model too branchy | Flat 2500 unlock; owner-gated daily claim; delete phantom passive income; ETH→HEX success page |
 | **Holder tools** | 4 overlapping identity surfaces | Collapse to one `/profile`; ArtefactGallery in one place; split `/sync` into entry vs tools |
