@@ -16,7 +16,8 @@ export type GameKind =
   | "sweep"
   | "reckoning"
   | "cipher"
-  | "guard";
+  | "guard"
+  | "mars";
 
 // The six signal-civilization gem colours, mirrored from HexMatch.tsx.
 const GEMS = ["#00B8FF", "#FF3A2D", "#4CFF7A", "#B85CFF", "#FF5CB4", "#FFD24A"];
@@ -77,6 +78,49 @@ export function GamePreview({
     "aria-hidden": true,
     preserveAspectRatio: "xMidYMid slice",
   } as const;
+
+  if (kind === "mars") {
+    // A dust-red Mars horizon with the gold signal spire + rover — the actual scene.
+    return (
+      <svg {...common}>
+        <defs>
+          <linearGradient id="mars-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1a0f0a" />
+            <stop offset="60%" stopColor="#3a1f14" />
+            <stop offset="100%" stopColor="#7a3a20" />
+          </linearGradient>
+          <radialGradient id="mars-spire" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stopColor={accent} stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#0c0e15" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <rect width="320" height="150" fill="url(#mars-sky)" />
+        {[40, 70, 110, 160, 210, 250, 290].map((x, i) => (
+          <circle key={i} cx={x} cy={14 + (i % 3) * 9} r={0.9} fill="#f2ead8" opacity={0.7} />
+        ))}
+        {/* ground */}
+        <path d="M0 96 Q160 80 320 100 L320 150 L0 150 Z" fill="#a8552f" />
+        <path d="M0 110 Q160 98 320 116 L320 150 L0 150 Z" fill="#8a3f22" opacity="0.7" />
+        <rect x="120" y="34" width="80" height="80" fill="url(#mars-spire)" />
+        {/* signal spire */}
+        <polygon points="156,40 164,40 172,104 148,104" fill="#1a130d" />
+        {[56, 72, 88].map((y, i) => (
+          <rect key={i} x={150 - i} y={y} width={20 + i * 2} height={3.5} rx={1} fill="#f0c75e">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur={`${2 + i * 0.4}s`} repeatCount="indefinite" />
+          </rect>
+        ))}
+        <polygon points="160,30 166,38 154,38" fill="#f0c75e" />
+        {/* rover silhouette */}
+        <g transform="translate(232 104)" fill="#d8cabf">
+          <rect x="0" y="0" width="22" height="9" rx="2" />
+          <circle cx="5" cy="11" r="3" fill="#0c0e15" />
+          <circle cx="17" cy="11" r="3" fill="#0c0e15" />
+        </g>
+        {/* corruption shard (dust-red, the enemy) */}
+        <polygon points="60,108 66,86 72,108" fill="#a8341f" opacity="0.85" />
+      </svg>
+    );
+  }
 
   if (kind === "hex-match") {
     // A 6×3 board of glowing hex gems — what the player actually swaps.

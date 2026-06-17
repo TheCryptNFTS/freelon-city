@@ -56,7 +56,7 @@ const TABS: Tab[] = [
   {
     href: "/play",
     label: "Play",
-    match: (p) => p.startsWith("/play") || p.startsWith("/crypt"),
+    match: (p) => p.startsWith("/play") || p.startsWith("/crypt") || p.startsWith("/mars"),
     icon: (
       <svg width={S} height={S} viewBox="0 0 24 24" aria-hidden {...stroke}>
         <rect x="4.5" y="5" width="11.5" height="14" rx="2" transform="rotate(-8 10 12)" />

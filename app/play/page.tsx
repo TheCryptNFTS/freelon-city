@@ -42,6 +42,14 @@ export const metadata: Metadata = {
 // door with a few games, not a wall of six near-identical prototypes.
 const GAMES = [
   {
+    href: "/mars-command",
+    kicker: "EXPLORE · REAL-TIME · NO WALLET",
+    title: "Mars Command",
+    genre: "Mars exploration + real-time combat",
+    blurb:
+      "Drive a rover across a living Mars, scan for buried sites, claim sectors for a sworn doctrine, and fight the Chorus in real time. A full game — free, no wallet, in the browser.",
+    accent: "var(--gold-bright)",  },
+  {
     href: "/play/hex-match",
     kicker: "ARCADE · NO WALLET",
     title: "Hex Match",
@@ -147,7 +155,7 @@ export default function PlayHub() {
               }}
             >
               <GamePreview
-                kind={g.href.replace("/play/", "") as GameKind}
+                kind={(g.href === "/mars-command" ? "mars" : g.href.replace("/play/", "")) as GameKind}
                 accent={g.accent}
               />
             </div>

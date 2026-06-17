@@ -30,6 +30,7 @@ export function Footer() {
           <h2 className="site-footer__heading">Play</h2>
           <ul>
             <li><Link href="/play">All Games</Link></li>
+            <li><Link href="/mars-command">Mars Command</Link></li>
             <li><Link href="/crypt-tcg">Crypt TCG</Link></li>
             <li><Link href="/play/hex-match">Hex Match</Link></li>
             <li><Link href="/play/restore">Restore the Signal</Link></li>

@@ -21,6 +21,13 @@ const config: NextConfig = {
   // wins once fonts are self-hosted.
   async rewrites() {
     return [
+      // 2026-06-17 — MARS COMMAND ships as a self-contained static game at
+      // public/mars/index.html. Vercel serves directory indexes at the clean
+      // path in prod, but `next dev` 404s the bare /mars (it only serves
+      // /mars/index.html). This rewrite makes the clean /mars URL boot the game
+      // in BOTH dev and prod, and keeps location.pathname === "/mars" so the
+      // game's shareURL() emits freeloncity.com/mars#s=… seed links.
+      { source: "/mars", destination: "/mars/index.html" },
       { source: "/origin-signal",    destination: "/citizens/1" },
       { source: "/patient-zero",     destination: "/citizens/404" },
       { source: "/genesis-hex",      destination: "/citizens/1337" },
@@ -113,6 +120,38 @@ const config: NextConfig = {
     ];
   },
   async headers() {
+    // 2026-06-17 — MARS COMMAND (public/mars/index.html) is a self-contained
+    // WebGL build that pulls Three.js + textures/HDRIs/GLB models from CDNs.
+    // It gets its own looser CSP scoped to the /mars path ONLY; every other
+    // surface (incl. the /mars-command React landing) keeps the strict app CSP.
+    const MARS_GAME_CDNS = [
+      "https://cdn.jsdelivr.net",        // Three.js core/addons/DRACO + gh textures
+      "https://static.poly.pizza",       // GLB models
+      "https://dl.polyhaven.org",        // ground textures + HDRI sky
+      "https://upload.wikimedia.org",    // Mars surface texture
+      "https://images-assets.nasa.gov",  // NASA imagery
+      "https://media.githubusercontent.com", // starfield texture
+    ].join(" ");
+    const MARS_CSP = [
+      "default-src 'self'",
+      // Zero third-party scripts: Three.js core + addons + DRACO decoder are
+      // self-hosted under /mars/vendor (see public/mars/index.html importmap).
+      // 'unsafe-eval' is required only for WebAssembly (the DRACO .wasm decoder);
+      // 'unsafe-inline' covers the game's own inline <script type="module">.
+      // The external CDNs below are DATA only (img/connect) — no script trust.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
+      `img-src 'self' data: blob: ${MARS_GAME_CDNS}`,
+      `connect-src 'self' ${MARS_GAME_CDNS}`,
+      // DRACOLoader decodes compressed GLBs in a same-origin Web Worker (blob).
+      "worker-src 'self' blob:",
+      "media-src 'self' blob:",
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; ");
     return [
       {
         // Long-term immutable cache for static binary assets in /public/.
@@ -128,6 +167,7 @@ const config: NextConfig = {
         ],
       },
       {
+        // Non-CSP hardening — applies to EVERY path, including the /mars game.
         source: "/(.*)",
         headers: [
           // Clickjacking protection
@@ -140,6 +180,16 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
           // Belt-and-braces HSTS (Vercel already sets it, but make it explicit)
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+        ],
+      },
+      {
+        // Strict app CSP — every path EXCEPT the /mars game. The negative
+        // lookahead excludes "/mars" and "/mars/*" but NOT "/mars-command"
+        // (the React landing keeps this strict policy). Browsers enforce
+        // multiple CSP headers as their INTERSECTION, so the game path must
+        // receive ONLY the relaxed policy below — hence this exclusion.
+        source: "/((?!mars(?:/|$)).*)",
+        headers: [
           {
             key: "Content-Security-Policy",
             value: [
@@ -186,6 +236,17 @@ const config: NextConfig = {
             ].join("; "),
           },
         ],
+      },
+      // MARS COMMAND game — relaxed CSP scoped to the game path only. One rule
+      // for the clean URL (rewritten to /mars/index.html) and one for any
+      // direct sub-path hit of the static build.
+      {
+        source: "/mars",
+        headers: [{ key: "Content-Security-Policy", value: MARS_CSP }],
+      },
+      {
+        source: "/mars/:path*",
+        headers: [{ key: "Content-Security-Policy", value: MARS_CSP }],
       },
     ];
   },
