@@ -13,6 +13,7 @@ import { CityNotice } from "@/components/CityNotice";
 import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
+import { CollapseBannerGate } from "@/components/CollapseBannerGate";
 import { ChromeGate } from "@/components/ChromeGate";
 import { BottomNav } from "@/components/BottomNav";
 import { ReferralBeacon } from "@/components/ReferralBeacon";
@@ -119,7 +120,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             streams in when its data resolves. Fallback is null (the banner
             also renders null when the city is healthy), so zero layout shift. */}
         <Suspense fallback={null}>
-          <CollapseBanner />
+          {/* Gated off the cold acquisition surfaces (/, /demo): a "city is
+              collapsing" strip deters first-time strangers. Holders + interior
+              visitors still get the in-canon status. See CollapseBannerGate. */}
+          <CollapseBannerGate>
+            <CollapseBanner />
+          </CollapseBannerGate>
         </Suspense>
         {/* 2026-05-29 — CityFeedTicker removed (founder de-cheap pass). A
             scrolling sales/floor/holders price-crawl in tiny monospace was
