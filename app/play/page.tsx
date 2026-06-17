@@ -59,7 +59,7 @@ const GAMES = [
     accent: "var(--neon-cyan)",  },
   {
     href: "/play/restore",
-    kicker: "IDLE · HOLDER-AWARE",
+    kicker: "IDLE · FREE TO PLAY",
     title: "Restore the Signal",
     genre: "Like Cookie Clicker (idle game)",
     blurb:
