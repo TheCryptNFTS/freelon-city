@@ -944,3 +944,25 @@ Start with the six dead /start links (rank 1). It is the highest impact-to-effor
   - _Upgrade:_ Pick one warm-black token and use it for the HTML meta theme-color, manifest theme_color, and (optionally) background_color so chrome is seamless across browser and installed states.
   - _Evidence:_ crypt index.html:6 meta theme-color #0B0B0D; manifest.webmanifest:10 theme_color #0a0808, :9 background_color #050404. City app/manifest.ts:19-20 background_color and theme_color both #0b0a09.
   - _Verified:_ CONFIRMED: /Users/billy/crypt-game/index.html:6 meta=#0B0B0D, manifest.webmanifest:10 theme_color=#0a0808, :9 background_color=#050404 — three distinct values. City app/manifest.ts:19-20 uses #0b0a09 for both. Real but cosmetic, impact 1.
+
+---
+
+## Round 2 — backlog execution (2026-06-19)
+
+Triaged all 119 findings against the post-top-20 code: **27 already done, 13 skip, 79 actionable** (76 after dedup). Of those, the clear/safe/tractable set was implemented and shipped this round (via inline work + three background agents: Mars, Crypt, security-redteam). The rest is **flagged for a human decision** or **deferred as a larger build** — listed below.
+
+### Shipped (round 2)
+- **Copy-safety / de-financialization:** removed ETH valuations ("NET WORTH", "PORTFOLIO", "HEX NET WORTH", "BY COMPUTED VALUE") from wallet/carrier/dashboard/OG surfaces → citizen counts / "STANDING"; not-money qualifiers on /earn, press, auto-posted bounty, and share templates.
+- **UX/brand/mobile:** collection back-link, AWAKEN verb, footer Discord, transmissions CTA + anchor, demo greeting + shared-budget copy + chips-above-fold, twimg `?format=` validator, demo `?ref=`, shape-first identity (page kicker + every CitizenCard), collections aliveness lead, /help #own buy→awaken walkthrough, teal→gold, --gold-ramp token, OG kicker font, PWA color/orientation, iOS focus-zoom guard, bottom-nav clearance.
+- **HEX/auth security:** contract/range guards on defender-scan + cron sweep; sale-share self-deal guard + cap; sweep-streak respects the farmable cap; agent-prompt untrusted-input fencing; boost-notify dedupe; floor-defender off the hot path; constants hygiene.
+- **Mars (both copies):** combat input fix, aim/dodge hint, combat-HUD reward context, win-screen share, guaranteed first-contact fight, IRON/◇ HUD relabel, iOS safe-area, Clash Display headers, skip-intro on resume.
+- **Crypt:** ◈ Sigil rebrand, self-hosted fonts, PNG PWA icons, mobile a11y, copy-safety stub.
+
+### FLAGGED — need your call (not auto-shipped)
+**Legal / counsel review:** idx85 (consumer terms for the paid ETH awakening), idx86 ("forever" durability vs Terms carve-out), idx89 (DMCA/honorary PII flow in Privacy), idx90 (consent link at email collection), idx94 (UGC license + takedown clause). — These are legal-language changes; a lawyer should draft/approve.
+**Economic policy (your decision — changes who earns / caps):** idx65 (X-gate snipe+sale-share — blocks non-X-verified holders), idx49 (carrier STARTING 50⬡ leak — pick source-fix vs fold-fix; affects existing carriers), idx59 (absolute per-wallet daily HEX hard cap — would also cap legit big snipes), idx35-base (base sweeps still outside the global farmable ceiling), idx39 (sweep-streak sale-clock window — may be intentional, not a bug), idx38 (kind:'manual' overload for refunds/admin — touches the decay-activity stamp).
+**High-risk feature (needs dedicated careful work + your go):** idx52 (wallet-proof signature nonce/expiry — a real replay→spend hardening, but changing the auth flow needs its own tested PR), idx54 + idx112 (Guard-the-Pot secret-leak hardening, then enable — do NOT flip GUARD_POT_LIVE until 54 lands).
+**Product (needs analytics):** idx7 (swap a bottom-nav tab for OWN — needs /live traffic data first). idx33 (--neon-cyan rename — cosmetic churn; recommend skip).
+
+### DEFERRED — larger builds (specs in the findings above)
+idx115 (demo→shareable image quote card: new /share/quote + OG render — a virality lever), idx116 (demo persistent-memory panel — demonstrates the core differentiator), idx73 (server-backed DailyHub claim row — needs live claim-status, not localStorage), idx26 (weekly play-event founder metric in the cron), idx40 (lazy-load /play overlays — measure LCP before/after), idx8 (trim demo-wall exit stack — tension with the shipped /proof surfacing), idx14 (OG body font — FreelonCard kicker done; agent-route + UniverseCard kicker remain).
