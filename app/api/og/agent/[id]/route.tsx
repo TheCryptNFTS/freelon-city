@@ -45,6 +45,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       ? `${work.task ? `${work.task} · ` : ""}content post`.toUpperCase()
       : "";
 
+  // Brand font for the citizen name (audit #14 — the #1 "template tell" on the
+  // most-shared card). Same-origin fetch, fail-soft to system-ui so a font hiccup
+  // never 500s the card. Mirrors app/api/og/universe/route.tsx.
+  let fonts: { name: string; data: ArrayBuffer; weight: 700; style: "normal" }[] | undefined;
+  let display = "system-ui, sans-serif";
+  try {
+    const fontData = await fetch(new URL("/fonts/ClashDisplay-Bold.ttf", req.url)).then((r) => r.arrayBuffer());
+    fonts = [{ name: "Clash Display", data: fontData, weight: 700, style: "normal" }];
+    display = "Clash Display";
+  } catch {
+    /* fall back to system-ui */
+  }
+
   return new ImageResponse(
     (
       <div
@@ -77,7 +90,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             <span style={{ fontFamily: "monospace", fontSize: 20, letterSpacing: 4, color }}>
               ⬡ FREELON CITY · #{id4}
             </span>
-            <span style={{ fontSize: 52, fontWeight: 800, marginTop: 16, lineHeight: 1.05 }}>{name}</span>
+            <span style={{ fontFamily: display, fontSize: 52, fontWeight: 700, marginTop: 16, lineHeight: 1.05 }}>{name}</span>
             <span style={{ fontFamily: "monospace", fontSize: 22, letterSpacing: 2, color, marginTop: 10 }}>
               LV {level} · {className}
             </span>
@@ -106,6 +119,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         </div>
       </div>
     ),
-    { width: 1200, height: 630 },
+    { width: 1200, height: 630, ...(fonts ? { fonts } : {}) },
   );
 }
