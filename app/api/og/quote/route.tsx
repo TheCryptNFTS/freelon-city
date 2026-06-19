@@ -78,7 +78,7 @@ export function GET(req: Request) {
             textTransform: "uppercase",
           }}
         >
-          <span style={{ fontSize: 30 }}>⬡</span> I asked {n} of FREELON CITY
+          I asked {n} of FREELON CITY
         </div>
 
         {/* the quote — the citizen's own words */}
@@ -108,7 +108,7 @@ export function GET(req: Request) {
           }}
         >
           <span style={{ color: GOLD, display: "flex" }}>
-            ⬡ {n}{c ? ` · ${c}` : ""}
+            {n}{c ? ` · ${c}` : ""}
           </span>
           <span style={{ color: INK_DIM, display: "flex" }}>
             Meet one free · freeloncity.com/demo
