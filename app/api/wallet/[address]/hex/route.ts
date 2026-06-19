@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { runHolderTick } from "@/lib/holder-tick";
-import { runFloorDefenderTick } from "@/lib/floor-defender";
 import { processSweepsForWallet } from "@/lib/sweep-inline";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
@@ -42,7 +41,6 @@ export async function GET(
   // serverless limit). Each tick has its own deadline; the longest controls
   // total wall time.
   const tickFallback = { daysCredited: 0, hexCredited: 0, balance: 0, tier: "Initiate", multiplier: 1, civBonusPct: 0, honoraryCount: 0, oneOfOneCount: 0 };
-  const defenderFallback = { qualifyingTokens: 0, hexCredited: 0, daysCredited: 0 };
   const sweepFallback = { credited: 0, hex: 0, bonus: false };
 
   // HEX-SECURITY (2026-06-09, red-team finding A): the holder/defender/sweep
@@ -53,13 +51,12 @@ export async function GET(
   // for an arbitrary address. walletProof rule preserved; balance read unchanged.
   const isOwner = !!requireProvenWallet(req, address);
 
-  const [tick, defenderTick, sweep] = isOwner
+  const [tick, sweep] = isOwner
     ? await Promise.all([
         withDeadline(runHolderTick(address), 7000, tickFallback),
-        withDeadline(runFloorDefenderTick(address), 2000, defenderFallback),
         withDeadline(processSweepsForWallet(address), 7000, sweepFallback),
       ])
-    : [tickFallback, defenderFallback, sweepFallback];
+    : [tickFallback, sweepFallback];
   const rec = await getWalletHex(address);
 
   return NextResponse.json({
@@ -69,7 +66,9 @@ export async function GET(
     lastHolderTickDay: rec.lastHolderTickDay,
     claimStreak: rec.claimStreak ?? 0,
     tick,
-    defenderTick,
+    // floor-defender is RETIRED (always-zero no-op). Keep the key for response-
+    // shape stability; return a static stub instead of a Redis GET+SET per call.
+    defenderTick: { qualifyingTokens: 0, hexCredited: 0, daysCredited: 0 },
     sweep,
     events: rec.events.slice(0, 20),
   });

@@ -3,6 +3,7 @@
 // designed for v1 to be entirely client-side.
 
 import { syncHandle } from "./sync";
+import { LORE_COSTS } from "./economy-constants";
 
 const KEY = "freelon::carrier::v1";
 const ACTIVE_HANDLE_KEY = "freelon::carrier::active::v1";
@@ -60,9 +61,9 @@ export const POINTS = {
 
 // Hex Points spending rules
 export const COST = {
-  UNLOCK_HONORARY: 100,
-  UNLOCK_PROCEDURAL: 25,
-  GIFT_UNLOCK: 50,
+  UNLOCK_HONORARY: LORE_COSTS.UNLOCK_HONORARY,     // 100 ⬡
+  UNLOCK_PROCEDURAL: LORE_COSTS.UNLOCK_PROCEDURAL, //  25 ⬡
+  GIFT_UNLOCK: LORE_COSTS.GIFT_UNLOCK,             //  50 ⬡
 };
 
 function dayKey(d = new Date()) { return Math.floor(d.getTime() / 86400000); }

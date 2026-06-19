@@ -118,7 +118,7 @@ export async function POST(
       const { notify } = await import("@/lib/notify");
       void notify({
         wallet: t.author,
-        eventKey: `transmission-boost:${id}:${addr}:${Date.now()}`,
+        eventKey: `transmission-boost:${id}:${addr}`,
         kind: "transmission-boosted",
         body: `⬢ Your transmission got boosted +${hex} ⬡ · you earned +${royalty} ⬡ royalty.`,
         href: `/transmissions/${id}`,

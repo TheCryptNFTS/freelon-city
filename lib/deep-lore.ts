@@ -2,6 +2,7 @@ import deepLore from "@/data/deep-lore.json";
 import { Citizen, countSimilar } from "@/lib/citizens";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { CIVILIZATION_LORE } from "@/lib/worldbuilding";
+import { LORE_COSTS } from "@/lib/economy-constants";
 
 const HAND_WRITTEN = deepLore as Record<string, { title: string; body: string }>;
 
@@ -106,5 +107,7 @@ export function getDeepLore(citizen: Citizen): DeepLore {
 }
 
 export function unlockCost(citizenId: number): number {
-  return isHandWritten(citizenId) ? 100 : 25;
+  // Hand-written (honorary / 1-of-1) lore costs more than the procedural panel.
+  // Values UNCHANGED — moved into LORE_COSTS so carrier.ts can't drift from here.
+  return isHandWritten(citizenId) ? LORE_COSTS.UNLOCK_HONORARY : LORE_COSTS.UNLOCK_PROCEDURAL;
 }

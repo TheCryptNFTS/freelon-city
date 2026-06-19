@@ -143,7 +143,7 @@ export async function processSweepsForWallet(address: string): Promise<{
               kind: "sweep_streak",
               ts,
               note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${STREAK_BONUS}⬡`,
-            });
+            }, { farmable: true });
             hexCredited += STREAK_BONUS;
             bonus = true;
           }

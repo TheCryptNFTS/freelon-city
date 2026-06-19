@@ -49,7 +49,7 @@ type OsOffer = {
   protocol_data?: {
     parameters?: {
       offer?: Array<{ startAmount?: string; itemType?: number }>;
-      consideration?: Array<{ recipient?: string; identifierOrCriteria?: string }>;
+      consideration?: Array<{ recipient?: string; identifierOrCriteria?: string; token?: string; itemType?: number }>;
     };
   };
   price?: {
@@ -106,6 +106,22 @@ function priceEthOf(o: OsOffer): number {
   return weiToEth(wei, decimals);
 }
 
+/** The contract the offerer wants to RECEIVE (the NFT side of the Seaport
+ *  consideration). Returns "" when the offer doesn't expose it — callers must
+ *  fail OPEN on absence (mirror lib/economy-extras.ts: reject only when present
+ *  AND wrong) so a legit FREELON offer with a thin payload isn't dropped. */
+function considContractOf(o: OsOffer): string {
+  const items = o.protocol_data?.parameters?.consideration || [];
+  for (const it of items) {
+    // Seaport NFT item types: 2 = ERC721, 4 = ERC721_WITH_CRITERIA,
+    // 3 = ERC1155, 5 = ERC1155_WITH_CRITERIA. A collection offer carries the
+    // FREELON contract on the criteria item; pick the first NFT-bearing token.
+    const t = (it.token || "").toLowerCase();
+    if (t) return t;
+  }
+  return "";
+}
+
 export type DefenderScanResult = {
   ok: boolean;
   reason: string;
@@ -144,6 +160,13 @@ export async function runDefenderScan(): Promise<DefenderScanResult> {
     if (!/^0x[a-f0-9]{40}$/.test(wallet)) continue;
     const eth = priceEthOf(o);
     if (eth <= 0 || eth < threshold) continue;
+    // CONTRACT SCOPE (security): only pay the bid-wall bounty for offers on the
+    // FREELON CITY contract. The OpenSea collection-offers endpoint can surface
+    // wrong-contract / cross-collection offers; without this an offer on another
+    // collection paid out +500/+2000⬡. Mirror lib/economy-extras.ts — reject only
+    // when the consideration token is PRESENT and not ours (fail open on absence).
+    const considContract = considContractOf(o);
+    if (considContract && considContract !== CONTRACT.toLowerCase()) continue;
     qualifying++;
 
     // First-time seen?

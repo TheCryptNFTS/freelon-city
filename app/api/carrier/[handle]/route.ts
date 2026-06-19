@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCarrier, putCarrier, withCarrierLock } from "@/lib/carrier-store";
 import { syncHandle, normalizeHandle } from "@/lib/sync";
-import { CarrierState } from "@/lib/carrier";
+import { CarrierState, POINTS } from "@/lib/carrier";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { requireXSession } from "@/lib/require-x";
 
@@ -65,29 +65,29 @@ export async function POST(req: Request, { params }: { params: Promise<{ handle:
         streak: 1,
         lastActiveDay: today,
         totalRelays: 0,
-        hexPoints: 50,
-        totalEarned: 50,
+        hexPoints: POINTS.STARTING,
+        totalEarned: POINTS.STARTING,
         totalSpent: 0,
       };
     } else {
       cur = tickDecay(existing);
       if (cur.hexPoints === undefined) {
-        cur = { ...cur, hexPoints: 50, totalEarned: 50, totalSpent: 0 };
+        cur = { ...cur, hexPoints: POINTS.STARTING, totalEarned: POINTS.STARTING, totalSpent: 0 };
       }
     }
 
     if (body.action === "relay") {
       const sameDay = cur.lastActiveDay === today;
       const newStreak = sameDay ? cur.streak : cur.streak + 1;
-      let earned = 10;
+      let earned = POINTS.PER_RELAY;
       if (!sameDay) {
-        if (newStreak === 3) earned += 5;
-        else if (newStreak === 7) earned += 10;
-        else if (newStreak === 30) earned += 25;
+        if (newStreak === 3) earned += POINTS.STREAK_3;
+        else if (newStreak === 7) earned += POINTS.STREAK_7;
+        else if (newStreak === 30) earned += POINTS.STREAK_30;
       }
       const wasBearer = cur.rank >= 80;
       const willBeBearer = Math.min(100, cur.rank + 12) >= 80;
-      if (!wasBearer && willBeBearer) earned += 50;
+      if (!wasBearer && willBeBearer) earned += POINTS.BEARER_BONUS;
 
       cur = {
         ...cur,

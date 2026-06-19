@@ -11,7 +11,6 @@
  * clawed back.
  */
 
-import { patchWalletHex, todayUTC } from "@/lib/wallet-hex-store";
 
 export type DefenderResult = {
   qualifyingTokens: number;
@@ -20,8 +19,10 @@ export type DefenderResult = {
 };
 
 export async function runFloorDefenderTick(address: string): Promise<DefenderResult> {
-  // Retired no-op. Stamp the cursor UNDER the wallet lock so it never clobbers a
-  // concurrent sweep/sale credit with a stale full-record write (upgrade audit #8).
-  await patchWalletHex(address, (r) => { r.lastDefenderTickDay = todayUTC(); });
+  // Retired TRUE no-op. Previously stamped lastDefenderTickDay under the wallet
+  // lock, costing a Redis GET+SET on every authenticated /hex call for credit that
+  // is ALWAYS zero. Dropped that write entirely; the function + return stub remain
+  // only for type/call-site compatibility. `address` is intentionally unused.
+  void address;
   return { qualifyingTokens: 0, hexCredited: 0, daysCredited: 0 };
 }

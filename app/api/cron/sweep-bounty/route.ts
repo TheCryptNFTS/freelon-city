@@ -78,7 +78,7 @@ type SaleEvent = {
   transaction?: string;
   event_timestamp?: number;
   buyer?: string;
-  nft?: { identifier?: string };
+  nft?: { identifier?: string; contract?: string };
   payment?: {
     quantity?: string;
     decimals?: number;
@@ -154,6 +154,17 @@ export async function GET(req: Request) {
         const tokenId = ev.nft?.identifier || "";
         const ts = (ev.event_timestamp || 0) * 1000;
         if (!buyer || !tx || !tokenId || !ts) continue;
+
+        // CONTRACT + RANGE SCOPE (security): only credit sweeps for the FREELON
+        // contract and a valid 1..4040 tokenId. The inline path (lib/sweep-inline.ts
+        // ~105-108) already does this; the cron didn't. Reject a row whose contract
+        // is PRESENT and not ours (fail open on absence — the collection-events
+        // endpoint isn't consistent), and always require an in-range tokenId so a
+        // cross-collection sale can't be misattributed a +25/+100 sweep credit.
+        const evContract = (ev.nft?.contract || "").toLowerCase();
+        if (evContract && evContract !== CONTRACT.toLowerCase()) continue;
+        const tidNumGuard = parseInt(tokenId, 10);
+        if (!Number.isFinite(tidNumGuard) || tidNumGuard < 1 || tidNumGuard > 4040) continue;
 
         const eventKey = `freelon:sweep:event:${tx}:${tokenId}`;
         if (hasUpstash) {
@@ -566,7 +577,7 @@ async function creditSweep(
       kind: "sweep_streak",
       ts,
       note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${streakHex}⬡${noteSuffix}`,
-    });
+    }, { farmable: true });
     bonus = true;
   }
 

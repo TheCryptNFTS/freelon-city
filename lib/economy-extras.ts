@@ -30,6 +30,10 @@ type RawSale = {
   event_type?: string;
   event_timestamp?: number;
   seller?: string;
+  /** The acquiring wallet (OpenSea v2 sale events). Used for the self-deal
+   *  wash-trade guard — a seller must not earn sale-share on a sale they also
+   *  bought (sybil/self round-trip). */
+  buyer?: string;
   payment?: { quantity?: string; decimals?: number };
   nft?: { identifier?: string; contract?: string };
   transaction?: string;
@@ -62,6 +66,15 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
     const d = (await r.json()) as { asset_events?: RawSale[] };
     const events = (d.asset_events || [])
       .filter((e) => (e.seller || "").toLowerCase() === address.toLowerCase())
+      // SELF-DEAL GUARD (anti-wash-trade): if the buyer is the SAME wallet as the
+      // seller (a self round-trip / sybil sale to yourself), do NOT pay sale-share.
+      // Mirrors the snipe path's self-filter (rs.seller === address). When the
+      // buyer field is absent we keep the event (the range/contract guards below
+      // still apply) — fail open so a thin payload doesn't drop legit sales.
+      .filter((e) => {
+        const b = (e.buyer || "").toLowerCase();
+        return !b || b !== address.toLowerCase();
+      })
       .filter((e) => (e.nft?.identifier ? (e.event_timestamp || 0) > cursor : false))
       // Filter to this collection only (events api returns multi-collection).
       // Contract-scope (Prompt 2): if the row carries a contract and it isn't
@@ -94,7 +107,9 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
     for (const ev of eligible) {
       const eth = paymentToEth(ev.payment);
       const share = (eth * ECONOMY.SALE_SHARE_PCT) / 100;
-      const hex = ethToHex(share);
+      // Backstop cap on a single sale-share credit (anti-wash-trade) — bounds the
+      // damage of one spoofed/absurd sale price. Not a rate change.
+      const hex = Math.min(ethToHex(share), ECONOMY.SALE_SHARE_HEX_CAP);
       if (hex > 0) {
         await creditWalletHex(address, hex, {
           kind: "manual",

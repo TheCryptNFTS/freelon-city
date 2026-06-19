@@ -72,6 +72,10 @@ export const ECONOMY = {
   // converted to hex via HEX_PER_ETH. Capped per 24h to deter wash.
   SALE_SHARE_PCT: 5,                 // 5% of sale ETH
   SALE_SHARE_MAX_PER_24H: 3,         // max 3 sales counted per wallet/day
+  // Backstop ceiling on a SINGLE sale-share credit. Not a rate change — bounds
+  // the blast radius of one absurd/spoofed sale price (anti-wash-trade). At the
+  // 5% rate this caps the per-sale credit at the share of a ~0.5 ETH sale.
+  SALE_SHARE_HEX_CAP: 2500,
 
   // ─── NEW: Fresh-blood bounty ────────────────────────────────────────
   // First freelon purchase ever for a wallet → one-time bounty.
@@ -400,5 +404,18 @@ export function guardPotFee(attemptsSoFar: number): number {
   const grown = GUARD_POT.BASE_FEE * Math.pow(GUARD_POT.FEE_GROWTH_BP / 10_000, n);
   return Math.min(GUARD_POT.FEE_MAX, Math.round(grown));
 }
+
+// ─── LORE-UNLOCK COSTS (single source of truth) — 2026-06-19 ─────────────────
+// ⬡-priced unlock of a citizen's DEEP LORE. Consolidated here so lib/carrier.ts
+// (COST) and lib/deep-lore.ts (unlockCost) can't drift. Values are UNCHANGED from
+// their prior inline literals:
+//   - HONORARY/1-1 hand-written lore  : 100 ⬡  (was deep-lore literal 100 / COST.UNLOCK_HONORARY)
+//   - PROCEDURAL panel lore           :  25 ⬡  (was deep-lore literal 25  / COST.UNLOCK_PROCEDURAL)
+//   - GIFT unlock for another holder  :  50 ⬡  (was COST.GIFT_UNLOCK)
+export const LORE_COSTS = {
+  UNLOCK_HONORARY: 100,
+  UNLOCK_PROCEDURAL: 25,
+  GIFT_UNLOCK: 50,
+} as const;
 
 export type EconomyKey = keyof typeof ECONOMY;
