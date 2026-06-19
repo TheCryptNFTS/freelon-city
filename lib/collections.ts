@@ -49,7 +49,7 @@ export const CONNECTED_COLLECTIONS: ConnectedCollection[] = [
     chain: "ethereum",
     name: "The Crypt",
     role: "Dead Signals",
-    color: "var(--state-active)",
+    color: "var(--gold-bright)",
   },
   {
     slug: "crypttradingcards",
@@ -57,7 +57,7 @@ export const CONNECTED_COLLECTIONS: ConnectedCollection[] = [
     chain: "ethereum",
     name: "Crypt TCG",
     role: "Combat Relics",
-    color: "var(--state-surge)",
+    color: "var(--void-purple)",
   },
   {
     slug: "oogies",
@@ -65,7 +65,7 @@ export const CONNECTED_COLLECTIONS: ConnectedCollection[] = [
     chain: "ape_chain",
     name: "OOGIES",
     role: "Ancient Species",
-    color: "var(--state-unstable)",
+    color: "var(--ink)",
   },
   {
     slug: "emile0x1908",
@@ -73,7 +73,7 @@ export const CONNECTED_COLLECTIONS: ConnectedCollection[] = [
     chain: "ethereum",
     name: "Emile",
     role: "Memory Fragments",
-    color: "var(--state-surge)",
+    color: "var(--gold-deep)",
   },
   {
     slug: "smiles-genesis",
@@ -81,7 +81,7 @@ export const CONNECTED_COLLECTIONS: ConnectedCollection[] = [
     chain: "ethereum",
     name: "SMILES",
     role: "Collapse Records",
-    color: "var(--state-warning)",
+    color: "var(--signal-red)",
   },
 ];
 

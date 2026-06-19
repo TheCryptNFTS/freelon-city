@@ -47,7 +47,7 @@ export default function GlobalError({
             fontWeight: 700,
           }}
         >
-          404
+          FAULT
         </h1>
 
         <div

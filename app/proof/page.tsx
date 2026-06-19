@@ -12,14 +12,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Only your FREELON renders your character",
     description: "Same prompt. Only one knows your character. See the proof.",
-    images: [{ url: "/proof/freelon-2268.png", width: 1024, height: 1024 }],
+    images: [{ url: "/api/og/universe?surface=proof", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Only your FREELON renders your character",
     description: "Same prompt. Only one knows your character.",
-    images: ["/proof/freelon-2268.png"],
+    images: ["/api/og/universe?surface=proof"],
   },
 };
 

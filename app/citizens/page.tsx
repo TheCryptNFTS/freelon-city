@@ -19,14 +19,14 @@ export const metadata = {
   openGraph: {
     title: "4,040 citizens you can own & train",
     description: CITIZENS_DESC,
-    images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
+    images: [{ url: "/api/og/universe?surface=citizens", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "4,040 citizens you can own & train",
     description: CITIZENS_DESC,
-    images: ["/api/og/universe?b=2"],
+    images: ["/api/og/universe?surface=citizens"],
   },
 };
 

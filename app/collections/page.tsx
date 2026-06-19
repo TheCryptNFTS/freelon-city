@@ -19,14 +19,14 @@ export const metadata = {
   openGraph: {
     title: "One city, six collections",
     description: COLLECTIONS_DESC,
-    images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }],
+    images: [{ url: "/api/og/universe?surface=collections", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "One city, six collections",
     description: COLLECTIONS_DESC,
-    images: ["/api/og/universe?b=2"],
+    images: ["/api/og/universe?surface=collections"],
   },
 };
 

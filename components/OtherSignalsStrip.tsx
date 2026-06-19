@@ -40,7 +40,7 @@ const CARDS: Card[] = [
   {
     title: "The Crypt",
     status: "RECOVERED",
-    statusColor: "var(--state-active)",
+    statusColor: "var(--gold-bright)",
     slug: "the-crypt-official",
     href: "/collections/the-crypt-official",
     body: "Dead signals. Forgotten identities. Ancient records recovered beneath the city.",
@@ -51,7 +51,7 @@ const CARDS: Card[] = [
   {
     title: "Crypt TCG",
     status: "RECONSTRUCTING",
-    statusColor: "var(--state-surge)",
+    statusColor: "var(--void-purple)",
     slug: "crypttradingcards",
     href: "/crypt-tcg",
     body: "Recovered battle simulations from The Crypt. Signal reconstruction in progress.",
@@ -62,7 +62,7 @@ const CARDS: Card[] = [
   {
     title: "OOGIES",
     status: "FRAGMENT",
-    statusColor: "var(--state-unstable)",
+    statusColor: "var(--ink)",
     slug: "oogies",
     href: "/collections/oogies",
     body: "Ancient signal species. They heard the HEX before the city existed.",
@@ -74,7 +74,7 @@ const CARDS: Card[] = [
   {
     title: "Emile",
     status: "DECAYING",
-    statusColor: "var(--state-surge)",
+    statusColor: "var(--gold-deep)",
     slug: "emile0x1908",
     href: "/collections/emile0x1908",
     body: "Memory fragments preserved before the signal collapse.",
@@ -86,7 +86,7 @@ const CARDS: Card[] = [
   {
     title: "SMILES Collapse",
     status: "SEALED",
-    statusColor: "var(--state-warning)",
+    statusColor: "var(--signal-red)",
     slug: "smiles-genesis",
     href: "/collections/smiles-genesis",
     body: "A failed emotional control system. 99% of the supply was destroyed. The event became part of the city's history.",

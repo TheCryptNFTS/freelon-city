@@ -40,8 +40,22 @@ const PIECES: { name: string; tag: string; color: string; img: string }[] = [
   { name: "SMILES", tag: "COLLAPSE", color: "#FFD24A", img: "/og/art/smiles.png" },
 ];
 
+// Per-surface card copy (upgrade audit #11/#14, 2026-06-19). Six surfaces used to
+// share the identical homepage card (the ?b=2 param was a no-op the route never
+// read), so the preview never matched the destination. Same proven 1200×630
+// composition — only the kicker + subline change per `?surface=`. /proof reuses
+// this too (was a 1024² square tagged summary_large_image → force-cropped to a strip).
+type CardCopy = { kicker: string; subline: string };
+const SURFACE_COPY: Record<string, CardCopy> = {
+  default: { kicker: "AN AI CHARACTER YOU OWN", subline: "Own it. Train it. It remembers your work — and its history travels with the NFT." },
+  demo: { kicker: "TRY A CITIZEN — FREE", subline: "Talk to a living AI citizen right now. No wallet needed. Then own one." },
+  citizens: { kicker: "4,040 AI CITIZENS", subline: "Every face is a living AI agent with its own mind, memory and history. Meet yours." },
+  collections: { kicker: "SIX SIGNAL COLLECTIONS", subline: "One city, six collections — every NFT a living AI citizen you can awaken." },
+  proof: { kicker: "THE RENDER MOAT", subline: "Same prompt — only your FREELON renders your character. Here's the proof." },
+};
+
 // ── DEFAULT: product-first FREELON card ──────────────────────────────────
-function FreelonCard(src: (p: string) => string, display: string) {
+function FreelonCard(src: (p: string) => string, display: string, copy: CardCopy) {
   return (
     <div
       style={{
@@ -135,7 +149,7 @@ function FreelonCard(src: (p: string) => string, display: string) {
               display: "flex",
             }}
           >
-            AN AI CHARACTER YOU OWN
+            {copy.kicker}
           </div>
           <div style={{ width: 92, height: 1, background: GOLD, display: "flex" }} />
         </div>
@@ -178,7 +192,7 @@ function FreelonCard(src: (p: string) => string, display: string) {
             maxWidth: 510,
           }}
         >
-          Own it. Train it. It remembers your work — and its history travels with the NFT.
+          {copy.subline}
         </div>
 
         {/* provenance stamp — bottom-anchored mono, collector feel */}
@@ -324,7 +338,9 @@ function UniverseCard(src: (p: string) => string, display: string) {
 
 export async function GET(req: Request) {
   const src = (p: string) => new URL(p, req.url).toString();
-  const variant = new URL(req.url).searchParams.get("v");
+  const params = new URL(req.url).searchParams;
+  const variant = params.get("v");
+  const copy = SURFACE_COPY[params.get("surface") ?? "default"] ?? SURFACE_COPY.default;
 
   // Load the site display face (Clash Display) same-origin so the wordmark is
   // on-brand, not system-ui. Fail-soft: if the fetch hiccups, fall back to the
@@ -340,7 +356,7 @@ export async function GET(req: Request) {
   }
 
   return new ImageResponse(
-    variant === "universe" ? UniverseCard(src, display) : FreelonCard(src, display),
+    variant === "universe" ? UniverseCard(src, display) : FreelonCard(src, display, copy),
     {
       width: 1200,
       height: 630,

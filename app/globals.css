@@ -75,7 +75,7 @@
      kicker ⬡, focus rings, the carousel scrollbar — all now read gold. The
      glow is a soft gold luminance, not a neon spike. */
   --neon-cyan:    #E9C984;
-  --neon-magenta: #FF0070;
+  --neon-magenta: #8D5CFF;  /* was #FF0070 hot-pink (off-palette) — repointed to brand void-purple (upgrade audit 2026-06-19) */
   --neon-glow-cyan:
     0 0 2px rgba(233, 201, 132, 0.7),
     0 0 16px rgba(233, 201, 132, 0.28);
