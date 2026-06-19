@@ -162,6 +162,32 @@ export function DailyHub() {
         </span>
       </div>
 
+      {/* Server-backed daily ⬡ claim (audit #73) — unifies the two split retention
+          surfaces. The real claim lives on /sync#carrier (server, streak-aware), so
+          this is a link-out CTA, not a localStorage-tracked tile (no false done-state).
+          Amounts mirror ECONOMY.DAILY_CLAIM (10) / STREAK_7_BONUS (100). */}
+      <Link
+        href="/sync#carrier"
+        style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          textDecoration: "none", border: "1px solid var(--line)",
+          borderLeft: "2px solid var(--gold-bright)", background: "var(--surface)",
+          padding: "12px 13px", marginBottom: 10,
+        }}
+      >
+        <span>
+          <span style={{ fontFamily: "var(--mono)", fontSize: 9, letterSpacing: "0.16em", color: "var(--gold-bright)", textTransform: "uppercase" }}>
+            Daily ⬡ Claim
+          </span>
+          <span style={{ display: "block", fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", marginTop: 4 }}>
+            +10 ⬡ a day · up to +100 ⬡ on a streak
+          </span>
+        </span>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.18em", color: "var(--gold-bright)", whiteSpace: "nowrap" }}>
+          CLAIM →
+        </span>
+      </Link>
+
       <div
         style={{
           display: "grid",
