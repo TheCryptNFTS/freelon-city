@@ -156,6 +156,39 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
             {agent.collectionName}
           </div>
           <div className={styles.railRule} aria-hidden />
+          {/* MEMORY preview (audit #116) — the demo is STATELESS by design (memory is
+              the owned-agent feature), so instead of asserting "it remembers", we SHOW
+              what an owned citizen would keep: a panel that fills with the facts you
+              share, turning the abstract claim into a visible sell at the paywall. */}
+          {(() => {
+            const facts = msgs.filter((m) => m.role === "you").map((m) => m.text);
+            const shown = facts.slice(-4);
+            return (
+              <div style={{ margin: "2px 0 14px", textAlign: "left" }}>
+                <div style={{ fontFamily: "var(--mono2)", fontSize: 9.5, letterSpacing: "0.22em", color: "var(--gold-bright)", textTransform: "uppercase", marginBottom: 8 }}>
+                  ⬡ Memory · an owned citizen keeps this
+                </div>
+                {shown.length === 0 ? (
+                  <p style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", lineHeight: 1.6, margin: 0 }}>
+                    Tell it something. An <strong>owned</strong> FREELON remembers every word — across sessions, for good. This demo forgets when you leave.
+                  </p>
+                ) : (
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+                    {shown.map((t, i) => (
+                      <li key={i} style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-2)", lineHeight: 1.45, paddingLeft: 12, borderLeft: `2px solid ${agent.color}`, opacity: 0.9 }}>
+                        {t.length > 84 ? t.slice(0, 84) + "…" : t}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {facts.length > 4 && (
+                  <div style={{ fontFamily: "var(--mono2)", fontSize: 9.5, color: "var(--ink-fade)", marginTop: 6 }}>
+                    +{facts.length - 4} more this session
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {/* Ownership pointer — always names the FREELON, so it stays true
               even while a free sister citizen is active. */}
           <span className={styles.railOwnKicker}>The one you can own</span>

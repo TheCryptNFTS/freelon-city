@@ -539,6 +539,9 @@ export function tweetHexMatch(input: {
  */
 export function tweetDemoReply(input: { agentName: string; reply: string }): string {
   const line = input.reply.replace(/\s+/g, " ").trim().slice(0, 180);
+  // Link the /share/quote landing so the tweet UNFURLS an image of the citizen's
+  // own words (audit #115) instead of a bare /demo URL. X shortens it to ~23 chars.
+  const shareUrl = `${SITE}/share/quote?${new URLSearchParams({ q: line, n: input.agentName }).toString()}&ref=dm-`;
   return [
     `⬡ ${HANDLE} · I asked ${input.agentName} and it said:`,
     ``,
@@ -546,7 +549,7 @@ export function tweetDemoReply(input: { agentName: string; reply: string }): str
     ``,
     `Every citizen of FREELON CITY is an AI character you can talk to. Meet one free:`,
     `${HASHTAGS}`,
-    `${SITE}/demo?ref=dm-`,
+    shareUrl,
   ].join("\n");
 }
 
