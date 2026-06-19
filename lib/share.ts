@@ -204,7 +204,7 @@ export function tweetRank(input: { address: string; rank?: number | null; total?
   return [
     `⬡ ${HANDLE} · ${rankLine}`,
     ``,
-    `The city pays carriers in hex daily.`,
+    `Active carriers earn ⬡ HEX daily — in-app credit, not money.`,
     `Where's your rank?`,
     `${HASHTAGS}`,
     `${SITE}/wallet/${input.address}`,
@@ -546,7 +546,7 @@ export function tweetDemoReply(input: { agentName: string; reply: string }): str
     ``,
     `Every citizen of FREELON CITY is an AI character you can talk to. Meet one free:`,
     `${HASHTAGS}`,
-    `${SITE}/demo`,
+    `${SITE}/demo?ref=dm-`,
   ].join("\n");
 }
 
@@ -631,7 +631,7 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
     id: "snipe-flex",
     category: "own-post",
     hook: "I CLAIMED A BOUNTY",
-    body: `⬡ ${HANDLE} · claimed a RED SIGNAL bounty.\n\n____ ⬡ credited. The city rewards carriers who move first.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} · claimed a RED SIGNAL bounty.\n\n____ ⬡ credited (in-app credit, not money). First movers earn more.\n\n${HASHTAGS}`,
   },
   {
     id: "carrier-call",

@@ -12,7 +12,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Earn HEX ⬡",
-  description: "Three time horizons. One question: what do you do right now? The full carrier economy of FREELON CITY.",
+  description: "Earn ⬡ HEX — the in-app credit of FREELON CITY (not money, not redeemable). Hold citizens, relay the signal, and play. Here’s what to do right now.",
 };
 
 // ── Live counters (server-side, cached) ──────────────────────────────
@@ -268,7 +268,7 @@ export default async function EarnPage() {
           }}
         >
           <h2 style={{ fontFamily: "var(--display)", fontSize: 24, marginBottom: 12, letterSpacing: "-0.01em" }}>
-            Trade. Sell. Burn. Climb.
+            Hold. Train. Transmit. Climb.
           </h2>
           {/* 2026-06-07 density: the 6 long-game earning rows are reference a
               newcomer can't act on right now — folded behind a tap so Horizon 3

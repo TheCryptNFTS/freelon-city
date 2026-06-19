@@ -47,7 +47,7 @@ export default function PressPage() {
         </Quote>
         <Quote>
           A signal civilization on Ethereum. 4040 hard-capped citizens. An
-          off-chain ⬡ credit layer. Dump-deterrent canon. The city remembers
+          off-chain ⬡ credit layer. It rewards staying active over flipping. The city remembers
           everything.
         </Quote>
       </Section>

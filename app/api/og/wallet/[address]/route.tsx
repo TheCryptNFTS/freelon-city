@@ -43,7 +43,7 @@ export async function GET(
   ]);
   const balance = tokens?.balance ?? 0;
   const ids = tokens?.tokenIds ?? [];
-  const netWorth = balance * floor;
+  // (netWorth = balance × floor removed — no personal valuation on the public OG card.)
 
   const civCounts = new Map<string, number>();
   for (const tid of ids) {
@@ -113,29 +113,6 @@ export async function GET(
             gap: 60,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span
-              style={{
-                fontSize: 14,
-                letterSpacing: 4,
-                color: "#888",
-                display: "flex",
-              }}
-            >
-              NET WORTH
-            </span>
-            <span
-              style={{
-                fontSize: 64,
-                fontWeight: 500,
-                color: "#c8aa64",
-                display: "flex",
-                marginTop: 4,
-              }}
-            >
-              {netWorth.toFixed(3)} ETH
-            </span>
-          </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span
               style={{

@@ -226,7 +226,7 @@ export default async function WalletPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, holders, floor, hexRec, defenderSince, artefacts] = await Promise.all([
+  const [tokensRes, holders, , hexRec, defenderSince, artefacts] = await Promise.all([
     getWalletTokens(norm, 500),
     fetchAllHolders(),
     fetchFloor(),
@@ -296,10 +296,6 @@ export default async function WalletPage({
       };
     })
     .sort((a, b) => b.count - a.count);
-
-  // Net worth (real per-civ floor × ownedTokens) — we currently only have a
-  // collection-wide floor, so per-civ floor = collection floor.
-  const netWorth = balance * floor;
 
   // Rank
   let rank: number | null = null;
@@ -378,13 +374,14 @@ export default async function WalletPage({
           state. Carrier health stays on the page but moves below as a
           smaller status strip. */}
       <section className="wallet-stats">
-        {/* One value, not two — NET WORTH and the old "PORTFOLIO VALUE" were the
-            identical balance×floor figure printed twice (read as a bug). */}
+        {/* Citizens held — not a valuation. The old "NET WORTH · X ETH" figure
+            (balance×floor) was a price/return claim on the most-shared surface;
+            removed for copy-safety (upgrade audit). */}
         <div className="wallet-stat">
-          <span className="ws-label">FREELON NET WORTH</span>
-          <span className="ws-value">{netWorth.toFixed(4)} ETH</span>
+          <span className="ws-label">CITIZENS</span>
+          <span className="ws-value">{balance}</span>
           <span className="ws-sub">
-            {balance} citizen{balance !== 1 ? "s" : ""} × {floor.toFixed(4)} ETH floor
+            FREELON{balance !== 1 ? "s" : ""} in this wallet
           </span>
         </div>
         <div className="wallet-stat">

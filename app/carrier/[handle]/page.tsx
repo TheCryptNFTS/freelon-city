@@ -66,7 +66,7 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
     tokenIds: number[];
     hexBalance: number;
     floor: number;
-    portfolio: number;
+    citizens: number;
     topCitizens: Array<{ tokenId: number; lastSaleEth: number | null; daysHeld: number | null }>;
   } = null;
   if (wallet) {
@@ -99,7 +99,7 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
       tokenIds,
       hexBalance,
       floor,
-      portfolio: balance * floor,
+      citizens: balance,
       topCitizens,
     };
   }
@@ -184,8 +184,8 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
               <span className="cm-val">{verified.balance}</span>
             </div>
             <div className="cm-cell">
-              <span className="cm-lbl">PORTFOLIO</span>
-              <span className="cm-val">{verified.portfolio.toFixed(4)} ETH</span>
+              <span className="cm-lbl">CITIZENS</span>
+              <span className="cm-val">{verified.citizens}</span>
             </div>
             <div className="cm-cell">
               <span className="cm-lbl">⬡ HEX BALANCE</span>

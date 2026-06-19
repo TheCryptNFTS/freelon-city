@@ -32,10 +32,10 @@ export function HexNetWorth() {
   if (!h.address) {
     return (
       <div className="net-worth-empty">
-        <span className="kicker">⬡ YOUR HEX NET WORTH</span>
+        <span className="kicker">⬡ YOUR CITIZENS</span>
         <div className="nw-detail" style={{ marginTop: "var(--s-2)" }}>
           The city stats above are public. This card is yours — connect your
-          wallet to price the citizens you hold against the live floor.
+          wallet to see the citizens you hold and the work they carry.
         </div>
       </div>
     );
@@ -48,10 +48,10 @@ export function HexNetWorth() {
   );
   return (
     <div className="net-worth">
-      <span className="kicker">⬡ HEX NET WORTH</span>
-      <div className="nw-value">{data.value.toFixed(4)} ETH</div>
+      <span className="kicker">⬡ CITIZENS HELD</span>
+      <div className="nw-value">{data.balance}</div>
       <div className="nw-detail">
-        {data.balance} citizen{data.balance !== 1 ? "s" : ""} · priced per civilization · global floor {data.globalFloor.toFixed(4)} ETH
+        {data.balance === 1 ? "FREELON" : "FREELONs"} in your wallet · across {data.civs.length} civilization{data.civs.length !== 1 ? "s" : ""}
       </div>
     </div>
   );

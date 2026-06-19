@@ -231,8 +231,8 @@ export async function runSalesPulse(sales: PulseSale[]): Promise<PulseResult> {
   // Failure is non-fatal — the lead post already credits as success.
   try {
     const ctaLines = [
-      `⬡ Reply to this post to earn hex —`,
-      `first 10 replies in 30 min get 2× the bounty.`,
+      `⬡ Reply to earn ⬡ HEX — in-app credit, not money, not redeemable.`,
+      `First 10 replies in 30 min get a 2× credit bonus.`,
       ``,
       `freeloncity.com/sync`,
     ];

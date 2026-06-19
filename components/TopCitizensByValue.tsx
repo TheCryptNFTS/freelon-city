@@ -58,7 +58,7 @@ export async function TopCitizensByValue() {
         }}
       >
         <span className="kicker" style={{ color: "var(--gold)" }}>
-          ⬡ TOP CITIZENS · BY COMPUTED VALUE
+          ⬡ TOP CITIZENS · BY STANDING
         </span>
         <span
           style={{
@@ -113,7 +113,7 @@ export async function TopCitizensByValue() {
                 </span>
               </Link>
               <span className="ui-table-stack__cell ui-table-stack__cell--num">
-                <span className="ui-table-stack__label">Value</span>
+                <span className="ui-table-stack__label">Standing</span>
                 <strong style={{ color, fontFamily: "var(--display)", fontSize: 20 }}>
                   {cit.value}
                 </strong>
