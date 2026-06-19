@@ -1708,8 +1708,8 @@ const sunLight = new THREE.DirectionalLight(0xffd9a0, 2.6);
   sunLight.position.copy(sunDir).multiplyScalar(300);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.set(PERF_FX===0?1024:2048, PERF_FX===0?1024:2048);   // tier 0: half-res shadow map
-  sunLight.shadow.camera.left=-70; sunLight.shadow.camera.right=70;
-  sunLight.shadow.camera.top=70; sunLight.shadow.camera.bottom=-70;
+  sunLight.shadow.camera.left=-100; sunLight.shadow.camera.right=100;   // 70->100 (Reegs): wider frustum so the view edges / zoomed-out areas still cast shadows
+  sunLight.shadow.camera.top=100; sunLight.shadow.camera.bottom=-100;
   sunLight.shadow.camera.near=50; sunLight.shadow.camera.far=600;
   sunLight.shadow.bias=-0.0004; sunLight.shadow.normalBias=0.03;
   scene.add(sunLight); scene.add(sunLight.target);
