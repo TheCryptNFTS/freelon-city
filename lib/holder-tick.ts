@@ -179,11 +179,11 @@ export async function runHolderTick(address: string): Promise<TickResult> {
   try { await creditListingBounty(address, daysDue); } catch {}
   try { await creditSnipeBounties(address, tokens.tokenIds); } catch {}
 
-  // Update cursor
-  const after = await getWalletHex(address);
-  after.lastHolderTickDay = today;
-  const { setWalletHex } = await import("@/lib/wallet-hex-store");
-  await setWalletHex(after);
+  // Update cursor — under the wallet lock so a sweep/sale credit landing
+  // concurrently (route runs the 3 ticks in parallel) isn't clobbered by a
+  // stale full-record write (upgrade audit #8).
+  const { patchWalletHex } = await import("@/lib/wallet-hex-store");
+  await patchWalletHex(address, (r) => { r.lastHolderTickDay = today; });
 
   return {
     daysCredited: daysDue,
@@ -205,10 +205,8 @@ function tier(balance: number): string {
 }
 
 async function emptyTick(address: string, today: string): Promise<TickResult> {
-  const rec = await getWalletHex(address);
-  rec.lastHolderTickDay = today;
-  const { setWalletHex } = await import("@/lib/wallet-hex-store");
-  await setWalletHex(rec);
+  const { patchWalletHex } = await import("@/lib/wallet-hex-store");
+  await patchWalletHex(address, (r) => { r.lastHolderTickDay = today; });
   return {
     daysCredited: 0,
     hexCredited: 0,

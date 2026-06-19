@@ -17,7 +17,7 @@ import { CONTRACT } from "@/lib/constants";
 import {
   creditWalletHex,
   getWalletHex,
-  setWalletHex,
+  patchWalletHex,
 } from "@/lib/wallet-hex-store";
 import { ECONOMY, ethToHex } from "@/lib/economy-constants";
 import { getRedSignal, setRedSignal, snipeBounty } from "@/lib/red-signal-store";
@@ -105,10 +105,13 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
       // Advance cursor to THIS event's ts before processing the next, so
       // a crash mid-loop never leaks credit on next run.
       newestTs = Math.max(newestTs, ev.event_timestamp || 0);
-      const mid = await getWalletHex(address);
-      mid.lastSaleCreditTs = newestTs;
-      mid.lastActiveDay = new Date().toISOString().slice(0, 10);
-      await setWalletHex(mid);
+      // Advance the cursor under the wallet lock so the concurrent holder/sweep
+      // ticks can't clobber this credit with a stale write (upgrade audit #8).
+      const cursorTs = newestTs;
+      await patchWalletHex(address, (r) => {
+        r.lastSaleCreditTs = cursorTs;
+        r.lastActiveDay = new Date().toISOString().slice(0, 10);
+      });
     }
 
     return { credited: totalCredit, sales: eligible.length };
@@ -147,9 +150,9 @@ export async function creditFreshBlood(
   }
 
   if (rec.events.length > 0 || rec.lifetimeEarned > 0) {
-    // Mark as awarded so we don't re-check forever
-    rec.freshBloodAwardedAt = Date.now();
-    await setWalletHex(rec);
+    // Mark as awarded so we don't re-check forever (locked patch — never clobber
+    // a concurrent credit; upgrade audit #8).
+    await patchWalletHex(address, (r) => { r.freshBloodAwardedAt = Date.now(); });
     return { credited: 0 };
   }
   // HEX DETECTED is a rare-use canon phrase reserved for the recognition
@@ -158,9 +161,7 @@ export async function creditFreshBlood(
     kind: "manual",
     note: `${CANON.HEX_DETECTED} · first freelon acquired`,
   });
-  const after = await getWalletHex(address);
-  after.freshBloodAwardedAt = Date.now();
-  await setWalletHex(after);
+  await patchWalletHex(address, (r) => { r.freshBloodAwardedAt = Date.now(); });
   // Welcome notification — first-citizen moment is the highest leverage
   // onboarding hook in the entire economy.
   try {

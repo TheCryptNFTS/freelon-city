@@ -11,7 +11,7 @@
  * clawed back.
  */
 
-import { getWalletHex, setWalletHex, todayUTC } from "@/lib/wallet-hex-store";
+import { patchWalletHex, todayUTC } from "@/lib/wallet-hex-store";
 
 export type DefenderResult = {
   qualifyingTokens: number;
@@ -20,8 +20,8 @@ export type DefenderResult = {
 };
 
 export async function runFloorDefenderTick(address: string): Promise<DefenderResult> {
-  const rec = await getWalletHex(address);
-  rec.lastDefenderTickDay = todayUTC();
-  await setWalletHex(rec);
+  // Retired no-op. Stamp the cursor UNDER the wallet lock so it never clobbers a
+  // concurrent sweep/sale credit with a stale full-record write (upgrade audit #8).
+  await patchWalletHex(address, (r) => { r.lastDefenderTickDay = todayUTC(); });
   return { qualifyingTokens: 0, hexCredited: 0, daysCredited: 0 };
 }

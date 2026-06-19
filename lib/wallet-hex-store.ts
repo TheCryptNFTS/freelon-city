@@ -254,11 +254,31 @@ export async function creditWalletHexCapped(
   return out;
 }
 
+/**
+ * Atomically patch cursor/flag fields on a wallet record UNDER the wallet lock
+ * (upgrade audit #8, 2026-06-19). The holder-tick cursor stamp, sale-share cursor
+ * advance, fresh-blood flag, the retired floor-defender stamp, and stampActivity
+ * each did getWalletHex → set-field → setWalletHex OUTSIDE the lock, so a
+ * concurrent CREDIT (sweep/sale — which IS locked) landing between that read and
+ * the full-record write was clobbered, silently losing real HEX. Re-reading the
+ * record INSIDE the lock makes the patch apply to the freshest balance and never
+ * overwrite a concurrent credit. Use ONLY for cursor/flag updates — balance
+ * credits must still go through creditWalletHex / creditWalletHexCapped.
+ */
+export async function patchWalletHex(
+  addr: string,
+  patch: (rec: WalletHex) => void,
+): Promise<void> {
+  await withWalletLock(addr, async () => {
+    const rec = await getWalletHex(addr);
+    patch(rec);
+    await setWalletHex(rec);
+  });
+}
+
 /** Explicitly stamp activity (e.g. snipe/sale events that aren't kind=manual). */
 export async function stampActivity(addr: string): Promise<void> {
-  const rec = await getWalletHex(addr);
-  rec.lastActiveDay = todayUTC();
-  await setWalletHex(rec);
+  await patchWalletHex(addr, (rec) => { rec.lastActiveDay = todayUTC(); });
 }
 
 /**
