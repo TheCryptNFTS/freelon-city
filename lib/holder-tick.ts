@@ -77,11 +77,9 @@ export async function runHolderTick(address: string): Promise<TickResult> {
   const last = rec.lastHolderTickDay;
 
   // First time we ever see this wallet: just stamp today, don't backfill.
+  // emptyTick persists the cursor under the wallet lock (patchWalletHex).
   if (!last) {
-    rec.lastHolderTickDay = today;
-    // Persist the stamp via a credit of 0 (so the record is saved + cursor moves)
-    const result = await emptyTick(address, today);
-    return result;
+    return emptyTick(address, today);
   }
 
   let daysDue = diffDaysUTC(last, today);
