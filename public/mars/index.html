@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>FREELON CITY: MARS COMMAND</title>
 <style>
   :root{
@@ -14,6 +14,10 @@
     --red:#a8341f;
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  /* brand display face for HEADERS ONLY (#brand .k, .panelTitle, .bootTxt) — terminal .ln stays SF Mono.
+     Same-origin city font under /fonts; if it 404s (e.g. the standalone source) the `monospace`
+     tail in each stack keeps everything readable. font-display:swap = no invisible-text flash. */
+  @font-face{font-family:'Clash Display';src:url('/fonts/ClashDisplay-Bold.ttf') format('truetype');font-weight:600 800;font-display:swap}
   html,body{width:100%;height:100%;overflow:hidden;background:#0b0b0d}
   body{font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;color:var(--ivory);
        -webkit-font-smoothing:antialiased;user-select:none}
@@ -22,7 +26,7 @@
   /* ---------- boot shield ---------- */
   #boot{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;
         justify-content:center;flex-direction:column}
-  .bootTxt{font-size:11px;letter-spacing:.5em;color:var(--gold);animation:bootPulse 1.6s ease infinite}
+  .bootTxt{font-family:'Clash Display',monospace;font-size:11px;letter-spacing:.5em;color:var(--gold);animation:bootPulse 1.6s ease infinite}
   @keyframes bootPulse{50%{opacity:.3}}
   #bootErr{margin-top:18px;font-size:10px;letter-spacing:.18em;color:var(--red);
            max-width:480px;text-align:center;line-height:2}
@@ -65,7 +69,7 @@
   body.playing .hud{opacity:1}
 
   #brand{top:22px;left:26px}
-  #brand .k{font-size:10px;letter-spacing:.55em;color:var(--gold);margin-bottom:6px}
+  #brand .k{font-family:'Clash Display',monospace;font-size:10px;letter-spacing:.55em;color:var(--gold);margin-bottom:6px}
   #brand .n{font-size:19px;letter-spacing:.3em;color:var(--ivory);text-shadow:0 0 18px rgba(216,178,92,.25)}
 
   #stats{top:22px;right:26px;display:flex;gap:10px}
@@ -76,7 +80,7 @@
   .stat .val .glyph{color:var(--gold-bright)}
 
   #buildMenu{bottom:26px;left:26px;width:262px}
-  .panelTitle{font-size:10px;letter-spacing:.5em;color:var(--gold);margin-bottom:10px;padding-left:2px}
+  .panelTitle{font-family:'Clash Display',monospace;font-size:10px;letter-spacing:.5em;color:var(--gold);margin-bottom:10px;padding-left:2px}
   .bbtn{display:block;width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ivory);
         font-family:inherit;text-align:left;padding:10px 14px;margin-bottom:7px;cursor:pointer;
         transition:all .2s;backdrop-filter:blur(6px)}
@@ -427,7 +431,7 @@
     #scanBtn,#crewsBtn{bottom:calc(38vh + 60px)}
     #returnBtn,#ownCta{bottom:calc(38vh + 104px)}
     #soundBtn,#exportBtn,#importBtn,#resetBtn{
-      position:fixed;top:auto;bottom:0;left:0;right:auto;width:25vw;height:44px;min-height:44px;
+      position:fixed;top:auto;bottom:env(safe-area-inset-bottom,0);left:0;right:auto;width:25vw;height:44px;min-height:44px;
       margin:0;padding:0;line-height:44px;text-align:center;white-space:nowrap;overflow:hidden;
       font-size:8px;letter-spacing:.06em;color:rgba(242,234,216,.55);z-index:26;
       background:rgba(8,7,4,.94);border:none;border-top:1px solid var(--line);box-sizing:border-box}
@@ -518,10 +522,10 @@ setTimeout(function(){
 <!-- HUD -->
 <div class="hud" id="brand"><div class="k">FREELON CITY</div><div class="n">MARS COMMAND</div></div>
 <div class="hud" id="stats">
-  <div class="stat"><div class="lab">HEX</div><div class="val"><span class="glyph">⬡</span> <span id="hexVal">500</span></div></div>
+  <div class="stat"><div class="lab">IRON</div><div class="val"><span class="glyph">◇</span> <span id="hexVal">500</span></div></div>
   <div class="stat"><div class="lab">XP</div><div class="val" id="xpVal">0</div></div>
   <div class="stat"><div class="lab">BASE LEVEL</div><div class="val" id="lvlVal">1</div></div>
-  <div class="stat"><div class="lab">⬡ STREAK</div><div class="val" id="streakVal">0</div></div>
+  <div class="stat"><div class="lab">◇ STREAK</div><div class="val" id="streakVal">0</div></div>
   <div class="stat" id="archChip" style="cursor:pointer"><div class="lab">ARCHIVE</div><div class="val" id="archiveVal">0/40</div></div>
   <div class="stat" id="bannerChip" style="cursor:pointer"><div class="lab">BANNER ◇</div><div class="val" id="bannerVal">—</div></div>
   <div class="stat" id="frontChip" style="display:none"><div class="lab">FRONT</div><div class="val" id="frontVal">—</div></div>
@@ -608,6 +612,7 @@ setTimeout(function(){
     <button id="winContinue" class="goBtn" style="flex:1">CONTINUE THIS PLANET</button>
     <button id="winNew" class="goBtn" style="flex:1;background:var(--gold);color:#1a120a">NEW PLANET ▸</button>
   </div>
+  <button id="winShare" class="goBtn" style="margin-top:10px;width:100%">POST YOUR PLANET ▸</button>
 </div></div>
 <div class="hud" id="buildMenu">
   <div class="panelTitle">CONSTRUCTION</div>
@@ -623,7 +628,8 @@ setTimeout(function(){
   <div class="rtFoes" id="rtFoes">3 CONTACTS</div>
   <div class="rtBarWrap" id="rtBossWrap" style="display:none;margin-bottom:6px"><div id="rtBossBar"></div></div>
   <div class="rtBarWrap"><div id="rtIntegBar"></div></div>
-  <div class="rtHint" id="rtHint">STEER TO AIM&nbsp;&nbsp;·&nbsp;&nbsp;FIRE ▸ CLICK / SPACE&nbsp;&nbsp;·&nbsp;&nbsp;DRIVE TO DODGE</div>
+  <div id="rtReward" style="margin-top:7px;font-size:9px;letter-spacing:.22em;color:var(--gold-bright)"></div>
+  <div class="rtHint" id="rtHint">STEER TO AIM&nbsp;&nbsp;·&nbsp;&nbsp;TAP FIRE ▸ CLICK / SPACE&nbsp;&nbsp;·&nbsp;&nbsp;WASD TO DODGE</div>
   <button id="rtWithdraw">▸ WITHDRAW (ESC)</button>
 </div>
 <div id="toast"></div>
@@ -797,6 +803,8 @@ const zoneState = i => S.zonesClaimed.includes(i) ? 'claimed'
 const POIS=[
   /* STARTER — inside the landing reveal AND the first scan radius */
   {id:'p00', type:'deposit', name:'SURFACE HEX SCATTER',    lore:'THE FIRST PAYMENT IS ALWAYS LEFT IN THE OPEN.',                x:48,   z:-24,  threat:1, hidden:true},  /* scan-only + ~47m from spawn: the FIRST scan must FIND it (teaches the verb), so it's hidden from the boot reveal */
+  /* FIRST CONTACT — a guaranteed UNGATED fight near spawn so a first-timer always sees combat before the War Room exists (seeded after the first scan; openSitePanel lets firstContact bypass the War-Room gate) */
+  {id:'pFC', type:'ambush',  name:'FIRST CONTACT — STIRRING NEST', lore:'THE FIRST THING THE DUST DOES IS WAKE.',                   x:96,   z:64,   threat:1, hidden:false, doc:2, firstContact:true},
   /* NEAR RING — threat 1-2 */
   {id:'p01', type:'deposit', name:'EXPOSED HEX SEAM',       lore:'THE DUST HOARDS WHAT THE CITY SPENT.',                         x:195,  z:7,    threat:1, hidden:false},
   {id:'p02', type:'ruin',    name:'COLLAPSED RELAY ARCH',   lore:'IT BROADCAST UNTIL THE GROUND TOOK IT.',                       x:146,  z:114,  threat:1, hidden:false},
@@ -1296,7 +1304,8 @@ function pickFaction(i){
   const rb=document.getElementById('recordsBtn');  if(rb) rb.onclick=()=>openRecords();
   const rc=document.getElementById('recordsClose');if(rc) rc.onclick=()=>$('recordsModal').classList.remove('open');
   const wc=document.getElementById('winContinue'); if(wc) wc.onclick=()=>$('winOverlay').classList.remove('open');
-  const wn=document.getElementById('winNew');      if(wn) wn.onclick=()=>newPlanet(); }
+  const wn=document.getElementById('winNew');      if(wn) wn.onclick=()=>newPlanet();
+  const ws=document.getElementById('winShare');    ws&&(ws.onclick=()=>share({won:true})); }
 { const fr=document.querySelector('#perksModal'); }   // perks rows reuse .frow CSS (faction modal)
 
 let S = { v:3, hex:500, xp:0, wins:0, claimsTotal:0, buildings:[], zonesClaimed:[], lastSeen:Date.now(),
@@ -3575,6 +3584,7 @@ addEventListener('keyup',e=>{
    so a normal click/orbit-drag is never hijacked. */
 let holdTimer=0, holdPtr={x:0,y:0};
 function beginHold(e){
+  if(rtActive) return;   // combat owns the tap (it FIRES) — never arm the drive timer during a live fight
   if(mode!=='play'||placing||touches.size>1) return;   // never engage drive during a multi-touch (pinch)
   clearTimeout(holdTimer);
   holdPtr.x=e.clientX; holdPtr.y=e.clientY;
@@ -4494,6 +4504,7 @@ const GOALS=[
   {text:'RUN A SIGNAL SCAN',          done:()=>(S.scans||0)>=1,              hex:50},
   {text:'SURVEY YOUR FIRST SITE',     done:()=>S.discovered.length>=1,       hex:60,  prog:()=>[S.discovered.length,1]},
   {text:'CLEAR YOUR FIRST SITE',      done:()=>S.cleared.length>=1,          hex:60},
+  {text:'FIRST CONTACT — PURGE THE NEST', done:()=>S.cleared.includes('pFC')||S.wins>=1, hex:70},   /* a guaranteed combat objective BEFORE the tower exists (see pFC) — satisfied by clearing it OR any first win, so it never dead-ends */
   {text:'BUILD THE SIGNAL TOWER',     done:()=>count('tower')>=1,            hex:60},
   {text:'SURVEY 3 SITES',             done:()=>S.discovered.length>=3,       hex:80,  prog:()=>[S.discovered.length,3]},
   {text:'BUILD THE WAR ROOM',         done:()=>count('warroom')>=1,          hex:80},
@@ -4922,9 +4933,13 @@ $('deckClose').onclick=()=>$('deckModal').classList.remove('open');
 function shareURL(){ const u=location.origin+location.pathname; let h='#s='+(WORLD_SEED()).toString(36);
   const held=claimedTileCount(); if(held>=1 && S.faction>=0) h+='&c='+held+'.'+S.faction;   /* #3: embed YOUR sectors-held + doctrine so the link is a beat-this contest */
   return u+h; }
-function heroStat(){ const held=claimedTileCount(), pct=planetControlPct();
-  return held>=8?{k:'SECTORS HELD',v:String(held)} : (S.archive.owned.length>=10?{k:'FRAGMENTS',v:S.archive.owned.length+'/40'}
-    : {k:'PLANET CONTROL',v:pct.toFixed(2)+'%'}); }
+function heroStat(won){ const held=claimedTileCount(), frags=(S.archive&&S.archive.owned?S.archive.owned.length:0), pct=planetControlPct();
+  if(won) return {k:'PLANET SECURED',v:held+' SECTOR'+(held===1?'':'S')};   /* post-win: lead with the victory, not a percent */
+  /* mid-run: lead with the strongest concrete proof of progress; the % fallback is a last resort */
+  if(held>=1)        return {k:'SECTORS HELD', v:String(held)};
+  if(frags>=1)       return {k:'FRAGMENTS',    v:frags+'/40'};
+  if((S.influence||0)>0) return {k:'INFLUENCE', v:'RISING'};
+  return {k:'PLANET CONTROL', v:pct.toFixed(2)+'%'}; }
 function makeOGCard(){
   const W=LOWPERF?600:1200, H=Math.round(W*0.525);
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d');
@@ -4955,13 +4970,14 @@ function glyphStamp(){
   document.body.appendChild(d); requestAnimationFrame(()=>d.style.opacity='1');
   setTimeout(()=>{ d.style.opacity='0'; setTimeout(()=>d.remove(),500); }, 2600);
 }
-function dispatchLine(){ const hs=heroStat();
-  return 'I am rebuilding the signal on Mars. '+hs.k+': '+hs.v+'. Race my planet ▸ '+shareURL()+' @4040hex #FREELONCITY'; }
+function dispatchLine(won){ const hs=heroStat(won);
+  const lead = won ? 'I secured a planet on Mars. ' : 'I am rebuilding the signal on Mars. ';
+  return lead+hs.k+': '+hs.v+'. Race my planet ▸ '+shareURL()+' @4040hex #FREELONCITY'; }
 function share(opts){ opts=opts||{};
   writeHashSeed(WORLD_SEED());
   const card=makeOGCard();
   glyphStamp(); sfxBlip(.5);
-  const line=dispatchLine(), url=shareURL();
+  const line=dispatchLine(opts.won), url=shareURL();
   /* DELIVER the card — native share-sheet WITH the image where supported, else download the PNG + copy the line.
      The PNG is the shareable artifact (the whole virality bet); never discard it. */
   const deliver=blob=>{
@@ -5250,6 +5266,18 @@ function doScan(){
       toast('SCAN CLEAN — FAINT ECHO ▸ '+oct);
     } else toast('SCAN CLEAN — NO NEW SIGNALS');
   }
+  /* GUARANTEED FIRST FIGHT: combat is otherwise gated behind the Tower+War Room, so a first-timer
+     can finish a whole session never fighting. After the first scan, surface ONE ungated combat
+     site (pFC, near spawn) + its beacon, and point the rover at it. One-time, home-only, pre-first-win. */
+  if(onHome() && (S.wins||0)===0 && !S.firstContactSeeded){
+    const fc=POIS.find(p=>p.firstContact);
+    if(fc){
+      S.firstContactSeeded=true;
+      if(!poiDetected(fc.id)) detectPoi(fc,true);            // plants the waypoint beacon + reveals the mesh
+      const oct=['E','SE','S','SW','W','NW','N','NE'][Math.round(Math.atan2(fc.z-rz,fc.x-rx)/(Math.PI/4))&7];
+      setTimeout(()=>toast('FIRST CONTACT ▸ HOSTILE SIGNAL '+oct+' — DRIVE TO IT & PURGE IT'), 900);
+    }
+  }
   save(); checkGoals(); checkDailies(); updateScanBtn();
 }
 $('scanBtn').onclick=doScan;
@@ -5285,7 +5313,7 @@ function openSitePanel(id){
   $('zpBody').innerHTML=rows;
   const b=$('zoneLaunch');
   if(cleared){ b.style.display='none'; }
-  else if(p.type==='ambush' && !count('warroom')){
+  else if(p.type==='ambush' && !p.firstContact && !count('warroom')){
     b.style.display='block'; b.classList.add('off'); b.textContent='WAR ROOM REQUIRED'; b.onclick=null;
   }
   else if(p.type==='scar' && !scarUnlocked()){
@@ -5765,6 +5793,11 @@ function startRTCombat(zone,poi){
     rtArena.r=124;   // a little more room to circle the heart
   }
   rtInteg=100; rtFireCd=0; rtClock=0; rtActive=true; distK=isBoss?1.34:1.22; document.body.classList.add('fighting');
+  /* reward context — body.fighting hides #stats, so surface the previewed purge yield + the stake on the combat HUD */
+  { const _rwd = battlePoi ? hexMult(poiReward(battlePoi))
+        : battleZone ? hexMult(Math.round((150+battleZone.threat*60)*(count('foundry')?1.25:1)))
+        : hexMult(Math.round((250+(S.redDust.wins||0)*40)*(count('foundry')?1.25:1)));
+    const _re=document.getElementById('rtReward'); if(_re) _re.textContent='PURGE ▸ +◇ '+_rwd+'  ·  STAKE ◇ '+BATTLE_STAKE; }
   /* AIM CUE — a heading beam + a ring that snaps to the targetable foe (so 'steer to aim' is legible) */
   if(!_reduceMotion){
     rtAimLine=new THREE.Mesh(_tracerGeo, new THREE.MeshBasicMaterial({color:0xf0c75e,transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending}));
@@ -5772,7 +5805,7 @@ function startRTCombat(zone,poi){
     rtAimRing=new THREE.Mesh(new THREE.RingGeometry(4.4,5.6,28), new THREE.MeshBasicMaterial({color:0xf0c75e,transparent:true,opacity:.9,depthWrite:false,side:THREE.DoubleSide}));
     rtAimRing.rotation.x=-Math.PI/2; rtAimRing.visible=false; scene.add(rtAimRing);
   }
-  const _hint=document.getElementById('rtHint'); if(_hint) _hint.textContent=_coarse?'HOLD ▸ STEER + DODGE · AUTO-FIRES ON TARGET':'STEER TO AIM · FIRE ▸ CLICK / SPACE · DRIVE TO DODGE';
+  const _hint=document.getElementById('rtHint'); if(_hint) _hint.textContent=_coarse?'HOLD ▸ STEER + DODGE · AUTO-FIRES ON TARGET':'STEER TO AIM · TAP FIRE ▸ CLICK / SPACE · WASD TO DODGE';
   const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent=isBoss?'⬡ THE VOID SCAR — SILENCE THE HEART':'⬡ CONTACT — PURGE THE CORRUPTION';
   $('rtHud').style.display='block'; rtRenderHud();
   toast(isBoss?'THE VOID SCAR ANSWERS — SILENCE THE HEART':'CONTACT — PURGE THE CORRUPTION'); sfxThunk(); addTrauma(isBoss?.5:.3); haptic(isBoss?[0,200,80,200]:[0,120,60,140],isBoss?.95:.7);
@@ -6178,6 +6211,18 @@ function startGame(){
     S.gClear=Math.max(S.gClear||0,(S.cleared||[]).length);
     S.tile=S.tile||HOME_TILE; save();
   }
+  /* FIRST CONTACT goal inserted at index 4: realign saves whose goalPaid/goalIndex predate it.
+     A save that already migrated to v3+ stored absolute indices into the OLD ladder — splice a
+     'paid' slot at 4 (legacy players don't get a windfall or a block) and bump a past-4 pointer.
+     The v2→v3 block above already rebuilds goalPaid against the NEW ladder, so skip those. */
+  if(!S.fcGoalMig){
+    const FC_AT=4;
+    if(Array.isArray(S.goalPaid) && S.goalPaid.length===GOALS.length-1){
+      S.goalPaid.splice(FC_AT,0,true);                    // treat the new goal as already-resolved for existing saves
+      if((S.goalIndex||0)>=FC_AT) S.goalIndex=(S.goalIndex||0)+1;
+    }
+    S.fcGoalMig=1; save();
+  }
   cinePhase='done';
   /* spaceScene is NOT disposed — it becomes the live globe strategic map (next phase) */
   blackout.style.opacity=0; dust.style.opacity=0; cine.style.display='none';
@@ -6197,7 +6242,10 @@ function startGame(){
   if(BOOT_AWAY) enterTile(BOOT_AWAY,0,0); else { buildDetail(); try{ spawnGhostConvoy(); }catch(e){} }   // home start: enterTile won't fire — scatter rocks + ghosts now
 }
 $('skipBtn').onclick=startGame;
-if(loaded && ((S.buildings&&S.buildings.length||0)+(S.xp||0)+(S.wins||0))>0) $('skipBtn').textContent='RESUME ▸';   /* null-safe: never let a malformed save halt the module before animate() */
+const _autoResume = !!(loaded && ((S.buildings&&S.buildings.length||0)+(S.xp||0)+(S.wins||0))>0);
+if(_autoResume) $('skipBtn').textContent='RESUME ▸';   /* null-safe: never let a malformed save halt the module before animate() */
+/* returning players skip the cinematic — startGame() runs from the first animate() frame (below),
+   AFTER the renderer + all fns + boot shield are ready (startGame is idempotent: mode==='play' early-returns) */
 
 function runCinematic(dt){
   cineT+=dt;
@@ -6344,6 +6392,7 @@ function animate(){
   if(!window.__marsBooted){
     window.__marsBooted=true;
     const b=document.getElementById('boot'); if(b) b.style.display='none';
+    if(_autoResume && mode!=='play'){ try{ startGame(); }catch(e){} }   // established save → skip the intro on load
   }
   fitRenderer();
   if(performance.now()<freezeUntil){ composer.render(); return; }   // hit-stop: world halts, frame still draws
