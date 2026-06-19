@@ -94,23 +94,6 @@ async function fetchAllHolders(): Promise<HolderRow[]> {
     .sort((a, b) => b.count - a.count);
 }
 
-async function fetchFloor(): Promise<number> {
-  try {
-    const headers: Record<string, string> = {};
-    if (process.env.OPENSEA_API_KEY)
-      headers["X-API-KEY"] = process.env.OPENSEA_API_KEY;
-    const r = await fetch(
-      "https://api.opensea.io/api/v2/collections/freelons/stats",
-      { headers, next: { revalidate: 300 } }
-    );
-    if (!r.ok) return 0;
-    const d = await r.json();
-    return Number(d?.total?.floor_price || 0);
-  } catch {
-    return 0;
-  }
-}
-
 type AcquisitionEvent = { tokenId: number; timestamp: number };
 
 async function fetchLongestHeld(
@@ -226,10 +209,9 @@ export default async function WalletPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, holders, , hexRec, defenderSince, artefacts] = await Promise.all([
+  const [tokensRes, holders, hexRec, defenderSince, artefacts] = await Promise.all([
     getWalletTokens(norm, 500),
     fetchAllHolders(),
-    fetchFloor(),
     getWalletHex(norm).catch(() => null),
     getDefenderSince(norm).catch(() => null),
     getWalletArtefacts(norm).catch(() => []),

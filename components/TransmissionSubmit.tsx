@@ -46,7 +46,7 @@ export function TransmissionSubmit({ onSubmitted }: { onSubmitted?: (id: string)
     if (caption.length < 1) { setError("CAPTION REQUIRED"); return; }
     if (caption.length > MAX_CAPTION) { setError(`CAPTION TOO LONG · ${MAX_CAPTION} MAX`); return; }
     if (!/^https:\/\/.+(\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?|format=(jpg|jpeg|png|webp|gif|avif).*)$/i.test(imageUrl)) {
-      setError("IMAGE URL MUST BE HTTPS AND END IN .JPG/.PNG/.WEBP/.GIF");
+      setError("IMAGE URL MUST BE HTTPS — END IN .JPG/.PNG/.WEBP OR INCLUDE ?format=jpg (e.g. a pbs.twimg.com link)");
       return;
     }
     setBusy(true);

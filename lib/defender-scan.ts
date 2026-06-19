@@ -117,7 +117,9 @@ function considContractOf(o: OsOffer): string {
     // 3 = ERC1155, 5 = ERC1155_WITH_CRITERIA. A collection offer carries the
     // FREELON contract on the criteria item; pick the first NFT-bearing token.
     const t = (it.token || "").toLowerCase();
-    if (t) return t;
+    // Only the NFT consideration item (types 2/3/4/5) carries the collection
+    // contract — skip ERC20 fee items (e.g. a WETH royalty) so they don't shadow it.
+    if (t && [2, 3, 4, 5].includes(it.itemType ?? -1)) return t;
   }
   return "";
 }

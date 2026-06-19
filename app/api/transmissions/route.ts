@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "image_url_too_long" }, { status: 400 });
   }
   // Defense: reject obvious script / data URIs and host-only
-  if (/^(javascript:|data:|vbscript:|file:)/i.test(imageUrl) || !/\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?$/i.test(imageUrl)) {
+  if (/^(javascript:|data:|vbscript:|file:)/i.test(imageUrl) || !/(\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?|format=(jpg|jpeg|png|webp|gif|avif).*)$/i.test(imageUrl)) {
     return NextResponse.json({ error: "image_url_not_recognized" }, { status: 400 });
   }
 
