@@ -14,17 +14,20 @@ export function TrackedExtLink({
   event,
   from,
   className,
+  style,
   children,
 }: {
   href: string;
   event: string;
   from?: string;
   className?: string;
+  style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   return (
     <a
       className={className}
+      style={style}
       href={href}
       target="_blank"
       rel="noreferrer"

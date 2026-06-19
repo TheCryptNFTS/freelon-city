@@ -60,7 +60,10 @@ export function SyncWalletAction() {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
       const inMM = /MetaMask/i.test(ua);
       if (isMobile && !inMM) {
-        const host = window.location.host + window.location.pathname;
+        // Preserve query (?ref= attribution) + hash through the MetaMask
+        // round-trip — otherwise the in-app browser lands on bare /sync and the
+        // referral + return context are lost (upgrade audit #16).
+        const host = window.location.host + window.location.pathname + window.location.search + window.location.hash;
         window.location.href = `https://metamask.app.link/dapp/${host}`;
         return;
       }

@@ -5,6 +5,12 @@ import { PageBeacon } from "@/components/PageBeacon";
 import { DailyHub } from "@/components/DailyHub";
 import { DailyTransmission } from "@/components/play/DailyTransmission";
 import { GamePreview, type GameKind } from "@/components/GamePreview";
+import { TrackedExtLink } from "@/components/TrackedExtLink";
+
+// The compounding holder game lives on its own domain; the arcade routed its
+// highest-intent play traffic straight past it (upgrade audit #17). Same env +
+// branded fallback as /crypt-tcg.
+const CRYPT_GAME_URL = process.env.NEXT_PUBLIC_CRYPT_GAME_URL || "https://play.freeloncity.com";
 
 // Folded /daily transmission rolls per UTC day without redeploy
 // (2026-05-31). Matches the former /daily page's force-dynamic.
@@ -241,6 +247,43 @@ export default function PlayHub() {
             </div>
           </Link>
         ))}
+      </section>
+
+      {/* THE CARD GAME — Crypt TCG (upgrade audit #17). The one compounding
+          holder game was missing from both arcade grids, so the busiest play
+          surface routed straight past it. External (play.freeloncity.com), so a
+          tracked link rather than an internal grid card; crypt_play_click{from}
+          lets us compare arcade vs direct landing as game entry points. */}
+      <section style={{ maxWidth: 1120, margin: "16px auto 0" }}>
+        <TrackedExtLink
+          href={CRYPT_GAME_URL}
+          event="crypt_play_click"
+          from="arcade"
+          style={{
+            display: "block",
+            textDecoration: "none",
+            border: "1px solid var(--line)",
+            borderTop: "2px solid var(--gold-bright)",
+            background: "var(--bg-2)",
+            padding: "24px 22px 26px",
+          }}
+        >
+          <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.28em", color: "var(--gold-bright)", textTransform: "uppercase", marginBottom: 14 }}>
+            CARD GAME · SOLO VS AI · DECK-BUILDER
+          </div>
+          <div style={{ fontFamily: "var(--display)", fontSize: 26, color: "var(--ink)", marginBottom: 4 }}>
+            Crypt TCG
+          </div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--ink-2)", marginBottom: 12 }}>
+            Like Hearthstone / Marvel Snap
+          </div>
+          <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink-dim)", margin: "0 0 18px", maxWidth: 720 }}>
+            Ten commanders, one for each civilization. Build a deck and battle the AI now — and field your own Crypt cards if you hold them. Ranked play coming.
+          </p>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-fade)", textTransform: "uppercase" }}>
+            PLAY THE CARD GAME ↗
+          </div>
+        </TrackedExtLink>
       </section>
 
       {/* MORE WAYS TO PLAY — the loved prototypes, surfaced compactly (see MORE_GAMES). */}

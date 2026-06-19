@@ -1,18 +1,14 @@
 /**
- * /combat-archives — placeholder lore page.
+ * /crypt-tcg — the live Crypt TCG door.
  *
- * Founder brief 2026-05-25:
- *   "The TCG is almost built but currently indie/template-looking, so
- *    mark it as coming soon / reconstruction unstable rather than
- *    overpromising."
+ * 2026-06-10: the game SHIPPED. This page is the front door to the deployed
+ * build (play.freeloncity.com) — a real solo-vs-AI card game: ten commanders,
+ * one per civilization; build a deck and battle the AI now (ranked play coming).
  *
- * Frame it as a recovered system that's still being reconstructed.
- * Lore-consistent waiting state instead of a generic "coming soon."
- * When the real game ships, swap this page out for the interface.
- *
- * Critical brief rule: do NOT use "blockchain card game" language.
- * Cards are "relics" / "commanders" / "combat records" — NOT
- * "trading cards" / "deck mechanics" / "play-to-earn."
+ * TCG / trading-card / deck language is CORRECT here since launch. The earlier
+ * "placeholder / coming soon / reconstruction-unstable / no-card-language"
+ * brief (2026-05-25) is RETIRED — do not re-apply it; it would regress the live
+ * marketing copy below. The OG card + page copy sell the playable game.
  */
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -46,7 +42,7 @@ export const metadata: Metadata = {
 
 // 2026-06-10: the game shipped. Door points at the deployed build; env var
 // lets it flip to play.freeloncity.com later with no code change.
-const GAME_URL = process.env.NEXT_PUBLIC_CRYPT_GAME_URL || "https://crypt-game.vercel.app";
+const GAME_URL = process.env.NEXT_PUBLIC_CRYPT_GAME_URL || "https://play.freeloncity.com";
 
 type Fragment = {
   glyph: string;
