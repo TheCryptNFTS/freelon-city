@@ -49,6 +49,7 @@ export function Footer() {
             <li><Link href="/earn">Earn HEX</Link></li>
             <li><Link href="/shop">Shop</Link></li>
             <li><Link href="/help">Help</Link></li>
+            <li><a href="https://discord.gg/xcK3E8nCB8" target="_blank" rel="noreferrer">Join Discord ↗</a></li>
           </ul>
         </div>
 

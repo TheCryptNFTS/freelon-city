@@ -62,8 +62,8 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
           >
             <span className="ttl">VIEW ON OPENSEA ↗</span>
           </TrackedOpenSeaLink>
-          <Link className="btn btn-secondary" href="/archive">
-            <span className="ttl">← BACK TO ARCHIVE</span>
+          <Link className="btn btn-secondary" href="/collections">
+            <span className="ttl">← ALL COLLECTIONS</span>
           </Link>
         </div>
       </section>

@@ -45,7 +45,7 @@ export function TransmissionSubmit({ onSubmitted }: { onSubmitted?: (id: string)
     if (!civ) { setError("PICK A CIVILIZATION"); return; }
     if (caption.length < 1) { setError("CAPTION REQUIRED"); return; }
     if (caption.length > MAX_CAPTION) { setError(`CAPTION TOO LONG · ${MAX_CAPTION} MAX`); return; }
-    if (!/^https:\/\/.+\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?$/i.test(imageUrl)) {
+    if (!/^https:\/\/.+(\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?|format=(jpg|jpeg|png|webp|gif|avif).*)$/i.test(imageUrl)) {
       setError("IMAGE URL MUST BE HTTPS AND END IN .JPG/.PNG/.WEBP/.GIF");
       return;
     }
@@ -203,7 +203,7 @@ export function TransmissionSubmit({ onSubmitted }: { onSubmitted?: (id: string)
         </p>
       </label>
 
-      {imageUrl && /^https:\/\/.+\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?$/i.test(imageUrl) && (
+      {imageUrl && /^https:\/\/.+(\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?|format=(jpg|jpeg|png|webp|gif|avif).*)$/i.test(imageUrl) && (
         <div className="tx-preview">
           <span className="kicker">PREVIEW</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}

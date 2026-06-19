@@ -334,7 +334,9 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                   {agent.greeting}
                 </div>
               )}
-              <div style={{ marginTop: "auto", textAlign: "center" }}>
+              {/* Pinned under the greeting (was marginTop:auto, which pushed the
+                  starter chips below the fold on short mobile viewports — audit #47). */}
+              <div style={{ marginTop: 16, textAlign: "center" }}>
                 <p style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "var(--ink-dim)", lineHeight: 1.7, marginBottom: 12 }}>
                   Try one of these, or ask your own.
                 </p>

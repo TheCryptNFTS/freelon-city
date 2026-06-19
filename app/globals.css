@@ -63,6 +63,8 @@
   --gold:        #C8A75D;
   --gold-bright: #E9C984;
   --gold-deep:   #8A7A40;
+  /* The machined-gold edge ring (avatars, hex frames) — one canonical ramp. */
+  --gold-ramp:   linear-gradient(155deg, #ffe9b0 0%, #e7c074 34%, #c8973f 70%, #8c6320 100%);
 
   /* NEON ACCENT SYSTEM (2026-05-28) — for interactive / signal moments.
      Cyan = THE signal color (matches sync.webp, blue-synthesis civ, hero
@@ -8717,4 +8719,16 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
    the footer AND the bar (ChromeGate), so it never needs this. */
 @media (max-width: 720px) {
   .site-footer { padding-bottom: calc(var(--s-5) + 60px + env(safe-area-inset-bottom)); }
+}
+
+/* ── upgrade audit 2026-06-19 — mobile a11y ───────────────────────────── */
+/* iOS focus-zoom guard: force form controls >=16px on touch pointers so the
+   DemoChat textarea (13px) / AgentWorkspace composer (14px) don't zoom on focus. */
+@media (pointer: coarse) {
+  input, textarea, select { font-size: max(16px, 1em) !important; }
+}
+/* Bottom-tab clearance: the fixed mobile tab bar (~60px + safe-area) overlapped
+   the last element on routes that don't end in the global footer. */
+@media (max-width: 720px) {
+  main#main { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
 }

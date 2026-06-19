@@ -21,7 +21,7 @@ import { imageUrl } from "@/lib/constants";
 
 // Pointy-top hexagon (matches the ⬡ gem orientation in the collection art).
 const HEX = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
-const GOLD_RING = "linear-gradient(155deg, #ffe9b0 0%, #e7c074 34%, #c8973f 70%, #8c6320 100%)";
+const GOLD_RING = "var(--gold-ramp)";
 
 type Shape = "hex" | "round" | "rounded";
 

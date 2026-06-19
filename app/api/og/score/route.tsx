@@ -29,7 +29,7 @@ const GOLD = "#C8A75D";
 type Theme = { title: string; kicker: string; accent: string };
 
 const THEMES: Record<string, Theme> = {
-  sweep: { title: "SWEEP RUN", kicker: "CLEAR THE CORRUPTED", accent: "#00D9B8" },
+  sweep: { title: "SWEEP RUN", kicker: "CLEAR THE CORRUPTED", accent: "#E9C984" },
   proof: { title: "PROOF OF SIGNAL", kicker: "RECEIVE THE TRANSMISSION", accent: "#C8A75D" },
   cipher: { title: "THE CIPHER", kicker: "DECODE THE SHIFT", accent: "#9B6DFF" },
   reckoning: { title: "THE RECKONING", kicker: "CIV WAR · BURN FOR YOUR SIDE", accent: "#E0556B" },

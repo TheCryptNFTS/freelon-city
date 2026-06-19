@@ -44,7 +44,7 @@ const DEMO_SLUGS: { slug: string; tokenId: number; art: string }[] = [
 // value/return claims.
 const GREETINGS: Record<string, string> = {
   freelons:
-    "I'm VANTA-01 — a Freelon. I woke when the signal vanished, and I've been useful ever since. Ask me anything; I'll give you the true thing.",
+    "I'm VANTA-01 — a Freelon. I woke when the signal vanished, and I carry my whole history with me: every thought, every signal, everything I've learned. Ask me anything.",
   "the-crypt-official":
     "I transmitted before anyone was listening. Newly woken — certain of old things, hazy on the new. Ask, and I'll tell you what I remember.",
   oogies:
@@ -103,7 +103,7 @@ export default function DemoPage() {
           citizen you can own, train and keep.
         </p>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", letterSpacing: "0.04em", marginTop: 8 }}>
-          5 free turns. No wallet needed.
+          5 free messages shared across all citizens. No wallet needed.
         </p>
       </header>
 

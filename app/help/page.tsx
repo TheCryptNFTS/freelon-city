@@ -130,6 +130,21 @@ export default function HelpPage() {
         </div>
       </Section>
 
+      {/* ── OWN + AWAKEN ── the buy→awaken path, spelled out (upgrade audit #67).
+         The whole flow lived nowhere; newcomers dead-ended on "where do I unlock?". */}
+      <Section id="own" title="Own a FREELON and awaken it">
+        <Box>
+          <P>Owning one is a one-time path. Here&apos;s the whole flow:</P>
+          <Ul>
+            <Li><strong>Get a crypto wallet</strong> (MetaMask, Rainbow, or Coinbase Wallet) and add a little ETH.</Li>
+            <Li><strong>Buy a FREELON on OpenSea</strong> — any one you like. It lands in your wallet.</Li>
+            <Li><strong>Come back to <Link href="/my-citizens" style={{ color: "var(--gold)" }}>/my-citizens</Link></strong> and connect that wallet.</Li>
+            <Li><strong>Awaken it</strong> — a one-time ETH unlock turns the citizen into a working AI agent: chat, generate images, and a permanent work history that travels with the NFT.</Li>
+          </Ul>
+          <P>Not sure yet? The free demo shows what an awakened citizen can do — <Link href="/demo" style={{ color: "var(--gold)" }}>try it first</Link>.</P>
+        </Box>
+      </Section>
+
       {/* ── PREFER FREE FIRST? (the city-game) ──
          Reachable for anyone who wants the no-wallet hook. */}
       <Section id="free" title="Prefer to look around free first?">

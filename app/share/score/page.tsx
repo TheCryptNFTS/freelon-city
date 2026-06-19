@@ -99,7 +99,7 @@ export default async function ShareScorePage({
       <Redirect to={dest} />
       <p style={{ letterSpacing: "0.24em", opacity: 0.6, fontSize: 14 }}>⬡ FREELON CITY</p>
       <p style={{ fontSize: 18 }}>Tuning you in to {game}…</p>
-      <Link href={dest} style={{ color: "#00D9B8" }}>
+      <Link href={dest} style={{ color: "var(--gold)" }}>
         Enter now →
       </Link>
     </main>

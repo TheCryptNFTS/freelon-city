@@ -8,6 +8,8 @@ import { isAgenticCollection } from "@/lib/agent-subject";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
 import { GraveyardSection } from "@/components/archive/GraveyardSection";
 import { CivTimeline } from "@/components/CivTimeline";
+import { ActivationProof } from "@/components/ActivationProof";
+import { CityWeekBand } from "@/components/CityWeekBand";
 
 // T3 2026-06-11 — explicit share tags (a page-level openGraph block replaces
 // the layout's wholesale, so the branded default image is restated here).
@@ -122,6 +124,11 @@ export default async function CollectionsIndex() {
 
   return (
     <div style={{ maxWidth: "var(--maxw)", margin: "var(--s-6) auto", padding: "0 var(--pad)" }}>
+      {/* Aliveness first (upgrade audit #117): live activation proof + the week
+          band lead, so the page reads as a living city before the "dead / wild /
+          lost" collection epithets. Both self-hide when there's nothing to show. */}
+      <ActivationProof />
+      <CityWeekBand />
       <header style={{ marginBottom: "var(--s-5)" }}>
         <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ONE CITY · MANY KINDS OF CITIZEN</span>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 1, margin: "12px 0 8px" }}>

@@ -49,7 +49,7 @@ export function GET(req: Request) {
             gap: 14,
             fontSize: 26,
             letterSpacing: "0.24em",
-            color: "#00D9B8",
+            color: "#E9C984",
             textTransform: "uppercase",
           }}
         >

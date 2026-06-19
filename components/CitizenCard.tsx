@@ -31,7 +31,7 @@ export function CitizenCard({ citizen, size = "md", activated = false }: { citiz
         </div>
         {size !== "sm" && (
           <div className="mt-1 text-[10px] uppercase tracking-widest text-[var(--color-ink-dim)] truncate">
-            {citizen.tier} · {citizen.caste}
+            {citizen.shape} · {citizen.tier} · {citizen.caste}
           </div>
         )}
       </div>

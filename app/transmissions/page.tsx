@@ -92,7 +92,7 @@ export default async function TransmissionsPage({
               OPEN ▾
             </span>
           </summary>
-          <div style={{ padding: "0 var(--s-5) var(--s-5)" }}>
+          <div id="submit" style={{ padding: "0 var(--s-5) var(--s-5)" }}>
             <TransmissionSubmit />
           </div>
         </details>
@@ -140,7 +140,7 @@ export default async function TransmissionsPage({
             an advanced page, off the archive's job. */}
         <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/demo">
-            <span className="ttl">CREATE YOURS →</span>
+            <span className="ttl">MEET A CITIZEN · FREE →</span>
           </Link>
           <Link className="btn btn-secondary" href="/citizens">
             <span className="ttl">BROWSE CHARACTERS →</span>

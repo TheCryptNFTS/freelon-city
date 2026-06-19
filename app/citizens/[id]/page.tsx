@@ -195,6 +195,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                  (art, name, civ, epithet, scarcity). ══ */}
           <RevealOnScroll index={1}>
             <span className="stamp">⬡ FREELON CITY · CITIZEN #{id4}</span>
+            {/* Shape — the IP — promoted above the name/civilization beat (audit #30). */}
+            {c.shape && <div className="kicker" style={{ color, marginTop: 6, letterSpacing: "0.2em" }}>{c.shape.toUpperCase()}</div>}
             <CitizenOwnedByYou citizenId={tid} />
             {customName?.name && <div className="custom-name">{customName.name}</div>}
             {c.transmission_name && <h1>{c.transmission_name}</h1>}

@@ -141,6 +141,7 @@ function FreelonCard(src: (p: string) => string, display: string, copy: CardCopy
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div
             style={{
+              fontFamily: display,
               fontSize: 23,
               fontWeight: 700,
               letterSpacing: "0.24em",
