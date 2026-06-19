@@ -94,6 +94,8 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   // dashboard can greet a brand-new owner with a guided first run instead of
   // silently dropping them into the generic picker.
   const [justActivated, setJustActivated] = useState(false);
+  // Once-guard so first_run_completed fires at most once per mount (upgrade audit 2026-06-19).
+  const firstRunFiredRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [output, setOutput] = useState<{ kind: string; body: string; title: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -286,7 +288,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
               <a className="btn btn-primary agentdash-go" href={openseaUrl(citizenId)} target="_blank" rel="noreferrer">
                 <span className="ttl">OWN A FREELON ↗</span>
               </a>
-              <a className="btn btn-secondary agentdash-go" href="/start">
+              <a className="btn btn-secondary agentdash-go" href="/help">
                 <span className="ttl">NEW TO NFTS? START HERE →</span>
               </a>
             </div>
@@ -621,11 +623,13 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
           return;
         }
         if (d.already) { await refreshAgent(); resetPay(); return; }
+        trackEvent("unlock_blocked", { reason: "quote_error", kind: payKind });
         setErr(d.message || d.error || "Couldn't get an unlock price. Try again.");
         setPayStep("idle");
         return;
       }
     } catch (e) {
+      trackEvent("unlock_blocked", { reason: "quote_exception", kind: payKind });
       setErr((e as Error).message || "Couldn't get an unlock price.");
       setPayStep("idle");
     } finally {
@@ -669,7 +673,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   /** Pay the unlock from the wallet, then claim it. */
   async function payUnlock() {
     if (!quote) return;
-    if (!window.ethereum || !h.address) { setErr("Open this page in your wallet's browser to pay."); return; }
+    if (!window.ethereum || !h.address) { trackEvent("unlock_blocked", { reason: "no_wallet_browser", kind: payKind }); setErr("Open this page in your wallet's browser to pay."); return; }
     setBusy(true); setErr(null);
     try {
       const valueHex = "0x" + BigInt(quote.amountWei).toString(16);
@@ -682,6 +686,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
       setPayNote("Payment sent — unlocking your agent…");
       await claimUnlock(txHash);
     } catch (e) {
+      trackEvent("unlock_blocked", { reason: "pay_rejected", kind: payKind });
       setErr((e as Error).message || "Payment was cancelled or failed.");
       setBusy(false);
     }
@@ -712,6 +717,14 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
   function finish(res: Response, d: { ok?: boolean; output?: { body: string; title: string; meta?: { kind?: string } }; already?: boolean; capacity?: boolean; message?: string; error?: string }) {
     if (res.ok && d.ok && d.output) {
       const kind = d.output.meta?.kind === "image" ? "image" : "text";
+      // Funnel: the owner path went dark here — run_started fired but nothing on
+      // success/failure, so "of owners who activated, what fraction got a real
+      // first output" was unmeasurable. 2026-06-19 (upgrade audit).
+      trackEvent("run_completed", { ability: ability?.id ?? null, kind });
+      if (justActivated && !firstRunFiredRef.current) {
+        firstRunFiredRef.current = true;
+        trackEvent("first_run_completed", { ability: ability?.id ?? null, kind });
+      }
       setOutput({ kind, body: d.output.body, title: d.output.title });
       resetPay();
       // refresh history
@@ -719,8 +732,9 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         .then((r) => r.json()).then((j) => { if (Array.isArray(j.history)) setHistory(j.history); }).catch(() => {});
       return;
     }
-    if (res.ok && d.already) { setErr(d.message || "Already run for this citizen today. Resets at UTC midnight."); return; }
-    if (d.capacity || res.status === 503) { setErr(d.message || "The agents are at capacity right now. Try again shortly."); return; }
+    if (res.ok && d.already) { trackEvent("run_failed", { reason: "already_today", ability: ability?.id ?? null }); setErr(d.message || "Already run for this citizen today. Resets at UTC midnight."); return; }
+    if (d.capacity || res.status === 503) { trackEvent("run_failed", { reason: "capacity", ability: ability?.id ?? null }); setErr(d.message || "The agents are at capacity right now. Try again shortly."); return; }
+    trackEvent("run_failed", { reason: d.error || "error", ability: ability?.id ?? null });
     setErr(d.message || d.error || "The agent couldn't complete that.");
   }
 

@@ -602,7 +602,7 @@ export function VaultClient() {
 
       <section className="v-foot">
         <Link href="/dashboard" className="btn btn-ghost"><span className="ttl">← Dashboard</span></Link>
-        <Link href="/start" className="btn btn-ghost"><span className="ttl">Start Here</span></Link>
+        <Link href="/help" className="btn btn-ghost"><span className="ttl">Start Here</span></Link>
       </section>
 
       <style>{`

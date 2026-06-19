@@ -15,6 +15,7 @@ import { CitizenCheckIn } from "@/components/CitizenCheckIn";
 import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
 import { ActivationProof } from "@/components/ActivationProof";
+import { CitizenWorkspaceCta } from "@/components/CitizenWorkspaceCta";
 import { EvolvePanel } from "@/components/EvolvePanel";
 import YourStable from "@/components/YourStable";
 import { getCheckIn } from "@/lib/daily-checkin";
@@ -389,11 +390,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                  the full workspace (chat, image, history, owner tools) "like
                  opening ChatGPT or Claude". ══ */}
           <RevealOnScroll index={3}>
-            <Link href={`/agent/${tid}`} className="workspace-open-cta" style={{ ["--accent" as string]: color }}>
-              <span className="wo-kicker">YOUR AGENT WORKSPACE</span>
-              <span className="wo-title">Open the workspace →</span>
-              <span className="wo-sub">Chat, generate, and build a permanent work history — all in one place, like opening ChatGPT or Claude.</span>
-            </Link>
+            <CitizenWorkspaceCta tid={tid} color={color} />
             {/* Social proof — real strangers have already unlocked. Self-hides at 0. */}
             <div style={{ margin: "var(--s-3) 0" }}>
               <ActivationProof compact />

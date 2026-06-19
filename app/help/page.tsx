@@ -57,8 +57,7 @@ export default function HelpPage() {
           }}
         >
           Connection setup and troubleshooting, the daily and weekly routines, every term defined,
-          and the questions people actually ask. New here? Read the{" "}
-          <Link href="/start" style={{ color: "var(--gold)" }}>2-minute guide</Link> first.
+          and the questions people actually ask. This is the 2-minute guide — start anywhere below.
         </p>
       </section>
 

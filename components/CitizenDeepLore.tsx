@@ -73,7 +73,7 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
         body: JSON.stringify({ action: isGift ? "gift" : "self", handle: carrier.handle, recipient }),
       });
       const data = await res.json();
-      if (!res.ok) { setErr(data.error || "Unlock failed."); setBusy(false); return; }
+      if (!res.ok) { setErr(data.error || "Reveal failed."); setBusy(false); return; }
       // Sync local hex point balance
       const updated = spendPoints(isGift ? 50 : cost);
       if (updated) setCarrier(updated);
@@ -127,7 +127,7 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
           </div>
           <div className="dl-unlock-card">
             <div className="dl-cost">
-              <span className="lbl">UNLOCK COST</span>
+              <span className="lbl">REVEAL COST</span>
               <span className="val"><strong>{cost}</strong> ⬡</span>
             </div>
             {!carrier && (
@@ -143,14 +143,14 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
                     className={unlockMode === "self" ? "active" : ""}
                     onClick={() => setUnlockMode("self")}
                   >
-                    UNLOCK FOR ME
+                    REVEAL FOR ME
                   </button>
                   <button
                     type="button"
                     className={unlockMode === "gift" ? "active" : ""}
                     onClick={() => setUnlockMode("gift")}
                   >
-                    GIFT UNLOCK · 50 ⬡
+                    GIFT REVEAL · 50 ⬡
                   </button>
                 </div>
                 {unlockMode === "gift" && (
@@ -179,7 +179,7 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
                   disabled={busy || carrier.hexPoints < (unlockMode === "gift" ? 50 : cost)}
                   type="button"
                 >
-                  <span className="lbl">{unlockMode === "gift" ? "GIFT" : "UNLOCK"}</span>
+                  <span className="lbl">{unlockMode === "gift" ? "GIFT" : "REVEAL"}</span>
                   <span className="ttl">{busy ? "PROCESSING…" : `SPEND ${unlockMode === "gift" ? 50 : cost} ⬡`} <span className="ar">→</span></span>
                 </button>
                 {err && <p className="dl-err">{err}</p>}
@@ -206,12 +206,12 @@ export function CitizenDeepLore({ citizenId, cost, deepLore, previewLine }: Prop
       )}
       {canShow && ownerFree && !giftInfo.gifter && (
         <p className="dl-owner-attribution">
-          ⬡ Unlocked because you own this citizen.
+          ⬡ Revealed because you own this citizen.
         </p>
       )}
       {canShow && keyFree && !ownerFree && !giftInfo.gifter && (
         <p className="dl-owner-attribution">
-          ⬡ Unlocked by your EMILE memory-fragment key — the city&apos;s memory opens for you.
+          ⬡ Revealed by your EMILE memory-fragment key — the city&apos;s memory opens for you.
         </p>
       )}
     </section>

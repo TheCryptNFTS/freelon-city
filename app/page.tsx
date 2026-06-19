@@ -120,9 +120,9 @@ export default async function Home() {
             Where AI becomes a <strong>civilization</strong>.
           </h1>
           <p className="hero-landing__tag">
-            FREELON CITY — alive on-chain since 2023. Six collections, every face a
-            living AI citizen: meet one free, own one, train it, and battle in the
-            city&apos;s card arena. Its whole life travels with the NFT.
+            FREELON CITY — alive on-chain since 2023. Every face is a living AI
+            citizen you can talk to. Meet one free, then own and train it — its
+            whole life travels with the NFT.
           </p>
           {/* ONE primary (MEET A CITIZEN — experience it first), OWN secondary.
               EARN HEX lives in the header; the closing CTA repeats OWN at the buy
@@ -251,7 +251,8 @@ export default async function Home() {
           One living city of AI citizens — six collections, founded on-chain in 2023.
           FREELONS are the newest citizens, the ones you can own and train;{" "}
           <strong>Emile, The Crypt, Oogies and Smiles</strong> are free to meet.{" "}
-          <Link href="/collections">Explore the collections →</Link>
+          <Link href="/collections">Explore the collections →</Link>{" · "}
+          <Link href="/proof">See why only your FREELON can do this →</Link>
         </p>
         {/* 2026-06-06 buy-handoff polish — OWN A FREELON jumps straight to
             OpenSea, which lands NFT-curious newcomers cold. One line sets the
@@ -259,8 +260,9 @@ export default async function Home() {
             unsure to the 2-minute guide instead of bouncing. No price/return
             claims (copy-safety). */}
         <p className="home-close__note">
-          Opens OpenSea · secured on Ethereum · a crypto wallet is needed to collect.{" "}
-          <Link href="/start">New to this? Start here →</Link>
+          Opens OpenSea · secured on Ethereum · a crypto wallet is needed to collect.
+          After you collect, come back to <Link href="/my-citizens">awaken it</Link>.{" "}
+          <Link href="/help#wallet">New to this? Start here →</Link>
         </p>
         {/* 2026-06-06 — community front door. The site had no path to the
             holders' room from the homepage; owners and the merely-curious both

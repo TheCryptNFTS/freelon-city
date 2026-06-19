@@ -248,7 +248,7 @@ export default function CanonPage() {
         <div className="ui-cta-row" style={{ marginTop: "var(--s-2)", justifyContent: "center" }}>
           <Link className="btn btn-primary" href="/sync"><span className="ttl">SYNC NOW →</span></Link>
           <Link className="btn btn-secondary" href="/citizens"><span className="ttl">BROWSE CITIZENS →</span></Link>
-          <Link className="btn btn-secondary" href="/start"><span className="ttl">START HERE →</span></Link>
+          <Link className="btn btn-secondary" href="/help"><span className="ttl">START HERE →</span></Link>
         </div>
       </section>
     </div>

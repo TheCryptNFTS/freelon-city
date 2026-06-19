@@ -14,6 +14,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useViewerAddr } from "@/lib/use-viewer";
+import { readBuyIntent, clearBuyIntent } from "@/lib/track";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { Pill } from "@/components/ui";
 
@@ -30,6 +31,40 @@ export function IdentityGreeting() {
   const viewer = useViewerAddr();
   const [data, setData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
+  // Buy→awaken return loop (upgrade audit #4): if they clicked an OpenSea CTA
+  // and came back, nudge them to /my-citizens (or /sync) to AWAKEN it.
+  const [buyIntent, setBuyIntent] = useState(false);
+  useEffect(() => { setBuyIntent(readBuyIntent() != null); }, []);
+  const dismissBuyIntent = () => { clearBuyIntent(); setBuyIntent(false); };
+  const returnBanner = buyIntent ? (
+    <div
+      role="status"
+      style={{
+        display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
+        margin: "0 0 8px", padding: "7px 12px", fontSize: 12.5,
+        fontFamily: "var(--mono2, monospace)", border: "1px solid var(--gold-deep)",
+        borderRadius: 999, background: "rgba(200,167,93,0.07)", color: "var(--ink-dim)",
+      }}
+    >
+      <span aria-hidden style={{ color: "var(--gold)" }}>⬡</span>
+      <span>
+        Bought a FREELON?{" "}
+        <Link
+          href={viewer.addr ? "/my-citizens" : "/sync"}
+          onClick={dismissBuyIntent}
+          style={{ color: "var(--gold-bright)", fontWeight: 600, textDecoration: "none" }}
+        >
+          {viewer.addr ? "Awaken it →" : "Connect to awaken it →"}
+        </Link>
+      </span>
+      <button
+        type="button" aria-label="Dismiss" onClick={dismissBuyIntent}
+        style={{ background: "none", border: "none", color: "var(--ink-fade)", cursor: "pointer", fontSize: 15, lineHeight: 1, padding: 0 }}
+      >
+        ×
+      </button>
+    </div>
+  ) : null;
 
   useEffect(() => {
     if (!viewer.ready) return;
@@ -85,6 +120,7 @@ export function IdentityGreeting() {
   if (!viewer.addr) {
     return (
       <div className="ig-wrap">
+        {returnBanner}
         <Pill>
           <span className="ig-glyph" aria-hidden>⬡</span>
           <Link href="/demo" className="ig-cta">Try a citizen free</Link>
@@ -103,6 +139,7 @@ export function IdentityGreeting() {
 
   return (
     <div className="ig-wrap">
+      {returnBanner}
       <Pill variant="civ" civColor={civColor}>
         <span className="ig-glyph" aria-hidden style={{ color: civColor }}>⬡</span>
         <span className="ig-line">

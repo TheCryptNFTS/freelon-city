@@ -449,11 +449,24 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                 >
                   or buy one now on OpenSea →
                 </a>
+                <a
+                  href="/proof"
+                  onClick={() => trackEvent("proof_click", { from: "demo_wall" })}
+                  style={{
+                    fontFamily: "var(--mono2)",
+                    fontSize: 11,
+                    letterSpacing: "0.1em",
+                    color: "var(--ink-dim)",
+                    textDecoration: "underline",
+                  }}
+                >
+                  see why only your FREELON can do this →
+                </a>
               </div>
               <p style={{ marginTop: 12, fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)" }}>
-                New to the city?{" "}
-                <a href="/start" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>
-                  see how awakening works →
+                New to NFTs?{" "}
+                <a href="/help" style={{ color: "var(--ink-2)", textDecoration: "underline" }}>
+                  start here →
                 </a>
               </p>
             </div>
