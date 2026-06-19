@@ -21,7 +21,7 @@ import { PageBeacon } from "@/components/PageBeacon";
 // OG + Twitter), so it must deliver the pitch, not lore. Matches the canonical
 // 10-second line + the on-page hero subline. Lore lives on the page, not here.
 const HOME_DESC =
-  "A living AI civilization, on-chain since 2023. Six collections, every face a living citizen — meet one free, own one, train it, battle in the arena. Its life travels with the NFT.";
+  "A living AI civilization, on-chain since 2023. Every face is a living AI citizen — meet one free, then own and train it. Its whole life travels with the NFT.";
 export const metadata: Metadata = {
   // 2026-06-17 (Algorithm review): the cold-facing browser/Google title must not
   // say "404" — a stranger reads it as a dead link. The 404 motif stays in the

@@ -11,7 +11,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "FREELON CITY",
     short_name: "FREELON",
     description:
-      "A living on-chain AI civilization. Meet a citizen free, own a FREELON, train it, and battle in the city's card arena.",
+      "A living on-chain AI civilization. Meet a citizen free, then own a FREELON and train it — its whole life travels with the NFT.",
     start_url: "/?utm_source=pwa",
     id: "/",
     display: "standalone",
