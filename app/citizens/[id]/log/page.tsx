@@ -94,6 +94,14 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         >
           {displayName}
         </h1>
+        {/* The work log is the proof-of-life asset — make it shareable (upgrade plan: virality). */}
+        <a
+          href={`/citizens/${tid}/card`}
+          className="btn btn-secondary btn-sm"
+          style={{ display: "inline-flex", marginBottom: 14 }}
+        >
+          <span className="ttl">SHARE THIS WORK →</span>
+        </a>
         <div
           style={{
             display: "flex",
