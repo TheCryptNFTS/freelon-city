@@ -43,7 +43,6 @@ function fmtInt(n: number | null | undefined): string {
 const SUBNAV: Array<{ id: string; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "heat", label: "Heat" },
-  { id: "snipes", label: "Bounties" },
   { id: "civ-war", label: "Civ War" },
   { id: "earners", label: "Earners" },
   { id: "progression", label: "Citizens" },

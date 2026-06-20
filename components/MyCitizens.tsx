@@ -140,7 +140,7 @@ export function MyCitizens() {
           return (
             <Link
               key={c.id}
-              href={`/citizens/${c.id}`}
+              href={activated ? `/agent/${c.id}` : `/citizens/${c.id}`}
               className={`mycit-card${activated ? " is-activated" : ""}`}
               style={{ ["--civ" as string]: c.color }}
             >
