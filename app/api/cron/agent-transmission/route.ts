@@ -33,8 +33,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const FOOTER = "freeloncity.com";
-const MAX_LINE = 240; // leaves room under X's 280 for the footer line
+const MAX_LINE = 240; // leaves room under X's 280 for the citizen-link footer
 
 export async function GET(req: Request) {
   // Fail closed in ALL environments — an unauthenticated cron endpoint that can
@@ -79,7 +78,7 @@ export async function GET(req: Request) {
   }
 
   const line = r.text.trim().replace(/^["']|["']$/g, "").slice(0, MAX_LINE);
-  const tweet = `${line}\n\n${FOOTER}`;
+  const tweet = `${line}\n\nfreeloncity.com/citizens/${flagshipId}?ref=fst-`;
 
   // Cache FIRST so the day is claimed even if posting fails — prevents a retry
   // from re-reasoning a different line and double-posting.
