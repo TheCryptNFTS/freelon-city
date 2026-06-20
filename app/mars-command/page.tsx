@@ -62,9 +62,27 @@ const BEATS: Beat[] = [
   },
 ];
 
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  name: "Mars Command",
+  description: PAGE_DESC,
+  url: "https://www.freeloncity.com/mars-command",
+  image: "https://www.freeloncity.com/api/og/play?t=MARS%20COMMAND&k=DRIVE%20·%20CLAIM%20·%20FIGHT%20THE%20CHORUS",
+  genre: ["Exploration", "Strategy", "Roguelite"],
+  gamePlatform: ["Web Browser", "PWA"],
+  applicationCategory: "Game",
+  operatingSystem: "Any (browser)",
+  inLanguage: "en",
+  isAccessibleForFree: true,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  publisher: { "@type": "Organization", name: "FREELON CITY", url: "https://www.freeloncity.com" },
+};
+
 export default function MarsCommandPage() {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       {/* HERO */}
       <section style={{ marginBottom: "var(--s-6)" }}>
         <span className="kicker" style={{ color: ACCENT }}>

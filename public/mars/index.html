@@ -1333,8 +1333,11 @@ const loaded = load();
 function readHashSeed(){ const m=(location.hash||'').match(/[#&]s=([0-9a-z]+)/i); return m?parseInt(m[1],36)>>>0:0; }
 function writeHashSeed(s){ try{ const h=(location.hash||'').replace(/([#&])s=[0-9a-z]+/i,'').replace(/^#?&?/,''); location.hash=(h?h+'&':'')+'s='+(s>>>0).toString(36); }catch(e){} }
 function readChallenge(){ const m=(location.hash||'').match(/[#&]c=(\d+)\.(\d+)/); return m?{n:+m[1], doc:Math.max(0,Math.min(9,+m[2]))}:null; }   /* #3: a shared link can carry the sharer's sectors-held + doctrine = an async contest */
-{ const hs=readHashSeed();
-  if(typeof S.seed!=='number'||!S.seed) S.seed=(hs|| (hashStr(String(Date.now()))^hashStr(navigator.userAgent||'mars')))>>>0;
+/* V3 — the Daily Planet: freeloncity.com/mars#daily lands a fresh visitor on TODAY's UTC planet
+   (everyone the same Mars today), a shared ritual. Fresh-save only — never clobbers a saved planet. */
+function dailySeed(){ return hashStr('mars-daily-'+new Date().toISOString().slice(0,10))>>>0; }
+{ const hs=readHashSeed(), wantDaily=/[#&]daily(?:\b|&|$)/i.test(location.hash||'');
+  if(typeof S.seed!=='number'||!S.seed) S.seed=(wantDaily?dailySeed():(hs|| (hashStr(String(Date.now()))^hashStr(navigator.userAgent||'mars'))))>>>0;
   else if(hs && hs!==S.seed && !loaded) S.seed=hs;   /* a shared link on a FRESH save adopts that planet's seed */
   if(readHashSeed()!==S.seed) writeHashSeed(S.seed);
   /* CHALLENGE: if the opened link carries a contest AND it's for the planet we're now on, take up the gauntlet */
@@ -6585,6 +6588,7 @@ console.log('%cFREELON CITY: MARS COMMAND — asset credits','color:#d8b25c',
   '\nGround PBR + sky: Poly Haven red_sand 4k / HDRIs (CC0)'+
   '\n3D models: Kenney, Kay Lousberg, Quaternius via poly.pizza (CC0)');
 window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:startGame, cine:()=>cinePhase, ff:s=>{cineT+=s},
+  daily:()=>{ try{ location.hash='daily'; }catch(e){} location.reload(); }, dailySeed,
   bloom:bloomPass, comp:composer, ren:renderer,
   sol:t=>{ if(typeof t==='number'){ SOL.t=((t%1)+1)%1; SOL.paused=true; if(typeof skyUpdate==='function') skyUpdate(0); } return {t:+SOL.t.toFixed(3),sunY:+SOL.sunY.toFixed(3),dusk:+(skyUniforms?skyUniforms.uDusk.value:0).toFixed(3),tier:SKY_TIER}; },
   solRun:(on)=>{ SOL.paused=(on===false); return !SOL.paused; },   // auto-advance the day
