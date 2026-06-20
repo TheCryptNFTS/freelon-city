@@ -124,26 +124,18 @@ const config: NextConfig = {
     // WebGL build that pulls Three.js + textures/HDRIs/GLB models from CDNs.
     // It gets its own looser CSP scoped to the /mars path ONLY; every other
     // surface (incl. the /mars-command React landing) keeps the strict app CSP.
-    const MARS_GAME_CDNS = [
-      "https://cdn.jsdelivr.net",        // Three.js core/addons/DRACO + gh textures
-      "https://static.poly.pizza",       // GLB models
-      "https://dl.polyhaven.org",        // ground textures + HDRI sky
-      "https://upload.wikimedia.org",    // Mars surface texture
-      "https://images-assets.nasa.gov",  // NASA imagery
-      "https://media.githubusercontent.com", // starfield texture
-    ].join(" ");
     const MARS_CSP = [
       "default-src 'self'",
-      // Zero third-party scripts: Three.js core + addons + DRACO decoder are
-      // self-hosted under /mars/vendor (see public/mars/index.html importmap).
-      // 'unsafe-eval' is required only for WebAssembly (the DRACO .wasm decoder);
+      // 2026-06-20: the game is now FULLY self-contained — Three.js core/addons/
+      // DRACO under /mars/vendor AND every texture/HDRI/GLB compressed + self-hosted
+      // under /mars/assets. So the CSP is tightened all the way to 'self' (no
+      // third-party scripts OR data). 'unsafe-eval' is for the DRACO .wasm decoder;
       // 'unsafe-inline' covers the game's own inline <script type="module">.
-      // The external CDNs below are DATA only (img/connect) — no script trust.
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
-      `img-src 'self' data: blob: ${MARS_GAME_CDNS}`,
-      `connect-src 'self' ${MARS_GAME_CDNS}`,
+      "img-src 'self' data: blob:",
+      "connect-src 'self'",
       // DRACOLoader decodes compressed GLBs in a same-origin Web Worker (blob).
       "worker-src 'self' blob:",
       "media-src 'self' blob:",

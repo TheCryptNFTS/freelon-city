@@ -1569,15 +1569,15 @@ const clock = new THREE.Clock();
 /* stolen-asset loaders — every URL verified 200 + CORS; procedural stays as instant fallback */
 const texLoader = new THREE.TextureLoader(); texLoader.setCrossOrigin('anonymous');
 const STEAL = {
-  marsColor:'https://upload.wikimedia.org/wikipedia/commons/7/70/Solarsystemscope_texture_8k_mars.jpg',   // 8k Solar System Scope (CC-BY 4.0) — CORS-clean, 4× the old 2k
-  marsBump:'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/marsbump1k.jpg',
-  milkyWay:'https://media.githubusercontent.com/media/alsbury/earth-threejs/master/2k_stars_milky_way.jpg',
-  groundDiff:'https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/red_sand/red_sand_diff_4k.jpg',
-  groundNorm:'https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/red_sand/red_sand_nor_gl_4k.jpg',
-  groundRough:'https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/red_sand/red_sand_rough_4k.jpg',
-  pano:'https://images-assets.nasa.gov/image/PIA23971/PIA23971~orig.jpg',
-  hdri:'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/the_sky_is_on_fire_1k.hdr',
-  skyCube:'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/cube/MilkyWay/dark-s_',
+  marsColor:'/mars/assets/mars.webp',   // 8k Solar System Scope (CC-BY 4.0) — CORS-clean, 4× the old 2k
+  marsBump:'/mars/assets/marsbump.webp',
+  milkyWay:'/mars/assets/stars.webp',
+  groundDiff:'/mars/assets/sand_diff.webp',
+  groundNorm:'/mars/assets/sand_nor.webp',
+  groundRough:'/mars/assets/sand_rough.webp',
+  pano:'/mars/assets/nasa_pano.webp',
+  hdri:'/mars/assets/sky.hdr',
+  skyCube:'/mars/assets/cube_',
 };
 
 /* ============================== space scene (intro) ============================== */
@@ -1667,7 +1667,7 @@ texLoader.load(STEAL.milkyWay, t=>{
 /* real Milky Way cubemap (three.js sample) — true starfield behind the globe + intro */
 { const ext=['px','nx','py','ny','pz','nz'];
   new THREE.CubeTextureLoader().setCrossOrigin('anonymous')
-    .load(ext.map(f=>STEAL.skyCube+f+'.jpg'), c=>{ c.colorSpace=THREE.SRGBColorSpace; spaceScene.background=c; },
+    .load(ext.map(f=>STEAL.skyCube+f+'.webp'), c=>{ c.colorSpace=THREE.SRGBColorSpace; spaceScene.background=c; },
       undefined, ()=>{ /* offline: equirect milkyWay fallback stays */ }); }
 /* PMREM env-map from a warm Mars-dusk HDRI — real image-based reflections on rover/dishes/domes */
 {
@@ -2711,7 +2711,7 @@ function groundPad(r){
 const MODEL_CACHE={};
 /* ALL 6 buildings now from ONE author — Quaternius Ultimate Space Pack (CC0, DRACO) — for a
    coherent skyline instead of a 3-author kit-bash. Mirror: trebeljahr/quaternius-showcase */
-const QSP='https://cdn.jsdelivr.net/gh/trebeljahr/quaternius-showcase@main/public/glb/ultimate_space_pack/';
+const QSP='/mars/assets/';
 const MODEL_URLS={
   habitat: QSP+'House_Cylinder-transformed.glb',
   tower:   QSP+'Roof_Radar-transformed.glb',
@@ -2719,12 +2719,12 @@ const MODEL_URLS={
   foundry: QSP+'Base_Large-transformed.glb',
   roverbay:QSP+'House_Long-transformed.glb',
   vault:   QSP+'GeodesicDome-transformed.glb',
-  lander:'https://static.poly.pizza/62b494a9-1aad-486f-b5aa-49f012ca5b76.glb',
-  rover:'https://static.poly.pizza/d2dd449f-dd0b-440f-9c62-bfa7e6039a43.glb',
-  crate:'https://static.poly.pizza/f5ed50d1-1317-4c50-befc-cda0380a6c9c.glb',
-  rocket:'https://static.poly.pizza/c282e376-5b93-4056-8ef4-975ead50e29c.glb',     // Saturn V (CC-BY, Mr. Peel)
-  launchpad:'https://static.poly.pizza/deb43956-8ef1-435d-a4ff-b991f24b80ee.glb',  // KayKit landing pad (CC0)
-  descentship:'https://static.poly.pizza/fb4a47c7-5453-433d-959d-0d3903b578e3.glb',// Quaternius spaceship (CC0)
+  lander:'/mars/assets/pp_lander.glb',
+  rover:'/mars/assets/pp_rover.glb',
+  crate:'/mars/assets/pp_crate.glb',
+  rocket:'/mars/assets/pp_rocket.glb',     // Saturn V (CC-BY, Mr. Peel)
+  launchpad:'/mars/assets/pp_launchpad.glb',  // KayKit landing pad (CC0)
+  descentship:'/mars/assets/pp_descentship.glb',// Quaternius spaceship (CC0)
 };
 const MODEL_SCALE={habitat:14,tower:11,warroom:13,foundry:15,roverbay:14,vault:12,lander:13,rover:4.5,crate:2.4,rocket:6,launchpad:16,descentship:7};
 function prepModel(root,k){
