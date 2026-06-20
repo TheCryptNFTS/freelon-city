@@ -27,7 +27,6 @@ import {
   creditSaleShare,
   creditFreshBlood,
   creditListingBounty,
-  creditSnipeBounties,
 } from "@/lib/economy-extras";
 
 type Citizen = { id: number; civilization: string; tier: string };
@@ -175,7 +174,9 @@ export async function runHolderTick(address: string): Promise<TickResult> {
   try { await creditFreshBlood(address, balance); } catch {}
   try { await creditSaleShare(address); } catch {}
   try { await creditListingBounty(address, daysDue); } catch {}
-  try { await creditSnipeBounties(address, tokens.tokenIds); } catch {}
+  // (snipe-bounty crediter removed 2026-06-19 — it paid HEX for buying a listing
+  //  flagged below floor: floor-coercion + a faucet, both banned. Dump-deterrent
+  //  rip-out residual; also stops a per-token red-signal-store read on every tick.)
 
   // Update cursor — under the wallet lock so a sweep/sale credit landing
   // concurrently (route runs the 3 ticks in parallel) isn't clobbered by a
