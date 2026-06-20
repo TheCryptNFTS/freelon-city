@@ -84,7 +84,7 @@ export function tweetCarrier(input: {
     ``,
     `FREELON CITY — 4,040 AI characters you can own.`,
     `${HASHTAGS}`,
-    `${SITE}/sync`,
+    `${SITE}/sync?ref=car-`,
   ].join("\n");
 }
 
@@ -107,7 +107,7 @@ export function tweetCitizen(input: {
     ``,
     `4040 citizens. One of them is yours.`,
     `${HASHTAGS}`,
-    `${SITE}/citizens/${input.tokenId}`,
+    `${SITE}/citizens/${input.tokenId}?ref=cit-`,
   ].join("\n");
 }
 
@@ -171,7 +171,7 @@ export function tweetListing(input: {
     ``,
     `${input.civName.toUpperCase()} · ${input.shape.toUpperCase()}`,
     `${HASHTAGS}`,
-    `${SITE}/citizens/${input.tokenId}`,
+    `${SITE}/citizens/${input.tokenId}?ref=cit-`,
   ].filter(Boolean).join("\n");
 }
 
@@ -190,7 +190,7 @@ export function tweetPassport(input: {
     ``,
     `What does the city call you?`,
     `${HASHTAGS}`,
-    `${SITE}/passport/${input.address}`,
+    `${SITE}/passport/${input.address}?ref=pass-`,
   ].join("\n");
 }
 
@@ -207,7 +207,7 @@ export function tweetRank(input: { address: string; rank?: number | null; total?
     `Active carriers earn ⬡ HEX daily — in-app credit, not money.`,
     `Where's your rank?`,
     `${HASHTAGS}`,
-    `${SITE}/wallet/${input.address}`,
+    `${SITE}/wallet/${input.address}?ref=rnk-`,
   ].join("\n");
 }
 
@@ -224,7 +224,7 @@ export function tweetTribute(input: { handle: string; tokenId: number }): string
     ``,
     `35 honorees. The signal remembers.`,
     `${HASHTAGS}`,
-    `${SITE}/tribute/${cleanHandle}`,
+    `${SITE}/tribute/${cleanHandle}?ref=trb-`,
   ].join("\n");
 }
 
@@ -240,7 +240,7 @@ export function tweetCivPride(input: { civName: string; doctrine: string; popula
     ``,
     `FREELON CITY — 4,040 AI characters you can own. Which civ are you?`,
     `${HASHTAGS}`,
-    `${SITE}/civilizations`,
+    `${SITE}/civilizations?ref=civ-`,
   ].join("\n");
 }
 
@@ -285,7 +285,7 @@ export function tweetDashboard(text: string): string {
     ``,
     `Live numbers from the city.`,
     `${HASHTAGS}`,
-    `${SITE}/dashboard`,
+    `${SITE}/dashboard?ref=dsh-`,
   ].join("\n");
 }
 
