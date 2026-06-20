@@ -397,6 +397,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <div style={{ margin: "var(--s-3) 0" }}>
               <ActivationProof compact />
             </div>
+            {/* Surface the shareable listing card above the fold (was buried in the
+                DEEP RECORDS fold) — the best shareable artefact on the page. (upgrade plan: virality) */}
+            <div style={{ margin: "var(--s-2) 0 0", textAlign: "center" }}>
+              <Link href={`/citizens/${tid}/card`} className="btn btn-secondary btn-sm" style={{ display: "inline-flex" }}>
+                <span className="ttl">SHARE THIS CITIZEN →</span>
+              </Link>
+            </div>
           </RevealOnScroll>
 
           {/* ══ FOLDS — everything else, folded not deleted (2026-06-11 Book
