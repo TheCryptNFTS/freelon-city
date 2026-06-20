@@ -708,6 +708,13 @@ function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){
   if(!lsWarned){ lsWarned=true; try{ toast('SAVE WRITE FAILED — STORAGE BLOCKED'); }catch(_){} }
 } }
 function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+/* AN1 — funnel telemetry → same-origin sink (/api/play-event). sendBeacon survives unload/CTA-nav. */
+function track(name, props){ try{
+  const body=JSON.stringify({events:[{name:'mars_'+name, props:Object.assign({source:'mars'},props||{}), ts:Date.now()}]});
+  if(navigator.sendBeacon){ navigator.sendBeacon('/api/play-event', new Blob([body],{type:'application/json'})); }
+  else fetch('/api/play-event',{method:'POST',headers:{'content-type':'application/json'},body,keepalive:true}).catch(()=>{});
+}catch(e){} }
+function trackOnce(name, props){ try{ const k='mc_trk_'+name; if(lsGet(k)) return; lsSet(k,'1'); }catch(e){} track(name, props); }
 const SAVE_KEY = 'freelon_mars_command_v1';
 const CATALOG = {
   habitat: {name:'HABITAT',      cost:100, desc:'+2 CITIZENS (MAX 4 CREWS)'},
@@ -1139,7 +1146,7 @@ setInterval(tickFront, 30e3);
 function claimTile(tid){
   const st=tileClaimState(tid); if(!st.ok){ toast(st.why); return false; }
   const rec=tileRec(tid), wasRival=!!rec.rival;
-  S.hex-=st.cost; S.today.spent+=st.cost; trackSpend(st.cost,'claim'); shownHex=S.hex;
+  S.hex-=st.cost; S.today.spent+=st.cost; trackSpend(st.cost,'claim'); shownHex=S.hex; trackOnce('first_claim');
   rec.claimed=1; rec.claimCol=Date.now(); rec.faction=S.faction;
   rec.tended=_playClock; rec.corrupted=0; rec.rival=0; rec.rivalAt=0; rec.warned=0;   /* fresh hold is tended; pushes the Chorus off this ground */
   const w=WONDERS[tid], prof=archProfile(tid);
@@ -1531,6 +1538,7 @@ const _reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motio
 const GLOBE_LO = (PERF_FX===0);
 /* rover-feel perf tier (derived from canonical PERF_FX): low = small RT + decal-sprite ruts + no terrain rut-shader; high = 512 RT + shader ruts + gold sand-surf fan */
 const PERF = (PERF_FX===0) ? 'low' : 'high';
+try{ track('load',{tier:PERF_FX, dpr:Math.round(devicePixelRatio*10)/10, w:innerWidth}); }catch(e){}
 /* ghost-convoy + spatial-audio tier + constants (derived from canonical PERF_FX) */
 const PERF_LOW = (PERF_FX===0);
 window.__marsPerfLow = PERF_LOW;
@@ -3597,6 +3605,7 @@ let holdTimer=0, holdPtr={x:0,y:0};
 function beginHold(e){
   if(rtActive) return;   // combat owns the tap (it FIRES) — never arm the drive timer during a live fight
   if(mode!=='play'||placing||touches.size>1) return;   // never engage drive during a multi-touch (pinch)
+  trackOnce('first_drive');
   clearTimeout(holdTimer);
   holdPtr.x=e.clientX; holdPtr.y=e.clientY;
   holdTimer=setTimeout(()=>{ if((!dragMoved||dragMoved<6)&&touches.size<2){ pointerHeld=true; hasDest=false; } },180);
@@ -5266,6 +5275,7 @@ function doScan(){
   const now=Date.now();
   if(mode!=='play'||rtActive||now<scanReadyAt||crossing||$('battle').classList.contains('open')) return;   /* no scanning mid-fight or under an open battle modal */
   scanReadyAt=now+((S.scans||0)===0?5000:18000); S.scanReadyAt=scanReadyAt;   /* first scan recharges fast — a clean first scan must not be an 18s dead stop */
+  trackOnce('first_scan');
   S.scans++; S.today.scans++;
   const rx=rover.position.x, rz=rover.position.z, R=scanRadius();
   scanPulse(rx,rz,R); haptic(28,.3);
@@ -6202,6 +6212,7 @@ function updateMapBtn(){
 }
 $('mapBtn').onclick=()=>{ mapPhase==='orbit' ? exitMap(null) : enterMap(); };
 { const sb=$('shareBtn'); if(sb) sb.onclick=()=>share(); }
+{ const oc=$('ownCta'); if(oc) oc.addEventListener('click',()=>{ try{ track('cta_click'); }catch(e){} }); }
 setInterval(()=>{ if(mode==='play') updateMapBtn(); },1500);
 { const i=S.faction; if(i>=0){ $('mlFaction').style.background=ZONE_ACCENTS[i]; $('mlFactionTxt').textContent='CLAIMED — '+DOCTRINES[i]; }
   else $('mlFaction').style.background='rgba(216,178,92,.35)'; }
@@ -6255,6 +6266,7 @@ function startGame(){
   term.style.opacity=0; $('skipBtn').style.display='none';
   document.body.classList.add('playing');
   requestWake();
+  try{ track('boot',{tier:PERF_FX}); }catch(e){}
   hexGridMat.opacity=0; gridTarget=0;
   wakeSpire(true);   /* no-op if the terminal already woke it; SKIP + returning saves land lit */
   camera.fov=40; camera.updateProjectionMatrix();
