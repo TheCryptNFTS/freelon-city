@@ -19,7 +19,6 @@
 
 import { listWalletHexRecords } from "@/lib/wallet-hex-store";
 import { listTransmissions } from "@/lib/transmissions-store";
-import { listDumpLedger } from "@/lib/ghost-store";
 import { postTweet, postingCapable } from "@/lib/x-autopost";
 import { upstash, hasUpstash } from "@/lib/upstash-client";
 
@@ -93,11 +92,10 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
   }
 
   // ── Pull the week's data ──────────────────────────────────────
-  const [seven, hexRecords, txs, dumps] = await Promise.all([
+  const [seven, hexRecords, txs] = await Promise.all([
     fetchSevenDay(),
     listWalletHexRecords(500).catch(() => []),
     listTransmissions({ by: "score", limit: 100 }).catch(() => []),
-    listDumpLedger(200).catch(() => []),
   ]);
 
   const volEth = seven?.volume ?? 0;
@@ -112,9 +110,6 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
   const weeklyTx = txs.filter((t) => t.createdAt >= weekAgo);
   const topTx = weeklyTx[0] || null;
 
-  // Rescues this week
-  const weeklyDumps = dumps.filter((d) => d.ts >= weekAgo);
-  const weeklyRescues = weeklyDumps.filter((d) => d.rescuer).length;
 
   // ── Compose tweet (X anti-suppression rules respected) ────────
   // Template variation per CT culture pro feedback — same pattern as
@@ -145,9 +140,6 @@ export async function runWeeklyReceipts(opts: { force?: boolean } = {}): Promise
     `· ${holders} holder${holders === 1 ? "" : "s"} (lifetime)`,
     `· ${hexBurned.toLocaleString()} ⬡ burned · ${hexBalance.toLocaleString()} ⬡ in circulation`,
   ];
-  if (weeklyRescues > 0) {
-    lines.push(`· ${weeklyRescues} rescue${weeklyRescues === 1 ? "" : "s"} · dumps caught`);
-  }
   if (topTx) {
     lines.push(`· top transmission · @${topTx.authorHandle.replace(/^@/, "")} · score ${topTx.score}`);
   }

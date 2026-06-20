@@ -199,29 +199,8 @@ export const ECONOMY = {
   SHOP_MIN: 50,
   SHOP_MAX: 5_000,
 
-  // ─── DUMP-DETERRENT TRINITY ─────────────────────────────────────────
-  // Listings priced ≤ DUMP_THRESHOLD × floor are treated as DUMPS.
-  // The token is "ghosted" by the city: image, name, civ color all
-  // replaced with the SIGNAL LOST state across every site surface
-  // until either (a) the listing is delisted, (b) the citizen sells.
-  // OpenSea / on-chain are untouched — this is a pure display layer.
-  DUMP_THRESHOLD: 0.85,
-  // Grace period before a fresh sub-threshold listing flips to ghost.
-  // Gives the user time to fix a pricing mistake.
-  GHOST_GRACE_HOURS: 24,
-  // When a ghosted listing sells, the buyer (the RESCUER) earns this
-  // bonus from the city treasury PLUS a percentage of the dump discount.
-  RESCUE_BOUNTY_BASE: 250,
-  RESCUE_DISCOUNT_PCT_TO_HEX: 5,   // 5% of (floor - sale price) converted to hex
-  // Hex burned from the dumper's balance when their listing sells
-  // under the threshold. Cap at 500 so it never wipes a wallet.
-  DUMP_BURN_PCT_OF_DISCOUNT: 20,
-  DUMP_BURN_CAP: 500,
-  // DEFENDER streak — wallets that have never listed under floor get
-  // a permanent badge + +1% earning bonus per month of clean record,
-  // capped at +25%.
-  DEFENDER_BONUS_PCT_PER_MONTH: 1,
-  DEFENDER_BONUS_PCT_CAP: 25,
+  // (DUMP-DETERRENT TRINITY removed 2026-06-19 — the punitive anti-dump system
+  //  [ghosting, seller-HEX burn, "defender" price-support bonus] was ripped out.)
 } as const;
 
 // ─── ASCENSION (agent training sink) — 2026-06-06 ───────────────────────────

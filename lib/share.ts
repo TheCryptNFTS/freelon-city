@@ -478,7 +478,7 @@ export function tweetSweep(input: {
   return [
     head,
     ``,
-    `Best streak ×${input.streak} · clearing the corrupted off the FREELON CITY floor.`,
+    `Best streak ×${input.streak} · clearing the corrupted signal across FREELON CITY.`,
     ``,
     `Think you can sweep faster?`,
     `${HASHTAGS}`,
@@ -513,7 +513,7 @@ export function tweetHexMatch(input: {
       ? `⬡ ${HANDLE} · NEW BEST · I LINED UP ${input.score.toLocaleString()} SIGNAL`
       : `⬡ ${HANDLE} · I LINED UP ${input.score.toLocaleString()} SIGNAL`;
   const streakLine =
-    input.daily && input.streak != null ? `⬡ Streak ${input.streak} · Level ${input.level}.` : `Level ${input.level} · matching the signal off the FREELON CITY floor.`;
+    input.daily && input.streak != null ? `⬡ Streak ${input.streak} · Level ${input.level}.` : `Level ${input.level} · matching the signal across FREELON CITY.`;
   return [
     head,
     ``,
@@ -629,12 +629,6 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
     category: "own-post",
     hook: "DAILY HEX CLAIMED",
     body: `⬡ ${HANDLE} · claimed today's signal.\n\nDay ____ of my streak. The meter keeps ticking.\n\n${HASHTAGS}`,
-  },
-  {
-    id: "snipe-flex",
-    category: "own-post",
-    hook: "I CLAIMED A BOUNTY",
-    body: `⬡ ${HANDLE} · claimed a RED SIGNAL bounty.\n\n____ ⬡ credited (in-app credit, not money). First movers earn more.\n\n${HASHTAGS}`,
   },
   {
     id: "carrier-call",

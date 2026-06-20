@@ -14,7 +14,7 @@ export type WalletClass =
   | "SIGNAL WHALE"
   | "THE CULTIST"
   | "THE COLLECTOR"
-  | "FLOOR DEFENDER"
+  | "LONG SIGNAL"
   | "RELIC HUNTER"
   | "SIGNAL CARRIER"
   | "INITIATE"
@@ -31,7 +31,7 @@ export type ClassifyInput = {
   hexBalanceRank?: number | null;
   /**
    * Earliest known acquisition timestamp (unix seconds) across held tokens.
-   * Used as a proxy for the "30+ days held" check on FLOOR DEFENDER.
+   * Used as a proxy for the "30+ days held" check on LONG SIGNAL.
    * Optional; if omitted, the time check is skipped.
    */
   oldestHeldTs?: number | null;
@@ -99,10 +99,10 @@ export function classifyWallet(i: ClassifyInput): WalletClass {
     return "THE COLLECTOR";
   }
 
-  // 4) FLOOR DEFENDER — 5+ citizens held 30+ days
+  // 4) LONG SIGNAL — 5+ citizens held 30+ days
   if (balance >= 5 && typeof oldestHeldTs === "number" && oldestHeldTs > 0) {
     const ageDays = (Date.now() / 1000 - oldestHeldTs) / SECONDS_PER_DAY;
-    if (ageDays >= 30) return "FLOOR DEFENDER";
+    if (ageDays >= 30) return "LONG SIGNAL";
   }
 
   // 5) RELIC HUNTER — owns at least 1 honorary OR 1-of-1
@@ -124,8 +124,8 @@ export function classFlavor(c: WalletClass): string {
       return "One civ. One doctrine. No dilution.";
     case "THE COLLECTOR":
       return "Every civ accounted for. A walking census.";
-    case "FLOOR DEFENDER":
-      return "Held through the noise. Diamond in the static.";
+    case "LONG SIGNAL":
+      return "A long-tenured carrier.";
     case "RELIC HUNTER":
       return "Carrier of named relics. Lore over volume.";
     case "SIGNAL CARRIER":

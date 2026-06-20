@@ -36,13 +36,21 @@ an off-chain reward layer the contract has no knowledge of.
 | 30-day streak bonus | +25⬡ |
 | Sweep a citizen on OpenSea | +25⬡ |
 | 3 sweeps in 24h streak bonus | +100⬡ |
-| Snipe matures (held 14 days post-sale at flagged price) | up to +500⬡ |
-| Place a "defender" bid ≥1.4× floor | +500⬡ |
-| Bid filled (you bought a citizen via your bid) | +1000⬡ |
-| Hold a defender bid unfilled 7 days | +2000⬡ + DEFENDER badge |
 | Verified reply to autopost (first 30 min) | +20⬡ × 2 burst |
 | Transmission posted (boosts go to author as royalty) | royalty share |
 | Bracket activity / civ war ranking | TBD |
+
+> **REMOVED 2026-06-19 — DO NOT REINTRODUCE.** The entire floor-support /
+> dump-deterrent machinery was ripped out: (1) the punitive dump-deterrent —
+> ghosting a citizen listed ≤85% of floor (defacing the holder's art as SIGNAL
+> LOST) and **burning the seller's HEX** proportional to the discount; (2) the
+> "defender" bid-wall — paying HEX + a DEFENDER badge for placing above-floor
+> bids (a coordinated price-support campaign); (3) the "snipe / red-signal" board
+> — paying HEX to buy listings flagged below floor. All of it is market
+> manipulation / price coercion against holders of a freely-tradeable asset and
+> was presented as "CITY-VERIFIED" law. The code, constants, APIs, and copy are
+> gone. Ordinary participation rewards (claim, sweep, streak, relay, transmission)
+> stay; never tie a reward or penalty to whether someone lists/sells below a floor.
 
 ## Current sinks (spend rates)
 

@@ -166,7 +166,7 @@ export default async function PassportPage({
             <li><strong style={{ color: "var(--gold)" }}>SIGNAL WHALE</strong> · top 25 by hex balance — the rarest tier</li>
             <li><strong style={{ color: "var(--gold)" }}>THE CULTIST</strong> · 5+ citizens, 90%+ in a single civilization</li>
             <li><strong style={{ color: "var(--gold)" }}>THE COLLECTOR</strong> · 10+ citizens across 5+ civilizations</li>
-            <li><strong style={{ color: "var(--gold)" }}>FLOOR SIGNAL BEARER</strong> · 5+ citizens held 30+ days</li>
+            <li><strong style={{ color: "var(--gold)" }}>LONG SIGNAL</strong> · 5+ citizens held 30+ days</li>
             <li><strong style={{ color: "var(--gold)" }}>RELIC HUNTER</strong> · holds at least 1 honorary or 1-of-1</li>
             <li><strong style={{ color: "var(--gold)" }}>SIGNAL CARRIER</strong> · 2–4 citizens</li>
             <li><strong style={{ color: "var(--gold)" }}>INITIATE</strong> · exactly 1 citizen</li>

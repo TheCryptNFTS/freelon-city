@@ -17,8 +17,6 @@ export async function CollapseBanner() {
       <span className="ui-banner__title">⚠ CITY STATUS · COLLAPSE</span>
       <span>EARNING −{Math.round((1 - state.earnMultiplier) * 100)}%</span>
       <span>BURNS −{Math.round((1 - state.sinkMultiplier) * 100)}%</span>
-      <span>SINK MULTIPLIER ×{state.dumpBurnMultiplier}</span>
-      <span>SIGNAL BOUNTY ×{state.rescueBountyMultiplier}</span>
       <span className="ui-banner__accent">· the grid trembles ·</span>
     </Banner>
   );

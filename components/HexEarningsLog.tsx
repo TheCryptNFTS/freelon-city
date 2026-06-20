@@ -21,11 +21,6 @@ type Data = {
     multiplier: number;
     civBonusPct: number;
   };
-  defenderTick?: {
-    qualifyingTokens: number;
-    hexCredited: number;
-    daysCredited: number;
-  };
   events: Event[];
 };
 
@@ -155,13 +150,6 @@ export function HexEarningsLog({ address }: { address: string }) {
           don't expect instant credit when they just bought citizens. */}
       {data.tick && (
         <NextTickForecast tick={data.tick} />
-      )}
-
-      {data.defenderTick && data.defenderTick.qualifyingTokens > 0 && (
-        <div className="hl-tick">
-          <span className="hl-tick-credit">+{data.defenderTick.hexCredited} ⬡</span>{" "}
-          floor signal bearer · {data.defenderTick.qualifyingTokens} citizen{data.defenderTick.qualifyingTokens === 1 ? "" : "s"} held 30d+
-        </div>
       )}
 
       {data.events.length === 0 ? (

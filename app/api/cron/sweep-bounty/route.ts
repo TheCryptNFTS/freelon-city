@@ -17,7 +17,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthed } from "@/lib/cron-auth";
 import { CONTRACT } from "@/lib/constants";
-import { creditWalletHex, creditWalletHexCapped, getWalletHex, setWalletHex, todayUTC, InsufficientHexError } from "@/lib/wallet-hex-store";
+import { creditWalletHex, creditWalletHexCapped, getWalletHex, setWalletHex, todayUTC } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 
 export const dynamic = "force-dynamic";
@@ -259,176 +259,8 @@ export async function GET(req: Request) {
           continue;
         }
 
-        // ── RESCUE detection ────────────────────────────────────────
-        // If this sale closes against a currently-ghosted citizen PAST its
-        // grace window, the buyer becomes the RESCUER: they earn a treasury
-        // bounty + a share of the dump discount. The dumper has hex burned
-        // from their balance proportional to the discount.
-        //
-        // BUG-03 fix 2026-05-26: dedupe restructured from "GET-then-credit-
-        // then-SETEX" (which double-credited if the GET failed transiently
-        // OR if the final SETEX failed after a successful credit) to
-        // "atomic-SET-NX-EX BEFORE credit, DEL on failure to roll back".
-        // This is the only correct pattern for at-most-once paid events.
-        const rescueKey = `freelon:rescue:event:${tx}:${tokenId}`;
-        let rescueAcquired = false;
-        if (hasUpstash) {
-          try {
-            rescueAcquired = await tryAcquireDedupe(rescueKey, 2592000); // 30d
-            if (!rescueAcquired) continue; // already rescued — skip
-          } catch (e) {
-            // Fail CLOSED. If we can't confirm dedupe, do not pay.
-            logCronError("rescue.dedupe.acquire.failed", { tx, tokenId, buyer }, e);
-            continue;
-          }
-        }
-        try {
-          const tid = parseInt(tokenId, 10);
-          if (
-            Number.isFinite(tid) && tid >= 1 && tid <= 4040 &&
-            isEthLikePayment(ev.payment)
-          ) {
-            const { getGhost, clearGhost, recordRescue, appendDumpEntry, breakDefenderStreak } = await import("@/lib/ghost-store");
-            const { debitWalletHex } = await import("@/lib/wallet-hex-store");
-            const ghost = await getGhost(tid);
-            // Sale price in wei via payment.quantity. Guarded for ETH-like
-            // payments above so non-ETH sales can't be misread as discounts.
-            const { paymentToEth } = await import("@/lib/eth-math");
-            const priceEth = paymentToEth(ev.payment);
-            const gracePast = !!ghost && Date.now() >= ghost.ghostedAt;
-            if (
-              ghost && ghost.status === "ghosted" && gracePast &&
-              priceEth > 0 && priceEth <= ghost.floorEth * ECONOMY.DUMP_THRESHOLD
-            ) {
-              const discount = (ghost.floorEth - priceEth) / ghost.floorEth;
-              // Rescuer hex: base bounty + 5% of (floor - price) in hex via peg
-              // Collapse-mode escalation: rescue is more lucrative + dump
-              // burns harder when the floor is sliding. Loaded inside the
-              // try block so a collapse-store failure can't kill rescue.
-              const { getCollapseState } = await import("@/lib/collapse-mode");
-              const collapse = await getCollapseState();
-
-              const discountEth = Math.max(0, ghost.floorEth - priceEth);
-              const discountHex = Math.round((discountEth * ECONOMY.HEX_PER_ETH * ECONOMY.RESCUE_DISCOUNT_PCT_TO_HEX) / 100);
-              const baseBounty = ECONOMY.RESCUE_BOUNTY_BASE + discountHex;
-              const rescuerPaid = collapse.active
-                ? Math.round(baseBounty * collapse.rescueBountyMultiplier)
-                : baseBounty;
-              await creditWalletHex(buyer, rescuerPaid, {
-                kind: "manual",
-                note: `Rescue · #${String(tid).padStart(4, "0")} · ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡${collapse.active ? " (COLLAPSE 3×)" : ""}`,
-              });
-              // Dumper hex burn: proportional to discount, capped. Under
-              // collapse, BOTH the % of discount and the cap escalate so
-              // dumping during a downturn actually costs.
-              const burnPct = collapse.active
-                ? ECONOMY.DUMP_BURN_PCT_OF_DISCOUNT * collapse.dumpBurnMultiplier
-                : ECONOMY.DUMP_BURN_PCT_OF_DISCOUNT;
-              const burnRaw = Math.round(ECONOMY.HEX_PER_ETH * discountEth * (burnPct / 100));
-              const burnCap = collapse.active
-                ? ECONOMY.DUMP_BURN_CAP * collapse.dumpBurnMultiplier
-                : ECONOMY.DUMP_BURN_CAP;
-              const burnAmt = Math.min(burnRaw, burnCap);
-              // BUG-11 fix 2026-05-26: track ACTUAL burned amount.
-              // Previous code passed `burnAmt` to recordRescue regardless
-              // of whether debitWalletHex actually succeeded — meaning
-              // the ledger lied about burned amount when debit failed for
-              // ANY reason (insufficient balance OR Upstash/RPC error).
-              // Now: log every debit failure with full context, and pass
-              // the real burned amount through to the ledger.
-              let burnApplied = 0;
-              if (burnAmt > 0) {
-                try {
-                  await debitWalletHex(ghost.seller, burnAmt, {
-                    kind: "manual",
-                    note: `Dump burn · #${String(tid).padStart(4, "0")} · ${(discount * 100).toFixed(0)}% under floor · -${burnAmt}⬡`,
-                  });
-                  burnApplied = burnAmt;
-                } catch (e) {
-                  // R4 fix 2026-05-26: split expected business failure
-                  // (dumper can't afford the burn — expected and capped
-                  // by debit's own check) from unknown infra failure
-                  // (Upstash/RPC/etc — needs visibility for ops).
-                  // Rescue still proceeds: rescuer was already credited
-                  // above; ledger records burnApplied: 0 truthfully.
-                  if (e instanceof InsufficientHexError) {
-                    logCronWarn("rescue.debit.insufficientBalance", {
-                      tx, tokenId, seller: ghost.seller,
-                      burnAmt, balance: e.balance,
-                    });
-                  } else {
-                    logCronError("rescue.debit.infraFailure", {
-                      tx, tokenId, seller: ghost.seller, burnAmt,
-                    }, e);
-                  }
-                }
-              }
-              // Persist attribution + ledger — use ACTUAL burned amount
-              await recordRescue({
-                tokenId: tid, rescuer: buyer, dumper: ghost.seller,
-                priceEth, floorEth: ghost.floorEth,
-                hexPaid: rescuerPaid, hexBurned: burnApplied,
-                rescuedAt: ts,
-              });
-              await appendDumpEntry({
-                tokenId: tid, dumper: ghost.seller, rescuer: buyer,
-                priceEth, floorEth: ghost.floorEth, discount, ts,
-              });
-              await breakDefenderStreak(ghost.seller);
-              await clearGhost(tid);
-              // BUG-08 fix 2026-05-26: notify failure was previously
-              // swallowed silently. Rescue itself succeeds — the ledger
-              // is correct — but if neither party gets notified, that's
-              // an operational issue worth surfacing. Log per failed
-              // notify so a real outage is visible without corrupting
-              // event integrity.
-              const { notify } = await import("@/lib/notify");
-              try {
-                await notify({
-                  wallet: buyer,
-                  eventKey: `rescue:${tid}:${ts}`,
-                  kind: "fresh-citizen",
-                  body: `⬡ RESCUED #${String(tid).padStart(4, "0")} at ${(discount * 100).toFixed(0)}% under floor · +${rescuerPaid}⬡ + permanent attribution`,
-                  href: `/citizens/${tid}`,
-                });
-              } catch (e) {
-                logCronWarn("rescue.notify.buyer.failed", {
-                  tx, tokenId, buyer, tid,
-                }, e);
-              }
-              try {
-                await notify({
-                  wallet: ghost.seller,
-                  eventKey: `dump-burn:${tid}:${ts}`,
-                  kind: "decay-warning",
-                  body: `⚠ #${String(tid).padStart(4, "0")} sold at ${(discount * 100).toFixed(0)}% under floor · -${burnApplied}⬡ burned · defender streak reset`,
-                  href: "/graveyard",
-                });
-              } catch (e) {
-                logCronWarn("rescue.notify.seller.failed", {
-                  tx, tokenId, seller: ghost.seller, tid,
-                }, e);
-              }
-              // BUG-03 fix 2026-05-26: dedupe key was acquired BEFORE
-              // the rescue ran (via tryAcquireDedupe at line ~211). If
-              // we got here, the rescue succeeded — nothing more to do.
-              // The old post-success SETEX is gone because the atomic
-              // acquire already wrote the key.
-            }
-          }
-        } catch (e) {
-          // Any throw inside the rescue block means the rescue did NOT
-          // complete cleanly. Release the dedupe key so the next cron
-          // run can retry — without this rollback, a partial failure
-          // would block the rescue forever (under-credit).
-          logCronError("rescue.processing.failed", { tx, tokenId, buyer }, e);
-          if (hasUpstash && rescueAcquired) {
-            try { await upstash(["DEL", rescueKey]); }
-            catch (delErr) {
-              logCronError("rescue.dedupe.rollback.failed", { tx, tokenId, rescueKey }, delErr);
-            }
-          }
-        }
+        // (RESCUE / dump-burn block removed 2026-06-19 — the punitive dump-deterrent
+        //  system was ripped out; no seller-HEX burn, no ghosting, no rescue bounty.)
       }
       next = d.next;
       if (!next) break;
@@ -497,18 +329,6 @@ export async function GET(req: Request) {
     console.error("reply engagement scan error", e);
   }
 
-  // ── Piggyback: defender bid wall auto-detection. Pulls active
-  // OpenSea collection offers, credits hex for new qualifying bids
-  // (≥ 1.4× floor), awards 7-day hold bonuses. SETNX dedupe means
-  // running every cron tick is safe.
-  let defenderResult: Awaited<ReturnType<typeof import("@/lib/defender-scan").runDefenderScan>> | null = null;
-  try {
-    const { runDefenderScan } = await import("@/lib/defender-scan");
-    defenderResult = await runDefenderScan();
-  } catch (e) {
-    console.error("defender scan error", e);
-  }
-
   // ── Piggyback: SWEEP BURST autopost. Fires when ≥5 fresh citizens
   // sold in a 4h window. Posts a 3×2 grid X tweet + broadcasts an
   // in-app notification to the top ~100 holders. Independent 4h gate
@@ -531,7 +351,6 @@ export async function GET(req: Request) {
     receipts: receiptsResult,
     carrier: carrierResult,
     engagement: engagementResult,
-    defenders: defenderResult,
     burst: burstResult,
     ranAt: Date.now(),
   });

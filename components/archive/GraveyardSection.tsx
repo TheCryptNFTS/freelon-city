@@ -1,8 +1,9 @@
 /**
  * The Graveyard — folded into /archive (2026-05-31) as <section id="graveyard">,
  * then carried into /collections when /archive became a permanent redirect
- * (2026-06-08). Burned / abandoned citizens: OpenSea transfer records + the
- * city dump ledger. Logic preserved verbatim from the former /graveyard page.
+ * (2026-06-08). Burned / abandoned citizens: OpenSea transfer records (the
+ * on-chain graveyard). Logic preserved verbatim from the former /graveyard page.
+ * (The punitive "dump ledger" was removed 2026-06-19.)
  *
  * Self-contained async server component so any page can simply append it.
  * The OpenSea fetch is cached 300s via fetch revalidate, matching the
@@ -16,20 +17,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { unstable_cache } from "next/cache";
 import { heroImageUrl } from "@/lib/constants";
-import { listDumpLedger, type DumpLedgerEntry } from "@/lib/ghost-store";
-
-// PERF 2026-06-11 — listDumpLedger reads Upstash via `cache: "no-store"` REST
-// fetches, which silently forced every page embedding this section (today:
-// /collections) into per-request dynamic rendering. Caching the read with
-// unstable_cache (same pattern as TopAgents / CityWeekBand) keeps the route
-// ISR-able; 300s matches the OpenSea transfers cache below.
-const getDumpLedger = unstable_cache(
-  async () => listDumpLedger(50).catch((): DumpLedgerEntry[] => []),
-  ["graveyard-dump-ledger", "v1"],
-  { revalidate: 300 },
-);
 
 const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
 const COLLECTION_SLUG = "freelons";
@@ -107,10 +95,7 @@ function timeAgo(ts: number | null | undefined) {
 }
 
 export async function GraveyardSection({ limit }: { limit?: number } = {}) {
-  const [transfers, dumps] = await Promise.all([
-    fetchTransfers(),
-    getDumpLedger(),
-  ]);
+  const transfers = await fetchTransfers();
   const filtered = transfers.filter(
     (t) =>
       t.from &&
@@ -121,14 +106,10 @@ export async function GraveyardSection({ limit }: { limit?: number } = {}) {
   );
   // Most recent first — guaranteed, not just assumed from API order.
   filtered.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
-  dumps.sort((a, b) => b.ts - a.ts);
 
   const capped = limit != null && filtered.length > limit;
   const visible = capped ? filtered.slice(0, limit) : filtered;
   const overflow = capped ? filtered.slice(limit) : [];
-  const dumpsCapped = limit != null && dumps.length > limit;
-  const visibleDumps = dumpsCapped ? dumps.slice(0, limit) : dumps;
-  const overflowDumps = dumpsCapped ? dumps.slice(limit) : [];
 
   const byToken = new Map<number, TransferRow[]>();
   for (const t of transfers) {
@@ -205,61 +186,6 @@ export async function GraveyardSection({ limit }: { limit?: number } = {}) {
     );
   }
 
-  function renderDumpRow(d: DumpLedgerEntry, i: number) {
-    const pct = Math.round(d.discount * 100);
-    return (
-      <div
-        key={`${d.tokenId}-${d.ts}-${i}`}
-        className="grave-row"
-        style={{ gridTemplateColumns: "56px 1fr auto auto auto" }}
-      >
-        <Link href={`/citizens/${d.tokenId}`}>
-          <Image
-            src={heroImageUrl(d.tokenId)}
-            alt={`Citizen #${d.tokenId}`}
-            width={56}
-            height={56}
-            loading="lazy"
-            unoptimized
-            style={{ filter: "grayscale(1) brightness(0.45)" }}
-          />
-        </Link>
-        <span>
-          <span className="id">#{String(d.tokenId).padStart(4, "0")}</span>{" "}
-          <Link href={`/wallet/${d.dumper}`} className="addr" style={{ textDecoration: "none", color: "#b8423d" }}>
-            {shortAddr(d.dumper)}
-          </Link>
-          <span className="arrow">→</span>
-          {d.rescuer ? (
-            <Link href={`/wallet/${d.rescuer}`} className="addr" style={{ textDecoration: "none", color: "#9ad4a8" }}>
-              {shortAddr(d.rescuer)}
-            </Link>
-          ) : (
-            <span style={{ color: "var(--ink-dim)", fontFamily: "var(--mono2)", fontSize: 11 }}>
-              DELISTED
-            </span>
-          )}
-        </span>
-        <span className="grave-tail">
-          <span className="stat" style={{ color: "#b8423d" }}>{pct}%↓</span>
-          <span className="stat" style={{ fontFamily: "var(--mono2)", fontSize: 11 }}>
-            {d.priceEth.toFixed(3)} Ξ
-          </span>
-          <span
-            style={{
-              color: "var(--ink-dim)",
-              fontFamily: "var(--mono2)",
-              fontSize: 11,
-              letterSpacing: "0.14em",
-            }}
-          >
-            {timeAgo(Math.floor(d.ts / 1000))}
-          </span>
-        </span>
-      </div>
-    );
-  }
-
   return (
     <section id="graveyard" className="graveyard-page" style={{ marginTop: "var(--s-7)", scrollMarginTop: 96 }}>
       <span className="kicker">⬡ THE GRAVEYARD</span>
@@ -310,61 +236,6 @@ export async function GraveyardSection({ limit }: { limit?: number } = {}) {
         )}
       </div>
 
-      <div style={{ marginTop: "var(--s-7)" }}>
-        <span className="kicker">⬡ DUMP LEDGER · CITY-VERIFIED</span>
-        <h3
-          style={{
-            fontFamily: "var(--display)",
-            fontSize: "clamp(28px, 4vw, 44px)",
-            lineHeight: 1.05,
-            marginTop: "var(--s-2)",
-          }}
-        >
-          Citizens dumped under floor
-        </h3>
-        <p style={{ color: "var(--ink-2)", maxWidth: 680, marginTop: "var(--s-2)" }}>
-          Listings priced ≤ 85% of floor for more than 24h are <strong>ghosted</strong>:
-          the city replaces image, name, and civ color with SIGNAL LOST on every surface.
-          When a rescuer buys, attribution is permanent and the dumper&apos;s hex burns
-          proportional to the discount.
-        </p>
-        {dumps.length === 0 ? (
-          <div
-            style={{
-              marginTop: "var(--s-4)",
-              padding: "var(--s-4)",
-              border: "1px dashed var(--line)",
-              color: "var(--ink-dim)",
-              fontFamily: "var(--mono2)",
-              fontSize: 12,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-            }}
-          >
-            No dumps recorded. The floor holds.
-          </div>
-        ) : (
-          <div style={{ marginTop: "var(--s-4)" }}>
-            <div className="grave-headrow grave-headrow--5">
-              <span>CITIZEN</span>
-              <span>DUMPER → RESCUER</span>
-              <span>UNDER FLOOR</span>
-              <span>PRICE</span>
-              <span>WHEN</span>
-            </div>
-            {visibleDumps.map(renderDumpRow)}
-            {overflowDumps.length > 0 && (
-              <details className="grave-more">
-                <summary>
-                  <span className="grave-more-closed">FULL RECORD · {overflowDumps.length} MORE ↓</span>
-                  <span className="grave-more-open">SHOW LESS ↑</span>
-                </summary>
-                {overflowDumps.map(renderDumpRow)}
-              </details>
-            )}
-          </div>
-        )}
-      </div>
 
       <div
         style={{

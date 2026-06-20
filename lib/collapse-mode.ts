@@ -34,10 +34,6 @@ export type CollapseState = {
   earnMultiplier: number;
   /** Multiplier applied to sink costs (NAMING, REALIGN, TITHE…) (e.g. 0.4). */
   sinkMultiplier: number;
-  /** Multiplier on dumper burn amounts. */
-  dumpBurnMultiplier: number;
-  /** Multiplier on rescuer bounty. */
-  rescueBountyMultiplier: number;
   /** Human-readable banner copy when active. */
   banner: string;
 };
@@ -48,8 +44,6 @@ const HEALTHY: CollapseState = {
   change24h: null,
   earnMultiplier: 1,
   sinkMultiplier: 1,
-  dumpBurnMultiplier: 1,
-  rescueBountyMultiplier: 1,
   banner: "",
 };
 
@@ -60,8 +54,6 @@ const COLLAPSE_FLOOR_THRESHOLD = 0.005;       // ETH
 const COLLAPSE_CHANGE_THRESHOLD_24H = -10;    // percent (must be ≤ this to trigger)
 const EARN_MULTIPLIER = 0.5;
 const SINK_MULTIPLIER = 0.4;
-const DUMP_BURN_MULTIPLIER = 4;
-const RESCUE_BOUNTY_MULTIPLIER = 3;
 const CACHE_MS = 60_000;
 
 let cached: { state: CollapseState; ts: number } | null = null;
@@ -107,9 +99,7 @@ export async function getCollapseState(): Promise<CollapseState> {
         change24h: idx.change24h,
         earnMultiplier: EARN_MULTIPLIER,
         sinkMultiplier: SINK_MULTIPLIER,
-        dumpBurnMultiplier: DUMP_BURN_MULTIPLIER,
-        rescueBountyMultiplier: RESCUE_BOUNTY_MULTIPLIER,
-        banner: `⚠ THE GRID IS DIMMING · earning ${Math.round((1 - EARN_MULTIPLIER) * 100)}% reduced · burns ${Math.round((1 - SINK_MULTIPLIER) * 100)}% off · defenders, hold the line`,
+        banner: `⚠ THE GRID IS DIMMING · earning ${Math.round((1 - EARN_MULTIPLIER) * 100)}% reduced · burns ${Math.round((1 - SINK_MULTIPLIER) * 100)}% off`,
       }
     : {
         ...HEALTHY,

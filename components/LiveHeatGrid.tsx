@@ -139,7 +139,7 @@ export function LiveHeatGrid() {
         })}
       </div>
       <p style={{ fontFamily: "var(--mono2)", fontSize: 10, color: "var(--ink-dim)", letterSpacing: "0.12em", marginTop: "var(--s-3)" }}>
-        Server-verified counters · sales + flagged signals attributed by citizen civilization · 60-min rolling window.
+        Live activity counters · sales + listings attributed by citizen civilization · 60-min rolling window.
       </p>
     </section>
   );

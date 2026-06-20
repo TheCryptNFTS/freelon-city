@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { RelaySection } from "@/components/earn/RelaySection";
-import { SynthesisSection } from "@/components/earn/SynthesisSection";
-import { getStats } from "@/lib/defender-store";
-import { tickDefenderOnVisitFireAndForget } from "@/lib/defender-tick-on-visit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
@@ -15,78 +11,12 @@ export const metadata: Metadata = {
   description: "Earn ⬡ HEX — the in-app credit of FREELON CITY (not money, not redeemable). Hold citizens, relay the signal, and play. Here’s what to do right now.",
 };
 
-// ── Live counters (server-side, cached) ──────────────────────────────
-type LiveStats = {
-  redSignalCount: number;
-  topBounty: number;
-  floor: number | null;
-};
-
-async function fetchLive(): Promise<LiveStats> {
-  const apiKey = process.env.OPENSEA_API_KEY;
-  if (!apiKey) return { redSignalCount: 0, topBounty: 0, floor: null };
-  // Don't try to self-fetch during build — there's no dev server running.
-  // Skip red-signal count when we can't reach the API; floor still works
-  // because it goes directly to OpenSea.
-  const base = process.env.NEXT_PUBLIC_BASE_URL;
-  const fallback: LiveStats = { redSignalCount: 0, topBounty: 0, floor: null };
-  try {
-    const tasks: Array<Promise<Response | null>> = [];
-    tasks.push(
-      base
-        ? fetchWithTimeout(`${base}/api/market/red-signals`, { next: { revalidate: 300 }, timeoutMs: 4000 }).catch(() => null)
-        : Promise.resolve(null),
-    );
-    tasks.push(
-      fetchWithTimeout("https://api.opensea.io/api/v2/collections/freelons/stats", {
-        headers: { "X-API-KEY": apiKey },
-        next: { revalidate: 300 },
-        timeoutMs: 4000,
-      }).catch(() => null),
-    );
-    const [redRes, statsRes] = await Promise.all(tasks);
-    let signals: Array<{ bountyHex: number }> = [];
-    if (redRes && redRes.ok) {
-      try {
-        const red = await redRes.json();
-        signals = red.signals || [];
-      } catch { /* empty body — ignore */ }
-    }
-    let floor: number | null = null;
-    if (statsRes && statsRes.ok) {
-      try {
-        const stats = await statsRes.json();
-        floor = stats?.total?.floor_price ?? null;
-      } catch { /* ignore */ }
-    }
-    return {
-      redSignalCount: signals.length,
-      topBounty: signals[0]?.bountyHex || 0,
-      floor,
-    };
-  } catch {
-    return fallback;
-  }
-}
-
 // ── Page ─────────────────────────────────────────────────────────────
 export default async function EarnPage() {
-  // Fire-and-forget visit tick for the synthesis bid-wall scan (backstop
-  // for the cron) — preserved from the former standalone /synthesis page.
-  tickDefenderOnVisitFireAndForget();
-  const [live, defenderStats] = await Promise.all([fetchLive(), getStats()]);
   const saleHexFor01Eth = Math.round(0.01 * ECONOMY.SALE_SHARE_PCT / 100 * ECONOMY.HEX_PER_ETH);
-  const hasLive = live.redSignalCount > 0;
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--s-4) var(--s-7)" }}>
-      <style>{`
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(255,90,77,0.0); }
-          50%      { box-shadow: 0 0 0 8px rgba(255,90,77,0.18); }
-        }
-      `}</style>
-
       {/* ── STICKY IN-PAGE SUB-NAV ─────────────────────────────────── */}
       <nav
         style={{
@@ -107,7 +37,6 @@ export default async function EarnPage() {
         <span className="kicker" style={{ color: "var(--ink-dim)", marginRight: 4 }}>⬡ EARN</span>
         <a href="#ledger" className="btn btn-secondary btn-sm"><span className="ttl">THE LEDGER</span></a>
         <a href="#relay" className="btn btn-secondary btn-sm"><span className="ttl">RELAY</span></a>
-        <a href="#synthesis" className="btn btn-secondary btn-sm"><span className="ttl">SYNTHESIS</span></a>
       </nav>
 
       {/* ── LEDGER ─────────────────────────────────────────────────── */}
@@ -142,79 +71,35 @@ export default async function EarnPage() {
         </p>
       </section>
 
-      {/* ── HORIZON 1: RIGHT NOW ───────────────────────────────────── */}
+      {/* ── HORIZON 1: RIGHT NOW (reframed 2026-06-19 — was the red-signal /
+           buy-below-floor bounty board; now the neutral sweep reward) ─────── */}
       <section style={{ marginBottom: "var(--s-6)" }}>
-        <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "var(--s-3)", gap: 12, flexWrap: "wrap" }}>
-          <span className="kicker" style={{ color: "#FF5A4D" }}>① RIGHT NOW · 5 MINUTES</span>
-          {/* Plain-English gloss for the degen vocabulary below (content audit:
-              "snipe / red signal / sweep" were undefined on a newcomer surface). */}
-          <span style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.02em", width: "100%", order: 3, marginTop: 4 }}>
-            ⬡ A &ldquo;red signal&rdquo; = a FREELON listed below floor. Holding one a few days earns ⬡ — city credit, not money, not redeemable.
-          </span>
-          {hasLive && (
-            <span
-              style={{
-                padding: "4px 10px",
-                border: "1px solid #FF5A4D",
-                background: "rgba(255,90,77,0.12)",
-                borderRadius: 999,
-                fontFamily: "var(--mono2)",
-                fontSize: 10,
-                color: "#FF5A4D",
-                letterSpacing: "0.18em",
-                fontWeight: 600,
-                animation: "pulseGlow 2s ease-in-out infinite",
-              }}
-            >
-              ● {live.redSignalCount} LIVE
-            </span>
-          )}
+        <header style={{ marginBottom: "var(--s-3)" }}>
+          <span className="kicker" style={{ color: "var(--gold-bright)" }}>① RIGHT NOW · 5 MINUTES</span>
         </header>
-
         <div
           style={{
             padding: "var(--s-5)",
             borderRadius: 14,
-            border: hasLive ? "1px solid #FF5A4D88" : "1px solid var(--line-2)",
-            background: hasLive
-              ? "linear-gradient(180deg, rgba(255,90,77,0.10) 0%, rgba(0,0,0,0.4) 100%)"
-              : "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.4) 100%)",
+            border: "1px solid var(--line-2)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.4) 100%)",
           }}
         >
-          {hasLive ? (
-            <>
-              <h2 style={{ fontFamily: "var(--display)", fontSize: 28, marginBottom: 6, letterSpacing: "-0.01em" }}>
-                Claim a Red Signal bounty
-              </h2>
-              <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 14 }}>
-                <strong style={{ color: "#FF5A4D", fontFamily: "var(--display)", fontSize: 18 }}>+{live.topBounty} ⬡</strong> top bounty
-                across {live.redSignalCount} flagged listing{live.redSignalCount === 1 ? "" : "s"}.
-                Collect one on OpenSea, hold it {ECONOMY.SNIPE_HOLD_DAYS} days, and the bounty credits to your city balance.
-              </p>
-              <Link href="/dashboard" className="btn btn-primary">
-                <span className="ttl">VIEW RED SIGNALS →</span>
-              </Link>
-            </>
-          ) : (
-            <>
-              <h2 style={{ fontFamily: "var(--display)", fontSize: 24, marginBottom: 6, letterSpacing: "-0.01em" }}>
-                No red signals right now
-              </h2>
-              <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 14 }}>
-                Floor is steady. Best move: sweep a citizen at floor for <strong style={{ color: "var(--gold)" }}>+{ECONOMY.SWEEP_BOUNTY} ⬡</strong>
-                {" "}(streak bonus +{ECONOMY.SWEEP_STREAK_BONUS} ⬡ at {ECONOMY.SWEEP_STREAK_THRESHOLD} sweeps in 24h).
-                Or watchlist a citizen to get a 24h private window if it ever flags red.
-              </p>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <a href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer" className="btn btn-secondary">
-                  <span className="ttl">SWEEP THE FLOOR ↗</span>
-                </a>
-                <Link href="/citizens" className="btn btn-secondary">
-                  <span className="ttl">BROWSE TO WATCHLIST →</span>
-                </Link>
-              </div>
-            </>
-          )}
+          <h2 style={{ fontFamily: "var(--display)", fontSize: 24, marginBottom: 6, letterSpacing: "-0.01em" }}>
+            Sweep a citizen
+          </h2>
+          <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, marginBottom: 14 }}>
+            Buy any FREELON on OpenSea and you earn <strong style={{ color: "var(--gold)" }}>+{ECONOMY.SWEEP_BOUNTY} ⬡</strong>
+            {" "}(streak bonus +{ECONOMY.SWEEP_STREAK_BONUS} ⬡ at {ECONOMY.SWEEP_STREAK_THRESHOLD} in 24h) — city credit, not money, not redeemable.
+          </p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <a href="https://opensea.io/collection/freelons" target="_blank" rel="noreferrer" className="btn btn-secondary">
+              <span className="ttl">BROWSE ON OPENSEA ↗</span>
+            </a>
+            <Link href="/citizens" className="btn btn-secondary">
+              <span className="ttl">BROWSE CITIZENS →</span>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -390,13 +275,6 @@ export default async function EarnPage() {
         <RelaySection />
       </section>
 
-      {/* ── SYNTHESIS ──────────────────────────────────────────────── */}
-      <section
-        id="synthesis"
-        style={{ scrollMarginTop: 72, marginTop: "var(--s-7)", paddingTop: "var(--s-6)", borderTop: "1px solid var(--line-2)" }}
-      >
-        <SynthesisSection stats={defenderStats} />
-      </section>
     </div>
   );
 }

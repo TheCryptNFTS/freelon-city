@@ -4,12 +4,10 @@ import { useEffect, useState } from "react";
 type TickItem = { id: string; text: string; tone?: "gold" | "blue" | "rust" | "red" };
 
 type RawSale = { tokenId?: number; priceEth?: string | null; ts?: number | null };
-type RawSignal = { tokenId: number; bountyHex: number };
 type RawAlert = { text: string };
 type RecentResp = { events?: RawSale[] };
 type StatsResp = { floor?: number | string; holders?: number };
 type AlertsResp = { alerts?: RawAlert[] };
-type SignalsResp = { signals?: RawSignal[] };
 
 export function CityFeedTicker() {
   const [items, setItems] = useState<TickItem[]>([]);
@@ -17,22 +15,12 @@ export function CityFeedTicker() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const [recent, stats, alerts, redSignals] = await Promise.all([
+      const [recent, stats, alerts] = await Promise.all([
         fetch("/api/opensea/recent").then(r => r.ok ? r.json() as Promise<RecentResp> : null).catch(() => null),
         fetch("/api/opensea/stats").then(r => r.ok ? r.json() as Promise<StatsResp> : null).catch(() => null),
         fetch("/api/alerts").then(r => r.ok ? r.json() as Promise<AlertsResp> : null).catch(() => null),
-        fetch("/api/market/red-signals").then(r => r.ok ? r.json() as Promise<SignalsResp> : null).catch(() => null),
       ]);
       const out: TickItem[] = [];
-      // Red signals first — most actionable
-      (redSignals?.signals ?? []).slice(0, 4).forEach((s, i) => {
-        out.push({
-          id: `red-${i}`,
-          text: `● #${s.tokenId.toString().padStart(4, "0")} FLAGGED · +${s.bountyHex} ⬡ BOUNTY`,
-          tone: "red",
-        });
-      });
-      if (stats?.floor) out.push({ id: "floor", text: `FLOOR · ${Number(stats.floor).toFixed(4)} ETH`, tone: "gold" });
       if (stats?.holders) out.push({ id: "holders", text: `${stats.holders} CARRIERS DETECTED` });
       (recent?.events ?? []).slice(0, 5).forEach((e, i) => {
         if (!e?.tokenId) return;

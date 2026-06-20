@@ -24,7 +24,6 @@ import { CarrierHealthCta } from "@/components/CarrierHealthCta";
 import { NotificationInbox } from "@/components/NotificationInbox";
 import { FeaturedCitizenPicker } from "@/components/FeaturedCitizenPicker";
 import { CANON } from "@/lib/canon";
-import { getDefenderSince, defenderBonusPct } from "@/lib/ghost-store";
 
 export const revalidate = 300;
 
@@ -209,17 +208,12 @@ export default async function WalletPage({
   const norm = normalizeAddress(address);
   if (!norm) notFound();
 
-  const [tokensRes, holders, hexRec, defenderSince, artefacts] = await Promise.all([
+  const [tokensRes, holders, hexRec, artefacts] = await Promise.all([
     getWalletTokens(norm, 500),
     fetchAllHolders(),
     getWalletHex(norm).catch(() => null),
-    getDefenderSince(norm).catch(() => null),
     getWalletArtefacts(norm).catch(() => []),
   ]);
-  const defenderMonths = defenderSince
-    ? Math.floor((Date.now() - defenderSince) / (30 * 86400 * 1000))
-    : 0;
-  const defenderBonus = defenderBonusPct(defenderSince);
 
   // Carrier Health: derived from lastActiveDay (claim/sweep/snipe/sale).
   // ACTIVE  = activity within ECONOMY.ACTIVITY_DECAY_DAYS - 4
@@ -318,37 +312,6 @@ export default async function WalletPage({
             <span className="ttl">VIEW PASSPORT →</span>
           </Link>
         </p>
-        {defenderSince && (
-          <div
-            style={{
-              marginTop: "var(--s-3)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "8px 16px 8px 8px",
-              border: "1px solid #2a5a3a",
-              background: "rgba(20,40,30,0.4)",
-              borderRadius: 999,
-              fontFamily: "var(--mono2)",
-              fontSize: 11,
-              letterSpacing: "0.2em",
-              color: "#9ad4a8",
-              textTransform: "uppercase",
-            }}
-            title="Has never listed a citizen under the dump threshold. +1% earnings per month, cap 25%."
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/generated/defender-badge.png"
-              alt=""
-              aria-hidden
-              width={28}
-              height={28}
-              style={{ width: 28, height: 28, objectFit: "contain", display: "block" }}
-            />
-            SIGNAL BEARER · {defenderMonths}MO · +{defenderBonus}%
-          </div>
-        )}
       </section>
 
       {/* Phase 3: STATS FIRST. The investor question — "what does this

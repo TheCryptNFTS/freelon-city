@@ -5,13 +5,11 @@ import { HexNetWorth } from "@/components/HexNetWorth";
 import { HexIndex } from "@/components/HexIndex";
 import { CityStats } from "@/components/CityStats";
 import { LiveSalesFeed } from "@/components/LiveSalesFeed";
-import { RedSignalsFeed } from "@/components/RedSignalsFeed";
 import { LiveHeatGrid } from "@/components/LiveHeatGrid";
 import { HolderDistributionChart } from "@/components/HolderDistributionChart";
 import { CityFeedTicker } from "@/components/CityFeedTicker";
 import { TopCitizensByValue } from "@/components/TopCitizensByValue";
 import { HeatSection } from "@/components/dashboard/HeatSection";
-import { SnipesSection } from "@/components/dashboard/SnipesSection";
 import { CivWarSection } from "@/components/dashboard/CivWarSection";
 import { EarnersSection } from "@/components/dashboard/EarnersSection";
 import { ProgressionSection } from "@/components/dashboard/ProgressionSection";
@@ -26,7 +24,7 @@ export const revalidate = 120;
 export const metadata: Metadata = {
   title: "Dashboard · Pulse",
   description:
-    "Live city economy in one place. Hex Index, floor by civilization, holder distribution, trait heat, bounty board, civ wars, top earners.",
+    "Live city economy in one place. Hex Index, holder distribution, trait heat, civ wars, top earners, live sales.",
   openGraph: { images: [{ url: "/api/og/hex-index", width: 1200, height: 630 }] },
   twitter: { card: "summary_large_image", images: ["/api/og/hex-index"] },
 };
@@ -128,7 +126,7 @@ export default async function Dashboard() {
             opens as a scannable summary, not a wall. The dedicated #heat /
             #snipes / #earners sections below still carry the full detail. */}
         <details className="collector-details" style={{ marginTop: "var(--s-4)" }}>
-          <summary className="collector-summary">Full economy breakdown · receipts, top citizens, red signals, sales</summary>
+          <summary className="collector-summary">Full economy breakdown · receipts, top citizens, sales</summary>
 
         {/* City receipts — hex aggregates folded from /numbers. */}
         <div className="dash-receipts">
@@ -150,9 +148,6 @@ export default async function Dashboard() {
         {/* Per-citizen value ranking. */}
         <TopCitizensByValue />
 
-        {/* Red Signals — undervalued listings worth sniping for hex bounties */}
-        <RedSignalsFeed />
-
         {/* Live Heat Grid — per-civ activity pulse */}
         <LiveHeatGrid />
 
@@ -165,9 +160,6 @@ export default async function Dashboard() {
 
       {/* ── HEAT ← app/heat ── */}
       <HeatSection />
-
-      {/* ── SNIPES ← app/undervalued ── */}
-      <SnipesSection />
 
       {/* ── CIV WAR ← app/civ-wars ── */}
       <CivWarSection />

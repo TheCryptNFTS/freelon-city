@@ -13,12 +13,6 @@ const ITEMS: Array<{ status: Status; title: string; body: string; href?: string 
   // ─── SHIPPED ───
   {
     status: "SHIPPED",
-    title: "Signal-loss enforcement",
-    body: "Listings ≤85% of floor become 404 SIGNAL LOST on every city surface. Wallets who restore them earn hex and permanent attribution. Wallets who break the floor lose hex. Clean-wallet streaks compound the rewards.",
-    href: "/graveyard",
-  },
-  {
-    status: "SHIPPED",
     title: "4-hour X autopost",
     body: "Top sale every 4h posted as a digest with the citizen's image. @4040hex speaks on its own rhythm.",
   },
@@ -42,7 +36,7 @@ const ITEMS: Array<{ status: Status; title: string; body: string; href?: string 
   {
     status: "SHIPPED",
     title: "Live public stats — /numbers",
-    body: "Every market + hex + transmission + dump-deterrent number on one auto-updating page. No screenshots, no curation.",
+    body: "Every market + hex + transmission number on one auto-updating page. No screenshots, no curation.",
     href: "/numbers",
   },
 
