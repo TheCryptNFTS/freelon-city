@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>FREELON CITY: MARS COMMAND</title>
+<meta name="description" content="Drive a rover across a living, procedural Mars. Scan for buried sites, claim sectors for a sworn doctrine, fight the Chorus in real time. A free FREELON CITY game — no wallet, in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MARS COMMAND — drive a living Mars">
+<meta property="og:description" content="Scan, claim sectors, and fight the Chorus across a procedural Mars. Free, no wallet, in the browser.">
+<meta property="og:image" content="https://www.freeloncity.com/api/og/play?t=MARS%20COMMAND&k=DRIVE%20·%20CLAIM%20·%20FIGHT%20THE%20CHORUS">
+<meta property="og:url" content="https://www.freeloncity.com/mars">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@4040hex">
+<meta name="twitter:image" content="https://www.freeloncity.com/api/og/play?t=MARS%20COMMAND&k=DRIVE%20·%20CLAIM%20·%20FIGHT%20THE%20CHORUS">
 <style>
   :root{
     --gold:#c8a75d;
@@ -251,6 +260,8 @@
   #minimapWrap::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
   #minimap{display:block;width:148px;height:148px}
   body.playing #minimapWrap{animation-delay:.34s}
+  /* ---------- heading compass (holder feedback, Reegs) — sits under the minimap,
+     north-up disc with a needle that points where the rover faces ---------- */
   #compass{position:absolute;left:calc(100% + 10px);top:2px;
     width:52px;height:52px;border-radius:50%;background:rgba(10,7,6,.78);
     border:1px solid rgba(216,178,92,.5);backdrop-filter:blur(6px);pointer-events:none;z-index:1;
@@ -475,13 +486,7 @@
     body.mapping #immBtn, body.mapping #fsBtn, body.fighting #immBtn, body.fighting #fsBtn{ display:none!important }
   }
 </style>
-<!-- SELF-HOSTED build (freeloncity.com/mars). This deployed copy diverges from
-     the source mars-command/index.html: Three.js core + addons + DRACO decoder
-     are vendored under /mars/vendor/three so the game executes ZERO third-party
-     scripts on the shared origin (the site CSP allows script-src 'self' only on
-     /mars). To re-sync after a game update: re-copy mars-command/index.html
-     here, then re-apply this importmap + the two DRACO setDecoderPath() edits
-     to /mars/vendor/three/addons/libs/draco/, and keep public/mars/vendor/. -->
+<!-- SELF-HOSTED build (freeloncity.com/mars): Three.js core+addons+DRACO vendored under /mars/vendor/three so the game runs ZERO third-party scripts. Re-sync = re-copy mars-command/index.html then re-apply this importmap + the 2 DRACO setDecoderPath() edits + keep public/mars/vendor/. -->
 <script type="importmap">
 {"imports":{
   "three":"/mars/vendor/three/three.module.js",
@@ -1477,6 +1482,10 @@ function save(){
 /* lastSeen heartbeat — crash cover */
 setInterval(()=>{ S.lastSeen=Date.now(); save(); }, 30000);
 addEventListener('visibilitychange', ()=>{ if(document.hidden){ S.lastSeen=Date.now(); save(); } });
+/* P20 — keep the screen awake while driving (mobile screens dim mid-drive). Feature-detected, silent. */
+let _wakeLock=null;
+async function requestWake(){ try{ if('wakeLock' in navigator && document.visibilityState==='visible' && !_wakeLock){ _wakeLock=await navigator.wakeLock.request('screen'); _wakeLock.addEventListener('release',()=>{ _wakeLock=null; }); } }catch(e){} }
+addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && document.body.classList.contains('playing') && !_wakeLock) requestWake(); });
 addEventListener('beforeunload', ()=>{ S.lastSeen=Date.now(); save(); });
 /* one tab owns the save — a newer tab takes command, this one stops writing */
 const TAB_TOKEN=Math.random().toString(36).slice(2);
@@ -2464,6 +2473,8 @@ function sfxThunk(){
   n.connect(f); _env(f,.2,.05); n.start();
 }
 function sfxClaim(){ if(!AC||muted)return; for(const fq of [660,990]){ const o=AC.createOscillator(); o.frequency.value=fq; _env(o,.06,.25); o.start(); o.stop(AC.currentTime+.3); } }
+/* reward crescendo — the milestone fanfare (level-up, planet secured): a 4-note gold ascent C-E-G-C */
+function sfxFanfare(){ if(!AC||muted)return; [523.25,659.25,783.99,1046.5].forEach((fq,i)=>{ const o=AC.createOscillator(); o.type='triangle'; const t0=AC.currentTime+i*.10; o.frequency.value=fq; const g=AC.createGain(); g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(.12,t0+.02); g.gain.exponentialRampToValueAtTime(.0001,t0+.5); o.connect(g); g.connect(masterGain); o.start(t0); o.stop(t0+.55); }); }
 function sfxSting(){ if(!AC||muted)return; [523.25,659.25,783.99].forEach((fq,i)=>{ const o=AC.createOscillator(); const t0=AC.currentTime+i*.09; o.frequency.value=fq; const g=AC.createGain(); g.gain.setValueAtTime(.08,t0); g.gain.exponentialRampToValueAtTime(.0001,t0+.4); o.connect(g); g.connect(masterGain); o.start(t0); o.stop(t0+.45); }); }
 function sfxFrag(){
   if(!AC||muted)return;
@@ -3620,7 +3631,7 @@ function manualStep(dt,maxSpd){
   // the body in place — "left/right only moves the wheels, not the vehicle." Make a
   // steer input IMPLY forward drive so pressing a direction actually moves the rover
   // that way (arcade-car curve). Only when the throttle is truly neutral, so an
-  // explicit reverse (S/down) is never overridden.
+  // explicit reverse (S/↓) is never overridden.
   if(throttle===0 && steer!==0) throttle=0.72;
   holdThrottle=damp(holdThrottle, throttle, 4.2, dt);
   holdSteer=damp(holdSteer, steer, 7, dt);
@@ -4235,7 +4246,7 @@ function updateHUD(){
   if(lv>(S.shownLevel||1)){   /* LEVEL UP ceremony — the stat finally does something */
     S.shownLevel=lv; const chip=$('lvlVal').closest('.stat');
     chip.classList.add('flash'); setTimeout(()=>chip.classList.remove('flash'),700);
-    toast('COMMAND LEVEL '+lv+' — SCAN & SPEED UP'); floater('LVL '+lv); sfxSting();
+    toast('COMMAND LEVEL '+lv+' — SCAN & SPEED UP'); floater('LVL '+lv); sfxFanfare();
   }
   $('streakVal').textContent=S.streak.n + (S.streak.buffers? ' '+'▮'.repeat(S.streak.buffers) : '');
   $('archiveVal').textContent=S.archive.owned.length+'/40';
@@ -4462,7 +4473,7 @@ function winState(){ const s=claimedTileCount(), c=chorusCount();
 function checkWin(){ if(S.won) return; if(winState().met) triumph(); }
 function triumph(){
   if(S.won) return; S.won=Date.now(); recordRun(true);
-  sfxSting(); addTrauma(.7); hitstop(140); haptic([0,90,50,130,50,180],.85); if(typeof combatFlash==='function'&&!_reduceMotion) combatFlash();
+  sfxSting(); sfxFanfare(); addTrauma(.7); hitstop(140); haptic([0,90,50,130,50,180],.85); if(typeof combatFlash==='function'&&!_reduceMotion) combatFlash();
   const ov=document.getElementById('winOverlay');
   if(ov){ ov.querySelector('#winSub').innerHTML='PLANET '+(WORLD_SEED().toString(36).toUpperCase())+' SECURED · '+(DOCTRINES[S.faction]||'')+
       '<br>'+claimedTileCount()+' SECTORS HELD · THE VOID SCAR IS SILENT · THE CHORUS IS BROKEN';
@@ -4973,11 +4984,26 @@ function glyphStamp(){
 function dispatchLine(won){ const hs=heroStat(won);
   const lead = won ? 'I secured a planet on Mars. ' : 'I am rebuilding the signal on Mars. ';
   return lead+hs.k+': '+hs.v+'. Race my planet ▸ '+shareURL()+' @4040hex #FREELONCITY'; }
+/* V2 — the Wordle text-grid: a spoiler-free, status-bearing block that pastes as TEXT into any
+   chat (no image host). Travels with every share alongside the PNG card + deep-link. */
+function gridBlock(){
+  const held=(typeof claimedTileCount==='function')?claimedTileCount():0;
+  const frags=(S.archive&&S.archive.owned?S.archive.owned.length:0);
+  const pct=(typeof planetControlPct==='function')?planetControlPct():0;
+  const bar=n=>{ n=Math.max(0,Math.min(5,Math.round(n))); return '▮'.repeat(n)+'·'.repeat(5-n); };
+  return [
+    '⬡ MARS COMMAND · SEED '+WORLD_SEED().toString(36).toUpperCase(),
+    'SECTORS '+bar(Math.min(5,held))+' '+held,
+    'ARCHIVE '+bar(frags/8)+' '+frags+'/40',
+    'CONTROL '+bar(pct/20)+' '+pct+'%',
+    'freeloncity.com/mars#s='+WORLD_SEED().toString(36)
+  ].join('\n');
+}
 function share(opts){ opts=opts||{};
   writeHashSeed(WORLD_SEED());
   const card=makeOGCard();
   glyphStamp(); sfxBlip(.5);
-  const line=dispatchLine(opts.won), url=shareURL();
+  const line=dispatchLine(opts.won)+'\n\n'+gridBlock(), url=shareURL();
   /* DELIVER the card — native share-sheet WITH the image where supported, else download the PNG + copy the line.
      The PNG is the shareable artifact (the whole virality bet); never discard it. */
   const deliver=blob=>{
@@ -6228,6 +6254,7 @@ function startGame(){
   blackout.style.opacity=0; dust.style.opacity=0; cine.style.display='none';
   term.style.opacity=0; $('skipBtn').style.display='none';
   document.body.classList.add('playing');
+  requestWake();
   hexGridMat.opacity=0; gridTarget=0;
   wakeSpire(true);   /* no-op if the terminal already woke it; SKIP + returning saves land lit */
   camera.fov=40; camera.updateProjectionMatrix();
