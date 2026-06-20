@@ -33,11 +33,11 @@ const GOLD_DEEP = "#8A7A40";
 
 const PIECES: { name: string; tag: string; color: string; img: string }[] = [
   { name: "Freelons", tag: "4040 CITIZENS", color: GOLD, img: "/og/art/freelons.png" },
-  { name: "The Crypt", tag: "DEAD SIGNALS", color: "#4CFF7A", img: "/og/art/crypt.png" },
-  { name: "Crypt TCG", tag: "TEN GODS", color: "#FF6A3D", img: "/og/art/combat.png" },
-  { name: "OOGIES", tag: "ANCIENT SPECIES", color: "#B85CFF", img: "/og/art/oogies.png" },
-  { name: "Emile", tag: "MEMORY", color: "#FF5CB4", img: "/og/art/emile.png" },
-  { name: "SMILES", tag: "COLLAPSE", color: "#FFD24A", img: "/og/art/smiles.png" },
+  { name: "The Crypt", tag: "DEAD SIGNALS", color: "#E9C984", img: "/og/art/crypt.png" },
+  { name: "Crypt TCG", tag: "TEN GODS", color: "#8D5CFF", img: "/og/art/combat.png" },
+  { name: "OOGIES", tag: "ANCIENT SPECIES", color: "#F5F2E8", img: "/og/art/oogies.png" },
+  { name: "Emile", tag: "MEMORY", color: "#8A7A40", img: "/og/art/emile.png" },
+  { name: "SMILES", tag: "COLLAPSE", color: "#FF4D4D", img: "/og/art/smiles.png" },
 ];
 
 // Per-surface card copy (upgrade audit #11/#14, 2026-06-19). Six surfaces used to
