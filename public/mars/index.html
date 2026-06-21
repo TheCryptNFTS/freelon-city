@@ -204,6 +204,12 @@
     -webkit-user-select:none;user-select:none;touch-action:manipulation}
   body.playing.emileon #jumpBtn{display:block}
   #jumpBtn:active{background:rgba(216,178,92,.36);transform:scale(.93)}
+  #dashBtn{position:fixed;bottom:214px;right:38px;z-index:23;width:58px;height:58px;border-radius:50%;
+    background:rgba(216,178,92,.13);border:1.5px solid var(--gold);color:var(--gold-bright);font-family:inherit;
+    font-size:9px;letter-spacing:.12em;cursor:pointer;display:none;backdrop-filter:blur(6px);
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  body.playing.emileon #dashBtn{display:block}
+  #dashBtn:active{background:rgba(216,178,92,.34);transform:scale(.92)}
   @media (max-width:900px){ #emileBtn{left:14px;bottom:92px;transform:none} }
   /* live combat locks the play-HUD controls — the only live surface is #rtHud (and its WITHDRAW) */
   body.fighting #crewsBtn,body.fighting #emileBtn,body.fighting #jumpBtn,body.fighting #scanBtn,body.fighting #returnBtn,body.fighting #mapBtn,body.fighting #techBtn,body.fighting #recordsBtn,body.fighting #buildMenu,body.fighting #missions,body.fighting #dailyPanel,body.fighting #stats,body.fighting #brand,body.fighting #nextChip{display:none!important}
@@ -690,6 +696,7 @@ setTimeout(function(){
 <button id="trialBtn">⏱ TIME TRIAL</button>
 <button id="parkBtn">🤸 PARKOUR</button>
 <button id="jumpBtn" aria-label="Jump">JUMP</button>
+<button id="dashBtn" aria-label="Dash">DASH</button>
 <button id="exportBtn">EXPORT SAVE</button>
 <button id="importBtn">IMPORT SAVE</button>
 <button id="techBtn">COMMAND TECH ▸</button>
@@ -739,6 +746,7 @@ import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
 import {FXAAShader} from 'three/addons/shaders/FXAAShader.js';
 import {VignetteShader} from 'three/addons/shaders/VignetteShader.js';
 import {FilmPass} from 'three/addons/postprocessing/FilmPass.js';
+import {SMAAPass} from 'three/addons/postprocessing/SMAAPass.js';   // sub-pixel AA — sharper + less crawl than FXAA (tier ≥1)
 import {SSAOPass} from 'three/addons/postprocessing/SSAOPass.js';   // contact-AO — postfx subsystem
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -1571,7 +1579,7 @@ renderer.domElement.addEventListener('webglcontextlost', e=>{ e.preventDefault()
     if(el){ el.style.display='block'; el.textContent='GRAPHICS RESET — RELOADING…'; } }
   setTimeout(()=>location.reload(), 800);
 }, false);
-const DPR = Math.min(devicePixelRatio, 1.5);
+const DPR = Math.min(devicePixelRatio, 1.75);   // crisper (was 1.5); SMAA carries the AA so this is sharpness headroom
 /* ===== canonical perf tier (postfx subsystem owns it; all subsystems alias this) =====
    2=high, 1=mid, 0=low. Phones (coarse pointer + few cores / low mem) land on 0. Defined
    early so the sky/globe/lidar/feel/systems blocks can derive their tier at module-eval. */
@@ -2130,7 +2138,8 @@ function rebuildTerrain(){
   scene.add(terrain);
   rebuildTerrain();
   /* swap in the photo-scanned Mars regolith (Poly Haven red_sand, CC0) */
-  const prep=t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(44,44); return t; };
+  const _maxAniso=renderer.capabilities.getMaxAnisotropy?Math.min(8,renderer.capabilities.getMaxAnisotropy()):1;
+  const prep=t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(44,44); t.anisotropy=_maxAniso; return t; };   // anisotropy = kills ground moiré/mush at the grazing 3rd-person angle
   texLoader.load(STEAL.groundDiff, t=>{
     t.colorSpace=THREE.SRGBColorSpace; prep(t);
     mat.map=t; mat.color.set(0xffffff); mat.needsUpdate=true;
@@ -2602,13 +2611,16 @@ let muted = lsGet('mars_muted')==='1';
 function audio(){
   if(!AC && (window.AudioContext||window.webkitAudioContext)){
     AC=new (window.AudioContext||window.webkitAudioContext)();
-    masterGain=AC.createGain(); masterGain.gain.value=muted?0:.5;
-    masterGain.connect(AC.destination);
+    masterGain=AC.createGain(); masterGain.gain.value=muted?0:.42;   // headroom for the limiter
+    // master-bus brickwall limiter so stacked SFX (combat sting+fanfare etc) never clip/distort
+    const lim=AC.createDynamicsCompressor();
+    lim.threshold.value=-3; lim.knee.value=2; lim.ratio.value=20; lim.attack.value=.003; lim.release.value=.12;
+    masterGain.connect(lim); lim.connect(AC.destination);
   }
   return AC;
 }
 addEventListener('pointerdown', ()=>{ audio(); startWind(); startAmbientBed(); startGenerativeMusic(); if(AC&&AC.state!=='running')AC.resume(); }, {once:true});
-function setMuted(m){ muted=m; lsSet('mars_muted',m?'1':'0'); if(masterGain) masterGain.gain.value=m?0:.5; }
+function setMuted(m){ muted=m; lsSet('mars_muted',m?'1':'0'); if(masterGain) masterGain.gain.value=m?0:.42; }   // .42 = the limiter-headroom level (matches audio() init)
 function _env(node,g0,dur){
   const g=AC.createGain();
   g.gain.setValueAtTime(g0,AC.currentTime);
@@ -2617,6 +2629,17 @@ function _env(node,g0,dur){
 }
 function sfxTick(){ if(!AC||muted)return; const o=AC.createOscillator(); o.type='square'; o.frequency.value=1200; _env(o,.02,.03); o.start(); o.stop(AC.currentTime+.04); }
 function sfxBlip(p){ if(!AC||muted)return; const o=AC.createOscillator(); o.frequency.value=600+500*(p||0); _env(o,.05,.05); o.start(); o.stop(AC.currentTime+.06); }
+/* ---- EMILE foley (all synthesized, zero assets) — kills the "silent character" tell ---- */
+function _noise(dur){ const len=(AC.sampleRate*dur)|0, b=AC.createBuffer(1,len,AC.sampleRate), d=b.getChannelData(0); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1); const s=AC.createBufferSource(); s.buffer=b; return s; }
+function sfxStep(spd){ if(!AC||muted)return; const now=AC.currentTime, v=.04+.05*(spd||0);
+  const n=_noise(.08), bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=820+Math.random()*460; bp.Q.value=.7;   // regolith crunch
+  const g=AC.createGain(); g.gain.setValueAtTime(v*(.85+Math.random()*.3),now); g.gain.exponentialRampToValueAtTime(.0001,now+.085); n.connect(bp); bp.connect(g); g.connect(masterGain); n.start(now); n.stop(now+.1);
+  const o=AC.createOscillator(); o.frequency.setValueAtTime(66+Math.random()*26,now); o.frequency.exponentialRampToValueAtTime(42,now+.05); _env(o,v*.6,.06); o.start(now); o.stop(now+.07); }   // soft body thump
+function sfxLand(impactV){ if(!AC||muted)return; const now=AC.currentTime, v=Math.min(.2,.04+(impactV||0)*.007);
+  const o=AC.createOscillator(); o.frequency.setValueAtTime(98,now); o.frequency.exponentialRampToValueAtTime(38,now+.12); _env(o,v,.14); o.start(now); o.stop(now+.16);
+  const n=_noise(.12), lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1500; const g=AC.createGain(); g.gain.setValueAtTime(v*.8,now); g.gain.exponentialRampToValueAtTime(.0001,now+.13); n.connect(lp); lp.connect(g); g.connect(masterGain); n.start(now); n.stop(now+.14); }
+function sfxDash(){ if(!AC||muted)return; const now=AC.currentTime, n=_noise(.3), bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.1; bp.frequency.setValueAtTime(1300,now); bp.frequency.exponentialRampToValueAtTime(190,now+.28);
+  const g=AC.createGain(); g.gain.setValueAtTime(.0001,now); g.gain.exponentialRampToValueAtTime(.11,now+.04); g.gain.exponentialRampToValueAtTime(.0001,now+.3); n.connect(bp); bp.connect(g); g.connect(masterGain); n.start(now); n.stop(now+.32); }
 function sfxThunk(){
   if(!AC||muted)return;
   const o=AC.createOscillator(); o.frequency.setValueAtTime(90,AC.currentTime);
@@ -3556,6 +3579,11 @@ let roverHeading=Math.atan2(S.rover.x||1,S.rover.z||1);
 rover.position.set(S.rover.x, terrainH(S.rover.x,S.rover.z), S.rover.z);
 rover.rotation.y=roverHeading;
 scene.add(rover);
+/* RENDER INTERPOLATION — decouples the fixed-timestep sim from the variable-framerate render.
+   The sim advances in fixed 1/60 chunks (leaving a remainder in _ip.accum); the VISUAL transform is
+   lerped between the previous and current sim state by alpha = accum/FIXED. Kills the per-frame jitter
+   that "consume-all-dt" produced when frame times varied (the real cause of EMILE's stutter). */
+const _ip={ accum:0, init:false, FIXED:1/60, pos:new THREE.Vector3(), prev:new THREE.Vector3(), h:0, ph:0 };
 revealAt(S.rover.x,S.rover.z,80);   // a returning rover lights its own ground
 MM_SRC.rover=()=>({x:rover.position.x,z:rover.position.z,hx:Math.sin(roverHeading),hz:Math.cos(roverHeading)});
 
@@ -3573,10 +3601,17 @@ function swapRoverModel(){
    so scanning, claiming, sites, combat, edge-crossing all keep working for free. */
 let playerMode='rover';                 // 'rover' | 'emile'
 const EMILE={ ready:false, bones:{}, rest:{}, restHip:new THREE.Vector3(),
-  vy:0, grounded:true, jumps:0, dashT:0, anim:0, model:null,
+  vy:0, grounded:true, jumps:0, dashT:0, spinT:0, anim:0, model:null,
   SCALE:0.032, FACE:Math.PI, FOOT:0.0,  // tuned in-world
   SPD_MULT:1.5, JUMP_V:30, GRAV:78, DASH_MULT:1.9, DASH_TIME:0.5 };
 const emileWrap=new THREE.Group(); emileWrap.visible=false; rover.add(emileWrap);
+/* contact-shadow blob — grounds EMILE (his mesh casts only a tiny sun shadow). Sits on the terrain
+   under him and shrinks/fades as he jumps, so the ground connection always reads. */
+const _blobTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
+  const g=x.createRadialGradient(32,32,2,32,32,30); g.addColorStop(0,'rgba(0,0,0,.5)'); g.addColorStop(.7,'rgba(0,0,0,.18)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g; x.fillRect(0,0,64,64); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; })();
+const emileBlob=new THREE.Mesh(new THREE.PlaneGeometry(7,7), new THREE.MeshBasicMaterial({map:_blobTex,transparent:true,depthWrite:false,opacity:.9}));
+emileBlob.rotation.x=-Math.PI/2; emileBlob.renderOrder=1; emileBlob.visible=false; emileBlob.frustumCulled=false; emileBlob.userData.noShadow=true; scene.add(emileBlob);
 // procedural rig animator (axes calibrated against the live rig)
 const _eq=new THREE.Quaternion(), _EX=new THREE.Vector3(1,0,0), _EY=new THREE.Vector3(0,1,0), _EZ=new THREE.Vector3(0,0,1);
 function _erot(n,ax,a){ const b=EMILE.bones[n]; if(!b)return; b.quaternion.copy(EMILE.rest[n]).multiply(_eq.setFromAxisAngle(ax,a)); }
@@ -3613,18 +3648,35 @@ function poseEmile(state,t,spd){
     _erot('LowerArm_L',_EX,-0.28); _erot('LowerArm_R',_EX,-0.28);
     _erot('Spine',_EX,0.02+EP.breath*s); B.Hips.position.y=EMILE.restHip.y+1.4*s;
   }
+  // LANDING COMPRESSION — overlay a brief squash (body dip + knee bend + spine fold) scaled by impact, on top of the state pose
+  if(EMILE.landT>0 && B.Hips){ const k=EMILE.landT/0.22, dip=Math.min(5,1+ (EMILE.landV||0)*0.18)*k;
+    B.Hips.position.y -= dip;
+    _erot('LowerLeg_L',_EX,-0.9*k); _erot('LowerLeg_R',_EX,-0.9*k);
+    _erot('Spine',_EX,0.35*k);
+  }
 }
 const EMILE_CYCLE_DIST=20;   // world units per full leg cycle — stride phase advances with DISTANCE travelled (anti-skate)
 function animateEmile(dt,t){
   if(!EMILE.ready) return;
   // advance the stride by distance, not time: feet plant at ground speed instead of moonwalking
   EMILE.anim += (Math.max(roverSpd,0)*dt/EMILE_CYCLE_DIST)*Math.PI*2;
+  if(EMILE.landT>0) EMILE.landT=Math.max(0,EMILE.landT-dt);   // landing-compression timer
   let st;
-  if(!EMILE.grounded){ st = EMILE.dashT>0 ? 'spin' : (EMILE.vy>1 ? 'jump' : 'fall'); }   // mid-air dash / double-jump = a Sonic spin-ball
-  else if(EMILE.dashT>0){ st='spin'; }
+  if(!EMILE.grounded){ st = (EMILE.dashT>0||EMILE.spinT>0) ? 'spin' : (EMILE.vy>1 ? 'jump' : 'fall'); }   // mid-air dash / double-jump = a Sonic spin-ball
+  else if(EMILE.dashT>0||EMILE.spinT>0){ st='spin'; }
   else if(roverSpd>0.6){ st='run'; }
   else st='idle';
+  // FOOTSTEPS — fire on each stride plant (2 per cycle) + a backward dust puff at the foot
+  if(EMILE.grounded && (st==='run'||st==='spin') && roverSpd>0.6){   // also foley the grounded dash (spin) — fastest ground movement shouldn't go silent
+    const si=Math.floor(EMILE.anim/Math.PI);
+    if(si!==EMILE._stepIdx){ EMILE._stepIdx=si; if(typeof sfxStep==='function')sfxStep(roverSpdRatio); }   // audio conveys the step; the heavy impact-burst was wrong for a footfall
+  }
   poseEmile(st, st==='idle'?t:EMILE.anim, Math.min(1,roverSpdRatio));
+  // contact-shadow blob on the ground under EMILE, shrinking as he rises
+  if(emileBlob){ const gy=(EMILE._gAvg!==undefined?EMILE._gAvg:terrainH(rover.position.x,rover.position.z));
+    emileBlob.position.set(rover.position.x, gy+0.15, rover.position.z);
+    const air=Math.max(0, rover.position.y-gy), s=Math.max(.42, 1-air*.045);
+    emileBlob.scale.setScalar(s); emileBlob.material.opacity=.9*s*s; }
 }
 new FBXLoader().load('/mars/assets/EmileGuapo.fbx', fbx=>{
   fbx.scale.setScalar(EMILE.SCALE);
@@ -3644,9 +3696,10 @@ function setPlayerMode(m){
   playerMode=m;
   const onEmile=(m==='emile');
   emileWrap.visible=onEmile && EMILE.ready;
+  if(typeof emileBlob!=='undefined') emileBlob.visible=onEmile && EMILE.ready;
   roverShell.visible=!onEmile;
   for(const w of roverWheels) w.visible=!onEmile;
-  EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0;
+  EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0; EMILE.spinT=0;
   document.body.classList.toggle('emileon', onEmile);
   toast(onEmile?'⚡ EMILE — RUN · W A S D · SPACE JUMP · SHIFT DASH':'🛻 ROVER — DRIVE');
   const tb=$('emileBtn'); if(tb){ tb.classList.toggle('on',onEmile); tb.textContent = onEmile ? '🛻 BACK TO ROVER' : '⚡ PLAY AS EMILE'; }
@@ -3656,12 +3709,17 @@ function togglePlayer(){ if(!EMILE.ready){ toast('EMILE still warming up…'); r
   setPlayerMode(playerMode==='emile'?'rover':'emile'); }
 function emileJump(){
   if(playerMode!=='emile') return;
-  if(EMILE.grounded){ EMILE.vy=EMILE.JUMP_V; EMILE.grounded=false; EMILE.jumps=1; if(typeof sfxBlip==='function')sfxBlip(.35); if(typeof haptic==='function')haptic(.3,.08); }
-  else if(EMILE.jumps<2){ EMILE.vy=EMILE.JUMP_V*0.82; EMILE.jumps=2; EMILE.dashT=Math.max(EMILE.dashT,0.35); if(typeof sfxBlip==='function')sfxBlip(.5); }  // double-jump = a mid-air spin
+  if(EMILE.grounded || (EMILE.coyote||0)>0){   // coyote time — forgive a jump just after leaving the ledge
+    EMILE.vy=EMILE.JUMP_V; EMILE.grounded=false; EMILE.jumps=1; EMILE.coyote=0; EMILE.bufferT=0;
+    if(typeof sfxBlip==='function')sfxBlip(.35); if(typeof haptic==='function')haptic(.3,.08);
+  } else if(EMILE.jumps<2){ EMILE.vy=EMILE.JUMP_V*0.82; EMILE.jumps=2; EMILE.spinT=0.35; if(typeof sfxBlip==='function')sfxBlip(.5); }  // double-jump = a mid-air spin POSE only (spinT) — NOT dashT, so it grants no free speed burst
+  else { EMILE.bufferT=0.13; }   // input buffer — a jump pressed just before landing fires on touchdown
 }
-function emileDash(){ if(playerMode!=='emile') return; EMILE.dashT=EMILE.DASH_TIME; if(typeof sfxTick==='function')sfxTick(); if(typeof haptic==='function')haptic(.5,.12); }
+function emileJumpRelease(){ if(playerMode==='emile' && !EMILE.grounded && EMILE.vy>2){ EMILE.vy*=0.5; } }   // variable jump height — release early = shorter hop
+function emileDash(){ if(playerMode!=='emile') return; EMILE.dashT=EMILE.DASH_TIME; if(typeof sfxDash==='function')sfxDash(); if(typeof haptic==='function')haptic(.5,.12); }
 { const eb=document.getElementById('emileBtn'); if(eb) eb.onclick=togglePlayer;
-  const jb=document.getElementById('jumpBtn'); if(jb){ jb.addEventListener('pointerdown',e=>{ e.preventDefault(); emileJump(); }); }
+  const jb=document.getElementById('jumpBtn'); if(jb){ jb.addEventListener('pointerdown',e=>{ e.preventDefault(); emileJump(); }); jb.addEventListener('pointerup',e=>{ e.preventDefault(); emileJumpRelease(); }); }
+  const db=document.getElementById('dashBtn'); if(db){ db.addEventListener('pointerdown',e=>{ e.preventDefault(); emileDash(); }); }
   const rb=document.getElementById('relicBtn'); if(rb) rb.onclick=()=>startRelicRun();
   const tb=document.getElementById('trialBtn'); if(tb) tb.onclick=()=>startTimeTrial();
   const pb=document.getElementById('parkBtn'); if(pb) pb.onclick=()=>startParkour(); }
@@ -4044,6 +4102,7 @@ addEventListener('keyup',e=>{
   else if(k==='s'||e.key==='ArrowDown') keyDrive.b=0;
   else if(k==='a'||e.key==='ArrowLeft') keyDrive.l=0;
   else if(k==='d'||e.key==='ArrowRight') keyDrive.r=0;
+  else if(k===' ') emileJumpRelease();   // variable jump height — release early = shorter hop
 });
 /* HOLD pointer to drive toward the cursor: only engages on a STILL hold (>180ms, no drag),
    so a normal click/orbit-drag is never hijacked. */
@@ -4120,6 +4179,7 @@ function roverUpdate(dt,t){
   const p=rover.position;
   const _emile=(playerMode==='emile');
   if(_emile && EMILE.dashT>0) EMILE.dashT=Math.max(0,EMILE.dashT-dt);
+  if(_emile && EMILE.spinT>0) EMILE.spinT=Math.max(0,EMILE.spinT-dt);   // double-jump spin POSE timer — decoupled from dash SPEED below
   let maxSpd=roverMaxSpd();
   if(_emile) maxSpd*=EMILE.SPD_MULT*(EMILE.dashT>0?EMILE.DASH_MULT:1);   // EMILE runs Sonic-fast; dash burst on top
   let vT=0;
@@ -4166,10 +4226,21 @@ function roverUpdate(dt,t){
       EMILE._gx=p.x; EMILE._gz=p.z;
     }
     const groundY=EMILE._gAvg+EMILE.FOOT;
+    if(EMILE.bufferT>0) EMILE.bufferT=Math.max(0,EMILE.bufferT-dt);
     if(!EMILE.grounded){
+      EMILE.coyote=Math.max(0,(EMILE.coyote||0)-dt);
       EMILE.vy-=EMILE.GRAV*dt; p.y+=EMILE.vy*dt;
-      if(p.y<=groundY && EMILE.vy<=0){ p.y=groundY; EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; burst(p.x,p.y,p.z); }
-    } else { p.y=damp(p.y, groundY, 12, dt); }   // softer stick (was 18) — smoother ride
+      if(p.y<=groundY && EMILE.vy<=0){ const iv=-EMILE.vy; p.y=groundY; EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0;
+        // LANDING IMPACT — compression pose + camera punch + thud + dust ring, scaled by impact velocity
+        EMILE.landT=Math.min(.22,.08+iv*.004); EMILE.landV=iv;
+        if(typeof sfxLand==='function')sfxLand(iv); if(typeof addTrauma==='function')addTrauma(Math.min(.32,iv*.011)); if(typeof haptic==='function')haptic(Math.min(.8,.3+iv*.02),.1);
+        burst(p.x,p.y,p.z); if(iv>10){ for(let k=0;k<4;k++){ const a=k/4*6.28; burst(p.x+Math.cos(a)*2.2,p.y+0.2,p.z+Math.sin(a)*2.2); } }   // dust ring on a hard landing
+        if(EMILE.bufferT>0){ EMILE.bufferT=0; emileJump(); }   // a jump buffered just before touchdown fires now
+      }
+    } else {   // grounded
+      if(groundY < p.y-4.5 && roverSpd>5){ EMILE.grounded=false; EMILE.vy=0; }   // ran off a real drop (cliff/brow) — catch air; coyote (lit last frame) now forgives a late jump
+      else { p.y=damp(p.y, groundY, 12, dt); EMILE.coyote=0.1; }                  // stick to ground + refill the coyote window
+    }
   } else {
     p.y=damp(p.y, gy, 14, dt);
   }
@@ -4196,13 +4267,13 @@ function roverUpdate(dt,t){
   /* +++ rover-feel: sand-surf detection — downhill, fast, on a steep face = drift glide */
   const _gyF=terrainH(p.x+sH*3,p.z+cH*3), _slope=(gy-_gyF);   // >0 = nose pointing downhill
   const _surf = roverSpd>maxSpd*.55 && _slope>1.1;            // fast + steep downhill
-  if(roverSpd>3.5 && emitAcc>2.2){
+  if(!_emile && roverSpd>3.5 && emitAcc>2.2){   // wheel dust + ruts are a ROVER thing — EMILE has feet, not tyres
     emitAcc=0; emitDust(p.x-sH*2.1, gy+.5, p.z-cH*2.1);
     if(_surf){ const sp=2.6+roverSpdRatio*2.2; emitFan(p.x-sH*1.6, gy+.7, p.z-cH*1.6, sH, cH, sp); emitFan(p.x-sH*1.6, gy+.7, p.z-cH*1.6, sH, cH, sp); }
   }
   /* persistent ruts: keep the window centered, stamp under both rear wheels while loaded */
   rutRecenter(p.x,p.z);
-  if(roverSpd>1.6){
+  if(!_emile && roverSpd>1.6){
     rutStampAcc+=step;
     if(rutStampAcc>0.5){
       rutStampAcc=0;
@@ -4406,10 +4477,13 @@ const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth||1, innerHeig
 bloomPass.enabled = PERF_FX>=1;          // tier 0 (phones): drop the fill-heavy bloom — biggest constant cost
 composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
+// AA: SMAA (sharper, less edge-crawl) on tier ≥1; FXAA on tier-0 mobile (cheaper). Only one is added.
 const fxaaPass = new ShaderPass(FXAAShader);
-composer.addPass(fxaaPass);
+let smaaPass=null;
+if(PERF_FX>=1){ smaaPass=new SMAAPass(innerWidth*DPR, innerHeight*DPR); composer.addPass(smaaPass); }
+else composer.addPass(fxaaPass);
 const vigPass = new ShaderPass(VignetteShader);
-vigPass.uniforms.offset.value = 1.0; vigPass.uniforms.darkness.value = .95;
+vigPass.uniforms.offset.value = 1.0; vigPass.uniforms.darkness.value = .62;   // softer corners (was .95 — was crushing)
 composer.addPass(vigPass);
 if(PERF_FX>=1) composer.addPass(new FilmPass(0.15));   // tier 0: skip the grain pass
 /* ---- postfx subsystem: contact-AO + god-rays + filmic grade (slotted into the chain) ---- */
@@ -4517,12 +4591,13 @@ function updateCamera(dt,t){
   camTarget.x=damp(camTarget.x, rover.position.x, _fol, dt);
   camTarget.z=damp(camTarget.z, rover.position.z, _fol, dt);
   camTarget.y=damp(camTarget.y, rover.position.y+(_em?5:6), _fol, dt);
+  if(_em && EMILE.landT>0) camTarget.y -= Math.min(4,(EMILE.landV||0)*0.12)*(EMILE.landT/0.22);   // camera dip on landing impact
   distK=damp(distK, 1+(_em?.22:.1)*roverSpdRatio, 1.8, dt);   // pull back a touch more at EMILE speed
   /* +++ rover-feel: SPEED CAMERA (Forza) — FOV breathes wider with speed, dust-streak vignette tightens. */
   const _fovTgt = _reduceMotion ? 42 : (42 + (_em?4:11)*roverSpdRatio);   // EMILE: calmer FOV breathe (less world-warp = less jitter feel)
   const _fov = damp(camera.fov, _fovTgt, 3, dt);
   if(Math.abs(_fov-camera.fov)>0.01){ camera.fov=_fov; camera.updateProjectionMatrix(); }
-  vigPass.uniforms.darkness.value = damp(vigPass.uniforms.darkness.value, .95+.55*roverSpdRatio, 2.5, dt);
+  vigPass.uniforms.darkness.value = damp(vigPass.uniforms.darkness.value, Math.min(0.92,.62+.5*roverSpdRatio), 2.5, dt);   // softer base, tightens with speed — clamped <1 so the corner target never goes negative (over-crush)
   followSun(camTarget.x, camTarget.z);
   const _idle = (_reduceMotion||_em) ? 0 : 1;      // EMILE / reduced-motion: drop auto idle-drift sway, keep intentional mouse parallax
   par.x=damp(par.x,  nx*.6 +Math.sin(t*.08)*.5*_idle,  3, dt);
@@ -5680,7 +5755,7 @@ function enterTile(id,ex,ez){
   if(RELIC.active){ endRelicRun(false,true); toast('RELIC RUN ended — you crossed sectors'); }   // relics are tile-local; don't orphan them
   if(TRIAL.active){ endTimeTrial(false,true); toast('TIME TRIAL ended — you crossed sectors'); }
   if(PARK.active){ endParkour(false,true); toast('PARKOUR ended — you crossed sectors'); }
-  EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0;   // don't carry airborne/dash state across the cross
+  EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0; EMILE.spinT=0; EMILE._gx=EMILE._gz=undefined; EMILE.landT=0; EMILE.bufferT=0;   // don't carry airborne/dash/ground-cache state across the cross
   packCurrentTile();
   S.tile=id;
   tendTile(id);   /* visiting a claimed sector tends it — keeps your frontier from re-corrupting */
@@ -6816,6 +6891,7 @@ function fitRenderer(){
     camera.aspect=w/h; camera.updateProjectionMatrix();
     renderer.setSize(w,h); composer.setSize(w,h);
     fxaaPass.material.uniforms.resolution.value.set(1/(w*DPR), 1/(h*DPR));
+    if(smaaPass) smaaPass.setSize(w*DPR, h*DPR);
     if(ssaoPass){ const s = (PERF_FX===1)? .5 : 1; ssaoPass.setSize(w*DPR*s, h*DPR*s); }   // mid stays half-res
     if(godRayPass){ godRayPass.material.uniforms.uPR.value = DPR; }
     // (gradePass needs no resolution — it is per-pixel)
@@ -6981,9 +7057,27 @@ function animate(){
   if(mode==='play') pollGamepad(dt);
   // player rover — SUB-STEPPED so a frame spike integrates physics in stable 1/60 chunks (no lurch/overshoot)
   // instead of one clamped getDelta() step. At high fps this is a single call with the real dt (no camera stutter).
-  if(mode==='play'){ let rem=dt; const FIXED_DT=1/60;
-    while(rem>1e-4){ const step=Math.min(FIXED_DT,rem); roverUpdate(step,t); rem-=step; } }
-  if(mode==='play' && playerMode==='emile') animateEmile(dt,t);   // EMILE pose ONCE per render frame (not per physics sub-step) — smoother
+  if(mode==='play'){
+    const FX=_ip.FIXED;
+    if(!_ip.init){ _ip.pos.copy(rover.position); _ip.prev.copy(rover.position); _ip.h=_ip.ph=roverHeading; _ip.init=true; }
+    // an external teleport (tile-cross / recall / reset) jumps rover.position — resync so we don't lerp from a stale spot
+    if(_ip.pos.distanceToSquared(rover.position)>10000 || crossing){ _ip.pos.copy(rover.position); _ip.prev.copy(rover.position); _ip.h=_ip.ph=roverHeading; }
+    _ip.accum += dt;
+    let steps=0;
+    while(_ip.accum>=FX && steps<6){               // fixed-step the sim; cap to avoid a spiral-of-death after a stall
+      _ip.prev.copy(_ip.pos); _ip.ph=_ip.h;
+      rover.position.copy(_ip.pos); roverHeading=_ip.h;   // restore TRUE sim state before stepping
+      roverUpdate(FX,t);
+      _ip.pos.copy(rover.position); _ip.h=roverHeading;
+      _ip.accum-=FX; steps++;
+    }
+    if(steps===6) _ip.accum=0;                     // dropped frames — don't accumulate debt
+    const alpha=Math.min(1,_ip.accum/FX);          // render BETWEEN the last two sim states
+    rover.position.lerpVectors(_ip.prev,_ip.pos,alpha);
+    roverHeading=_ip.ph + wrapAng(_ip.h-_ip.ph)*alpha;
+    rover.rotation.y=roverHeading;
+  }
+  if(mode==='play' && playerMode==='emile') animateEmile(dt,t);   // EMILE pose ONCE per render frame (interpolated transform → smooth)
   if(rtActive && mode==='play') rtUpdate(dt);   // real-time combat: foe AI + integrity + win/lose, in-world (never advances outside play)
 
   // GHOST CONVOY + spatial/adaptive audio (additive; no-ops if disabled/low-tier)
@@ -7108,6 +7202,7 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
     keyDrive.f=d.f||0; keyDrive.b=d.b||0; keyDrive.l=d.l||0; keyDrive.r=d.r||0;
     const n=Math.round(secs*60); for(let i=0;i<n;i++) roverUpdate(1/60, performance.now()/1000+i/60);
     keyDrive.f=keyDrive.b=keyDrive.l=keyDrive.r=0;
+    _ip.pos.copy(rover.position); _ip.prev.copy(rover.position); _ip.h=_ip.ph=roverHeading; _ip.accum=0;   // resync the render-interpolator to the manually-stepped state (else next frame snaps back)
     return MARS.emileInfo(); },
   emileTune:(o)=>{ Object.assign(EMILE,o||{}); if(EMILE.model){ EMILE.model.scale.setScalar(EMILE.SCALE); EMILE.model.rotation.y=EMILE.FACE; } return {SCALE:EMILE.SCALE,FACE:EMILE.FACE,FOOT:EMILE.FOOT,SPD_MULT:EMILE.SPD_MULT,JUMP_V:EMILE.JUMP_V}; },
   /* +++ rover-feel: drive manually for N seconds (same manualStep path the keyboard uses) */
@@ -7116,8 +7211,9 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
     keyDrive.f=d.f||0; keyDrive.b=d.b||0; keyDrive.l=d.l||0; keyDrive.r=d.r||0;
     const n=Math.round(secs*30); for(let i=0;i<n;i++) roverUpdate(1/30, performance.now()/1000+i/30);
     keyDrive.f=keyDrive.b=keyDrive.l=keyDrive.r=0; pointerHeld=false;
+    _ip.pos.copy(rover.position); _ip.prev.copy(rover.position); _ip.h=_ip.ph=roverHeading; _ip.accum=0;   // resync render-interpolator after manual sub-stepping
     return {pos:[+rover.position.x.toFixed(1),+rover.position.z.toFixed(1)], spd:+roverSpd.toFixed(2), fov:+camera.fov.toFixed(1), perf:PERF}; },
-  step:s=>{ for(let i=0,n=Math.round(s*30);i<n;i++) roverUpdate(1/30, performance.now()/1000+i/30); },
+  step:s=>{ for(let i=0,n=Math.round(s*30);i<n;i++) roverUpdate(1/30, performance.now()/1000+i/30); _ip.pos.copy(rover.position); _ip.prev.copy(rover.position); _ip.h=_ip.ph=roverHeading; _ip.accum=0; },
   fight:(sq,en)=>resolveBattle(sq,en),
   battle:(z,p)=>openBattle(z,p),   /* debug: stage a full battle (spawns the rigged signal-beast meshes) */
   foes:()=>foeStage?foeStage.children.map(c=>({p:[+c.position.x.toFixed(1),+c.position.y.toFixed(1),+c.position.z.toFixed(1)]})):null,
