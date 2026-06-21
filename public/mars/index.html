@@ -544,7 +544,7 @@
   body.dashing #dashfx{ opacity:1 }
   @media (prefers-reduced-motion: reduce){ #dashfx{ display:none } }
 </style>
-<!-- SELF-HOSTED build: vendored Three.js+addons+DRACO+FBXLoader under /mars/vendor. -->
+<!-- SELF-HOSTED build -->
 <script type="importmap">
 {"imports":{
   "three":"/mars/vendor/three/three.module.js",
@@ -3723,11 +3723,7 @@ new GLTFLoader().load('/mars/assets/emile.glb', gltf=>{
   model.rotation.y=EMILE.GLB_FACE;
   model.traverse(o=>{
     if(o.isMesh||o.isSkinnedMesh){ o.frustumCulled=false; o.castShadow=true; o.receiveShadow=false;
-      if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=(m.name==='EmileGlassGlow'||m.name==='EMILE_Eyes')?(m.roughness||0.3):Math.max(0.55,m.roughness||0.6);
-        if(m.name==='EMILE_Eyes'){ if(m.color)m.color.setRGB(0.6,0.6,0.64); m.roughness=0.4; m.metalness=0; }                 // eyes: greyed off pure-white so they read as set-in eyes, not googly balls
-        if(m.name==='EmileGlassGlow'){ m.roughness=0.2; if('clearcoat' in m){ m.clearcoat=1.0; m.clearcoatRoughness=0.08; } }   // visor: glossy, distinct from the matte body
-        if(m.name==='Emmiter.warm'){ m.emissiveIntensity=0.85; if(m.emissive)m.emissive.setRGB(1.0,0.66,0.30); }                // swirl: butterscotch gold, tame bloom
-        if(m.name==='Emmiter.cool'){ m.emissive=new THREE.Color(1.0,0.72,0.34); m.emissiveIntensity=0.5; }                      // 2nd accent: faint warm cue
+      if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.35,m.metalness||0);   // trust the GLB's authored look (glossy black vinyl body + white eyes + gold swirl) — do NOT matte EMILE (matte killed the premium sheen)
         // HERO BACK-RIM — a view-dependent fresnel edge glow baked into EMILE's own materials (EMILE-only, zero scene-lighting cost). Pops his silhouette off the terrain.
         m.onBeforeCompile=(sh)=>{ try{ sh.fragmentShader=sh.fragmentShader.replace('#include <emissivemap_fragment>',
           '#include <emissivemap_fragment>\n  float _rim=pow(1.0-clamp(dot(normalize(vViewPosition), normal),0.0,1.0),3.0);\n  totalEmissiveRadiance += vec3(1.0,0.80,0.46)*_rim*0.22 + vec3(0.18,0.10,0.04)*pow(1.0-_rim,2.0)*0.06;'); }catch(e){} };   // pow3 models the whole turning edge (rounded black char) + faint warm wrap on the lit side
