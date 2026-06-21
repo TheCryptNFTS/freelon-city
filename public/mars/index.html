@@ -167,8 +167,46 @@
   body.playing #crewsBtn{display:block}
   #crewsBtn:hover{border-color:var(--gold)} #crewsBtn.busy{color:var(--gold-bright);border-color:var(--gold)}
   body.mapping #crewsBtn{display:none!important}
+  /* EMILE ⇄ ROVER toggle (mirrors #crewsBtn on the left) + a thumb JUMP pad shown only as EMILE */
+  #emileBtn{position:fixed;bottom:44px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+    background:var(--panel);border:1px solid var(--line);color:var(--gold);font-family:inherit;
+    font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
+  body.playing #emileBtn{display:block}
+  #emileBtn:hover{border-color:var(--gold)}
+  #emileBtn.on{color:var(--gold-bright);border-color:var(--gold-bright);box-shadow:0 0 14px rgba(216,178,92,.3)}
+  body.mapping #emileBtn{display:none!important}
+  #relicBtn{position:fixed;bottom:92px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+    background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
+    font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
+  body.playing #relicBtn{display:block}
+  #relicBtn:hover{background:rgba(216,178,92,.18)}
+  body.mapping #relicBtn, body.relicrun #relicBtn, body.trialrun #relicBtn{display:none!important}
+  @media (max-width:900px){ #relicBtn{left:14px;bottom:140px;transform:none} }
+  #trialBtn{position:fixed;bottom:140px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+    background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
+    font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
+  body.playing #trialBtn{display:block}
+  #trialBtn:hover{background:rgba(216,178,92,.18)}
+  body.mapping #trialBtn, body.relicrun #trialBtn, body.trialrun #trialBtn, body.parkrun #trialBtn{display:none!important}
+  @media (max-width:900px){ #trialBtn{left:14px;bottom:188px;transform:none} }
+  #parkBtn{position:fixed;bottom:188px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+    background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
+    font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
+  body.playing #parkBtn{display:block}
+  #parkBtn:hover{background:rgba(216,178,92,.18)}
+  body.mapping #parkBtn, body.relicrun #parkBtn, body.trialrun #parkBtn, body.parkrun #parkBtn{display:none!important}
+  body.relicrun #relicBtn, body.trialrun #trialBtn{display:none!important}
+  body.parkrun #relicBtn, body.parkrun #emileBtn{display:none!important}
+  @media (max-width:900px){ #parkBtn{left:14px;bottom:236px;transform:none} }
+  #jumpBtn{position:fixed;bottom:130px;right:30px;z-index:23;width:74px;height:74px;border-radius:50%;
+    background:rgba(216,178,92,.16);border:1.5px solid var(--gold);color:var(--gold-bright);font-family:inherit;
+    font-size:10px;letter-spacing:.16em;cursor:pointer;display:none;backdrop-filter:blur(6px);
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  body.playing.emileon #jumpBtn{display:block}
+  #jumpBtn:active{background:rgba(216,178,92,.36);transform:scale(.93)}
+  @media (max-width:900px){ #emileBtn{left:14px;bottom:92px;transform:none} }
   /* live combat locks the play-HUD controls — the only live surface is #rtHud (and its WITHDRAW) */
-  body.fighting #crewsBtn,body.fighting #scanBtn,body.fighting #returnBtn,body.fighting #mapBtn,body.fighting #techBtn,body.fighting #recordsBtn,body.fighting #buildMenu,body.fighting #missions,body.fighting #dailyPanel,body.fighting #stats,body.fighting #brand,body.fighting #nextChip{display:none!important}
+  body.fighting #crewsBtn,body.fighting #emileBtn,body.fighting #jumpBtn,body.fighting #scanBtn,body.fighting #returnBtn,body.fighting #mapBtn,body.fighting #techBtn,body.fighting #recordsBtn,body.fighting #buildMenu,body.fighting #missions,body.fighting #dailyPanel,body.fighting #stats,body.fighting #brand,body.fighting #nextChip{display:none!important}
   #rtWithdraw{margin-top:12px;pointer-events:auto;background:rgba(8,6,4,.72);border:1px solid var(--line);color:rgba(242,234,216,.7);font-family:inherit;font-size:9px;letter-spacing:.28em;padding:7px 16px;cursor:pointer}
   #rtWithdraw:hover{border-color:var(--red);color:var(--red)}
   @media (max-width:900px){ #crewsBtn{left:auto;right:14px;bottom:92px;transform:none} }
@@ -181,6 +219,11 @@
     .bbtn{padding:12px 14px;min-height:46px}
     #scanBtn{bottom:calc(38vh + 16px);font-size:10px;letter-spacing:.3em;padding:11px 22px}
     #crewsBtn{bottom:calc(38vh + 16px);left:auto;right:8px;transform:none}
+    #emileBtn{bottom:calc(38vh + 60px);left:8px;transform:none}
+    #relicBtn{bottom:calc(38vh + 104px);left:8px;right:auto;transform:none;z-index:23}
+    #trialBtn{bottom:calc(38vh + 148px);left:8px;right:auto;transform:none;z-index:23}
+    #parkBtn{bottom:calc(38vh + 192px);left:8px;right:auto;transform:none;z-index:23}
+    #jumpBtn{bottom:calc(38vh + 92px);right:10px;width:64px;height:64px}
     #returnBtn{bottom:calc(38vh + 60px)}
     #ownCta{top:auto;bottom:calc(38vh + 60px);left:8px;right:auto;width:max-content;max-width:58vw;font-size:9px;letter-spacing:.14em;padding:9px 12px}
     .tcg{flex:0 0 46%;min-width:126px}
@@ -486,7 +529,7 @@
     body.mapping #immBtn, body.mapping #fsBtn, body.fighting #immBtn, body.fighting #fsBtn{ display:none!important }
   }
 </style>
-<!-- SELF-HOSTED build (freeloncity.com/mars): Three.js core+addons+DRACO vendored under /mars/vendor/three so the game runs ZERO third-party scripts. Re-sync = re-copy mars-command/index.html then re-apply this importmap + the 2 DRACO setDecoderPath() edits + keep public/mars/vendor/. -->
+<!-- SELF-HOSTED build: vendored Three.js+addons+DRACO+FBXLoader under /mars/vendor. Re-sync = re-copy + re-apply importmap + 2 DRACO setDecoderPath + keep vendor. -->
 <script type="importmap">
 {"imports":{
   "three":"/mars/vendor/three/three.module.js",
@@ -627,7 +670,7 @@ setTimeout(function(){
   <div class="panelTitle">MISSIONS</div>
   <div id="missionBody"></div>
 </div>
-<div class="hud" id="hint">CLICK or W A S D / HOLD · DRIVE&nbsp;&nbsp;&nbsp;SCAN · REVEAL&nbsp;&nbsp;&nbsp;CLICK SITE · INSPECT&nbsp;&nbsp;&nbsp;DRAG · ORBIT&nbsp;&nbsp;&nbsp;H · HIDE HUD&nbsp;&nbsp;&nbsp;F · FULLSCREEN</div>
+<div class="hud" id="hint">W A S D / HOLD · DRIVE&nbsp;&nbsp;&nbsp;C · EMILE ⇄ ROVER&nbsp;&nbsp;&nbsp;SPACE · JUMP&nbsp;&nbsp;&nbsp;SHIFT · DASH&nbsp;&nbsp;&nbsp;R · RELIC&nbsp;&nbsp;&nbsp;T · TIME TRIAL&nbsp;&nbsp;&nbsp;P · PARKOUR&nbsp;&nbsp;&nbsp;DRAG · ORBIT&nbsp;&nbsp;&nbsp;H · HIDE HUD</div>
 <div id="rtHud">
   <div class="rtTitle" id="rtTitle">⬡ CONTACT — PURGE THE CORRUPTION</div>
   <div class="rtFoes" id="rtFoes">3 CONTACTS</div>
@@ -642,6 +685,11 @@ setTimeout(function(){
 <button id="returnBtn">▸ RETURN TO BASE</button>
 <button id="scanBtn">SIGNAL SCAN</button>
 <button id="crewsBtn">CREWS ▸</button>
+<button id="emileBtn">⚡ PLAY AS EMILE</button>
+<button id="relicBtn">⬡ RELIC RUN</button>
+<button id="trialBtn">⏱ TIME TRIAL</button>
+<button id="parkBtn">🤸 PARKOUR</button>
+<button id="jumpBtn" aria-label="Jump">JUMP</button>
 <button id="exportBtn">EXPORT SAVE</button>
 <button id="importBtn">IMPORT SAVE</button>
 <button id="techBtn">COMMAND TECH ▸</button>
@@ -696,6 +744,7 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {RGBELoader} from 'three/addons/loaders/RGBELoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';   // EMILE playable character (rigged FBX, procedurally animated)
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 /* ============================== state ============================== */
@@ -1561,8 +1610,8 @@ let globeSunAz = Math.atan2(globeSunDir.z, globeSunDir.x);
 function setGlobeSol(az){ globeSunAz=az; globeSunDir.set(Math.cos(az)*0.96, 0.20, Math.sin(az)*0.96).normalize(); }
 renderer.setPixelRatio(DPR);
 renderer.setSize(innerWidth,innerHeight);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;   // A/B'd vs AgX — ACES keeps the richer Mars-red here; AgX is warmer/softer. Toggle live via MARS.tone('agx',1.75)
+renderer.toneMappingExposure = 1.32;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PERF_FX===0 ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;   // tier 0 (phones): cheap hard shadows
 const clock = new THREE.Clock();
@@ -1675,7 +1724,7 @@ texLoader.load(STEAL.milkyWay, t=>{
   new RGBELoader().setCrossOrigin('anonymous').load(STEAL.hdri, hdr=>{
     hdr.mapping=THREE.EquirectangularReflectionMapping;
     const env=pmrem.fromEquirectangular(hdr).texture;
-    scene.environment=env; scene.environmentIntensity=.35;   // subtle — sun still leads
+    scene.environment=env; scene.environmentIntensity=.6;   // IBL fill lifted from .35 — shadows/night read instead of going to black
     hdr.dispose(); pmrem.dispose();
   }, undefined, ()=>{ /* offline: lit by the existing sun/hemi rig */ });
 }
@@ -1720,7 +1769,7 @@ globeGroup.add(mapOverlay);
 /* ============================== surface scene ============================== */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b0a10);
-scene.fog = new THREE.Fog(0x4a2a1c, 140, 900);   // matches the sky dome's lowest band
+scene.fog = new THREE.FogExp2(0x4a2a1c, 0.0007);   // exponential atmosphere — distant mountains fade into haze (was hard Fog 140..900). bigger-world feel
 /* curated HOME content lives under homeGroup (toggled, never destroyed); procedural away
    sites live under awayGroup (torn down on cross). Sky/terrain/storms/dust stay on scene. */
 const homeGroup=new THREE.Group();
@@ -1742,7 +1791,7 @@ const sunLight = new THREE.DirectionalLight(0xffd9a0, 2.6);
   sunLight.shadow.camera.near=50; sunLight.shadow.camera.far=600;
   sunLight.shadow.bias=-0.0004; sunLight.shadow.normalBias=0.03;
   scene.add(sunLight); scene.add(sunLight.target);
-  scene.add(new THREE.HemisphereLight(0x3a2418, 0x150c08, .45));
+  scene.add(new THREE.HemisphereLight(0x6a4a30, 0x241810, .8));   // warmer + brighter sky/ground fill (was 0x3a2418/0x150c08 @.45) — lifts shadows out of black
   const rim = new THREE.DirectionalLight(0x6a5f50, .18);
   rim.position.set(-sunDir.x, .42, -sunDir.z).multiplyScalar(300);
   scene.add(rim);
@@ -1844,7 +1893,7 @@ function skyUpdate(dt){
   if(typeof gradePass!=='undefined' && gradePass) gradePass.material.uniforms.uDusk.value=dusk;   // grade relaxes its blue-guard at dusk so the earned blue sky survives
   // sun-light position swings with sunDir; recolor toward dust-red at dusk, dim at night
   const dayN=Math.max(0,Math.min(1,(SOL.sunY+0.12)/0.30));
-  sunLight.intensity=0.25+2.35*dayN;
+  sunLight.intensity=0.6+2.25*dayN;   // brighter night floor (was 0.25) so Mars is never pitch-black
   // warm gold by day -> dust-red ember at dusk
   _skyTmp.setRGB(1.0, 0.85-0.35*dusk, 0.63-0.40*dusk);
   sunLight.color.copy(_skyTmp);
@@ -1853,7 +1902,8 @@ function skyUpdate(dt){
   const fr=(0.290*(1-dusk)+0.40*dusk), fg=(0.165*(1-dusk)+0.12*dusk), fb=(0.110*(1-dusk)+0.07*dusk);
   const fm=0.30+0.70*dayN;
   if(scene.fog) scene.fog.color.setRGB(fr*fm,fg*fm,fb*fm);
-  scene.background.setRGB(0.043*fm*0.5,0.039*fm*0.5,0.063*fm*0.5);
+  const _bgm=Math.max(fm,0.5);   // night-sky floor — dim warm-violet instead of crushing to black
+  scene.background.setRGB(0.05*_bgm,0.045*_bgm,0.078*_bgm);
 }
 /* keep followSun targeting the live camera focus (rover) for shadow tracking */
 function skySetFocus(tx,tz){ _skyLastTx=tx; _skyLastTz=tz; }
@@ -1916,19 +1966,72 @@ function rollCraters(){
   CRATERS=list;
 }
 rollCraters();
+/* ===================== REAL MARS GEOGRAPHY (procedural, DEM-swap seam) =====================
+   Recognisable real Martian landmarks placed at fixed WORLD coords from their documented
+   dimensions — so the landing zone genuinely sits in the shadow of Olympus Mons. This is the
+   single seam to later swap for raw NASA/USGS MOLA pixels: replace the body with a heightmap
+   sample (bilinear(marsDEM, lon,lat)) and everything downstream (collision, far-terrain) follows. */
+const OLYMPUS={x:1500, z:1500, r:1800, peak:540};   // the SPAWN point (world 0,0) is flat (2121u from center > r), but the footprint REACHES the home tile's NE quarter — you land at the foot of the volcano and its flank rises gently to the NE (intended).
+/* REAL NASA data: a 512² heightmap of the actual Olympus Mons region baked offline from the USGS
+   HRSC/MOLA Blend DEM (elev -4706..21106 m). Loaded same-origin → 8-bit canvas read (fBm masks the
+   banding). If it fails to load, marsLandmarks falls back to the procedural dome. */
+const DEM_MIN=-4706, DEM_MAX=21106;
+const _oly={ready:false, data:null, w:0, h:0};
+(function loadOlympusDEM(){
+  try{ const img=new Image();
+    img.onload=()=>{ try{ const cv=document.createElement('canvas'); cv.width=img.width; cv.height=img.height;
+      const cx=cv.getContext('2d',{willReadFrequently:true}); cx.drawImage(img,0,0);
+      _oly.data=cx.getImageData(0,0,img.width,img.height).data; _oly.w=img.width; _oly.h=img.height; _oly.ready=true;
+      if(typeof rebuildTerrain==='function')rebuildTerrain(); if(typeof rebuildFarTerrain==='function')rebuildFarTerrain(); }catch(e){} };
+    img.src='/mars/assets/olympus_dem.png';
+  }catch(e){}
+})();
+function _olyAt(u,v){
+  const W=_oly.w, H=_oly.h, d=_oly.data;
+  u=Math.min(1,Math.max(0,u))*(W-1); v=Math.min(1,Math.max(0,v))*(H-1);
+  const x0=u|0,y0=v|0,x1=Math.min(W-1,x0+1),y1=Math.min(H-1,y0+1),fx=u-x0,fy=v-y0;
+  const g=(x,y)=>d[(y*W+x)*4];
+  return (((g(x0,y0)*(1-fx)+g(x1,y0)*fx)*(1-fy)+(g(x0,y1)*(1-fx)+g(x1,y1)*fx)*fy))/255;
+}
+function marsLandmarks(sx,sz){
+  // perf: terrainH() (hence this) runs per-vertex on near+far rebuilds (~100k+ calls). Use squared-distance
+  // compares + cluster early-outs so the common case (vertex far from any landmark) costs a few mul-adds, no hypot/sqrt.
+  let h=0;
+  // OLYMPUS MONS — largest volcano in the solar system. REAL MOLA shape when the DEM is loaded.
+  { const cx=OLYMPUS.x, cz=OLYMPUS.z, R=OLYMPUS.r, dx=sx-cx, dz=sz-cz, d2=dx*dx+dz*dz;
+    if(d2<R*R){ const d=Math.sqrt(d2);
+      if(_oly.ready){
+        const u=0.49 + (dx/R)*0.34, v=0.495 - (dz/R)*0.34;        // game footprint → central DEM window (summit ≈ DEM 0.49,0.495)
+        const meters=DEM_MIN + _olyAt(u,v)*(DEM_MAX-DEM_MIN);     // real elevation
+        h += Math.max(0,(meters-2000))*(OLYMPUS.peak/19000)*smooth01(R,R*0.86,d);   // plains→0, summit→peak, soft footprint edge
+      } else {
+        h += OLYMPUS.peak*Math.pow(1-d/R, 1.75);                  // procedural fallback
+        if(d<240) h -= 80*(0.5+0.5*Math.cos(d/240*Math.PI));
+      }
+    } }
+  // THARSIS MONTES — three aligned shields SW of Olympus (Ascraeus / Pavonis / Arsia), procedural.
+  // single cluster bounding-circle gate (center ~-2100,-2100) before the per-shield loop.
+  { const cdx=sx+2100, cdz=sz+2100;
+    if(cdx*cdx+cdz*cdz < 2150*2150){                              // (cluster half-span 1300 + shield r 850)²
+      for(let i=0;i<3;i++){ const tx=-1200-i*900, tz=-1200-i*900, ddx=sx-tx, ddz=sz-tz, d2=ddx*ddx+ddz*ddz;
+        if(d2<850*850){ h += 250*Math.pow(1-Math.sqrt(d2)/850, 1.85); } }
+    } }
+  return h;
+}
 function terrainH(x,z){
   const d=Math.hypot(x,z);
   const sx=x+tileOX, sz=z+tileOZ;                 // 0,0 on HOME → identical to today
   const qx=sx*.004, qz=sz*.004;
   const wx=fbm(qx+13.7,qz+13.7), wz=fbm(qx+71.3,qz+71.3);
   let h=(fbm(qx+.8*wx, qz+.8*wz)-.5)*44;
+  h += ((fbm(sx*.0006+5.1, sz*.0006+5.1)-0.46)*115 + (fbm(sx*.0021+9.3, sz*.0021+9.3)-0.5)*55)*smooth01(140,640,d);   // GRAND mountains: broad drivable swells + mid-freq peaks for a natural distant silhouette
   h+=Math.pow(1-Math.abs(vnoise(sx*.0015,sz*.0015)*2-1),6)*18*smooth01(250,420,d);
   for(const c of CRATERS){
     const dd=Math.hypot(x-c.x,z-c.z);
     if(dd<c.r) h-=Math.cos(dd/c.r*Math.PI/2)*c.r*.12;
     else if(dd<c.r*1.6){ const rt=(dd-c.r)/(c.r*.18); h+=Math.exp(-rt*rt)*c.r*.06; }
   }
-  return h*smooth01(40,140,d);
+  return h*smooth01(40,140,d) + marsLandmarks(sx,sz);   // + real-Mars landmarks (Olympus Mons etc) at their true world position
 }
 /* terrain mesh + reusable rebuildTerrain() — recomputes positions/tints/normals into the
    SAME BufferGeometry on every tile crossing (no realloc). Tints MULTIPLY the regolith map. */
@@ -2036,6 +2139,42 @@ function rebuildTerrain(){
     texLoader.load(STEAL.groundNorm, t=>{ prep(t); mat.normalMap=t; mat.normalScale=new THREE.Vector2(.9,.9); mat.needsUpdate=true; });
     texLoader.load(STEAL.groundRough, t=>{ prep(t); mat.roughnessMap=t; mat.needsUpdate=true; });
   }
+}
+
+/* ===================== FAR TERRAIN — the bigger-world silhouette =====================
+   A coarse 7km plane displaced by the SAME analytic terrainH, sitting 5u below the detailed
+   tile so it only shows BEYOND the near plane (zero z-fight in the overlap). Fills the FogExp2
+   horizon with the GRAND mountains. ~26k verts, rebuilt only on tile-cross. */
+let farTerrain;
+let _farGen=0;   // self-cancels a stale cross's in-flight far-fill
+function rebuildFarTerrain(){
+  if(!farTerrain) return;
+  const p=farTerrain.geometry.attributes.position, n=p.count;
+  // phones (PERF_FX===0): keep it a FLAT dark plane — under FogExp2 haze the displacement is invisible there,
+  // and the 26k-vert terrainH loop was a ~1s main-thread freeze every tile-cross.
+  if(PERF_FX===0){
+    for(let i=0;i<n;i++) p.setY(i,-5);
+    p.needsUpdate=true; farTerrain.geometry.computeBoundingSphere();
+    return;
+  }
+  // desktop/mid: CHUNK the displacement across frames (same pattern as rebuildTerrain) so the
+  // ~26k expensive terrainH() calls never stall a single frame; a stale cross self-cancels.
+  const gen=++_farGen, CHUNK=5000; let i=0;
+  (function step(){
+    if(gen!==_farGen) return;
+    const end=Math.min(n,i+CHUNK);
+    for(;i<end;i++){ const x=p.getX(i), z=p.getZ(i); p.setY(i, terrainH(x,z)-5); }
+    p.needsUpdate=true;
+    if(i<n){ requestAnimationFrame(step); return; }
+    farTerrain.geometry.computeVertexNormals(); farTerrain.geometry.computeBoundingSphere();
+  })();
+}
+{
+  const fgeo=new THREE.PlaneGeometry(7000,7000,160,160); fgeo.rotateX(-Math.PI/2);
+  const fmat=new THREE.MeshStandardMaterial({color:0x35200f, roughness:1, metalness:0});   // dark so it recedes into the haze instead of popping as a bright band
+  farTerrain=new THREE.Mesh(fgeo,fmat); farTerrain.renderOrder=-2; farTerrain.receiveShadow=false; farTerrain.frustumCulled=false;
+  scene.add(farTerrain);
+  rebuildFarTerrain();
 }
 
 /* ===================== GPU-instanced ground detail ===================== */
@@ -2277,6 +2416,11 @@ function drawMinimap(rv){
       c.beginPath(); c.arc((p.x+FOG_HALF)*W2M,(p.z+FOG_HALF)*W2M,1.6,0,7); c.fill();
     }
   }
+  /* active mini-game targets — bright dots so the player can find off-screen relics / the next gate */
+  if(typeof RELIC!=='undefined' && RELIC.active){ c.fillStyle='#ffe9b0';
+    for(const m of RELIC.items){ c.beginPath(); c.arc((m.position.x+FOG_HALF)*W2M,(m.position.z+FOG_HALF)*W2M,2,0,7); c.fill(); } }
+  if(typeof TRIAL!=='undefined' && TRIAL.active){ const g=TRIAL.gates[TRIAL.idx]; if(g){ c.fillStyle='#ffe9b0'; c.beginPath(); c.arc((g.position.x+FOG_HALF)*W2M,(g.position.z+FOG_HALF)*W2M,2.4,0,7); c.fill(); } }
+  if(typeof PARK!=='undefined' && PARK.active){ const g=PARK.rings[PARK.idx]; if(g){ c.fillStyle='#ffe9b0'; c.beginPath(); c.arc((g.position.x+FOG_HALF)*W2M,(g.position.z+FOG_HALF)*W2M,2.4,0,7); c.fill(); } }
   c.fillStyle='#d8b25c'; c.fillRect(MM_CX-2.5,MM_CY-2.5,5,5);
   if(rv){
     const mx=(rv.x+FOG_HALF)*W2M, mz=(rv.z+FOG_HALF)*W2M;
@@ -3422,6 +3566,299 @@ function swapRoverModel(){
   roverShell.add(MODEL_CACHE.rover.clone(true));
 }
 
+/* ============================== EMILE — playable character ==============================
+   A rigged FREELON (EmileGuapo.fbx) the player can switch into and run around like Sonic.
+   The FBX ships with an empty/baked animation set, so the rig is animated 100% PROCEDURALLY
+   (poseEmile): leg/arm cycles, jump tuck, spin-dash. EMILE rides the SAME `rover` transform —
+   so scanning, claiming, sites, combat, edge-crossing all keep working for free. */
+let playerMode='rover';                 // 'rover' | 'emile'
+const EMILE={ ready:false, bones:{}, rest:{}, restHip:new THREE.Vector3(),
+  vy:0, grounded:true, jumps:0, dashT:0, anim:0, model:null,
+  SCALE:0.032, FACE:Math.PI, FOOT:0.0,  // tuned in-world
+  SPD_MULT:1.5, JUMP_V:30, GRAV:78, DASH_MULT:1.9, DASH_TIME:0.5 };
+const emileWrap=new THREE.Group(); emileWrap.visible=false; rover.add(emileWrap);
+// procedural rig animator (axes calibrated against the live rig)
+const _eq=new THREE.Quaternion(), _EX=new THREE.Vector3(1,0,0), _EY=new THREE.Vector3(0,1,0), _EZ=new THREE.Vector3(0,0,1);
+function _erot(n,ax,a){ const b=EMILE.bones[n]; if(!b)return; b.quaternion.copy(EMILE.rest[n]).multiply(_eq.setFromAxisAngle(ax,a)); }
+function _erot2(n,ax1,a1,ax2,a2){ const b=EMILE.bones[n]; if(!b)return; b.quaternion.copy(EMILE.rest[n]).multiply(_eq.setFromAxisAngle(ax1,a1)); b.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(ax2,a2)); }
+function _earm(side,down,sw){ _erot2('UpperArm_'+side,_EZ,(side==='L'?-1:1)*down,_EX,sw); }
+function _ereset(){ const B=EMILE.bones,R=EMILE.rest; for(const k in R) if(B[k]) B[k].quaternion.copy(R[k]); if(B.Hips) B.Hips.position.copy(EMILE.restHip); }
+const EP={ runCad:14.0, hip:0.92, knee:1.35, arm:0.85, armDown:1.3, elbow:0.5, bob:5, lean:0.2, twist:0.14, idleCad:2.2, idleArm:0.06, breath:0.05 };
+function poseEmile(state,t,spd){
+  const B=EMILE.bones; if(!B.Hips) return; _ereset();
+  if(state==='run'){
+    const p=t, s=Math.sin(p), c=Math.cos(p), amp=0.45+0.55*spd;   // p = DISTANCE-phased stride (set in animateEmile) — feet track ground speed, no skating
+    _erot('UpperLeg_L',_EX, EP.hip*amp*s); _erot('UpperLeg_R',_EX,-EP.hip*amp*s);
+    _erot('LowerLeg_L',_EX,-EP.knee*amp*(0.5+0.5*Math.cos(p))-0.1);
+    _erot('LowerLeg_R',_EX,-EP.knee*amp*(0.5+0.5*Math.cos(p+Math.PI))-0.1);
+    _earm('L',EP.armDown,-EP.arm*amp*s); _earm('R',EP.armDown,EP.arm*amp*s);
+    _erot('LowerArm_L',_EX,-EP.elbow); _erot('LowerArm_R',_EX,-EP.elbow);
+    _erot('Spine',_EX,EP.lean*(0.5+0.5*spd)); _erot('Chest',_EY,EP.twist*c);
+    B.Hips.position.y=EMILE.restHip.y+EP.bob*amp*Math.abs(s);
+  } else if(state==='jump'){
+    _erot('UpperLeg_L',_EX,1.0); _erot('UpperLeg_R',_EX,1.0);
+    _erot('LowerLeg_L',_EX,-1.5); _erot('LowerLeg_R',_EX,-1.5);
+    _earm('L',EP.armDown*0.45,-1.5); _earm('R',EP.armDown*0.45,-1.5); _erot('Spine',_EX,0.22);
+  } else if(state==='fall'){
+    _erot('UpperLeg_L',_EX,0.5); _erot('UpperLeg_R',_EX,-0.3);
+    _earm('L',EP.armDown*0.6,-2.0); _earm('R',EP.armDown*0.6,-2.0); _erot('Spine',_EX,-0.1);
+  } else if(state==='spin'){
+    _erot('UpperLeg_L',_EX,1.7); _erot('UpperLeg_R',_EX,1.7);
+    _erot('LowerLeg_L',_EX,-2.3); _erot('LowerLeg_R',_EX,-2.3);
+    _erot('Spine',_EX,0.9); _erot('Chest',_EX,0.5);
+    _earm('L',EP.armDown*0.25,-2.2); _earm('R',EP.armDown*0.25,-2.2);
+  } else { // idle
+    const p=t*EP.idleCad, s=Math.sin(p);
+    _earm('L',EP.armDown*0.9,EP.idleArm*s); _earm('R',EP.armDown*0.9,-EP.idleArm*s);
+    _erot('LowerArm_L',_EX,-0.28); _erot('LowerArm_R',_EX,-0.28);
+    _erot('Spine',_EX,0.02+EP.breath*s); B.Hips.position.y=EMILE.restHip.y+1.4*s;
+  }
+}
+const EMILE_CYCLE_DIST=20;   // world units per full leg cycle — stride phase advances with DISTANCE travelled (anti-skate)
+function animateEmile(dt,t){
+  if(!EMILE.ready) return;
+  // advance the stride by distance, not time: feet plant at ground speed instead of moonwalking
+  EMILE.anim += (Math.max(roverSpd,0)*dt/EMILE_CYCLE_DIST)*Math.PI*2;
+  let st;
+  if(!EMILE.grounded){ st = EMILE.dashT>0 ? 'spin' : (EMILE.vy>1 ? 'jump' : 'fall'); }   // mid-air dash / double-jump = a Sonic spin-ball
+  else if(EMILE.dashT>0){ st='spin'; }
+  else if(roverSpd>0.6){ st='run'; }
+  else st='idle';
+  poseEmile(st, st==='idle'?t:EMILE.anim, Math.min(1,roverSpdRatio));
+}
+new FBXLoader().load('/mars/assets/EmileGuapo.fbx', fbx=>{
+  fbx.scale.setScalar(EMILE.SCALE);
+  fbx.rotation.y=EMILE.FACE;
+  fbx.traverse(o=>{
+    if(o.isMesh){ o.frustumCulled=false; o.castShadow=true; o.receiveShadow=false;
+      if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=Math.max(0.55,m.roughness||0.6); } }); } }
+    if(o.isBone){ EMILE.bones[o.name]=o; EMILE.rest[o.name]=o.quaternion.clone(); }
+  });
+  if(EMILE.bones.Hips) EMILE.restHip.copy(EMILE.bones.Hips.position);
+  EMILE.model=fbx; emileWrap.add(fbx); EMILE.ready=true;
+  poseEmile('idle',0,0);
+}, undefined, e=>{ console.warn('EMILE load failed', e); });
+
+function setPlayerMode(m){
+  if(m===playerMode) return;
+  playerMode=m;
+  const onEmile=(m==='emile');
+  emileWrap.visible=onEmile && EMILE.ready;
+  roverShell.visible=!onEmile;
+  for(const w of roverWheels) w.visible=!onEmile;
+  EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0;
+  document.body.classList.toggle('emileon', onEmile);
+  toast(onEmile?'⚡ EMILE — RUN · W A S D · SPACE JUMP · SHIFT DASH':'🛻 ROVER — DRIVE');
+  const tb=$('emileBtn'); if(tb){ tb.classList.toggle('on',onEmile); tb.textContent = onEmile ? '🛻 BACK TO ROVER' : '⚡ PLAY AS EMILE'; }
+}
+function togglePlayer(){ if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
+  if(RELIC.active) endRelicRun(false,true); if(TRIAL.active) endTimeTrial(false,true); if(PARK.active) endParkour(false,true);   // switching seats ends an active mini-game (don't strand its targets)
+  setPlayerMode(playerMode==='emile'?'rover':'emile'); }
+function emileJump(){
+  if(playerMode!=='emile') return;
+  if(EMILE.grounded){ EMILE.vy=EMILE.JUMP_V; EMILE.grounded=false; EMILE.jumps=1; if(typeof sfxBlip==='function')sfxBlip(.35); if(typeof haptic==='function')haptic(.3,.08); }
+  else if(EMILE.jumps<2){ EMILE.vy=EMILE.JUMP_V*0.82; EMILE.jumps=2; EMILE.dashT=Math.max(EMILE.dashT,0.35); if(typeof sfxBlip==='function')sfxBlip(.5); }  // double-jump = a mid-air spin
+}
+function emileDash(){ if(playerMode!=='emile') return; EMILE.dashT=EMILE.DASH_TIME; if(typeof sfxTick==='function')sfxTick(); if(typeof haptic==='function')haptic(.5,.12); }
+{ const eb=document.getElementById('emileBtn'); if(eb) eb.onclick=togglePlayer;
+  const jb=document.getElementById('jumpBtn'); if(jb){ jb.addEventListener('pointerdown',e=>{ e.preventDefault(); emileJump(); }); }
+  const rb=document.getElementById('relicBtn'); if(rb) rb.onclick=()=>startRelicRun();
+  const tb=document.getElementById('trialBtn'); if(tb) tb.onclick=()=>startTimeTrial();
+  const pb=document.getElementById('parkBtn'); if(pb) pb.onclick=()=>startParkour(); }
+
+/* ============================== RELIC RUN — first in-world game ==============================
+   A Sonic-style time-trial: grab all the floating ⬡ relics before the clock runs out.
+   Built to SHOWCASE fast EMILE — reuses terrainH, the player transform, burst/sfx FX + addHex reward.
+   Zero new assets (procedural octahedron relics). Trigger: ⬡ RELIC RUN button / R key / MARS.relicRun(). */
+const RELIC={ active:false, items:[], total:0, got:0, timeLeft:0, par:50 };
+function _relicHudEl(){ let el=document.getElementById('relicHud'); if(!el){ el=document.createElement('div'); el.id='relicHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
+function clearRelics(){ for(const m of RELIC.items){ scene.remove(m); if(m.geometry)m.geometry.dispose(); } RELIC.items.length=0; }
+function startRelicRun(){
+  if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;   // not off-surface / mid-cross / behind a modal
+  if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
+  if(RELIC.active){ endRelicRun(false,true); }
+  if(playerMode!=='emile') setPlayerMode('emile');            // it's a foot-race — drop into EMILE
+  clearRelics();
+  RELIC.total=8; RELIC.got=0; RELIC.timeLeft=RELIC.par=50; RELIC.active=true;
+  const cx=rover.position.x, cz=rover.position.z;
+  for(let i=0;i<RELIC.total;i++){
+    const a=i/RELIC.total*Math.PI*2 + (Math.sin(i*12.9898)*0.5);   // deterministic scatter (no Math.random dependency)
+    const r=80+((i*53)%170);
+    const x=cx+Math.cos(a)*r, z=cz+Math.sin(a)*r, y=terrainH(x,z)+7;
+    const m=new THREE.Mesh(new THREE.OctahedronGeometry(2.4), matGold(2.8));
+    m.position.set(x,y,z); m.userData.baseY=y; m.frustumCulled=false; scene.add(m); RELIC.items.push(m);
+    revealAt(x,z,30);                                            // light the ground around each relic
+  }
+  document.body.classList.add('relicrun');
+  _relicHudEl().style.display='block';
+  toast('⚡ RELIC RUN — grab all '+RELIC.total+' ⬡ before the clock runs out! (follow the gold)');
+  sfxTick(); if(typeof haptic==='function')haptic(.4,.1);
+}
+function endRelicRun(won, silent){
+  const was=RELIC.active; RELIC.active=false; clearRelics();
+  document.body.classList.remove('relicrun');
+  const el=document.getElementById('relicHud'); if(el) el.style.display='none';
+  if(silent||!was) return;
+  if(won){
+    if(RELIC.got<RELIC.total){ return; }                        // idempotency — only a real all-collected clear pays
+    const onCd=(S.locks.relic||0)>Date.now();                   // anti-farm: payout on a 10-min cooldown (gameplay still free)
+    const reward=onCd?0:(60+Math.round(Math.max(0,RELIC.timeLeft)*4));   // smaller magnitude than before
+    if(reward>0){ S.locks.relic=Date.now()+10*60e3; addHex(reward,{quiet:true,src:'relicrun'}); save(); }
+    toast(reward>0 ? ('⬡ RELIC RUN — +'+reward+' ⬡  ·  '+RELIC.timeLeft.toFixed(1)+'s spare') : ('⬡ RELIC RUN clear! ⬡ payout cooling down ('+fmtDur((S.locks.relic||0)-Date.now())+')'));
+    burst(rover.position.x,rover.position.y+3,rover.position.z);
+    if(typeof checkGoals==='function')checkGoals();
+    if(typeof haptic==='function')haptic(.8,.25);
+  } else {
+    toast('RELIC RUN — time! '+RELIC.got+'/'+RELIC.total+' relics. Try again — go faster.');
+  }
+}
+function tickRelicRun(dt,t){
+  if(!RELIC.active) return;
+  if(rtActive || $('battle').classList.contains('open')) return;   // pause (don't drain/grab) while the player is frozen in a fight
+  RELIC.timeLeft-=dt;
+  const p=rover.position;
+  for(let i=RELIC.items.length-1;i>=0;i--){
+    const m=RELIC.items[i];
+    m.rotation.y+=dt*2.4; m.position.y=m.userData.baseY+Math.sin(t*2+i)*0.8;
+    const dx=m.position.x-p.x, dz=m.position.z-p.z;               // horizontal grab — float height shouldn't shrink the radius
+    if(dx*dx+dz*dz < 169){                                        // 13u grab radius (forgiving at speed)
+      scene.remove(m); if(m.geometry)m.geometry.dispose(); RELIC.items.splice(i,1); RELIC.got++;
+      burst(m.position.x,m.position.y,m.position.z); sfxBlip(RELIC.got/RELIC.total);
+      if(typeof haptic==='function')haptic(.3,.05);
+    }
+  }
+  const el=document.getElementById('relicHud');
+  if(el) el.textContent='⬡ '+RELIC.got+' / '+RELIC.total+'      ⏱ '+Math.max(0,RELIC.timeLeft).toFixed(1)+'s';
+  if(RELIC.got>=RELIC.total) endRelicRun(true);
+  else if(RELIC.timeLeft<=0) endRelicRun(false);
+}
+
+/* ============================== TIME TRIAL — second in-world game ==============================
+   Drive the ROVER through a winding chain of gold gates IN ORDER, against the clock. Saves a
+   personal best (localStorage). Showcases the rover (vs RELIC RUN's EMILE). Reuses terrainH +
+   burst/sfx + addHex. Trigger: ⏱ TIME TRIAL button / T key / MARS.timeTrial(). */
+const TRIAL={ active:false, gates:[], idx:0, t:0, total:6, best:null };
+function _trialHudEl(){ let el=document.getElementById('trialHud'); if(!el){ el=document.createElement('div'); el.id='trialHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
+function clearTrial(){ for(const g of TRIAL.gates){ if(!g) continue; scene.remove(g); if(g.geometry)g.geometry.dispose(); } TRIAL.gates.length=0; }
+function startTimeTrial(){
+  if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;   // not off-surface / mid-cross / behind a modal
+  if(TRIAL.active) endTimeTrial(false,true);
+  if(playerMode!=='rover') setPlayerMode('rover');     // it's a DRIVING trial
+  clearTrial();
+  try{ const b=lsGet('mars_trial_best'); TRIAL.best=b?+b:null; }catch(e){ TRIAL.best=null; }
+  TRIAL.total=6; TRIAL.idx=0; TRIAL.t=0; TRIAL.active=true;
+  let a=roverHeading, px=rover.position.x, pz=rover.position.z, prx=px, prz=pz;
+  for(let i=0;i<TRIAL.total;i++){
+    a += Math.sin(i*1.73)*0.85;                          // winding deterministic route
+    const step=120+((i*37)%70);
+    px+=Math.sin(a)*step; pz+=Math.cos(a)*step;
+    const r=Math.hypot(px,pz); if(r>650){ px*=650/r; pz*=650/r; }   // keep inside the tile so gates are reachable
+    const y=terrainH(px,pz)+7;
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(8,1.2,8,28), matGold(2.6));
+    ring.position.set(px,y,pz); ring.lookAt(prx, y, prz);            // hole faces the approach direction
+    ring.userData.idx=i; ring.frustumCulled=false; scene.add(ring); TRIAL.gates.push(ring);
+    revealAt(px,pz,45); prx=px; prz=pz;
+  }
+  document.body.classList.add('trialrun'); _trialHudEl().style.display='block';
+  toast('⏱ TIME TRIAL — drive through all '+TRIAL.total+' gold gates in order, fast!'); sfxTick();
+}
+function endTimeTrial(won, silent){
+  const was=TRIAL.active; TRIAL.active=false; clearTrial();
+  document.body.classList.remove('trialrun');
+  const el=document.getElementById('trialHud'); if(el) el.style.display='none';
+  if(silent||!was) return;
+  if(won){
+    if(TRIAL.idx<TRIAL.total){ return; }                  // idempotency — only a real all-gates clear pays
+    const time=TRIAL.t; let pb='';
+    if(TRIAL.best==null || time<TRIAL.best){ TRIAL.best=time; lsSet('mars_trial_best',time.toFixed(2)); pb=' · NEW BEST!'; }
+    const onCd=(S.locks.trial||0)>Date.now();             // anti-farm: payout on a 10-min cooldown
+    const reward=onCd?0:(50+Math.max(0,Math.round((45-time)*3)));
+    if(reward>0){ S.locks.trial=Date.now()+10*60e3; addHex(reward,{quiet:true,src:'timetrial'}); save(); }
+    toast('⏱ TIME TRIAL — '+time.toFixed(1)+'s'+pb+(reward>0?('  +'+reward+' ⬡'):'  ⬡ payout cooling down'));
+    burst(rover.position.x,rover.position.y+2,rover.position.z);
+    if(typeof checkGoals==='function')checkGoals();
+  } else { toast('TIME TRIAL ended — '+TRIAL.idx+'/'+TRIAL.total+' gates.'); }
+}
+function tickTimeTrial(dt){
+  if(!TRIAL.active) return;
+  if(rtActive || $('battle').classList.contains('open')) return;   // pause during a fight
+  TRIAL.t+=dt;
+  const p=rover.position, g=TRIAL.gates[TRIAL.idx];
+  if(g){
+    g.scale.setScalar(1+0.08*Math.sin(TRIAL.t*4));
+    const dx=g.position.x-p.x, dz=g.position.z-p.z;       // horizontal drive-through
+    if(dx*dx+dz*dz < 144){                                // 12u — forgiving drive-through
+      burst(g.position.x,g.position.y,g.position.z); sfxBlip((TRIAL.idx+1)/TRIAL.total);
+      scene.remove(g); if(g.geometry)g.geometry.dispose(); TRIAL.gates[TRIAL.idx]=null; TRIAL.idx++;
+      if(TRIAL.idx>=TRIAL.total){ endTimeTrial(true); return; }
+    }
+  }
+  const el=document.getElementById('trialHud');
+  if(el) el.textContent='⏱ GATE '+TRIAL.idx+'/'+TRIAL.total+'   '+TRIAL.t.toFixed(1)+'s'+(TRIAL.best!=null?'   BEST '+TRIAL.best.toFixed(1)+'s':'');
+}
+
+/* ============================== PARKOUR TRIAL — third in-world game ==============================
+   Jump EMILE through an ascending chain of gold rings in order (SPACE / double-jump) → an ARCHIVE
+   FRAGMENT (different reward axis to the HEX games). 3D proximity = you must JUMP to each ring's
+   altitude. Trigger: 🤸 PARKOUR button / P key / MARS.parkour(). */
+const PARK={ active:false, rings:[], idx:0, total:8, t:0 };
+function _parkHudEl(){ let el=document.getElementById('parkHud'); if(!el){ el=document.createElement('div'); el.id='parkHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
+function clearPark(){ for(const r of PARK.rings){ if(!r) continue; scene.remove(r); if(r.geometry)r.geometry.dispose(); } PARK.rings.length=0; }
+function startParkour(){
+  if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;
+  if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
+  if(PARK.active) endParkour(false,true);
+  if(playerMode!=='emile') setPlayerMode('emile');
+  clearPark();
+  PARK.total=8; PARK.idx=0; PARK.t=0; PARK.active=true;
+  let a=roverHeading, px=rover.position.x, pz=rover.position.z;
+  for(let i=0;i<PARK.total;i++){
+    a += Math.sin(i*1.9)*0.7;
+    const step=34+((i*13)%26);                          // close together — it's platforming, not a sprint
+    px+=Math.sin(a)*step; pz+=Math.cos(a)*step;
+    const r=Math.hypot(px,pz); if(r>660){ px*=660/r; pz*=660/r; }
+    const hgt=6+(i%3===2?3:0);                           // every 3rd ring is higher (≈9u, reachable by a well-timed double-jump apex ≈9.6u); others ≈6u single-jump
+    const y=terrainH(px,pz)+hgt;
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(4.2,0.85,8,22), matGold(2.9));
+    ring.position.set(px,y,pz); ring.rotation.x=Math.PI/2;   // horizontal hoop — jump UP through it
+    ring.userData.baseY=y; ring.frustumCulled=false; scene.add(ring); PARK.rings.push(ring);
+    revealAt(px,pz,28);
+  }
+  document.body.classList.add('parkrun'); _parkHudEl().style.display='block';
+  toast('🤸 PARKOUR — JUMP through all '+PARK.total+' rings in order! (SPACE · double-jump)'); sfxTick();
+}
+function endParkour(won, silent){
+  const was=PARK.active; PARK.active=false; clearPark();
+  document.body.classList.remove('parkrun');
+  const el=document.getElementById('parkHud'); if(el) el.style.display='none';
+  if(silent||!was) return;
+  if(won){
+    if(PARK.idx<PARK.total) return;                      // idempotency
+    const onCd=(S.locks.parkour||0)>Date.now();          // anti-farm: fragment+⬡ on a 10-min cooldown
+    if(!onCd){ S.locks.parkour=Date.now()+10*60e3; if(typeof awardFragment==='function')awardFragment('parkour'); addHex(40,{quiet:true,src:'parkour'}); save();
+      toast('🤸 PARKOUR CLEAR — ⬡ ARCHIVE FRAGMENT + 40 ⬡  ·  '+PARK.t.toFixed(1)+'s'); }
+    else toast('🤸 PARKOUR CLEAR! reward cooling down ('+fmtDur((S.locks.parkour||0)-Date.now())+')');
+    burst(rover.position.x,rover.position.y+2,rover.position.z); if(typeof haptic==='function')haptic(.8,.25);
+  } else { toast('PARKOUR ended — '+PARK.idx+'/'+PARK.total+' rings.'); }
+}
+function tickParkour(dt,t){
+  if(!PARK.active) return;
+  if(rtActive || $('battle').classList.contains('open')) return;
+  PARK.t+=dt;
+  const p=rover.position, g=PARK.rings[PARK.idx];
+  if(g){
+    g.scale.setScalar(1+0.1*Math.sin(t*4)); g.position.y=g.userData.baseY+Math.sin(t*2.5)*0.5;
+    const dx=g.position.x-p.x, dz=g.position.z-p.z, dy=g.position.y-p.y;   // 3D — must be AT the ring altitude (jumped up)
+    if(dx*dx+dz*dz+dy*dy < 36){                          // 6u sphere
+      burst(g.position.x,g.position.y,g.position.z); sfxBlip((PARK.idx+1)/PARK.total);
+      scene.remove(g); if(g.geometry)g.geometry.dispose(); PARK.rings[PARK.idx]=null; PARK.idx++;
+      if(PARK.idx>=PARK.total){ endParkour(true); return; }
+    }
+  }
+  const el=document.getElementById('parkHud');
+  if(el) el.textContent='🤸 RING '+PARK.idx+'/'+PARK.total+'   '+PARK.t.toFixed(1)+'s';
+}
+
 /* shortest-arc angular damping — naive lerp spins the long way through ±PI */
 function wrapAng(a){ a=(a+Math.PI)%(Math.PI*2); return a<0 ? a+Math.PI : a-Math.PI; }
 function dampAngle(c,t,k,dt){ return c+wrapAng(t-c)*(1-Math.exp(-k*dt)); }
@@ -3592,6 +4029,12 @@ addEventListener('keydown',e=>{
   else if(k==='s'||e.key==='ArrowDown') keyDrive.b=1;
   else if(k==='a'||e.key==='ArrowLeft') keyDrive.l=1;
   else if(k==='d'||e.key==='ArrowRight') keyDrive.r=1;
+  else if(k==='c'){ togglePlayer(); e.preventDefault(); return; }   // C — swap rover ⇄ EMILE
+  else if(playerMode==='emile' && k===' ' && !rtActive && !$('battle').classList.contains('open')){ emileJump(); e.preventDefault(); e.stopImmediatePropagation(); return; }
+  else if(playerMode==='emile' && (k==='shift'||k==='shiftleft'||k==='shiftright')){ emileDash(); e.preventDefault(); return; }
+  else if(k==='r' && !rtActive){ startRelicRun(); e.preventDefault(); return; }   // R — start a RELIC RUN
+  else if(k==='t' && !rtActive){ startTimeTrial(); e.preventDefault(); return; }  // T — start a TIME TRIAL
+  else if(k==='p' && !rtActive){ startParkour(); e.preventDefault(); return; }    // P — start a PARKOUR TRIAL
   else return;
   e.preventDefault(); hasDest=false;   // taking the wheel cancels the waypoint target
 });
@@ -3674,7 +4117,11 @@ document.getElementById('returnBtn').onclick=returnToBase;
 
 function roverUpdate(dt,t){
   if(crossing || $('battle').classList.contains('open')) return;   /* the rover parks during a battle — the staged firefight must not desync from a moving shooter (any input device) */
-  const p=rover.position, maxSpd=roverMaxSpd();
+  const p=rover.position;
+  const _emile=(playerMode==='emile');
+  if(_emile && EMILE.dashT>0) EMILE.dashT=Math.max(0,EMILE.dashT-dt);
+  let maxSpd=roverMaxSpd();
+  if(_emile) maxSpd*=EMILE.SPD_MULT*(EMILE.dashT>0?EMILE.DASH_MULT:1);   // EMILE runs Sonic-fast; dash burst on top
   let vT=0;
   if(hasDest){
     const dx=roverDest.x-p.x, dz=roverDest.z-p.z, d=Math.hypot(dx,dz);
@@ -3711,8 +4158,23 @@ function roverUpdate(dt,t){
     edgeCross();
   }
   const gy=terrainH(p.x,p.z);
-  p.y=damp(p.y, gy, 14, dt);
+  if(_emile){
+    // 4-sample averaged ground under the feet — kills high-freq vertical chatter. CACHED so the
+    // physics sub-step loop doesn't pay 5 terrainH() calls EVERY substep (recompute only when the feet move >1.5u).
+    if(EMILE._gx===undefined || Math.abs(p.x-EMILE._gx)>1.5 || Math.abs(p.z-EMILE._gz)>1.5){
+      EMILE._gAvg=(gy + terrainH(p.x+1.6,p.z) + terrainH(p.x-1.6,p.z) + terrainH(p.x,p.z+1.6) + terrainH(p.x,p.z-1.6))*0.2;
+      EMILE._gx=p.x; EMILE._gz=p.z;
+    }
+    const groundY=EMILE._gAvg+EMILE.FOOT;
+    if(!EMILE.grounded){
+      EMILE.vy-=EMILE.GRAV*dt; p.y+=EMILE.vy*dt;
+      if(p.y<=groundY && EMILE.vy<=0){ p.y=groundY; EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; burst(p.x,p.y,p.z); }
+    } else { p.y=damp(p.y, groundY, 12, dt); }   // softer stick (was 18) — smoother ride
+  } else {
+    p.y=damp(p.y, gy, 14, dt);
+  }
   rover.rotation.y=roverHeading;
+  // NOTE: animateEmile runs ONCE per render frame (in the main loop), not here inside the physics sub-step loop
   // Heading compass needle (holder feedback, Reegs): point it where the rover faces on
   // a north-up disc. Same heading the minimap uses, so the two agree.
   if(_compassNeedle) _compassNeedle.style.transform='translate(-50%,-100%) rotate('+(roverHeading*180/Math.PI)+'deg)';
@@ -4050,17 +4512,19 @@ let nx=0, ny=0;
 const par={x:0,y:0};
 const _camR=new THREE.Vector3(), _camU=new THREE.Vector3();
 function updateCamera(dt,t){
-  camTarget.x=damp(camTarget.x, rover.position.x, 2.5, dt);
-  camTarget.z=damp(camTarget.z, rover.position.z, 2.5, dt);
-  camTarget.y=damp(camTarget.y, rover.position.y+6, 2.5, dt);
-  distK=damp(distK, 1+.1*roverSpdRatio, 1.8, dt);
+  const _em=(playerMode==='emile');
+  const _fol=_em?7.5:2.5;                       // EMILE moves fast — the camera must keep up or he runs off-frame
+  camTarget.x=damp(camTarget.x, rover.position.x, _fol, dt);
+  camTarget.z=damp(camTarget.z, rover.position.z, _fol, dt);
+  camTarget.y=damp(camTarget.y, rover.position.y+(_em?5:6), _fol, dt);
+  distK=damp(distK, 1+(_em?.22:.1)*roverSpdRatio, 1.8, dt);   // pull back a touch more at EMILE speed
   /* +++ rover-feel: SPEED CAMERA (Forza) — FOV breathes wider with speed, dust-streak vignette tightens. */
-  const _fovTgt = _reduceMotion ? 42 : (42 + 11*roverSpdRatio);   // reduced-motion: stable FOV (no speed breathe)
+  const _fovTgt = _reduceMotion ? 42 : (42 + (_em?4:11)*roverSpdRatio);   // EMILE: calmer FOV breathe (less world-warp = less jitter feel)
   const _fov = damp(camera.fov, _fovTgt, 3, dt);
   if(Math.abs(_fov-camera.fov)>0.01){ camera.fov=_fov; camera.updateProjectionMatrix(); }
   vigPass.uniforms.darkness.value = damp(vigPass.uniforms.darkness.value, .95+.55*roverSpdRatio, 2.5, dt);
   followSun(camTarget.x, camTarget.z);
-  const _idle = _reduceMotion ? 0 : 1;             // reduced-motion: drop the auto idle-drift, keep intentional mouse parallax
+  const _idle = (_reduceMotion||_em) ? 0 : 1;      // EMILE / reduced-motion: drop auto idle-drift sway, keep intentional mouse parallax
   par.x=damp(par.x,  nx*.6 +Math.sin(t*.08)*.5*_idle,  3, dt);
   par.y=damp(par.y, -ny*.35+Math.sin(t*.13)*.25*_idle, 3, dt);
   applyOrbit();
@@ -5213,10 +5677,14 @@ function buildTileSites(){
 }
 /* atomic teardown/rebuild — the canonical tile loader */
 function enterTile(id,ex,ez){
+  if(RELIC.active){ endRelicRun(false,true); toast('RELIC RUN ended — you crossed sectors'); }   // relics are tile-local; don't orphan them
+  if(TRIAL.active){ endTimeTrial(false,true); toast('TIME TRIAL ended — you crossed sectors'); }
+  if(PARK.active){ endParkour(false,true); toast('PARKOUR ended — you crossed sectors'); }
+  EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0;   // don't carry airborne/dash state across the cross
   packCurrentTile();
   S.tile=id;
   tendTile(id);   /* visiting a claimed sector tends it — keeps your frontier from re-corrupting */
-  computeTileOffsets(id); rollCraters(); rebuildTerrain(); buildDetail();
+  computeTileOffsets(id); rollCraters(); rebuildTerrain(); rebuildFarTerrain(); buildDetail();
   revealGrid.fill(0);
   const rec=tileRec(id), blob = id===HOME_TILE ? S.reveal : rec.reveal;
   if(blob && unpackReveal(blob)) repaintReveal();
@@ -6100,6 +6568,9 @@ setInterval(()=>{ if(mapPhase==='orbit') paintGlobeMarkers(); },500);
 function enterMap(){
   if(mode!=='play'||mapPhase!=='off') return;
   if(rtActive||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')||crossing) return;   // no leaving the arena into the map mid-fight
+  if(RELIC.active) endRelicRun(false,true);   // a mini-game can't survive the orbital map
+  if(TRIAL.active) endTimeTrial(false,true);
+  if(PARK.active) endParkour(false,true);
   setImmersive(false);   // restore the HUD before the orbital-map transition
   cancelPlace(); closeZonePanel();
   mapSaved={yaw,pitch,dist,fov:camera.fov};
@@ -6512,6 +6983,7 @@ function animate(){
   // instead of one clamped getDelta() step. At high fps this is a single call with the real dt (no camera stutter).
   if(mode==='play'){ let rem=dt; const FIXED_DT=1/60;
     while(rem>1e-4){ const step=Math.min(FIXED_DT,rem); roverUpdate(step,t); rem-=step; } }
+  if(mode==='play' && playerMode==='emile') animateEmile(dt,t);   // EMILE pose ONCE per render frame (not per physics sub-step) — smoother
   if(rtActive && mode==='play') rtUpdate(dt);   // real-time combat: foe AI + integrity + win/lose, in-world (never advances outside play)
 
   // GHOST CONVOY + spatial/adaptive audio (additive; no-ops if disabled/low-tier)
@@ -6571,6 +7043,9 @@ function animate(){
     selRing.material.opacity=damp(selRing.material.opacity,0,10,dt);
   }
 
+  if(mode==='play') tickRelicRun(dt,t);
+  if(mode==='play') tickTimeTrial(dt);
+  if(mode==='play') tickParkour(dt,t);
   if(mode==='play') updateCamera(dt,t);
   renderFrame(mode==='map'&&mapPhase==='orbit' ? spaceScene : scene);
 }
@@ -6593,6 +7068,8 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   sol:t=>{ if(typeof t==='number'){ SOL.t=((t%1)+1)%1; SOL.paused=true; if(typeof skyUpdate==='function') skyUpdate(0); } return {t:+SOL.t.toFixed(3),sunY:+SOL.sunY.toFixed(3),dusk:+(skyUniforms?skyUniforms.uDusk.value:0).toFixed(3),tier:SKY_TIER}; },
   solRun:(on)=>{ SOL.paused=(on===false); return !SOL.paused; },   // auto-advance the day
   ssao:()=>ssaoPass, rays:()=>godRayPass, grade:()=>gradePass, perfFx:()=>PERF_FX,
+  tone:(n,e)=>{ const map={aces:THREE.ACESFilmicToneMapping,agx:THREE.AgXToneMapping,neutral:THREE.NeutralToneMapping,none:THREE.NoToneMapping}; if(n&&map[n]!=null)renderer.toneMapping=map[n]; if(typeof e==='number')renderer.toneMappingExposure=e; return {tone:Object.keys(map).find(k=>map[k]===renderer.toneMapping)||'?', exp:+renderer.toneMappingExposure.toFixed(2)}; },
+  fogD:(d)=>{ if(scene.fog&&'density'in scene.fog){ if(typeof d==='number')scene.fog.density=d; return scene.fog.density; } return null; },
   fx:(tier)=>{   /* live toggle: 'low'|'mid'|'high'|0|1|2  — rebuild-free enable/disable of AO+rays, grade always on */
     const map={low:0,mid:1,high:2}; let n = (typeof tier==='string')? map[tier] : tier;
     if(n==null) n = PERF_FX;
@@ -6608,6 +7085,31 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   claim:i=>tryClaim(i),
   zone:i=>openZonePanel(i),
   drive:(x,z)=>driveTo(x,z), recall:()=>returnToBase(), rover:()=>rover.position,
+  /* ===== EMILE — playable character debug/verification API ===== */
+  emile:(on)=>{ setPlayerMode(on===false?'rover':'emile'); return {mode:playerMode, ready:EMILE.ready}; },
+  emileToggle:()=>{ togglePlayer(); return playerMode; },
+  relicRun:()=>{ startRelicRun(); return {active:RELIC.active, total:RELIC.total, timeLeft:RELIC.timeLeft}; },
+  relicInfo:()=>({active:RELIC.active, got:RELIC.got, total:RELIC.total, timeLeft:+RELIC.timeLeft.toFixed(1), remaining:RELIC.items.length, next:RELIC.items[0]?[+RELIC.items[0].position.x.toFixed(0),+RELIC.items[0].position.z.toFixed(0)]:null}),
+  relicEnd:(won)=>{ endRelicRun(won===true); return RELIC.active; },
+  timeTrial:()=>{ startTimeTrial(); return {active:TRIAL.active, gates:TRIAL.total, best:TRIAL.best}; },
+  trialInfo:()=>({active:TRIAL.active, idx:TRIAL.idx, total:TRIAL.total, t:+TRIAL.t.toFixed(1), best:TRIAL.best, next:TRIAL.gates[TRIAL.idx]?[+TRIAL.gates[TRIAL.idx].position.x.toFixed(0),+TRIAL.gates[TRIAL.idx].position.z.toFixed(0)]:null}),
+  trialEnd:(won)=>{ endTimeTrial(won===true); return TRIAL.active; },
+  parkour:()=>{ startParkour(); return {active:PARK.active, rings:PARK.total}; },
+  parkInfo:()=>({active:PARK.active, idx:PARK.idx, total:PARK.total, t:+PARK.t.toFixed(1), next:PARK.rings[PARK.idx]?[+PARK.rings[PARK.idx].position.x.toFixed(0),+PARK.rings[PARK.idx].position.y.toFixed(0),+PARK.rings[PARK.idx].position.z.toFixed(0)]:null}),
+  parkEnd:(won)=>{ endParkour(won===true); return PARK.active; },
+  jump:()=>{ emileJump(); return {vy:+EMILE.vy.toFixed(1), grounded:EMILE.grounded, jumps:EMILE.jumps}; },
+  dash:()=>{ emileDash(); return {dashT:+EMILE.dashT.toFixed(2)}; },
+  emileInfo:()=>({ready:EMILE.ready, mode:playerMode, bones:Object.keys(EMILE.bones).length,
+    pos:[+rover.position.x.toFixed(1),+rover.position.y.toFixed(1),+rover.position.z.toFixed(1)],
+    vy:+EMILE.vy.toFixed(1), grounded:EMILE.grounded, jumps:EMILE.jumps, dashT:+EMILE.dashT.toFixed(2),
+    spd:+roverSpd.toFixed(2), scale:EMILE.SCALE, anim:+EMILE.anim.toFixed(1),
+    wrapVis:emileWrap.visible, shellVis:roverShell.visible}),
+  emileStep:(dir,secs=1.5)=>{ const d=typeof dir==='string'?({fwd:{f:1},back:{b:1},left:{f:1,l:1},right:{f:1,r:1}}[dir]||{f:1}):(dir||{f:1});
+    keyDrive.f=d.f||0; keyDrive.b=d.b||0; keyDrive.l=d.l||0; keyDrive.r=d.r||0;
+    const n=Math.round(secs*60); for(let i=0;i<n;i++) roverUpdate(1/60, performance.now()/1000+i/60);
+    keyDrive.f=keyDrive.b=keyDrive.l=keyDrive.r=0;
+    return MARS.emileInfo(); },
+  emileTune:(o)=>{ Object.assign(EMILE,o||{}); if(EMILE.model){ EMILE.model.scale.setScalar(EMILE.SCALE); EMILE.model.rotation.y=EMILE.FACE; } return {SCALE:EMILE.SCALE,FACE:EMILE.FACE,FOOT:EMILE.FOOT,SPD_MULT:EMILE.SPD_MULT,JUMP_V:EMILE.JUMP_V}; },
   /* +++ rover-feel: drive manually for N seconds (same manualStep path the keyboard uses) */
   throttle:(dir,secs=1.5)=>{ const d=typeof dir==='string'
       ? ({fwd:{f:1},back:{b:1},left:{f:1,l:1},right:{f:1,r:1}}[dir]||{f:1}) : (dir||{f:1});
