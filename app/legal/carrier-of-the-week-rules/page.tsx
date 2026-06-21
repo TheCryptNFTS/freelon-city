@@ -16,8 +16,10 @@ export const metadata: Metadata = {
  * the token). It has no cash value and is not transferable, mirroring the
  * Terms §6 "no resale value, not transferable" precedent. noindex.
  *
- * ⚠ Counsel should confirm the merit-contest framing before public launch;
- * [BRACKETED] fields are placeholders for the sponsor entity / governing law.
+ * ⚠ Counsel should confirm the merit-contest framing and finalize the sponsor entity
+ * + governing-law specifics. 2026-06-21: raw [BRACKETED] placeholders were showing on
+ * this LIVE (footer-linked) page, so they were generalized to truthful neutral wording
+ * ("the operator of FREELON CITY" / "applicable law") until counsel fills the specifics.
  */
 export default function CarrierOfTheWeekRules() {
   return (
@@ -30,7 +32,7 @@ export default function CarrierOfTheWeekRules() {
       <h2>1. Sponsor.</h2>
       <p>
         This recognition program (&ldquo;Carrier of the Week&rdquo;) is operated by
-        [SPONSOR LEGAL ENTITY], [ADDRESS] (the &ldquo;Sponsor&rdquo;). It is in no way sponsored,
+        the operator of FREELON CITY (the &ldquo;Sponsor&rdquo;). It is in no way sponsored,
         endorsed, administered by, or associated with any wallet, marketplace, or platform provider.
       </p>
 
@@ -77,7 +79,7 @@ export default function CarrierOfTheWeekRules() {
 
       <h2>7. Disputes.</h2>
       <p>
-        These Official Rules are governed by the laws of [GOVERNING LAW]. By participating, you agree
+        These Official Rules are governed by applicable law. By participating, you agree
         these Rules and the Sponsor&rsquo;s decisions are final.
       </p>
 

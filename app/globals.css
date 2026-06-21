@@ -8732,3 +8732,99 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 @media (max-width: 720px) {
   main#main { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ── /transmissions submit form (2026-06-21 page audit) ───────────────────
+   TransmissionSubmit shipped with tx- classnames but NO matching CSS, so the
+   whole form rendered as unstyled native controls. These rules dress it to the
+   city's premium black/gold/ivory system, mirroring .citizens-search. */
+.tx-submit,
+.tx-submit-gate {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--s-4);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.35) 100%);
+}
+.tx-submit { display: grid; gap: var(--s-3); }
+.tx-submit-gate { display: grid; gap: 12px; justify-items: start; text-align: left; }
+.tx-submit-gate p {
+  font-family: var(--mono2);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0;
+}
+.tx-submit-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tx-submit-sub {
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+}
+.tx-field { display: grid; gap: 6px; }
+.tx-field > span {
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.tx-field select,
+.tx-field textarea,
+.tx-field input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: var(--mono2);
+  color: var(--ink);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-3);
+  min-height: var(--tap-min);
+}
+.tx-field textarea { resize: vertical; line-height: 1.6; }
+.tx-field select:focus,
+.tx-field textarea:focus,
+.tx-field input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.tx-field-hint {
+  margin: 2px 0 0;
+  font-family: var(--mono2);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+.tx-preview {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: rgba(0,0,0,0.3);
+}
+.tx-preview img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: calc(var(--r-3) - 2px);
+}
+.tx-submit-err {
+  font-family: var(--mono2);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--state-danger, #FF5A4D);
+  border: 1px solid color-mix(in srgb, var(--state-danger, #FF5A4D) 50%, transparent);
+  background: color-mix(in srgb, var(--state-danger, #FF5A4D) 10%, transparent);
+  padding: 10px 12px;
+  border-radius: var(--r-3);
+}

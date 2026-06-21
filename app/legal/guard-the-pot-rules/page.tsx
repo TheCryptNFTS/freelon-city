@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { LegalShell } from "../LegalShell";
 
 export const metadata: Metadata = { title: "Guard the Pot — Official Rules", robots: { index: false } };
@@ -15,6 +16,10 @@ export const metadata: Metadata = { title: "Guard the Pot — Official Rules", r
  * the [BRACKETED] blanks. The page is noindex and only linked when GUARD_POT_LIVE.
  */
 export default function GuardThePotRules() {
+  // DRAFT rules with [BRACKETED] blanks pending counsel — never serve them publicly
+  // until the promotion is actually live (matches the /play/guard + /play card gates). 2026-06-21.
+  if (process.env.GUARD_POT_LIVE !== "true") notFound();
+
   return (
     <LegalShell title="Guard the Pot — Official Rules" updated="2026-06-08 (DRAFT)">
       <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)" }}>
