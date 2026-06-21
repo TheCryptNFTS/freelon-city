@@ -534,6 +534,15 @@
     body.playing #immBtn, body.playing #fsBtn{ display:flex }
     body.mapping #immBtn, body.mapping #fsBtn, body.fighting #immBtn, body.fighting #fsBtn{ display:none!important }
   }
+  /* EMILE dash speed-feel — radial gold streaks + edge glow, masked clear at centre so play stays readable. Pure CSS (CSP-safe), reduced-motion off. */
+  #dashfx{ position:fixed; inset:0; pointer-events:none; z-index:14; opacity:0; transition:opacity .1s ease; mix-blend-mode:screen;
+    background:
+      repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,205,130,0) 0deg, rgba(255,205,130,0) 3deg, rgba(255,201,120,.20) 4deg, rgba(255,205,130,0) 5deg),
+      radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(255,180,95,.09) 72%, rgba(255,160,80,.28) 100%);
+    -webkit-mask-image:radial-gradient(ellipse at 50% 50%, transparent 34%, #000 80%);
+            mask-image:radial-gradient(ellipse at 50% 50%, transparent 34%, #000 80%); }
+  body.dashing #dashfx{ opacity:1 }
+  @media (prefers-reduced-motion: reduce){ #dashfx{ display:none } }
 </style>
 <!-- SELF-HOSTED build: vendored Three.js+addons+DRACO+FBXLoader under /mars/vendor. Re-sync = re-copy + re-apply importmap + 2 DRACO setDecoderPath + keep vendor. -->
 <script type="importmap">
@@ -544,6 +553,7 @@
 </script>
 </head>
 <body>
+<div id="dashfx" aria-hidden="true"></div>
 <!-- boot shield: visible while the module fetches; module hides it on first frame -->
 <div id="boot">
   <div class="bootTxt">ESTABLISHING UPLINK</div>
@@ -3613,9 +3623,9 @@ const _blobTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height
 const emileBlob=new THREE.Mesh(new THREE.PlaneGeometry(7,7), new THREE.MeshBasicMaterial({map:_blobTex,transparent:true,depthWrite:false,opacity:.9}));
 emileBlob.rotation.x=-Math.PI/2; emileBlob.renderOrder=1; emileBlob.visible=false; emileBlob.frustumCulled=false; emileBlob.userData.noShadow=true; scene.add(emileBlob);
 // procedural rig animator (axes calibrated against the live rig)
-const _eq=new THREE.Quaternion(), _EX=new THREE.Vector3(1,0,0), _EY=new THREE.Vector3(0,1,0), _EZ=new THREE.Vector3(0,0,1);
+const _eq=new THREE.Quaternion(), _eq2=new THREE.Quaternion(), _EX=new THREE.Vector3(1,0,0), _EY=new THREE.Vector3(0,1,0), _EZ=new THREE.Vector3(0,0,1);
 function _erot(n,ax,a){ const b=EMILE.bones[n]; if(!b)return; b.quaternion.copy(EMILE.rest[n]).multiply(_eq.setFromAxisAngle(ax,a)); }
-function _erot2(n,ax1,a1,ax2,a2){ const b=EMILE.bones[n]; if(!b)return; b.quaternion.copy(EMILE.rest[n]).multiply(_eq.setFromAxisAngle(ax1,a1)); b.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(ax2,a2)); }
+function _erot2(n,ax1,a1,ax2,a2){ const b=EMILE.bones[n]; if(!b)return; b.quaternion.copy(EMILE.rest[n]).multiply(_eq.setFromAxisAngle(ax1,a1)).multiply(_eq2.setFromAxisAngle(ax2,a2)); }   // scratch quats — no per-call alloc
 function _earm(side,down,sw){ _erot2('UpperArm_'+side,_EZ,(side==='L'?-1:1)*down,_EX,sw); }
 function _ereset(){ const B=EMILE.bones,R=EMILE.rest; for(const k in R) if(B[k]) B[k].quaternion.copy(R[k]); if(B.Hips) B.Hips.position.copy(EMILE.restHip); }
 const EP={ runCad:14.0, hip:0.92, knee:1.35, arm:0.85, armDown:1.3, elbow:0.5, bob:5, lean:0.2, twist:0.14, idleCad:2.2, idleArm:0.06, breath:0.05 };
@@ -3642,11 +3652,15 @@ function poseEmile(state,t,spd){
     _erot('LowerLeg_L',_EX,-2.3); _erot('LowerLeg_R',_EX,-2.3);
     _erot('Spine',_EX,0.9); _erot('Chest',_EX,0.5);
     _earm('L',EP.armDown*0.25,-2.2); _earm('R',EP.armDown*0.25,-2.2);
-  } else { // idle
-    const p=t*EP.idleCad, s=Math.sin(p);
-    _earm('L',EP.armDown*0.9,EP.idleArm*s); _earm('R',EP.armDown*0.9,-EP.idleArm*s);
-    _erot('LowerArm_L',_EX,-0.28); _erot('LowerArm_R',_EX,-0.28);
-    _erot('Spine',_EX,0.02+EP.breath*s); B.Hips.position.y=EMILE.restHip.y+1.4*s;
+  } else { // idle — "alive": breathing + slow lateral weight-shift + soft knees + lazy head drift (not a stiff post)
+    const p=t*EP.idleCad, s=Math.sin(p), s2=Math.sin(t*0.7), s3=Math.sin(t*0.45);
+    _earm('L',EP.armDown*0.92, EP.idleArm*s+0.05); _earm('R',EP.armDown*0.92, -EP.idleArm*s-0.05);
+    _erot('LowerArm_L',_EX,-0.30+0.04*s); _erot('LowerArm_R',_EX,-0.30-0.04*s);
+    _erot('LowerLeg_L',_EX,-0.12-0.03*s); _erot('LowerLeg_R',_EX,-0.12+0.03*s);   // soft, living knees
+    _erot2('Spine',_EX,0.03+EP.breath*s, _EY,0.05*s2);                              // breathe + torso follows the weight shift
+    _erot('Chest',_EX,0.02+EP.breath*0.6*s);
+    B.Hips.position.y=EMILE.restHip.y+1.2*s; B.Hips.position.x=EMILE.restHip.x+0.6*s2;   // breathing bob + slow weight shift
+    if(B.Head) _erot2('Head',_EY,0.18*s3,_EX,0.04*s); else if(B.Neck) _erot2('Neck',_EY,0.14*s3,_EX,0.03*s);   // lazy head drift (no-op if the bone is named otherwise)
   }
   // LANDING COMPRESSION — overlay a brief squash (body dip + knee bend + spine fold) scaled by impact, on top of the state pose
   if(EMILE.landT>0 && B.Hips){ const k=EMILE.landT/0.22, dip=Math.min(5,1+ (EMILE.landV||0)*0.18)*k;
@@ -3664,26 +3678,54 @@ function animateEmile(dt,t){
   let st;
   if(!EMILE.grounded){ st = (EMILE.dashT>0||EMILE.spinT>0) ? 'spin' : (EMILE.vy>1 ? 'jump' : 'fall'); }   // mid-air dash / double-jump = a Sonic spin-ball
   else if(EMILE.dashT>0||EMILE.spinT>0){ st='spin'; }
-  else if(roverSpd>0.6){ st='run'; }
+  else if(roverSpd > (EMILE._lastSt==='run'?0.45:0.75)){ st='run'; }   // hysteresis band: no idle<->run thrash (hence no re-snapshot storm) when coasting through the boundary
   else st='idle';
   // FOOTSTEPS — fire on each stride plant (2 per cycle) + a backward dust puff at the foot
   if(EMILE.grounded && (st==='run'||st==='spin') && roverSpd>0.6){   // also foley the grounded dash (spin) — fastest ground movement shouldn't go silent
     const si=Math.floor(EMILE.anim/Math.PI);
     if(si!==EMILE._stepIdx){ EMILE._stepIdx=si; if(typeof sfxStep==='function')sfxStep(roverSpdRatio); }   // audio conveys the step; the heavy impact-burst was wrong for a footfall
   }
+  // STATE CROSSFADE — snapshot the live pose when the state flips, then ease into the new state's pose over ~0.18s (kills the inter-state snap/pop). Steady-state run is untouched (no flip → no blend).
+  const _BLEND=0.18;
+  if(st!==EMILE._lastSt){
+    if(!EMILE._bFrom){ EMILE._bFrom={}; for(const k in EMILE.rest) EMILE._bFrom[k]=new THREE.Quaternion(); EMILE._bHip=new THREE.Vector3(); }
+    for(const k in EMILE.rest){ const b=EMILE.bones[k]; if(b) EMILE._bFrom[k].copy(b.quaternion); }
+    if(EMILE.bones.Hips) EMILE._bHip.copy(EMILE.bones.Hips.position);
+    EMILE._blendT=_BLEND; EMILE._lastSt=st;
+  }
   poseEmile(st, st==='idle'?t:EMILE.anim, Math.min(1,roverSpdRatio));
+  if(EMILE._blendT>0){
+    EMILE._blendT=Math.max(0,EMILE._blendT-dt);
+    const w=EMILE._blendT/_BLEND;   // 1→0: slerp the new target pose BACK toward the snapshot, easing out
+    for(const k in EMILE.rest){ const b=EMILE.bones[k], f=EMILE._bFrom[k]; if(b&&f) b.quaternion.slerp(f, w); }
+    if(EMILE.bones.Hips && EMILE._bHip && !(EMILE.landT>0)) EMILE.bones.Hips.position.lerp(EMILE._bHip, w);   // let landing compression OWN Hips.y at impact (don't blend the squash away)
+  }
   // contact-shadow blob on the ground under EMILE, shrinking as he rises
   if(emileBlob){ const gy=(EMILE._gAvg!==undefined?EMILE._gAvg:terrainH(rover.position.x,rover.position.z));
     emileBlob.position.set(rover.position.x, gy+0.15, rover.position.z);
     const air=Math.max(0, rover.position.y-gy), s=Math.max(.42, 1-air*.045);
     emileBlob.scale.setScalar(s); emileBlob.material.opacity=.9*s*s; }
+  // SLOPE CONFORM — tilt EMILE onto the hillside so the body tracks the ground plane (mirrors the rover tilt convention; same yaw frame as roverTilt). Damped + mid-air-zeroed → grounds him without re-introducing jitter.
+  if(emileWrap && EMILE._conform!==false){
+    const px=rover.position.x, pz=rover.position.z, sH=Math.sin(roverHeading), cH=Math.cos(roverHeading), w=EMILE.grounded?1:0;
+    const hF=terrainH(px+sH*2.2,pz+cH*2.2), hB=terrainH(px-sH*2.2,pz-cH*2.2);
+    const hR=terrainH(px+cH*1.5,pz-sH*1.5), hL=terrainH(px-cH*1.5,pz+sH*1.5);
+    const tx=Math.max(-.42,Math.min(.42,-Math.atan2(hF-hB,4.4)*0.55*w));
+    const tz=Math.max(-.42,Math.min(.42, Math.atan2(hR-hL,3.0)*0.55*w));
+    emileWrap.rotation.x=damp(emileWrap.rotation.x,tx,7,dt);
+    emileWrap.rotation.z=damp(emileWrap.rotation.z,tz,7,dt);
+  }
 }
 new FBXLoader().load('/mars/assets/EmileGuapo.fbx', fbx=>{
   fbx.scale.setScalar(EMILE.SCALE);
   fbx.rotation.y=EMILE.FACE;
   fbx.traverse(o=>{
     if(o.isMesh){ o.frustumCulled=false; o.castShadow=true; o.receiveShadow=false;
-      if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=Math.max(0.55,m.roughness||0.6); } }); } }
+      if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=Math.max(0.55,m.roughness||0.6);
+        // HERO BACK-RIM — a view-dependent fresnel edge glow baked into EMILE's own materials (EMILE-only, zero scene-lighting cost). Pops his silhouette off the terrain.
+        m.onBeforeCompile=(sh)=>{ try{ sh.fragmentShader=sh.fragmentShader.replace('#include <emissivemap_fragment>',
+          '#include <emissivemap_fragment>\n  float _rim=pow(1.0-clamp(dot(normalize(vViewPosition), normal),0.0,1.0),3.0);\n  totalEmissiveRadiance += vec3(1.0,0.80,0.46)*_rim*0.5;'); }catch(e){} };   // guarded like LIDAR: a future chunk rename can't render EMILE black
+        m.needsUpdate=true; } }); } }
     if(o.isBone){ EMILE.bones[o.name]=o; EMILE.rest[o.name]=o.quaternion.clone(); }
   });
   if(EMILE.bones.Hips) EMILE.restHip.copy(EMILE.bones.Hips.position);
@@ -3716,7 +3758,8 @@ function emileJump(){
   else { EMILE.bufferT=0.13; }   // input buffer — a jump pressed just before landing fires on touchdown
 }
 function emileJumpRelease(){ if(playerMode==='emile' && !EMILE.grounded && EMILE.vy>2){ EMILE.vy*=0.5; } }   // variable jump height — release early = shorter hop
-function emileDash(){ if(playerMode!=='emile') return; EMILE.dashT=EMILE.DASH_TIME; if(typeof sfxDash==='function')sfxDash(); if(typeof haptic==='function')haptic(.5,.12); }
+function emileDash(){ if(playerMode!=='emile') return; EMILE.dashT=EMILE.DASH_TIME; if(typeof sfxDash==='function')sfxDash(); if(typeof haptic==='function')haptic(.5,.12);
+  document.body.classList.add('dashing'); clearTimeout(EMILE._dfx); EMILE._dfx=setTimeout(()=>document.body.classList.remove('dashing'), EMILE.DASH_TIME*1000); }   // radial speed-lines overlay flash
 { const eb=document.getElementById('emileBtn'); if(eb) eb.onclick=togglePlayer;
   const jb=document.getElementById('jumpBtn'); if(jb){ jb.addEventListener('pointerdown',e=>{ e.preventDefault(); emileJump(); }); jb.addEventListener('pointerup',e=>{ e.preventDefault(); emileJumpRelease(); }); }
   const db=document.getElementById('dashBtn'); if(db){ db.addEventListener('pointerdown',e=>{ e.preventDefault(); emileDash(); }); }
@@ -4594,7 +4637,7 @@ function updateCamera(dt,t){
   if(_em && EMILE.landT>0) camTarget.y -= Math.min(4,(EMILE.landV||0)*0.12)*(EMILE.landT/0.22);   // camera dip on landing impact
   distK=damp(distK, 1+(_em?.22:.1)*roverSpdRatio, 1.8, dt);   // pull back a touch more at EMILE speed
   /* +++ rover-feel: SPEED CAMERA (Forza) — FOV breathes wider with speed, dust-streak vignette tightens. */
-  const _fovTgt = _reduceMotion ? 42 : (42 + (_em?4:11)*roverSpdRatio);   // EMILE: calmer FOV breathe (less world-warp = less jitter feel)
+  const _fovTgt = _reduceMotion ? 42 : (42 + (_em?4:11)*roverSpdRatio + ((_em&&EMILE.dashT>0)?6:0));   // EMILE: calmer FOV breathe (less world-warp = less jitter feel) + a brief punch on dash
   const _fov = damp(camera.fov, _fovTgt, 3, dt);
   if(Math.abs(_fov-camera.fov)>0.01){ camera.fov=_fov; camera.updateProjectionMatrix(); }
   vigPass.uniforms.darkness.value = damp(vigPass.uniforms.darkness.value, Math.min(0.92,.62+.5*roverSpdRatio), 2.5, dt);   // softer base, tightens with speed — clamped <1 so the corner target never goes negative (over-crush)
