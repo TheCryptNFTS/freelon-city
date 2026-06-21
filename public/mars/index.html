@@ -3726,7 +3726,7 @@ new GLTFLoader().load('/mars/assets/emile.glb', gltf=>{
       if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=Math.max(0.55,m.roughness||0.6);
         // HERO BACK-RIM — a view-dependent fresnel edge glow baked into EMILE's own materials (EMILE-only, zero scene-lighting cost). Pops his silhouette off the terrain.
         m.onBeforeCompile=(sh)=>{ try{ sh.fragmentShader=sh.fragmentShader.replace('#include <emissivemap_fragment>',
-          '#include <emissivemap_fragment>\n  float _rim=pow(1.0-clamp(dot(normalize(vViewPosition), normal),0.0,1.0),3.0);\n  totalEmissiveRadiance += vec3(1.0,0.80,0.46)*_rim*0.5;'); }catch(e){} };   // guarded like LIDAR: a future chunk rename can't render EMILE black
+          '#include <emissivemap_fragment>\n  float _rim=pow(1.0-clamp(dot(normalize(vViewPosition), normal),0.0,1.0),6.0);\n  totalEmissiveRadiance += vec3(1.0,0.80,0.46)*_rim*0.25;'); }catch(e){} };   // tight edge-only rim (pow6) so it defines the silhouette without washing the black body gold
         m.needsUpdate=true; } }); } }
     if(o.isBone){ EMILE.bones[o.name]=o; EMILE.rest[o.name]=o.quaternion.clone(); }
   });
