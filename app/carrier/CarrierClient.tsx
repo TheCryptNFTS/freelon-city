@@ -96,7 +96,7 @@ export function CarrierClient() {
   }, [state?.handle, viewer.addr, holder.address]);
 
   // Prefer the connected wallet as the X bind — that's what every
-  // wallet-scoped endpoint (claim, tithe, watchlist, name) requires.
+  // wallet-scoped endpoint (claim, tithe, name) requires.
   // Falls back to the handle path so users without a wallet still can
   // claim their /carrier handle, just without wallet-bound earning.
   const xVerifyHref = (handle: string, wallet?: string | null) =>

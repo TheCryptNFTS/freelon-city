@@ -24,11 +24,9 @@ import { upstash, hasUpstash } from "@/lib/upstash-client";
 export type NotifKind =
   | "decay-warning"          // 3 days before passive earnings pause
   | "streak-milestone-soon"  // T-1 before 7d / 30d streak unlock
-  | "watchlist-flag"         // a citizen they watch flagged Red Signal
   | "transmission-boosted"   // their transmission got a paid boost
   | "civ-wars-monday"        // weekly reset notification
   | "civ-wars-mid-week"      // Thursday standings update
-  | "snipe-matured"          // their 14-day snipe hold completed, bounty paid
   | "fresh-citizen"          // first citizen acquired (welcome)
   | "sweep-burst"            // 5+ citizens swept in 4h window — broadcast to all holders
   | "agent-levelup"          // a citizen-agent reached a new level / rank

@@ -9,11 +9,9 @@ type Prefs = { dmEnabled: boolean; optOut: NotifKind[] };
 const KIND_LABEL: Record<string, { label: string; color: string }> = {
   "decay-warning":        { label: "DECAY",     color: "#FF8A4D" },
   "streak-milestone-soon":{ label: "STREAK",    color: "var(--gold)" },
-  "watchlist-flag":       { label: "WATCHLIST", color: "var(--state-danger)" },
   "transmission-boosted": { label: "BOOST",     color: "#A989C7" },
   "civ-wars-monday":      { label: "CIV WARS",  color: "#7AB7FF" },
   "civ-wars-mid-week":    { label: "CIV WARS",  color: "#7AB7FF" },
-  "snipe-matured":        { label: "BOUNTY",    color: "var(--state-active)" },
   "fresh-citizen":        { label: "WELCOME",   color: "var(--gold)" },
 };
 
@@ -126,7 +124,7 @@ export function NotificationInbox() {
 
       {empty ? (
         <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", letterSpacing: "0.05em", lineHeight: 1.6, margin: 0 }}>
-          ⬡ No new signals. The city is watching — you&apos;ll get a ping the moment your watched citizen flags, your streak is about to reset, or your transmission gets a boost.
+          ⬡ No new signals. The city is watching — you&apos;ll get a ping the moment your streak is about to reset, or your transmission gets a boost.
         </p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>

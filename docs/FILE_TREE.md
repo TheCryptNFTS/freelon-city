@@ -265,7 +265,6 @@ Single visual language. Every primitive reads from `--state-*`, `--r-*`, `--pane
 | `CitizenNameEditor.tsx` | Burn 50⬡ to name. RPC ownership check. |
 | `CitizenRealignEditor.tsx` | Burn 250⬡ to realign civ. |
 | `CivGlyph.tsx` | SVG mask-based civ glyph (any color). |
-| `WatchlistButton.tsx` | Burn 25⬡ to watchlist a citizen. |
 | `ShareOG.tsx` | Single-button OG share for any path. |
 | `PropagandaShareButtons.tsx` | Civ-pride share buttons. |
 | `ShareButtons.tsx` | Multi-channel share row. |
@@ -357,15 +356,14 @@ Single visual language. Every primitive reads from `--state-*`, `--r-*`, `--pane
 | `civ-broadcast-store.ts` | Mayor broadcasts (per-civ). |
 | `civ-mayor.ts` | Auto-elected mayor (sampled from on-chain holdings). |
 | `civ-wars.ts` | Civ-wars scoring + standings. |
-| `notifications-store.ts` | NotifKind enum + delivery + prefs. (kinds: decay-warning, streak-soon, watchlist-flag, transmission-boosted, civ-wars-monday, civ-wars-mid, snipe-matured, fresh-citizen, sweep-burst) |
+| `notifications-store.ts` | NotifKind enum + delivery + prefs. (kinds: decay-warning, streak-soon, transmission-boosted, civ-wars-monday, civ-wars-mid, fresh-citizen, sweep-burst) |
 | `notify.ts` | High-level notify() — writes inbox + optional X DM. |
-| `notify-scanner.ts` | Cron-time scanner for decay/streak/watchlist notifications. |
+| `notify-scanner.ts` | Cron-time scanner for decay/streak notifications. |
 | `collapse-mode.ts` | City collapse state (auto-trigger + multipliers). |
 | `quest-store.ts` | Quest progress per handle/wallet. |
 | `invite-store.ts` | Invite tracker. |
 | `name-store.ts` | Citizen names. |
 | `realign-store.ts` | Civ realignments. |
-| `watchlist-store.ts` | Per-wallet watchlist. |
 | `tithe-store.ts` | Tithe history. |
 | `propaganda-store.ts` | Civ propaganda posts. |
 | `pulse-store.ts` | Sale-pulse cursor. |
@@ -586,7 +584,6 @@ app/api/wallet/[address]/featured/route.ts
 app/api/wallet/[address]/hex/route.ts
 app/api/wallet/[address]/net-worth/route.ts
 app/api/wallet/[address]/tokens/route.ts
-app/api/watchlist/route.ts
 app/api/x/callback/route.ts
 app/api/x/me/route.ts
 app/api/x/start/route.ts
@@ -745,7 +742,6 @@ components/TransmissionCard.tsx
 components/TransmissionSubmit.tsx
 components/VaultClient.tsx
 components/WalletConnect.tsx
-components/WatchlistButton.tsx
 
 components/ui/ActionCard.tsx
 components/ui/Banner.tsx
@@ -846,7 +842,6 @@ lib/useOwnsCitizen.ts
 lib/wallet-classification.ts
 lib/wallet-hex-store.ts
 lib/wallet-tokens.ts
-lib/watchlist-store.ts
 lib/weekly-receipts.ts
 lib/worldbuilding.ts
 lib/x-autopost.ts

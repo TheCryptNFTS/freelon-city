@@ -2,7 +2,7 @@
  * Client-side `freelon_addr` cookie helpers.
  *
  * `freelon_addr` is the non-HttpOnly viewer-address hint every personal
- * module reads (header pill, MyRank, Watchlist, civ standings). It is NOT
+ * module reads (header pill, MyRank, civ standings). It is NOT
  * auth — auth is the HMAC x-session cookie.
  *
  * 2026-05-30 — the site serves on both freeloncity.com (apex) and

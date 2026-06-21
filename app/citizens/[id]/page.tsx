@@ -7,7 +7,6 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { CitizenDeepLore } from "@/components/CitizenDeepLore";
 import { QuestTracker } from "@/components/QuestTracker";
 import { CitizenOwnedByYou } from "@/components/CitizenOwnedByYou";
-import { WatchlistButton } from "@/components/WatchlistButton";
 import { CitizenNameEditor } from "@/components/CitizenNameEditor";
 import { CitizenRealignEditor } from "@/components/CitizenRealignEditor";
 import { CitizenProgressPanel } from "@/components/CitizenProgressPanel";
@@ -428,7 +427,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 originalCiv={c.civilization}
                 currentRealignment={realign}
               />
-              <WatchlistButton tokenId={tid} />
               <YourStable />
             </details>
 

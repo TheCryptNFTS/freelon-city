@@ -15,7 +15,7 @@ hiring one) so they can quote in 30 minutes.
 - Earned by **activity** (daily claim, sale of a citizen, post, snipe,
   defending bid, etc.).
 - Spent by **burning** at sinks (name a citizen, realign civ, post a
-  transmission, boost, tithe, shop items, watchlist hits).
+  transmission, boost, tithe, shop items).
 
 Lore frame: hex is the city's gratitude. You did something, the city
 paid you in hex. You want something from the city, you give it back.
@@ -61,7 +61,6 @@ an off-chain reward layer the contract has no knowledge of.
 | Post a transmission | 100⬡ |
 | Boost a transmission | 50-500⬡ |
 | Tithe (one-shot civ-aligned gift to wallet) | 100⬡ |
-| Watchlist a citizen | 25⬡ |
 | Shop items | 50-500⬡ |
 | Patrons wall (7-day name post) | 100⬡ |
 | Custom title | 250⬡ |

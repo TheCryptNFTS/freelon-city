@@ -89,7 +89,7 @@ export function WalletConnect() {
     setStatus("checking");
     setCount(null);
     // Stamp the viewer cookie immediately so personal modules across the
-    // site (MyRank, MyCivStandings, Watchlist) recognise this wallet
+    // site (MyRank, MyCivStandings) recognise this wallet
     // even before the balance resolves.
     stampViewerAddr(address);
 

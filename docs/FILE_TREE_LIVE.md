@@ -73,7 +73,7 @@ static JSON (`data/`) + on-chain reads. Images persist to Vercel Blob. Identity 
 ### HEX economy
 - `wallet/[address]/hex` — balance + the credit-bearing holder/sweep/defender ticks (now walletProof-gated). `…/tokens` `…/civs` `…/balance` `…/inventory` `…/net-worth` `…/featured` `…/stable` — wallet reads.
 - `claim` (daily) · `mission/claim` · `quests/[questId]` · `reckoning/tribute` (civ-war burn) · `tithe` · `city/boost` `city/build` `city/collect` — earn/spend.
-- `referral` · `reserve` · `watchlist` · `alerts` · `defender` · `hex-index`.
+- `referral` · `reserve` · `alerts` · `defender` · `hex-index`.
 
 ### Games
 - `match/create` `match/queue` `match/[id]` `match/[id]/{action,join}` — PvP TCG matches. `arcade/score` · `play/guard/{attempt,state}` · `reckoning/state` · `city/{state,leaderboard,build,collect}` — arcade/shared-city.
