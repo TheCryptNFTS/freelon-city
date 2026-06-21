@@ -664,7 +664,7 @@ export const REPLY_PROMPTS: ReplyPrompt[] = [
     id: "transmission-relay",
     category: "quote",
     hook: "RELAY A TRANSMISSION",
-    body: `⬡ ${HANDLE} carriers transmit their own signal now.\n\nThis is one. Signal back. The top transmission of the week earns 5,000 ⬡.\n\n${HASHTAGS}`,
+    body: `⬡ ${HANDLE} carriers transmit their own signal now.\n\nThis is one. Signal back — boost the ones that move you; authors earn ⬡ royalties.\n\n${HASHTAGS}`,
   },
 ];
 

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ECONOMY } from "@/lib/economy-constants";
 import { RelaySection } from "@/components/earn/RelaySection";
 
-export const dynamic = "force-dynamic";
+// 2026-06-21 (page audit): page renders from ECONOMY constants only — no request
+// data — so force-dynamic was a no-op that also voided the revalidate. ISR only.
 export const revalidate = 300;
 
 export const metadata: Metadata = {
@@ -201,9 +202,9 @@ export default async function EarnPage() {
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0" }}>
               <span>
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Transmissions</strong>
-                <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· top weekly transmission</span>
+                <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· earn when others boost yours</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+5,000 ⬡ + 10% boost royalties</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>10% of every boost ⬡</span>
             </li>
           </ul>
           </details>
@@ -237,8 +238,8 @@ export default async function EarnPage() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
               <BurnRow name="Naming"            cost={ECONOMY.NAMING_COST}            how="Permanent display name on a citizen." />
               <BurnRow name="Civ realign"       cost={ECONOMY.REALIGN_COST}           how="Move a Common citizen to a different civ. Rarity-preserving." />
-              <BurnRow name="Watchlist"         cost={50}                              how="Watch any citizen. 24h private window if it flags red." />
-              <BurnRow name="Boost listing"     cost={ECONOMY.BOOST_LISTING_PER_DAY}  how="Pin your listing at top of /market for 24h." />
+              <BurnRow name="Watchlist"         cost={50}                              how="Bookmark any citizen to track it from your dashboard." />
+              <BurnRow name="Boost listing"     cost={ECONOMY.BOOST_LISTING_PER_DAY}  how="Pin your listing at the top of the collection view for 24h." />
               <BurnRow name="Feature citizen"   cost={ECONOMY.FEATURE_CITIZEN_24H}    how="Hero slot on /civilizations for 24h." />
               <BurnRow name="Signal Burst"      cost={ECONOMY.SIGNAL_BURST_COST}      how="Top-of-feed spotlight on the homepage." />
               <BurnRow name="Custom title"      cost={ECONOMY.CUSTOM_TITLE_COST}      how="Vanity title on your /carrier page." />

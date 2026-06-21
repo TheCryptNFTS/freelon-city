@@ -1330,11 +1330,12 @@ export function AgentWorkspace(props: Props) {
                 value={composer}
                 onChange={(e) => setComposer(e.target.value)}
                 onKeyDown={onKeyDown}
+                aria-label={`Message ${name}`}
                 placeholder={curAbility ? `Type here — tell ${name} what to do, then press ↵` : "Connect your wallet to begin…"}
                 rows={1}
                 disabled={sending}
               />
-              <button className={styles.send} onClick={send} disabled={sending || !composer.trim()}>
+              <button className={styles.send} onClick={send} disabled={sending || !composer.trim()} aria-label="Send message">
                 {sending ? "…" : "↑"}
               </button>
             </div>

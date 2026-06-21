@@ -5,8 +5,9 @@ import { TransmissionCard } from "@/components/TransmissionCard";
 import { TransmissionSubmit } from "@/components/TransmissionSubmit";
 import { CIVILIZATIONS } from "@/lib/constants";
 
+// Feed must reflect a just-submitted transmission, so it stays dynamic.
+// (revalidate is a no-op under force-dynamic — removed to stop it misleading.)
 export const dynamic = "force-dynamic";
-export const revalidate = 30;
 
 export const metadata: Metadata = {
   title: "Transmissions ⬡",
@@ -85,7 +86,7 @@ export default async function TransmissionsPage({
             <div>
               <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ADD YOUR TRANSMISSION</span>
               <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-2)", marginTop: 4, lineHeight: 1.5 }}>
-                Post an image + caption to the archive. (Cost + weekly prize shown below.)
+                Post an image + caption to the archive. (Cost + boost royalties shown below.)
               </p>
             </div>
             <span style={{ fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.22em", color: "var(--gold)", border: "1px solid var(--gold)", padding: "6px 12px", borderRadius: 999 }}>

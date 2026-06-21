@@ -76,6 +76,7 @@ export function CollectionBrowser({
           <input
             type="text"
             placeholder="search by #id, name, trait…"
+            aria-label="Search citizens by id, name, or trait"
             value={q}
             onChange={(e) => { setQ(e.target.value); setShown(PAGE); }}
             className="citizens-search"

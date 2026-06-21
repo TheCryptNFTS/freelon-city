@@ -67,7 +67,7 @@ export default async function TransmissionDetailPage({
           <li>Free SIGNAL — one ⬢ per carrier per transmission</li>
           <li>BOOST — burn 10–5,000 ⬡ to amplify. 10% goes to the author as royalty</li>
           <li>Score = signals × √(1 + boostHex/100) — neither pure votes nor pure hex dominates</li>
-          <li>Top weekly transmission earns 5,000 ⬡ + 7 days featured on the city feed</li>
+          <li>The week&rsquo;s highest-scoring transmissions rise to the top of the city feed</li>
         </ul>
       </section>
 

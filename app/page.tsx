@@ -51,10 +51,13 @@ export const metadata: Metadata = {
 
 // 2026-05-28: the landing was rebuilt to 4 static intent-doors over a
 // full-bleed city backdrop — the cookie-aware CTA swap (and its
-// cookies() call) is gone. Kept force-dynamic so the wallet-aware
-// client islands (IdentityGreeting / HeroMarketStat) never get baked
-// into a stale static shell.
-export const dynamic = "force-dynamic";
+// cookies() call) is gone. The wallet-aware bits (IdentityGreeting /
+// HeroMarketStat) were also removed, so nothing on the server side reads
+// cookies/headers anymore.
+// 2026-06-21 (page audit): with no server-side dynamic deps left, force-dynamic
+// only cost us a re-render on every hit. Flipped to ISR — client islands still
+// hydrate wallet-aware on the client; the static shell is fine.
+export const revalidate = 600;
 // 2026-06-04 — AGENTS-ONLY homepage (founder: "agents are the main thing").
 // The newcomer-path simplification stripped everything that wasn't the agent
 // pitch. Current spine: Hero → Why own → How it works → CitizenShowcase →
