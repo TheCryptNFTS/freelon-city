@@ -3612,7 +3612,9 @@ function swapRoverModel(){
 let playerMode='rover';                 // 'rover' | 'emile'
 const EMILE={ ready:false, bones:{}, rest:{}, restHip:new THREE.Vector3(),
   vy:0, grounded:true, jumps:0, dashT:0, spinT:0, anim:0, model:null,
-  SCALE:0.032, FACE:Math.PI, FOOT:0.0,  // tuned in-world
+  mixer:null, clips:{}, _curClip:null,            // real mocap (retargeted GLB) playback
+  SCALE:0.032, FACE:Math.PI, FOOT:0.0,            // (legacy FBX tuning)
+  GLB_SCALE:9, GLB_FACE:Math.PI,                  // GLB size/facing — tuned in-world
   SPD_MULT:1.5, JUMP_V:30, GRAV:78, DASH_MULT:1.9, DASH_TIME:0.5 };
 const emileWrap=new THREE.Group(); emileWrap.visible=false; rover.add(emileWrap);
 /* contact-shadow blob — grounds EMILE (his mesh casts only a tiny sun shadow). Sits on the terrain
@@ -3675,30 +3677,26 @@ function animateEmile(dt,t){
   // advance the stride by distance, not time: feet plant at ground speed instead of moonwalking
   EMILE.anim += (Math.max(roverSpd,0)*dt/EMILE_CYCLE_DIST)*Math.PI*2;
   if(EMILE.landT>0) EMILE.landT=Math.max(0,EMILE.landT-dt);   // landing-compression timer
-  let st;
-  if(!EMILE.grounded){ st = (EMILE.dashT>0||EMILE.spinT>0) ? 'spin' : (EMILE.vy>1 ? 'jump' : 'fall'); }   // mid-air dash / double-jump = a Sonic spin-ball
-  else if(EMILE.dashT>0||EMILE.spinT>0){ st='spin'; }
-  else if(roverSpd > (EMILE._lastSt==='run'?0.45:0.75)){ st='run'; }   // hysteresis band: no idle<->run thrash (hence no re-snapshot storm) when coasting through the boundary
-  else st='idle';
-  // FOOTSTEPS — fire on each stride plant (2 per cycle) + a backward dust puff at the foot
-  if(EMILE.grounded && (st==='run'||st==='spin') && roverSpd>0.6){   // also foley the grounded dash (spin) — fastest ground movement shouldn't go silent
-    const si=Math.floor(EMILE.anim/Math.PI);
-    if(si!==EMILE._stepIdx){ EMILE._stepIdx=si; if(typeof sfxStep==='function')sfxStep(roverSpdRatio); }   // audio conveys the step; the heavy impact-burst was wrong for a footfall
-  }
-  // STATE CROSSFADE — snapshot the live pose when the state flips, then ease into the new state's pose over ~0.18s (kills the inter-state snap/pop). Steady-state run is untouched (no flip → no blend).
-  const _BLEND=0.18;
-  if(st!==EMILE._lastSt){
-    if(!EMILE._bFrom){ EMILE._bFrom={}; for(const k in EMILE.rest) EMILE._bFrom[k]=new THREE.Quaternion(); EMILE._bHip=new THREE.Vector3(); }
-    for(const k in EMILE.rest){ const b=EMILE.bones[k]; if(b) EMILE._bFrom[k].copy(b.quaternion); }
-    if(EMILE.bones.Hips) EMILE._bHip.copy(EMILE.bones.Hips.position);
-    EMILE._blendT=_BLEND; EMILE._lastSt=st;
-  }
-  poseEmile(st, st==='idle'?t:EMILE.anim, Math.min(1,roverSpdRatio));
-  if(EMILE._blendT>0){
-    EMILE._blendT=Math.max(0,EMILE._blendT-dt);
-    const w=EMILE._blendT/_BLEND;   // 1→0: slerp the new target pose BACK toward the snapshot, easing out
-    for(const k in EMILE.rest){ const b=EMILE.bones[k], f=EMILE._bFrom[k]; if(b&&f) b.quaternion.slerp(f, w); }
-    if(EMILE.bones.Hips && EMILE._bHip && !(EMILE.landT>0)) EMILE.bones.Hips.position.lerp(EMILE._bHip, w);   // let landing compression OWN Hips.y at impact (don't blend the squash away)
+  if(EMILE.mixer){
+    if(!EMILE.grounded){
+      // AIRBORNE — brief jump/fall/spin stay PROCEDURAL (mixer frozen); bone names match so poseEmile drives the same GLB rig
+      const st = (EMILE.dashT>0||EMILE.spinT>0) ? 'spin' : (EMILE.vy>1 ? 'jump' : 'fall');
+      poseEmile(st, EMILE.anim, Math.min(1,roverSpdRatio));
+      // keep EMILE._curClip as the last grounded clip (still weight-1, frozen) so the landing crossfade has a valid source — nulling it would leave two clips at weight 1
+    } else {
+      // GROUNDED — REAL MOCAP: crossfade IDLE<->RUN by speed (hysteresis), run cadence tracks ground speed
+      const want = roverSpd > (EMILE._curClip==='RUN'?0.45:0.75) ? 'RUN' : 'IDLE';
+      if(want!==EMILE._curClip){
+        const nx=EMILE.clips[want], pv=EMILE.clips[EMILE._curClip];
+        if(nx){ nx.reset(); nx.enabled=true; nx.setEffectiveWeight(1); nx.setEffectiveTimeScale(1); nx.play();
+          if(pv) pv.crossFadeTo(nx, 0.22, false); }
+        EMILE._curClip=want;
+      }
+      if(EMILE.clips.RUN) EMILE.clips.RUN.setEffectiveTimeScale(Math.max(0.7, 0.5+roverSpdRatio*1.6));   // feet plant at ground speed (anti-skate)
+      EMILE.mixer.update(dt);
+      // FOOTSTEP foley on the run cadence
+      if(want==='RUN' && roverSpd>0.6){ const si=Math.floor(EMILE.anim/Math.PI); if(si!==EMILE._stepIdx){ EMILE._stepIdx=si; if(typeof sfxStep==='function')sfxStep(roverSpdRatio); } }
+    }
   }
   // contact-shadow blob on the ground under EMILE, shrinking as he rises
   if(emileBlob){ const gy=(EMILE._gAvg!==undefined?EMILE._gAvg:terrainH(rover.position.x,rover.position.z));
@@ -3716,11 +3714,15 @@ function animateEmile(dt,t){
     emileWrap.rotation.z=damp(emileWrap.rotation.z,tz,7,dt);
   }
 }
-new FBXLoader().load('/mars/assets/EmileGuapo.fbx', fbx=>{
-  fbx.scale.setScalar(EMILE.SCALE);
-  fbx.rotation.y=EMILE.FACE;
-  fbx.traverse(o=>{
-    if(o.isMesh){ o.frustumCulled=false; o.castShadow=true; o.receiveShadow=false;
+/* EMILE now ships REAL mocap: emile.glb = his rig + CC0/MIT locomotion (run/idle/walk) retargeted
+   onto his own 35-bone skeleton in Blender (the FBX's own clips were empty stubs). Bone names are
+   preserved, so the procedural jump/fall/spin poses (poseEmile) still drive the same rig mid-air. */
+new GLTFLoader().load('/mars/assets/emile.glb', gltf=>{
+  const model=gltf.scene;
+  model.scale.setScalar(EMILE.GLB_SCALE);
+  model.rotation.y=EMILE.GLB_FACE;
+  model.traverse(o=>{
+    if(o.isMesh||o.isSkinnedMesh){ o.frustumCulled=false; o.castShadow=true; o.receiveShadow=false;
       if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=Math.max(0.55,m.roughness||0.6);
         // HERO BACK-RIM — a view-dependent fresnel edge glow baked into EMILE's own materials (EMILE-only, zero scene-lighting cost). Pops his silhouette off the terrain.
         m.onBeforeCompile=(sh)=>{ try{ sh.fragmentShader=sh.fragmentShader.replace('#include <emissivemap_fragment>',
@@ -3729,9 +3731,11 @@ new FBXLoader().load('/mars/assets/EmileGuapo.fbx', fbx=>{
     if(o.isBone){ EMILE.bones[o.name]=o; EMILE.rest[o.name]=o.quaternion.clone(); }
   });
   if(EMILE.bones.Hips) EMILE.restHip.copy(EMILE.bones.Hips.position);
-  EMILE.model=fbx; emileWrap.add(fbx); EMILE.ready=true;
-  poseEmile('idle',0,0);
-}, undefined, e=>{ console.warn('EMILE load failed', e); });
+  EMILE.mixer=new THREE.AnimationMixer(model);
+  gltf.animations.forEach(c=>{ const a=EMILE.mixer.clipAction(c); a.enabled=true; EMILE.clips[c.name]=a; });
+  if(EMILE.clips.IDLE){ EMILE.clips.IDLE.play(); EMILE._curClip='IDLE'; }
+  EMILE.model=model; emileWrap.add(model); EMILE.ready=true;
+}, undefined, e=>{ console.warn('EMILE GLB load failed', e); });
 
 function setPlayerMode(m){
   if(m===playerMode) return;
@@ -7247,7 +7251,8 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
     keyDrive.f=keyDrive.b=keyDrive.l=keyDrive.r=0;
     _ip.pos.copy(rover.position); _ip.prev.copy(rover.position); _ip.h=_ip.ph=roverHeading; _ip.accum=0;   // resync the render-interpolator to the manually-stepped state (else next frame snaps back)
     return MARS.emileInfo(); },
-  emileTune:(o)=>{ Object.assign(EMILE,o||{}); if(EMILE.model){ EMILE.model.scale.setScalar(EMILE.SCALE); EMILE.model.rotation.y=EMILE.FACE; } return {SCALE:EMILE.SCALE,FACE:EMILE.FACE,FOOT:EMILE.FOOT,SPD_MULT:EMILE.SPD_MULT,JUMP_V:EMILE.JUMP_V}; },
+  emileTune:(o)=>{ Object.assign(EMILE,o||{}); if(EMILE.model){ EMILE.model.scale.setScalar(EMILE.GLB_SCALE); EMILE.model.rotation.y=EMILE.GLB_FACE; } return {GLB_SCALE:EMILE.GLB_SCALE,GLB_FACE:+EMILE.GLB_FACE.toFixed(2),FOOT:EMILE.FOOT,SPD_MULT:EMILE.SPD_MULT,clip:EMILE._curClip,clips:Object.keys(EMILE.clips)}; },
+  emileClip:(n)=>{ if(EMILE.clips[n]){ for(const k in EMILE.clips) EMILE.clips[k].stop(); EMILE.clips[n].reset().setEffectiveWeight(1).play(); EMILE._curClip=n; } return {playing:n,clips:Object.keys(EMILE.clips)}; },
   /* +++ rover-feel: drive manually for N seconds (same manualStep path the keyboard uses) */
   throttle:(dir,secs=1.5)=>{ const d=typeof dir==='string'
       ? ({fwd:{f:1},back:{b:1},left:{f:1,l:1},right:{f:1,r:1}}[dir]||{f:1}) : (dir||{f:1});
