@@ -544,7 +544,7 @@
   body.dashing #dashfx{ opacity:1 }
   @media (prefers-reduced-motion: reduce){ #dashfx{ display:none } }
 </style>
-<!-- SELF-HOSTED build: vendored Three.js+addons+DRACO+FBXLoader under /mars/vendor. Re-sync = re-copy + re-apply importmap + 2 DRACO setDecoderPath + keep vendor. -->
+<!-- SELF-HOSTED build: vendored Three.js+addons+DRACO+FBXLoader under /mars/vendor. -->
 <script type="importmap">
 {"imports":{
   "three":"/mars/vendor/three/three.module.js",
@@ -3614,8 +3614,8 @@ const EMILE={ ready:false, bones:{}, rest:{}, restHip:new THREE.Vector3(),
   vy:0, grounded:true, jumps:0, dashT:0, spinT:0, anim:0, model:null,
   mixer:null, clips:{}, _curClip:null,            // real mocap (retargeted GLB) playback
   SCALE:0.032, FACE:Math.PI, FOOT:0.0,            // (legacy FBX tuning)
-  GLB_SCALE:9, GLB_FACE:Math.PI,                  // GLB size/facing — tuned in-world
-  SPD_MULT:1.5, JUMP_V:30, GRAV:78, DASH_MULT:1.9, DASH_TIME:0.5 };
+  GLB_SCALE:9, GLB_FACE:0,                         // GLB size/facing — 0 faces +Z travel dir (PI made him moonwalk)
+  SPD_MULT:1.7, JUMP_V:42, GRAV:130, DASH_MULT:2.4, DASH_TIME:0.35, dashCd:0 };
 const emileWrap=new THREE.Group(); emileWrap.visible=false; rover.add(emileWrap);
 /* contact-shadow blob — grounds EMILE (his mesh casts only a tiny sun shadow). Sits on the terrain
    under him and shrinks/fades as he jumps, so the ground connection always reads. */
@@ -3679,23 +3679,23 @@ function animateEmile(dt,t){
   if(EMILE.landT>0) EMILE.landT=Math.max(0,EMILE.landT-dt);   // landing-compression timer
   if(EMILE.mixer){
     if(!EMILE.grounded){
-      // AIRBORNE — brief jump/fall/spin stay PROCEDURAL (mixer frozen); bone names match so poseEmile drives the same GLB rig
-      const st = (EMILE.dashT>0||EMILE.spinT>0) ? 'spin' : (EMILE.vy>1 ? 'jump' : 'fall');
-      poseEmile(st, EMILE.anim, Math.min(1,roverSpdRatio));
-      // keep EMILE._curClip as the last grounded clip (still weight-1, frozen) so the landing crossfade has a valid source — nulling it would leave two clips at weight 1
+      // AIRBORNE — pin a mid-stride mocap frame (procedural jump/fall/spin are axis-wrong on this re-exported rig → twisted limbs). Keep _curClip valid for the landing crossfade.
+      if(EMILE.clips[EMILE._curClip]) EMILE.clips[EMILE._curClip].paused=true;
+      EMILE.mixer.update(0);
     } else {
+      if(EMILE.clips[EMILE._curClip]) EMILE.clips[EMILE._curClip].paused=false;
       // GROUNDED — REAL MOCAP: crossfade IDLE<->RUN by speed (hysteresis), run cadence tracks ground speed
       const want = roverSpd > (EMILE._curClip==='RUN'?0.45:0.75) ? 'RUN' : 'IDLE';
       if(want!==EMILE._curClip){
         const nx=EMILE.clips[want], pv=EMILE.clips[EMILE._curClip];
-        if(nx){ nx.reset(); nx.enabled=true; nx.setEffectiveWeight(1); nx.setEffectiveTimeScale(1); nx.play();
+        if(nx){ nx.reset(); nx.enabled=true; nx.setEffectiveTimeScale(1); nx.play();
           if(pv) pv.crossFadeTo(nx, 0.22, false); }
         EMILE._curClip=want;
       }
-      if(EMILE.clips.RUN) EMILE.clips.RUN.setEffectiveTimeScale(Math.max(0.7, 0.5+roverSpdRatio*1.6));   // feet plant at ground speed (anti-skate)
+      if(EMILE.clips.RUN){ const _strideU=8.87; EMILE.clips.RUN.setEffectiveTimeScale(Math.min(3.4, Math.max(0.8, (roverSpd*0.7)/_strideU))); }   // cadence tracks ground speed (anti-skate)
       EMILE.mixer.update(dt);
-      // FOOTSTEP foley on the run cadence
-      if(want==='RUN' && roverSpd>0.6){ const si=Math.floor(EMILE.anim/Math.PI); if(si!==EMILE._stepIdx){ EMILE._stepIdx=si; if(typeof sfxStep==='function')sfxStep(roverSpdRatio); } }
+      // FOOTSTEP foley locked to the visible mocap cadence (2 steps / 0.7s cycle)
+      if(want==='RUN' && roverSpd>0.6 && EMILE.clips.RUN){ const si=Math.floor(EMILE.clips.RUN.time/(0.7/2)); if(si!==EMILE._stepIdx){ EMILE._stepIdx=si; if(typeof sfxStep==='function')sfxStep(roverSpdRatio); } }
     }
   }
   // contact-shadow blob on the ground under EMILE, shrinking as he rises
@@ -3723,10 +3723,14 @@ new GLTFLoader().load('/mars/assets/emile.glb', gltf=>{
   model.rotation.y=EMILE.GLB_FACE;
   model.traverse(o=>{
     if(o.isMesh||o.isSkinnedMesh){ o.frustumCulled=false; o.castShadow=true; o.receiveShadow=false;
-      if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=Math.max(0.55,m.roughness||0.6);
+      if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{ if(m){ m.metalness=Math.min(0.3,m.metalness||0); m.roughness=(m.name==='EmileGlassGlow'||m.name==='EMILE_Eyes')?(m.roughness||0.3):Math.max(0.55,m.roughness||0.6);
+        if(m.name==='EMILE_Eyes'){ if(m.color)m.color.setRGB(0.6,0.6,0.64); m.roughness=0.4; m.metalness=0; }                 // eyes: greyed off pure-white so they read as set-in eyes, not googly balls
+        if(m.name==='EmileGlassGlow'){ m.roughness=0.2; if('clearcoat' in m){ m.clearcoat=1.0; m.clearcoatRoughness=0.08; } }   // visor: glossy, distinct from the matte body
+        if(m.name==='Emmiter.warm'){ m.emissiveIntensity=0.85; if(m.emissive)m.emissive.setRGB(1.0,0.66,0.30); }                // swirl: butterscotch gold, tame bloom
+        if(m.name==='Emmiter.cool'){ m.emissive=new THREE.Color(1.0,0.72,0.34); m.emissiveIntensity=0.5; }                      // 2nd accent: faint warm cue
         // HERO BACK-RIM — a view-dependent fresnel edge glow baked into EMILE's own materials (EMILE-only, zero scene-lighting cost). Pops his silhouette off the terrain.
         m.onBeforeCompile=(sh)=>{ try{ sh.fragmentShader=sh.fragmentShader.replace('#include <emissivemap_fragment>',
-          '#include <emissivemap_fragment>\n  float _rim=pow(1.0-clamp(dot(normalize(vViewPosition), normal),0.0,1.0),6.0);\n  totalEmissiveRadiance += vec3(1.0,0.80,0.46)*_rim*0.25;'); }catch(e){} };   // tight edge-only rim (pow6) so it defines the silhouette without washing the black body gold
+          '#include <emissivemap_fragment>\n  float _rim=pow(1.0-clamp(dot(normalize(vViewPosition), normal),0.0,1.0),3.0);\n  totalEmissiveRadiance += vec3(1.0,0.80,0.46)*_rim*0.22 + vec3(0.18,0.10,0.04)*pow(1.0-_rim,2.0)*0.06;'); }catch(e){} };   // pow3 models the whole turning edge (rounded black char) + faint warm wrap on the lit side
         m.needsUpdate=true; } }); } }
     if(o.isBone){ EMILE.bones[o.name]=o; EMILE.rest[o.name]=o.quaternion.clone(); }
   });
@@ -3762,7 +3766,7 @@ function emileJump(){
   else { EMILE.bufferT=0.13; }   // input buffer — a jump pressed just before landing fires on touchdown
 }
 function emileJumpRelease(){ if(playerMode==='emile' && !EMILE.grounded && EMILE.vy>2){ EMILE.vy*=0.5; } }   // variable jump height — release early = shorter hop
-function emileDash(){ if(playerMode!=='emile') return; EMILE.dashT=EMILE.DASH_TIME; if(typeof sfxDash==='function')sfxDash(); if(typeof haptic==='function')haptic(.5,.12);
+function emileDash(){ if(playerMode!=='emile'||EMILE.dashCd>0) return; EMILE.dashT=EMILE.DASH_TIME; EMILE.dashCd=0.7; if(typeof sfxDash==='function')sfxDash(); if(typeof haptic==='function')haptic(.5,.12);
   document.body.classList.add('dashing'); clearTimeout(EMILE._dfx); EMILE._dfx=setTimeout(()=>document.body.classList.remove('dashing'), EMILE.DASH_TIME*1000); }   // radial speed-lines overlay flash
 { const eb=document.getElementById('emileBtn'); if(eb) eb.onclick=togglePlayer;
   const jb=document.getElementById('jumpBtn'); if(jb){ jb.addEventListener('pointerdown',e=>{ e.preventDefault(); emileJump(); }); jb.addEventListener('pointerup',e=>{ e.preventDefault(); emileJumpRelease(); }); }
@@ -4193,10 +4197,13 @@ function manualStep(dt,maxSpd){
   // steer input IMPLY forward drive so pressing a direction actually moves the rover
   // that way (arcade-car curve). Only when the throttle is truly neutral, so an
   // explicit reverse (S/↓) is never overridden.
-  if(throttle===0 && steer!==0) throttle=0.72;
-  holdThrottle=damp(holdThrottle, throttle, 4.2, dt);
-  holdSteer=damp(holdSteer, steer, 7, dt);
-  roverHeading -= holdSteer * (1.9*(0.45+0.55*roverSpdRatio)) * dt;   // tighter steer with speed
+  if(throttle===0 && steer!==0) throttle=(playerMode==='emile')?0.5:0.72;
+  if(playerMode==='emile' && throttle<0) throttle*=0.45;               // EMILE: Down = quick back-step, not full-speed moonwalk
+  const _emRamp=(playerMode==='emile');
+  holdThrottle=damp(holdThrottle, throttle, _emRamp?12:4.2, dt);       // EMILE: near-instant throttle (rover keeps the spool)
+  holdSteer=damp(holdSteer, steer, _emRamp?16:7, dt);
+  const turnRate=_emRamp ? 4.6*(0.85+0.15*roverSpdRatio) : 1.9*(0.45+0.55*roverSpdRatio);   // EMILE pivots crisply (~250°/s); rover keeps carve-with-speed
+  roverHeading -= holdSteer * turnRate * dt;
   return maxSpd*holdThrottle;
 }
 const poiHits=[];                        // filled by the site module below
@@ -4226,6 +4233,7 @@ function roverUpdate(dt,t){
   const p=rover.position;
   const _emile=(playerMode==='emile');
   if(_emile && EMILE.dashT>0) EMILE.dashT=Math.max(0,EMILE.dashT-dt);
+  if(_emile && EMILE.dashCd>0) EMILE.dashCd=Math.max(0,EMILE.dashCd-dt);
   if(_emile && EMILE.spinT>0) EMILE.spinT=Math.max(0,EMILE.spinT-dt);   // double-jump spin POSE timer — decoupled from dash SPEED below
   let maxSpd=roverMaxSpd();
   if(_emile) maxSpd*=EMILE.SPD_MULT*(EMILE.dashT>0?EMILE.DASH_MULT:1);   // EMILE runs Sonic-fast; dash burst on top
@@ -4253,7 +4261,8 @@ function roverUpdate(dt,t){
   let _manual=false;
   if(manualActive()){ _manual=true; vT=manualStep(dt,maxSpd); hasDest=false; }
   const prevSpd=roverSpd;
-  roverSpd=damp(roverSpd, vT, vT>roverSpd?1.7:3.4, dt);       // heavy spool-up, firmer brake
+  const _emAcc=(playerMode==='emile');
+  roverSpd=damp(roverSpd, vT, _emAcc?(vT>roverSpd?14:18):(vT>roverSpd?1.7:3.4), dt);       // EMILE: snappy runner accel/brake; rover keeps heavy spool
   if(!hasDest && roverSpd<.02) roverSpd=0;
   roverSpdRatio=roverSpd/maxSpd;
   const step=roverSpd*dt, sH=Math.sin(roverHeading), cH=Math.cos(roverHeading);
@@ -4286,7 +4295,7 @@ function roverUpdate(dt,t){
       }
     } else {   // grounded
       if(groundY < p.y-4.5 && roverSpd>5){ EMILE.grounded=false; EMILE.vy=0; }   // ran off a real drop (cliff/brow) — catch air; coyote (lit last frame) now forgives a late jump
-      else { p.y=damp(p.y, groundY, 12, dt); EMILE.coyote=0.1; }                  // stick to ground + refill the coyote window
+      else { p.y=damp(p.y, groundY, 12, dt); EMILE.coyote=0.12; }                 // stick to ground + refill the coyote window
     }
   } else {
     p.y=damp(p.y, gy, 14, dt);
@@ -4634,15 +4643,15 @@ const par={x:0,y:0};
 const _camR=new THREE.Vector3(), _camU=new THREE.Vector3();
 function updateCamera(dt,t){
   const _em=(playerMode==='emile');
-  const _fol=_em?7.5:2.5;                       // EMILE moves fast — the camera must keep up or he runs off-frame
+  const _fol=_em?11:2.5;                        // EMILE moves fast — the camera must keep up or he runs off-frame
   camTarget.x=damp(camTarget.x, rover.position.x, _fol, dt);
   camTarget.z=damp(camTarget.z, rover.position.z, _fol, dt);
-  camTarget.y=damp(camTarget.y, rover.position.y+(_em?5:6), _fol, dt);
+  camTarget.y=damp(camTarget.y, rover.position.y+(_em?7:6), _fol, dt);   // EMILE: look-at lifted onto the chest swirl (was hip-level / bottom-heavy)
   if(_em && EMILE.landT>0) camTarget.y -= Math.min(4,(EMILE.landV||0)*0.12)*(EMILE.landT/0.22);   // camera dip on landing impact
-  distK=damp(distK, 1+(_em?.22:.1)*roverSpdRatio, 1.8, dt);   // pull back a touch more at EMILE speed
+  distK=damp(distK, 1+(_em?.34:.1)*roverSpdRatio + ((_em&&EMILE.dashT>0)?.18:0), 2.2, dt);   // tighter follow + real dash pull-back keeps the burst in frame
   /* +++ rover-feel: SPEED CAMERA (Forza) — FOV breathes wider with speed, dust-streak vignette tightens. */
-  const _fovTgt = _reduceMotion ? 42 : (42 + (_em?4:11)*roverSpdRatio + ((_em&&EMILE.dashT>0)?6:0));   // EMILE: calmer FOV breathe (less world-warp = less jitter feel) + a brief punch on dash
-  const _fov = damp(camera.fov, _fovTgt, 3, dt);
+  const _fovTgt = _reduceMotion ? 42 : (42 + (_em?3:11)*roverSpdRatio + ((_em&&EMILE.dashT>0)?6:0));   // EMILE: calmer FOV breathe (less world-warp) + a brief punch on dash
+  const _fov = damp(camera.fov, _fovTgt, _em?1.8:3, dt);   // slower FOV chase for EMILE so the now-instant accel doesn't lurch the lens
   if(Math.abs(_fov-camera.fov)>0.01){ camera.fov=_fov; camera.updateProjectionMatrix(); }
   vigPass.uniforms.darkness.value = damp(vigPass.uniforms.darkness.value, Math.min(0.92,.62+.5*roverSpdRatio), 2.5, dt);   // softer base, tightens with speed — clamped <1 so the corner target never goes negative (over-crush)
   followSun(camTarget.x, camTarget.z);
