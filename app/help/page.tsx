@@ -180,7 +180,7 @@ export default function HelpPage() {
       <Section id="weekly" title="Your weekly 5 minutes">
         <Box>
           <Ul>
-            <Li>Send a transmission (a mini-post — image + caption) for {`100 ⬡`}. Top weekly transmission earns 5,000 ⬡.</Li>
+            <Li>Send a transmission (a mini-post — image + caption) for {`100 ⬡`}. When others boost it you earn 10% of every boost in ⬡.</Li>
             <Li>Visit the archive — read which signals connect to your wallet.</Li>
           </Ul>
         </Box>

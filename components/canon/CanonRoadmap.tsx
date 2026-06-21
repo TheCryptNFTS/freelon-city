@@ -19,7 +19,7 @@ const ITEMS: Array<{ status: Status; title: string; body: string; href?: string 
   {
     status: "SHIPPED",
     title: "Transmissions",
-    body: "Carriers transmit their own signal — image + caption + civ. Boost with hex. Top weekly transmission earns 5,000 ⬡.",
+    body: "Carriers transmit their own signal — image + caption + civ. Boost with hex; authors earn 10% of every boost ⬡.",
     href: "/transmissions",
   },
   {

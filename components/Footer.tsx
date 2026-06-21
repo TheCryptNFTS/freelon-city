@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { METADATA_CID, OPENSEA_BASE, ETHERSCAN_BASE } from "@/lib/constants";
+import { isGuardPotLive } from "@/lib/guard-pot";
 
 /**
  * Footer directory (2026-06-14). The top nav is deliberately condensed to the
@@ -34,7 +35,10 @@ export function Footer() {
             <li><Link href="/crypt-tcg">Crypt TCG</Link></li>
             <li><Link href="/play/hex-match">Hex Match</Link></li>
             <li><Link href="/play/restore">Restore the Signal</Link></li>
-            <li><Link href="/play/guard">Guard the Pot</Link></li>
+            {/* Guard the Pot 404s until GUARD_POT_LIVE (draft sweepstakes rules,
+                pending counsel) — gate the footer link on the same flag as the
+                /play card + the route, so nothing links to a dead page. */}
+            {isGuardPotLive() && <li><Link href="/play/guard">Guard the Pot</Link></li>}
             <li><Link href="/play/reckoning">The Reckoning</Link></li>
             <li><Link href="/play/sweep">Sweep Run</Link></li>
             <li><Link href="/play/cipher">The Cipher</Link></li>

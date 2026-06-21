@@ -11,10 +11,10 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Transmissions ⬡",
-  description: "Citizens of FREELON CITY send their own signal. Image + caption. Community signals + boosts. Top transmissions earn hex.",
+  description: "Citizens of FREELON CITY send their own signal. Image + caption. Community signals + boosts; authors earn ⬡ royalties when others boost their work.",
   openGraph: {
     title: "Transmissions ⬡",
-    description: "Send your signal to the city. Top transmissions earn hex.",
+    description: "Send your signal to the city. Authors earn ⬡ royalties when others boost their work.",
     images: [{ url: "/api/og/hex-index", width: 1200, height: 630 }],
   },
 };

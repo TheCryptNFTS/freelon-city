@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { isGuardPotLive } from "@/lib/guard-pot";
 import { GuardThePot } from "@/components/GuardThePot";
 
 // Round/fee/board roll server-side per request.
@@ -27,7 +28,7 @@ export default function GuardPage() {
   // The promotion is sweepstakes-shaped and its Official Rules are a DRAFT pending
   // counsel. Until GUARD_POT_LIVE is set, the direct route 404s so the draft game +
   // rules link are never publicly reachable (the /play card is already gated). 2026-06-21.
-  if (process.env.GUARD_POT_LIVE !== "true") notFound();
+  if (!isGuardPotLive()) notFound();
 
   return (
     <div className="manifesto">

@@ -6,6 +6,7 @@ import { DailyHub } from "@/components/DailyHub";
 import { DailyTransmission } from "@/components/play/DailyTransmission";
 import { GamePreview, type GameKind } from "@/components/GamePreview";
 import { TrackedExtLink } from "@/components/TrackedExtLink";
+import { isGuardPotLive } from "@/lib/guard-pot";
 
 // The compounding holder game lives on its own domain; the arcade routed its
 // highest-intent play traffic straight past it (upgrade audit #17). Same env +
@@ -96,8 +97,7 @@ const GUARD_CARD = {
   accent: "var(--gold-bright)",
 };
 
-const VISIBLE_GAMES =
-  process.env.GUARD_POT_LIVE === "true" ? [GUARD_CARD, ...GAMES] : GAMES;
+const VISIBLE_GAMES = isGuardPotLive() ? [GUARD_CARD, ...GAMES] : GAMES;
 
 // MORE WAYS TO PLAY (2026-06-17, Algorithm review · Billy: "people like the mini
 // games"). These prototypes were URL-only after the 06-07 de-sprawl so the main grid

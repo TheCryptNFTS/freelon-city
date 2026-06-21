@@ -8,24 +8,7 @@ import { getWalletByHandle } from "@/lib/x-store";
 import { getWalletTokens } from "@/lib/wallet-tokens";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import { getCitizenMeta } from "@/lib/citizen-meta";
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { tweetCarrier, tweetIntent } from "@/lib/share";
-
-async function fetchFloor(): Promise<number> {
-  try {
-    const headers: Record<string, string> = {};
-    if (process.env.OPENSEA_API_KEY) headers["X-API-KEY"] = process.env.OPENSEA_API_KEY;
-    const r = await fetchWithTimeout(
-      "https://api.opensea.io/api/v2/collections/freelons/stats",
-      { headers, next: { revalidate: 300 }, timeoutMs: 4000 },
-    );
-    if (!r.ok) return 0;
-    const d = await r.json();
-    return Number(d?.total?.floor_price || 0);
-  } catch {
-    return 0;
-  }
-}
 
 function shortAddr(a: string): string {
   return `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -65,15 +48,13 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
     balance: number;
     tokenIds: number[];
     hexBalance: number;
-    floor: number;
     citizens: number;
     topCitizens: Array<{ tokenId: number; lastSaleEth: number | null; daysHeld: number | null }>;
   } = null;
   if (wallet) {
-    const [tokensRes, hexRec, floor] = await Promise.all([
+    const [tokensRes, hexRec] = await Promise.all([
       getWalletTokens(wallet, 500).catch(() => null),
       getWalletHex(wallet).catch(() => null),
-      fetchFloor(),
     ]);
     const tokenIds = tokensRes?.tokenIds ?? [];
     const balance = tokensRes?.balance ?? 0;
@@ -98,7 +79,6 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
       balance,
       tokenIds,
       hexBalance,
-      floor,
       citizens: balance,
       topCitizens,
     };

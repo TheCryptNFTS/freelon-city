@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { isGuardPotLive } from "@/lib/guard-pot";
 import { LegalShell } from "../LegalShell";
 
 export const metadata: Metadata = { title: "Guard the Pot — Official Rules", robots: { index: false } };
@@ -18,7 +19,7 @@ export const metadata: Metadata = { title: "Guard the Pot — Official Rules", r
 export default function GuardThePotRules() {
   // DRAFT rules with [BRACKETED] blanks pending counsel — never serve them publicly
   // until the promotion is actually live (matches the /play/guard + /play card gates). 2026-06-21.
-  if (process.env.GUARD_POT_LIVE !== "true") notFound();
+  if (!isGuardPotLive()) notFound();
 
   return (
     <LegalShell title="Guard the Pot — Official Rules" updated="2026-06-08 (DRAFT)">

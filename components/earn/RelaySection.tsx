@@ -60,7 +60,7 @@ export function RelaySection() {
           <li>Posting daily resets your <strong style={{ color: "var(--gold)" }}>14-day decay clock</strong> → passive hex keeps flowing</li>
           <li>Tag <strong style={{ color: "var(--gold)" }}>@4040hex</strong> in posts — we see it, we boost it, we credit the carrier</li>
           <li>Drop the URL on the LAST line, never the first — X demotes link-led posts</li>
-          <li>Best posts of the week become <strong style={{ color: "var(--gold)" }}>TRANSMISSIONS</strong> on /transmissions (top weekly earns 5,000 ⬡)</li>
+          <li>Best posts of the week become <strong style={{ color: "var(--gold)" }}>TRANSMISSIONS</strong> on /transmissions (authors earn 10% of every boost ⬡)</li>
         </ul>
       </section>
 
