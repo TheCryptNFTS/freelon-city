@@ -101,7 +101,7 @@ export function SyncWalletAction() {
           <Link href={`/wallet/${addr.toLowerCase()}`} className="btn btn-primary sync-wallet-action__primaryBtn">
             <span className="ttl">READ MY SIGNAL →</span>
           </Link>
-          <Link href="/archive" className="btn btn-secondary sync-wallet-action__secondaryBtn">
+          <Link href="/collections" className="btn btn-secondary sync-wallet-action__secondaryBtn">
             <span className="ttl">VIEW THE ARCHIVE →</span>
           </Link>
         </div>

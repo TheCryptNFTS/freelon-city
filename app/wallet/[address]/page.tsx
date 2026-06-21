@@ -464,7 +464,7 @@ export default async function WalletPage({
 
       <section className="wallet-gallery" id="citizens">
         <h2 className="kicker">
-          ⬡ YOUR CITIZENS · RUN AN AGENT{" "}
+          ⬡ CITIZENS · RUN AN AGENT{" "}
           <span className="gallery-count">
             {balance > 0 ? `· ${balance}` : ""}
           </span>

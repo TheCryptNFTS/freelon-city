@@ -36,7 +36,7 @@ export function PfpSection() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span className="ttl">AWAKEN A CITIZEN →</span>
+          <span className="ttl">OWN A FREELON →</span>
         </a>
         <Link className="btn btn-secondary" href="#browse"><span className="ttl">BROWSE CITIZENS →</span></Link>
       </div>

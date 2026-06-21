@@ -31,8 +31,8 @@ export function ArchitectSection() {
           />
           <Principle
             n="02"
-            title="Display is enforcement."
-            body="When a citizen is dumped below floor, the city refuses to recognize it. No on-chain hooks, no permission needed — the brand layer is the lever."
+            title="Memory is the asset."
+            body="Every awakened citizen keeps its whole work history — and it travels with the NFT through every resale. The record is the value; the city just remembers."
           />
           <Principle
             n="03"

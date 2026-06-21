@@ -187,10 +187,6 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
               <span className="cm-lbl">⬡ HEX BALANCE</span>
               <span className="cm-val">{verified.hexBalance.toLocaleString()}</span>
             </div>
-            <div className="cm-cell">
-              <span className="cm-lbl">FLOOR (REF)</span>
-              <span className="cm-val">{verified.floor.toFixed(4)} ETH</span>
-            </div>
           </div>
           {verified.topCitizens.length > 0 && (
             <>
