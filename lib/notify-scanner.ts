@@ -4,7 +4,6 @@
  * Walks every known wallet hex record and fires notifications for:
  *   - decay-warning      : 3 days from passive-cliff (T-3)
  *   - streak-milestone-soon : T-1 from 7d or 30d streak unlock
- *   - watchlist-flag     : a citizen they watch is currently flagged red
  *
  * All deliveries are deduplicated via eventKey so re-running the cron
  * the same day is idempotent. Designed to be tucked into an existing
@@ -29,7 +28,6 @@ export type ScanResult = {
   walletsScanned: number;
   decayWarnings: number;
   streakWarnings: number;
-  watchlistHits: number;
   errors: number;
 };
 
@@ -40,13 +38,8 @@ export async function runNotifyScan(): Promise<ScanResult> {
     walletsScanned: records.length,
     decayWarnings: 0,
     streakWarnings: 0,
-    watchlistHits: 0,
     errors: 0,
   };
-
-  // Pre-load active red-signal tokens — used for watchlist matching.
-  // Done once per scan, not per wallet.
-  const flaggedTokens = await loadFlaggedTokenIds();
 
   for (const rec of records) {
     try {
@@ -84,59 +77,10 @@ export async function runNotifyScan(): Promise<ScanResult> {
         });
         result.streakWarnings++;
       }
-
-      // ── 3. Watchlist flag hit ──
-      // For each token currently flagged red, check the watchers set.
-      // Implementation note: we scan once and deliver to every watcher
-      // — the per-wallet dedupe in notify() prevents double-DM.
-      // (Iteration done outside the per-wallet loop to be efficient.)
-    } catch {
-      result.errors++;
-    }
-  }
-
-  // ── 3 (continued): walk flagged tokens once + notify their watchers ──
-  for (const flag of flaggedTokens) {
-    try {
-      const { getWatchersOfToken } = await import("@/lib/watchlist-store");
-      const watchers = await getWatchersOfToken(flag.tokenId);
-      for (const w of watchers) {
-        const r = await notify({
-          wallet: w,
-          eventKey: `watchlist-flag:${flag.tokenId}:${flag.flaggedAt}`,
-          kind: "watchlist-flag",
-          body: `● Citizen #${String(flag.tokenId).padStart(4, "0")} you watch is flagged · ${flag.priceEth.toFixed(4)} ETH · ~+${flag.bountyHex} ⬡ snipe bounty if you buy + hold ${ECONOMY.SNIPE_HOLD_DAYS}d.`,
-          href: "/dashboard",
-        });
-        if (r.inboxed) result.watchlistHits++;
-      }
     } catch {
       result.errors++;
     }
   }
 
   return result;
-}
-
-type FlaggedToken = {
-  tokenId: number;
-  priceEth: number;
-  flaggedAt: number;
-  bountyHex: number;
-};
-
-async function loadFlaggedTokenIds(): Promise<FlaggedToken[]> {
-  const apiKey = process.env.OPENSEA_API_KEY;
-  if (!apiKey) return [];
-  try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || "https://www.freeloncity.com";
-    const r = await fetch(`${base}/api/market/red-signals`, { cache: "no-store" });
-    if (!r.ok) return [];
-    const d = (await r.json()) as {
-      signals?: Array<{ tokenId: number; priceEth: number; flaggedAt: number; bountyHex: number }>;
-    };
-    return d.signals || [];
-  } catch {
-    return [];
-  }
 }

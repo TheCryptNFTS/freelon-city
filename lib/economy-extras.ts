@@ -20,7 +20,6 @@ import {
   patchWalletHex,
 } from "@/lib/wallet-hex-store";
 import { ECONOMY, ethToHex } from "@/lib/economy-constants";
-import { getRedSignal, setRedSignal, snipeBounty } from "@/lib/red-signal-store";
 import { withLock } from "@/lib/upstash-lock";
 import { CANON } from "@/lib/canon";
 
@@ -68,7 +67,7 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
       .filter((e) => (e.seller || "").toLowerCase() === address.toLowerCase())
       // SELF-DEAL GUARD (anti-wash-trade): if the buyer is the SAME wallet as the
       // seller (a self round-trip / sybil sale to yourself), do NOT pay sale-share.
-      // Mirrors the snipe path's self-filter (rs.seller === address). When the
+      // Mirrors the seller-side self-filter we apply elsewhere. When the
       // buyer field is absent we keep the event (the range/contract guards below
       // still apply) — fail open so a thin payload doesn't drop legit sales.
       .filter((e) => {
@@ -81,7 +80,7 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
       // ours, reject it — closes the cross-collection same-tokenId credit hole.
       // The /events/accounts endpoint doesn't return contract per row
       // consistently, so when it's ABSENT we fall back to the tokenId-in-range
-      // check (mirrors the snipe path) — tightens without dropping legit sales.
+      // check — tightens without dropping legit sales.
       .filter((e) => {
         const c = (e.nft?.contract || "").toLowerCase();
         if (c && c !== CONTRACT.toLowerCase()) return false;
@@ -205,104 +204,6 @@ type RawListing = {
   listing_time?: number;
 };
 
-/**
- * Snipe bounty crediter. For each freelon currently held, check whether
- * the most recent acquisition (transfer-in) matches a previously-flagged
- * red signal AND the wallet has now held it for ≥ SNIPE_HOLD_DAYS. If so,
- * credit the bounty and mark the red-signal entry claimed so it can't be
- * re-credited.
- *
- * Per-day and cooldown caps apply at credit time (not at flag time) so
- * the system can backfill bounties from many flags but still respect
- * SNIPE_MAX_PER_DAY.
- */
-export async function creditSnipeBounties(
-  address: string,
-  tokenIds: number[],
-): Promise<{ credited: number; snipes: number }> {
-  if (tokenIds.length === 0) return { credited: 0, snipes: 0 };
-  const apiKey = process.env.OPENSEA_API_KEY;
-  if (!apiKey) return { credited: 0, snipes: 0 };
-
-  const rec = await getWalletHex(address);
-  // Cap snipes per UTC day — count snipe events from the last 24h
-  const today = new Date().toISOString().slice(0, 10);
-  const last24h = Date.now() - 24 * 3600_000;
-  const snipesToday = rec.events.filter(
-    (e) => e.note?.startsWith("Snipe ·") && e.ts >= last24h,
-  ).length;
-  if (snipesToday >= ECONOMY.SNIPE_MAX_PER_DAY) return { credited: 0, snipes: 0 };
-
-  // Pull recent transfer-in events for the wallet (1 page = 50 events)
-  let acquisitions = new Map<number, number>(); // tokenId -> ts(ms)
-  try {
-    const url = `https://api.opensea.io/api/v2/events/accounts/${address}?event_type=transfer&chain=ethereum&limit=50`;
-    const r = await fetchWithTimeout(url, {
-      headers: { "X-API-KEY": apiKey, accept: "application/json" },
-      next: { revalidate: 300 },
-      timeoutMs: 5000,
-    });
-    if (!r.ok) return { credited: 0, snipes: 0 };
-    const d = (await r.json()) as {
-      asset_events?: Array<{
-        nft?: { contract?: string; identifier?: string };
-        to_address?: string;
-        event_timestamp?: number;
-      }>;
-    };
-    for (const ev of d.asset_events || []) {
-      const to = (ev.to_address || "").toLowerCase();
-      if (to !== address.toLowerCase()) continue;
-      const c = (ev.nft?.contract || "").toLowerCase();
-      if (c && c !== CONTRACT.toLowerCase()) continue;
-      const tid = Number(ev.nft?.identifier);
-      const ts = (ev.event_timestamp || 0) * 1000;
-      if (!Number.isFinite(tid) || !ts) continue;
-      // Latest acquisition per token
-      const cur = acquisitions.get(tid) || 0;
-      if (ts > cur) acquisitions.set(tid, ts);
-    }
-  } catch {
-    return { credited: 0, snipes: 0 };
-  }
-
-  const ownedSet = new Set(tokenIds);
-  const holdMs = ECONOMY.SNIPE_HOLD_DAYS * 86400_000;
-  const now = Date.now();
-  let totalHex = 0;
-  let count = 0;
-
-  for (const [tid, acqTs] of acquisitions) {
-    if (!ownedSet.has(tid)) continue;          // must still hold
-    if (now - acqTs < holdMs) continue;        // hold window not met
-    if (count + snipesToday >= ECONOMY.SNIPE_MAX_PER_DAY) break;
-
-    const rs = await getRedSignal(tid);
-    if (!rs) continue;
-    if (rs.claimedBy) continue;                // already claimed
-    // Acquisition must be AFTER the flag (you bought it while it was red)
-    if (acqTs < rs.flaggedAt) continue;
-    // Self-snipe block: a wallet cannot bounty-claim a listing it (or its
-    // recorded seller) made. Cheap defence against the sybil-pair exploit
-    // where one wallet lists at 90% floor and an alt buys to claim 500 hex.
-    if (rs.seller && rs.seller.toLowerCase() === address.toLowerCase()) continue;
-
-    const bounty = snipeBounty(rs);
-    if (bounty <= 0) continue;
-
-    await creditWalletHex(address, bounty, {
-      kind: "manual",
-      note: `Snipe · #${String(tid).padStart(4, "0")} · ${rs.priceEth.toFixed(4)} ETH @ ${rs.floorEth.toFixed(4)} floor`,
-    });
-    rs.claimedBy = address.toLowerCase();
-    rs.claimedAt = now;
-    await setRedSignal(rs);
-    totalHex += bounty;
-    count++;
-  }
-  void today;
-  return { credited: totalHex, snipes: count };
-}
 
 /** Credit listing bounty for active freelon listings owned by the wallet.
  * 5 hex/day per active listing, capped at 25/day. We use the per-account

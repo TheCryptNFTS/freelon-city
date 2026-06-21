@@ -89,16 +89,6 @@ export const ECONOMY = {
   LISTING_BOUNTY_PER_DAY: 5,
   LISTING_BOUNTY_DAILY_CAP: 25,
 
-  // ─── NEW: Red Signal snipe ──────────────────────────────────────────
-  // A listing priced ≤ RED_SIGNAL_THRESHOLD × floor is a "red signal".
-  // Bounty = (floor - price) ETH × HEX_PER_ETH, capped at SNIPE_CAP.
-  // Snipe is verified after SNIPE_HOLD_DAYS to deter flip-claim farming.
-  RED_SIGNAL_THRESHOLD: 0.9,         // listings ≤90% floor flagged red
-  SNIPE_BOUNTY_CAP: 500,
-  SNIPE_MAX_PER_DAY: 3,
-  SNIPE_COOLDOWN_HOURS: 4,
-  SNIPE_HOLD_DAYS: 14, // raised from 7 — makes the alt-wallet sybil pair eat 2 weeks of price risk before claiming bounty
-
   // ─── Daily mission (app/api/mission/claim) ──────────────────────────
   MISSION_REWARD: 5,
 
