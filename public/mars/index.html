@@ -277,6 +277,13 @@
   body.playing #hint{animation-delay:.6s}
   #nextChip{top:84px;left:26px;font-size:10px;letter-spacing:.26em;color:var(--ivory);
     border-left:2px solid var(--gold);padding:8px 12px;background:var(--panel);backdrop-filter:blur(6px)}
+  /* #challengeChip inherits only `.hud` (position:fixed, no offsets) — without an
+     explicit position it pinned to the top-left corner as bare text, overlapping
+     #brand. Style it as a top-centre chip stacked just under #anomChip (which sits
+     at top:96px), so the daily-anomaly + challenge chips read as a clean stack. */
+  #challengeChip{top:128px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.18em;
+    color:var(--gold-bright);background:rgba(8,6,4,.72);border:1px solid var(--line);
+    padding:6px 14px;white-space:nowrap;backdrop-filter:blur(6px);text-align:center}
   #dailyPanel{top:110px;right:26px;width:248px}
   .drow{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.18em;
     color:rgba(242,234,216,.78);padding:7px 10px;background:var(--panel);border:1px solid var(--line);margin-bottom:5px}
