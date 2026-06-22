@@ -121,7 +121,7 @@ export async function getActiveAlerts(): Promise<Alert[]> {
         id: `hex-down-${Math.round(hex.index)}`,
         ts: now,
         severity: "crit",
-        text: `404 ALERT: HEX INDEX fell ${fmtPct(hex.change24h)} — defenders, hold`,
+        text: `404 ALERT: HEX INDEX fell ${fmtPct(hex.change24h)}`,
         href: "/earn#hex-index",
       });
     } else if (Math.abs(hex.change24h) > 0.5) {

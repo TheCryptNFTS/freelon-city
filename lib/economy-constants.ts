@@ -61,12 +61,6 @@ export const ECONOMY = {
   STREAK_7_BONUS: 100,
   STREAK_30_BONUS: 500,
 
-  // ─── Floor defender — REMOVED ───────────────────────────────────────
-  // Was 50 hex/day per citizen held 30d+. Set to 0 to retire cleanly.
-  // Existing accrued hex is preserved; new accruals stop.
-  FLOOR_DEFENDER_PER_DAY: 0,
-  FLOOR_DEFENDER_MIN_DAYS: 30,
-
   // ─── NEW: Sale share ────────────────────────────────────────────────
   // When a wallet sells a freelon, they earn this percent of sale ETH
   // converted to hex via HEX_PER_ETH. Capped per 24h to deter wash.

@@ -33,8 +33,6 @@ export type WalletHex = {
   claimStreak?: number;
   /** UTC day of the last claim. */
   lastClaimDay?: string | null;
-  /** UTC day of last floor-defender tick (Tier 7 — held citizens 30d+). */
-  lastDefenderTickDay?: string | null;
   /**
    * UTC day of the wallet's last ACTIVE action (claim, sweep, snipe, sale).
    * Used by the 14-day decay gate in holder-tick — if a wallet hasn't been
@@ -114,7 +112,6 @@ function emptyRecord(addr: string): WalletHex {
     events: [],
     claimStreak: 0,
     lastClaimDay: null,
-    lastDefenderTickDay: null,
   };
 }
 
@@ -239,7 +236,7 @@ export async function creditWalletHexCapped(
 /**
  * Atomically patch cursor/flag fields on a wallet record UNDER the wallet lock
  * (upgrade audit #8, 2026-06-19). The holder-tick cursor stamp, sale-share cursor
- * advance, fresh-blood flag, the retired floor-defender stamp, and stampActivity
+ * advance, fresh-blood flag, and stampActivity
  * each did getWalletHex → set-field → setWalletHex OUTSIDE the lock, so a
  * concurrent CREDIT (sweep/sale — which IS locked) landing between that read and
  * the full-record write was clobbered, silently losing real HEX. Re-reading the

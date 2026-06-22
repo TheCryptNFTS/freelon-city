@@ -4823,9 +4823,9 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .name-card .custom { font-family: var(--display); font-size: 22px; letter-spacing: -0.01em; color: var(--ink); }
 .name-card .meta { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-dim); margin-top: 4px; }
 
-/* ============================ DEFENDERS / GRAVEYARD ============================ */
-.defenders-page, .graveyard-page { max-width: var(--maxw); margin: 0 auto; padding: var(--pad); }
-.defender-row, .grave-row {
+/* ============================ GRAVEYARD ============================ */
+.graveyard-page { max-width: var(--maxw); margin: 0 auto; padding: var(--pad); }
+.grave-row {
   display: grid;
   grid-template-columns: 56px 1fr auto auto;
   gap: var(--s-3);
@@ -4836,10 +4836,10 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   font-size: 12px;
   letter-spacing: 0.06em;
 }
-.defender-row:first-child, .grave-row:first-child { border-top: none; }
-.defender-row .id, .grave-row .id { color: var(--ink-dim); font-size: 11px; letter-spacing: 0.18em; }
-.defender-row .addr, .grave-row .addr { color: var(--ink); }
-.defender-row .stat, .grave-row .stat { font-family: var(--display); color: var(--gold-bright); font-size: 16px; }
+.grave-row:first-child { border-top: none; }
+.grave-row .id { color: var(--ink-dim); font-size: 11px; letter-spacing: 0.18em; }
+.grave-row .addr { color: var(--ink); }
+.grave-row .stat { font-family: var(--display); color: var(--gold-bright); font-size: 16px; }
 .grave-row { opacity: 0.7; }
 .grave-row .arrow { color: var(--ink-dim); margin: 0 6px; }
 .grave-row img { width: 56px; height: 56px; object-fit: cover; background: var(--bg); border: 1px solid var(--line); }
@@ -4847,22 +4847,22 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
    citizen image stays small in the top-left, address line wraps under,
    stats become a small dim row. */
 @media (max-width: 540px) {
-  .defender-row, .grave-row {
+  .grave-row {
     grid-template-columns: 56px 1fr !important;
     grid-template-areas: "img addr" "img stats";
     row-gap: 4px;
     padding: 10px 12px;
     align-items: start;
   }
-  .defender-row > :first-child, .grave-row > :first-child { grid-area: img; }
-  .defender-row > :nth-child(2), .grave-row > :nth-child(2) {
+  .grave-row > :first-child { grid-area: img; }
+  .grave-row > :nth-child(2) {
     grid-area: addr;
     min-width: 0;
     overflow-wrap: anywhere;
     line-height: 1.4;
   }
   /* Remaining stat columns flow inline under address, dim, comma-sized */
-  .defender-row > :nth-child(n+3), .grave-row > :nth-child(n+3) {
+  .grave-row > :nth-child(n+3) {
     grid-area: stats;
     display: inline;
     margin-right: 10px;
@@ -4870,7 +4870,7 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
     font-size: 12px;
     line-height: 1.6;
   }
-  .grave-row .stat, .defender-row .stat { font-size: 13px; }
+  .grave-row .stat { font-size: 13px; }
   /* The 5-col dump-ledger rows reuse .grave-row but pass an inline
      grid-template-columns override — we override their override here. */
   .grave-row[style*="56px 1fr auto auto auto"] {

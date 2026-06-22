@@ -71,9 +71,9 @@ static JSON (`data/`) + on-chain reads. Images persist to Vercel Blob. Identity 
 - `demo/[slug]` — free public demo agent. `agent/ascend` · `agent/evolve*` · `agent/awaken/*` — paid progression (ETH/HEX).
 
 ### HEX economy
-- `wallet/[address]/hex` — balance + the credit-bearing holder/sweep/defender ticks (now walletProof-gated). `…/tokens` `…/civs` `…/balance` `…/inventory` `…/net-worth` `…/featured` `…/stable` — wallet reads.
+- `wallet/[address]/hex` — balance + the credit-bearing holder/sweep ticks (now walletProof-gated). `…/tokens` `…/civs` `…/balance` `…/inventory` `…/net-worth` `…/featured` `…/stable` — wallet reads.
 - `claim` (daily) · `mission/claim` · `quests/[questId]` · `reckoning/tribute` (civ-war burn) · `tithe` · `city/boost` `city/build` `city/collect` — earn/spend.
-- `referral` · `reserve` · `alerts` · `defender` · `hex-index`.
+- `referral` · `reserve` · `alerts` · `hex-index`.
 
 ### Games
 - `match/create` `match/queue` `match/[id]` `match/[id]/{action,join}` — PvP TCG matches. `arcade/score` · `play/guard/{attempt,state}` · `reckoning/state` · `city/{state,leaderboard,build,collect}` — arcade/shared-city.
@@ -107,7 +107,7 @@ static JSON (`data/`) + on-chain reads. Images persist to Vercel Blob. Identity 
 ## lib/ — 254 FILES (by subsystem)
 
 ### HEX economy (the money layer)
-- `wallet-hex-store.ts` — **the ⬡ ledger** (creditWalletHex w/ farmable cap, debitWalletHex, withWalletLock, creditWalletHexCapped). `economy-constants.ts` — all prices/caps/rates (peg, FARMABLE_DAILY_CAP, JOB_SIGNAL_* footgun). `economy-extras.ts` — sale/listing/snipe/fresh-blood faucets. `sweep-inline.ts` — per-wallet sweep crediting. `holder-tick.ts` — passive holder income + decay gate. `floor-defender.ts` · `defender-scan.ts` · `defender-store.ts` — floor-defense bounties. `daily-claim-store.ts` · `daily-mission.ts` · `daily-checkin.ts` — daily faucets. `hex-spend.ts` · `tithe-store.ts` · `reckoning-{config,store}.ts` — sinks. `eth-math.ts` · `eth-price.ts` · `money-format.ts` — conversions.
+- `wallet-hex-store.ts` — **the ⬡ ledger** (creditWalletHex w/ farmable cap, debitWalletHex, withWalletLock, creditWalletHexCapped). `economy-constants.ts` — all prices/caps/rates (peg, FARMABLE_DAILY_CAP, JOB_SIGNAL_* footgun). `economy-extras.ts` — sale/listing/snipe/fresh-blood faucets. `sweep-inline.ts` — per-wallet sweep crediting. `holder-tick.ts` — passive holder income + decay gate. `daily-claim-store.ts` · `daily-mission.ts` · `daily-checkin.ts` — daily faucets. `hex-spend.ts` · `tithe-store.ts` · `reckoning-{config,store}.ts` — sinks. `eth-math.ts` · `eth-price.ts` · `money-format.ts` — conversions.
 
 ### Agent / missions (AI)
 - `missions/image-gen.ts` — **image render pipeline** (SCENES allowlist 32 looks, STYLES transforms, generateCitizenScene, generateSisterScene, evolve; OpenRouter editToB64 → stamp → Blob). `missions/video-gen.ts` · `missions/image-stamp.tsx` (FREELON signature brand). `missions/llm.ts` · `missions/models.ts` · `missions/persona.ts` — reasoning. `missions/budget.ts` — **$-budget + daily-cap cost guard** (consumeFreeRun, claimDaily, kill-switch). `missions/pricing.ts` · `missions/unlock*.ts` — ETH activation pricing/orders. `missions/registry.ts` `missions/catalog.ts` `missions/types.ts` — mission defs. `missions/abilities/*` — the 6 agent classes (analyst/builder/communicator/guardian/maker/scout). `missions/resolvers/*` — per-mission output (deploy/dossier/versus/crew/feud/consult). `missions/dossier-store.ts` · `missions/memory-filter.ts` · `missions/ops-log.ts` · `missions/train.ts` · `missions/telemetry.ts`. `agent-history.ts` — per-token work record. `agent-subject.ts` — which collections are agentic (TCG excluded). `agent-tier-store.ts`. `collection-persona.ts` — sister-collection voices.

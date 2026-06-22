@@ -66,9 +66,6 @@ export async function GET(
     lastHolderTickDay: rec.lastHolderTickDay,
     claimStreak: rec.claimStreak ?? 0,
     tick,
-    // floor-defender is RETIRED (always-zero no-op). Keep the key for response-
-    // shape stability; return a static stub instead of a Redis GET+SET per call.
-    defenderTick: { qualifyingTokens: 0, hexCredited: 0, daysCredited: 0 },
     sweep,
     events: rec.events.slice(0, 20),
   });
