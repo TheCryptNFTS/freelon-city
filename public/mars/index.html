@@ -1177,6 +1177,8 @@ function tileClaimState(tid){
    never ⬡. Sink-law intact. ===== */
 let _playClock=0;
 const CORRUPT_WARN=5*60e3, CORRUPT_LOSE=8*60e3;
+/* #3: DEFEND objective — when the Chorus assaults a held sector, fight to keep it (INFLUENCE reward, no HEX stake) */
+const DEFEND_WINDOW=4*60e3, DEFEND_WAVES=2, DEFEND_INF=30, DEFEND_LOCK=6*60e3;
 function tendTile(id){ const r=tileRec(id); if(r&&r.claimed){ r.tended=_playClock; r.warned=0; } }
 function gridDist(a,b){ const A=idRC(a),B=idRC(b), dc=Math.abs(A.col-B.col); return Math.abs(A.row-B.row)+Math.min(dc,COLS-dc); }
 function tileNeighbors(id){ const {row,col}=idRC(id), o=[row+'x'+((col+1)%COLS), row+'x'+((col-1+COLS)%COLS)];
@@ -1206,6 +1208,7 @@ function tickFront(force){
   if(!force && (mode!=='play' || document.hidden)) return;
   _playClock += 30e3;
   let dirty=false, justSeeded=false;
+  if(S.defend && !S.defend.active && _playClock>S.defend.deadline) failDefend('timeout');   // #3: an un-answered defend lapses (the tile then falls on the normal schedule)
   /* 1) SEED — the Chorus gathers once you hold ≥2 sectors and the field is clear (post-wipe lull respected) */
   if(chorusCount()===0 && claimedTileCount()>=2 && _playClock>=(S.frontReseedAt||0)){
     if(_seedFront()){ S.frontEpoch=(S.frontEpoch||0)+1; justSeeded=true; dirty=true;
@@ -1215,17 +1218,20 @@ function tickFront(force){
   /* 2) ASSAULT + NEGLECT — your worst-tended away sector falls; the front (×2) and hostile terrain accelerate it */
   const ts=S.tiles||{}; let worst=null, wScore=0;
   for(const id in ts){ const r=ts[id]; if(!r||!r.claimed||id===HOME_TILE||id===S.tile) continue;
+    if(r.defendLockAt && _playClock<r.defendLockAt) continue;   // #3: a freshly-defended tile is briefly immune to re-assault
     const adj=tileNeighbors(id).some(n=>rivalSet[n]); r._adj=adj;
     const score=(_playClock-(r.tended||0))*(adj?2:1)*archHazard(id);
     if(score>wScore){ wScore=score; worst={id,r}; } }
   const _grace=docMul('endure')*techGraceMul(), loseAt=CORRUPT_LOSE*_grace, warnAt=CORRUPT_WARN*_grace;   /* GROWTH doctrine + GARRISON tech = longer grace */
   if(worst){
     if(wScore>=loseAt){
+      if(S.defend && S.defend.tile===worst.id) failDefend('overrun');   // #3: the tile fell — clear its lapsed defend objective
       worst.r.claimed=0; worst.r.rival=1; worst.r.rivalAt=_playClock; worst.r.warned=0;
       if((S.influence||0)>0) S.influence=Math.max(0,S.influence-8);
       toast('✖ '+planetTileName(worst.id)+' FALLS TO THE CHORUS — retake it'); sfxThunk(); addTrauma(.2); dirty=true;
     } else if(wScore>=warnAt && !worst.r.warned){
       worst.r.warned=1; toast('⚠ '+planetTileName(worst.id)+(worst.r._adj?' IS UNDER ASSAULT':' IS SLIPPING')+' — tend it'); sfxBlip(.3);
+      if(worst.r._adj && !S.defend && !rtActive) offerDefend(worst.id);   // #3: front-adjacent assault → offer a DEFEND
     }
   }
   /* 3) EXPAND — the front marches toward your holdings; rate rubber-bands so it never runs away or stalls */
@@ -1250,6 +1256,70 @@ function tickFront(force){
   if(dirty){ mmDirty=true; if(typeof paintGlobe==='function' && mode==='map') paintGlobe(); save(); updateHUD(); }
 }
 setInterval(tickFront, 30e3);
+/* ===== #3: DEFEND objective lifecycle — survive DEFEND_WAVES of the existing RT beasts to HOLD a sector for INFLUENCE.
+   Influence-economy end to end: skips the HEX sortie stake, never mints ⬡; a loss costs only the influence chance + time. ===== */
+function offerDefend(tid){
+  if(S.defend || !tid) return;
+  S.defend={ tile:tid, deadline:_playClock+DEFEND_WINDOW, waves:DEFEND_WAVES, wave:0, active:false };
+  toast('⚔ '+planetTileName(tid)+' UNDER ASSAULT — DEFEND IT'); sfxBlip(.4);
+  showDefendBeacon(tid); save(); updateHUD();
+}
+function showDefendBeacon(tid){
+  removeDefendBeacon();
+  const b=document.createElement('button'); b.id='defendBeacon';
+  b.style.cssText='position:fixed;bottom:248px;right:26px;z-index:40;font:bold 12px ui-monospace,monospace;letter-spacing:.1em;color:#0a0806;background:linear-gradient(180deg,#e0936a,#a8341f);border:none;border-radius:22px;padding:11px 22px;cursor:pointer;box-shadow:0 6px 26px rgba(168,52,31,.55)';
+  b.textContent='⚔ DEFEND '+planetTileName(tid).split(' ')[0]+' ▸';
+  b.onclick=()=>startDefend(tid);
+  document.body.appendChild(b);
+}
+function removeDefendBeacon(){ const b=document.getElementById('defendBeacon'); if(b) b.remove(); }
+function startDefend(tid){
+  if(rtActive) return;
+  if(!S.defend || S.defend.tile!==tid) return;
+  if(mode!=='play' || crossing || $('battle').classList.contains('open')){ toast('FINISH WHAT YOU’RE DOING FIRST'); return; }
+  removeDefendBeacon();
+  S.defend.active=true; S.defend.wave=1; rtDefend=true;
+  startRTCombat(null,null);   // stake skipped via rtDefend
+  if(!rtActive){ rtDefend=false; S.defend.active=false; showDefendBeacon(tid); return; }   // start guarded out → re-offer
+  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent='⚔ DEFEND — WAVE 1 / '+S.defend.waves;
+  const _re=document.getElementById('rtReward'); if(_re) _re.textContent='HOLD THE LINE ▸ +INFLUENCE';
+  toast('⚔ DEFEND '+planetTileName(tid)+' — HOLD THROUGH '+S.defend.waves+' WAVES');
+}
+function defendWaveAdvance(){
+  if(!S.defend) return false;
+  S.defend.wave++;
+  if(S.defend.wave > S.defend.waves) return false;   // all waves cleared → win
+  buildFoes(true); rtFoes=[];
+  const n=foeStage?foeStage.children.length:0;
+  for(let i=0;i<n;i++){ const m=foeStage.children[i], f=battleFoes[i];
+    const a=(i/Math.max(1,n))*Math.PI*2 + 0.5, R=44+Math.random()*14, px=rtArena.x+Math.cos(a)*R, pz=rtArena.z+Math.sin(a)*R;
+    m.position.set(px, terrainH(px,pz), pz);
+    rtFoes.push({mesh:m, hp:Math.max(16,Math.round(f.pw)), pw:f.pw, alive:true, atkCd:1.2+Math.random()*1.0}); }
+  rtInteg=Math.min(100, rtInteg+25);   // a short breather between waves
+  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent='⚔ DEFEND — WAVE '+S.defend.wave+' / '+S.defend.waves;
+  rtRenderHud(); toast('⚔ WAVE '+S.defend.wave+' / '+S.defend.waves+' INBOUND'); sfxThunk(); addTrauma(.3);
+  return true;
+}
+function winDefend(){
+  const tid=S.defend?S.defend.tile:null;
+  if(tid){ const r=tileRec(tid); r.tended=_playClock; r.warned=0; r.rival=0; r.rivalAt=0; r.defendLockAt=_playClock+DEFEND_LOCK;
+    const prof=(typeof archProfile==='function')?archProfile(tid):{h:0.5};
+    const inf=Math.round(DEFEND_INF*(0.85+0.3*(prof.h||0.5)));
+    S.influence=(S.influence||0)+inf;
+    toast('▲ '+planetTileName(tid)+' HELD — THE ASSAULT BREAKS · +'+inf+' INFLUENCE'); floater('+'+inf+' INFLUENCE'); sfxSting(); }
+  S.defend=null; rtDefend=false; removeDefendBeacon(); mmDirty=true; save(); updateHUD();
+}
+function failDefend(reason){
+  if(S.defend && reason!=='overrun') toast('⚔ DEFENSE ENDED — '+planetTileName(S.defend.tile)+' still exposed');
+  S.defend=null; rtDefend=false; removeDefendBeacon(); save(); updateHUD();
+}
+function endDefend(won){
+  rtActive=false; rtFoes=[]; distK=1; document.body.classList.remove('fighting');
+  if(rtAimLine){ scene.remove(rtAimLine); rtAimLine.material.dispose(); rtAimLine=null; }
+  if(rtAimRing){ scene.remove(rtAimRing); rtAimRing.geometry.dispose(); rtAimRing.material.dispose(); rtAimRing=null; }
+  const h=$('rtHud'); if(h) h.style.display='none';
+  if(won) winDefend(); else failDefend('repelled');
+}
 function claimTile(tid){
   const st=tileClaimState(tid); if(!st.ok){ toast(st.why); return false; }
   const rec=tileRec(tid), wasRival=!!rec.rival;
@@ -1433,7 +1503,7 @@ let S = { v:3, hex:500, xp:0, wins:0, claimsTotal:0, buildings:[], zonesClaimed:
   streak:{lastDay:'', n:0, buffers:0}, today:freshToday(),
   weekly:{key:weekKey(), count:0}, goalIndex:0, archive:{owned:[], pity:0},
   tile:HOME_TILE, tiles:{}, tileOrder:[], gDisc:0, gClear:0, faction:-1, influence:0, perks:{}, shownLevel:1, exped:[],
-  uplink:[], terra:{}, seed:0, firstSignalShown:false, cosmetic:{}, anomDay:'' };
+  uplink:[], terra:{}, seed:0, firstSignalShown:false, cosmetic:{}, anomDay:'', defend:null, warlord:null, warlordAt:0 };
 const loaded = load();
 
 /* ===== SHARE/SEED: a persistent worldSeed deep-linked in location.hash (#s=<base36>) ===== */
@@ -1580,8 +1650,8 @@ function load(){
       S.tile=S.tile||HOME_TILE; S.tiles=S.tiles||{}; S.tileOrder=S.tileOrder||[];
       S.gDisc=S.gDisc||0; S.gClear=S.gClear||0; if(typeof S.faction!=='number') S.faction=-1; S.influence=S.influence||0;
       S.uplink=Array.isArray(S.uplink)?S.uplink.slice(0,64):[]; S.terra=(S.terra&&typeof S.terra==='object')?S.terra:{};
-      for(const _id in (S.tiles||{})){ const _r=S.tiles[_id]; if(_r&&_r.claimed){ _r.tended=0; _r.warned=0; _r.rivalAt=0; } }   /* corruption starts fresh each session (no offline punishment) */
-      S.frontReseedAt=0;   /* play-clock-relative: _playClock resets to 0 each session, so a persisted post-wipe lull would otherwise outlive the session and permanently block the Chorus from ever reseeding */
+      for(const _id in (S.tiles||{})){ const _r=S.tiles[_id]; if(_r&&_r.claimed){ _r.tended=0; _r.warned=0; _r.rivalAt=0; _r.defendLockAt=0; } }   /* corruption starts fresh each session (no offline punishment) */
+      S.frontReseedAt=0; S.defend=null; S.warlordAt=0;   /* #3/#4: drop any in-progress defend + re-anchor play-clock gates (else they outlive the session) */   /* play-clock-relative: _playClock resets to 0 each session, so a persisted post-wipe lull would otherwise outlive the session and permanently block the Chorus from ever reseeding */
       S.perks=S.perks||{}; S.shownLevel=S.shownLevel||(Math.floor((S.xp||0)/100)+1); if(!Array.isArray(S.exped)) S.exped=[];
       for(const id of S.zonesClaimed) if(!S.zoneCol[id]) S.zoneCol[id]=Date.now();
     }
@@ -6724,7 +6794,7 @@ function resolveBattle(squad,enemy){
    rover; you STEER to aim + FIRE (click / space / trigger) with cone-assist, DRIVE to dodge,
    and manage INTEGRITY. Wins/losses route through the existing resolveBattle reward/cost logic,
    and every shot fires the tracer+muzzle+impact+hitstop+shake+audio+haptic juice already built. */
-let rtActive=false, rtFoes=[], rtInteg=100, rtFireCd=0, rtClock=0, rtAimLine=null, rtAimRing=null;
+let rtActive=false, rtFoes=[], rtInteg=100, rtFireCd=0, rtClock=0, rtAimLine=null, rtAimRing=null, rtDefend=false;
 const rtArena={x:0,z:0,r:108};
 const _coarse = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);   // touch device → auto-fire + touch hint
 if(_coarse){ const _h=document.getElementById('hint'); if(_h) _h.innerHTML='TAP · DRIVE&nbsp;&nbsp;·&nbsp;&nbsp;SCAN ▸ REVEAL&nbsp;&nbsp;·&nbsp;&nbsp;TAP SITE ▸ INSPECT&nbsp;&nbsp;·&nbsp;&nbsp;DRAG · LOOK&nbsp;&nbsp;·&nbsp;&nbsp;HOLD · STEER'; }   // touch players get touch verbs, not WASD
@@ -6732,8 +6802,10 @@ function startRTCombat(zone,poi){
   if(rtActive || typeof rover==='undefined') return;
   setImmersive(false);   // never drop into a fight in clean-view
   cancelPlace(); closeZonePanel();
-  if(S.hex<BATTLE_STAKE){ toast('INSUFFICIENT ⬡ FOR SORTIE'); return; }   // the sortie stake (sink) — paid on contact
-  S.hex-=BATTLE_STAKE; S.today.spent+=BATTLE_STAKE; trackSpend(BATTLE_STAKE,'battle'); shownHex=S.hex; updateHUD();
+  if(!rtDefend){   // #3: a DEFEND skips the HEX sortie stake entirely (it's an influence-economy fight)
+    if(S.hex<BATTLE_STAKE){ toast('INSUFFICIENT ⬡ FOR SORTIE'); return; }   // the sortie stake (sink) — paid on contact
+    S.hex-=BATTLE_STAKE; S.today.spent+=BATTLE_STAKE; trackSpend(BATTLE_STAKE,'battle'); shownHex=S.hex; updateHUD();
+  }
   battleGen++; battleZone=zone||null; battlePoi=poi||null;
   battleKey = poi ? poi.id : zone ? 'z'+zone.id : 'mission';
   buildFoes(true);                               // RT: skip the foe rise-tween (the ring re-placement below owns their position)
@@ -6861,11 +6933,13 @@ function rtUpdate(dt){
   if(_coarse && aim && rtFireCd<=0) rtFire();   // TOUCH: auto-fire when a foe is in the cone — the player only steers + dodges
   if(aliveN>0) rtInteg-=dt*2.2;               // ENGAGED BLEED — net trend is downward while the corruption lives, so passive kiting still loses (no infinite stall)
   rtInteg=Math.min(100, rtInteg + dt*1.6);   // partial regen still rewards dodging between volleys; it just can't fully stall the fight
-  if(aliveN===0){ endRTCombat(true); return; }
+  if(aliveN===0){ if(rtDefend){ if(defendWaveAdvance()) return; } endRTCombat(true); return; }   // #3: defend re-arms the next wave before counting a win
   if(rtInteg<=0){ endRTCombat(false); return; }
 }
 function endRTCombat(won){
-  if(!rtActive) return; rtActive=false; rtFoes=[]; distK=1; document.body.classList.remove('fighting');
+  if(!rtActive) return;
+  if(rtDefend){ endDefend(won); return; }   // #3: a DEFEND resolves via influence (no resolveBattle / no HEX result)
+  rtActive=false; rtFoes=[]; distK=1; document.body.classList.remove('fighting');
   if(rtAimLine){ scene.remove(rtAimLine); rtAimLine.material.dispose(); rtAimLine=null; }
   if(rtAimRing){ scene.remove(rtAimRing); rtAimRing.geometry.dispose(); rtAimRing.material.dispose(); rtAimRing=null; }
   const h=$('rtHud'); if(h) h.style.display='none';
@@ -7656,6 +7730,14 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   win:()=>winState(), triumph:()=>triumph(), records:()=>S.records||[], newPlanet:()=>newPlanet(),
   frontTick:(n=1)=>{ for(let i=0;i<n;i++) tickFront(true); if(mode==='map'&&typeof paintGlobe==='function')paintGlobe(); updateHUD(); return {chorus:chorusCount(),claimed:claimedTileCount(),tiles:rivalTiles()}; },
   seedFront:()=>{ const k=_seedFront(); if(mode==='map'&&typeof paintGlobe==='function')paintGlobe(); updateHUD(); return {seeded:k,chorus:chorusCount()}; },
+  defend:()=>S.defend||null,
+  offerDefend:(id)=>{ const t=id||(S.tiles&&Object.keys(S.tiles).find(k=>S.tiles[k]&&S.tiles[k].claimed)); offerDefend(t); return {defend:S.defend, beacon:!!document.getElementById('defendBeacon')}; },
+  startDefend:()=>{ if(S.defend) startDefend(S.defend.tile); return {active:rtActive, rtDefend, rt:MARS.rt()}; },
+  defendSim:()=>{ const tid=(S.tiles&&Object.keys(S.tiles).find(k=>S.tiles[k]&&S.tiles[k].claimed)); if(!tid) return {err:'no claimed tile'};
+    const hex0=S.hex, inf0=S.influence||0; S.defend=null; offerDefend(tid); const beacon=!!document.getElementById('defendBeacon'); startDefend(tid); const started=rtActive&&rtDefend;
+    let w=0; for(let i=0;i<6 && rtDefend;i++){ rtFoes.forEach(f=>f.alive=false); if(defendWaveAdvance()){ w++; } else { endRTCombat(true); break; } }
+    return {tile:tid, beacon, started, wavesAdvanced:w, hexDelta:S.hex-hex0, infDelta:(S.influence||0)-inf0, lockSet:!!(S.tiles[tid]&&S.tiles[tid].defendLockAt>_playClock), defendCleared:S.defend===null, rtCleared:(!rtActive&&!rtDefend)}; },
+  defendFail:()=>{ if(rtDefend){ endRTCombat(false); } else failDefend('debug'); return {defend:S.defend, rtDefend}; },
   arch:id=>{ const a=archetypeOf(id||S.tile), p=archProfile(id||S.tile); return a?{key:a.key,name:a.name,yield:p.y,hazard:p.h,grip:p.g}:null; },
   globe:()=>({phase:mapPhase,yaw:+gYaw.toFixed(2),pitch:+gPitch.toFixed(2),dist:mapDist,cur:S.tile,cost:tileClaimCost(),claimed:claimedTileCount()}),
   tile:()=>S.tile, goTo:id=>crossTo(id,0,0), info:id=>tileInfo(id||S.tile),
