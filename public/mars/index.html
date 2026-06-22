@@ -1413,6 +1413,12 @@ function dailySeed(){ return hashStr('mars-daily-'+new Date().toISOString().slic
     const already=Object.keys(S.tiles||{}).filter(t=>S.tiles[t]&&S.tiles[t].claimed).length;
     S.challenge={ n:_ch.n, doc:_ch.doc, seed:S.seed>>>0, beaten: already>_ch.n };
   } else if(S.challenge && S.challenge.seed!==(S.seed>>>0)) { S.challenge=null; }   /* stale contest from another planet → drop */
+  /* #4: a TIME challenge from a shared link (#t=<dailySeedB36>.<ms>) — beat the sharer's daily-trial time on TODAY's identical course */
+  { const _tc=(location.hash||'').match(/[#&]t=([0-9a-z]+)\.(\d+)/i);
+    if(_tc){ const ts=parseInt(_tc[1],36)>>>0, tms=+_tc[2];
+      if(ts===(dailySeed()>>>0) && tms>0) S.tChallenge={seed:ts, ms:tms, beaten:false}; }
+    if(S.tChallenge && S.tChallenge.seed!==(dailySeed()>>>0)) S.tChallenge=null;   /* stale — shared on a previous day */
+  }
 }
 const WORLD_SEED=()=>S.seed>>>0;
 
@@ -3843,30 +3849,65 @@ function tickRelicRun(dt,t){
    Drive the ROVER through a winding chain of gold gates IN ORDER, against the clock. Saves a
    personal best (localStorage). Showcases the rover (vs RELIC RUN's EMILE). Reuses terrainH +
    burst/sfx + addHex. Trigger: ⏱ TIME TRIAL button / T key / MARS.timeTrial(). */
-const TRIAL={ active:false, gates:[], idx:0, t:0, total:6, best:null };
+const TRIAL={ active:false, gates:[], idx:0, t:0, total:6, best:null, seed:0,
+  sx:0, sz:0, path:[], splits:[], _sampT:0, ghost:null, ghostPath:null, ghostSplits:null, lastDelta:null };
+const GHOST_DT=0.15;   // ghost path sample interval (s)
+function dailyTrialKey(){ return 'mars_dtrial_'+new Date().toISOString().slice(0,10); }   // per-UTC-day best record
 function _trialHudEl(){ let el=document.getElementById('trialHud'); if(!el){ el=document.createElement('div'); el.id='trialHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
-function clearTrial(){ for(const g of TRIAL.gates){ if(!g) continue; scene.remove(g); if(g.geometry)g.geometry.dispose(); } TRIAL.gates.length=0; }
+function buildTrialGhost(){
+  if(TRIAL.ghost){ scene.remove(TRIAL.ghost); TRIAL.ghost=null; }
+  if(!TRIAL.ghostPath || TRIAL.ghostPath.length<4) return;
+  const grp=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(2.3,1.0,4), new THREE.MeshBasicMaterial({color:0xffe9b0,transparent:true,opacity:.20,depthWrite:false}));
+  body.position.y=1.2; grp.add(body);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,46,6), new THREE.MeshBasicMaterial({color:0xf0c75e,transparent:true,opacity:.10,depthWrite:false}));
+  beam.position.y=22; grp.add(beam);
+  grp.frustumCulled=false; grp.renderOrder=2; scene.add(grp); TRIAL.ghost=grp;
+}
+function _ghostAt(t){   // world XZ of the best-run ghost at time t (path stored anchor-relative → re-anchors to this run's start)
+  const P=TRIAL.ghostPath; if(!P||P.length<4) return null;
+  const f=t/GHOST_DT, n=(P.length>>1)-1; let i=Math.floor(f);
+  if(i>=n){ return [TRIAL.sx+P[n*2], TRIAL.sz+P[n*2+1]]; }
+  const k=f-i, ax=P[i*2], az=P[i*2+1], bx=P[i*2+2], bz=P[i*2+3];
+  return [TRIAL.sx+ax+(bx-ax)*k, TRIAL.sz+az+(bz-az)*k];
+}
+function clearTrial(){ for(const g of TRIAL.gates){ if(!g) continue; scene.remove(g); if(g.geometry)g.geometry.dispose(); } TRIAL.gates.length=0;
+  if(TRIAL.ghost){ scene.remove(TRIAL.ghost); TRIAL.ghost=null; } }
 function startTimeTrial(){
   if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;   // not off-surface / mid-cross / behind a modal
   if(TRIAL.active) endTimeTrial(false,true);
   if(playerMode!=='rover') setPlayerMode('rover');     // it's a DRIVING trial
   clearTrial();
-  try{ const b=lsGet('mars_trial_best'); TRIAL.best=b?+b:null; }catch(e){ TRIAL.best=null; }
+  TRIAL.seed=dailySeed()>>>0;
+  let rec=null; try{ rec=JSON.parse(lsGet(dailyTrialKey())||'null'); }catch(e){ rec=null; }
+  TRIAL.best       = (rec&&typeof rec.t==='number')? rec.t : null;     // TODAY's personal best
+  TRIAL.ghostPath  = (rec&&rec.path&&rec.path.length>=4)? rec.path : null;
+  TRIAL.ghostSplits= (rec&&rec.splits)? rec.splits : null;
   TRIAL.total=6; TRIAL.idx=0; TRIAL.t=0; TRIAL.active=true;
-  let a=roverHeading, px=rover.position.x, pz=rover.position.z, prx=px, prz=pz;
+  TRIAL.path=[]; TRIAL.splits=[]; TRIAL._sampT=0; TRIAL.lastDelta=null;
+  TRIAL.sx=rover.position.x; TRIAL.sz=rover.position.z;
+  /* DAILY-DETERMINISTIC route: the turn pattern + step lengths are seeded from dailySeed() so every
+     player worldwide runs the IDENTICAL course shape today — the keystone that makes times comparable,
+     shareable and ghost-raceable. Anchored at the player's start, and the ghost path is stored
+     anchor-relative, so your recorded best re-aligns to the gates no matter where you launch it from. */
+  const rng=mulberry32(TRIAL.seed);
+  let a=rng()*Math.PI*2, px=TRIAL.sx, pz=TRIAL.sz, prx=px, prz=pz;
   for(let i=0;i<TRIAL.total;i++){
-    a += Math.sin(i*1.73)*0.85;                          // winding deterministic route
-    const step=120+((i*37)%70);
+    a += (rng()*2-1)*0.9;                                // seeded winding — same shape for all players today
+    const step=110+rng()*70;
     px+=Math.sin(a)*step; pz+=Math.cos(a)*step;
-    const r=Math.hypot(px,pz); if(r>650){ px*=650/r; pz*=650/r; }   // keep inside the tile so gates are reachable
+    const r=Math.hypot(px,pz); if(r>620){ px*=620/r; pz*=620/r; }   // keep inside the tile so gates are reachable
     const y=terrainH(px,pz)+7;
     const ring=new THREE.Mesh(new THREE.TorusGeometry(8,1.2,8,28), matGold(2.6));
     ring.position.set(px,y,pz); ring.lookAt(prx, y, prz);            // hole faces the approach direction
     ring.userData.idx=i; ring.frustumCulled=false; scene.add(ring); TRIAL.gates.push(ring);
     revealAt(px,pz,45); prx=px; prz=pz;
   }
+  buildTrialGhost();
   document.body.classList.add('trialrun'); _trialHudEl().style.display='block';
-  toast('⏱ TIME TRIAL — drive through all '+TRIAL.total+' gold gates in order, fast!'); sfxTick();
+  const rival = (S.tChallenge && S.tChallenge.seed===TRIAL.seed && !S.tChallenge.beaten) ? '  ·  RIVAL '+(S.tChallenge.ms/1000).toFixed(1)+'s' : '';
+  const aim = TRIAL.best!=null ? ('beat your '+TRIAL.best.toFixed(1)+'s') : 'set today’s time';
+  toast('⏱ DAILY TRIAL — 6 gates · '+aim+(TRIAL.ghostPath?'  ·  racing your ghost':'')+rival); sfxTick();
 }
 function endTimeTrial(won, silent){
   const was=TRIAL.active; TRIAL.active=false; clearTrial();
@@ -3875,14 +3916,23 @@ function endTimeTrial(won, silent){
   if(silent||!was) return;
   if(won){
     if(TRIAL.idx<TRIAL.total){ return; }                  // idempotency — only a real all-gates clear pays
-    const time=TRIAL.t; let pb='';
-    if(TRIAL.best==null || time<TRIAL.best){ TRIAL.best=time; lsSet('mars_trial_best',time.toFixed(2)); pb=' · NEW BEST!'; }
+    const time=TRIAL.t; let pb=''; const isBest=(TRIAL.best==null||time<TRIAL.best);
+    if(isBest){ TRIAL.best=time;
+      try{ lsSet(dailyTrialKey(), JSON.stringify({t:+time.toFixed(2), path:TRIAL.path.slice(0,1200), splits:TRIAL.splits})); }catch(e){}   // store TODAY's best + its ghost path
+      try{ const at=+(lsGet('mars_trial_best')||1e9); lsSet('mars_trial_best', Math.min(time,at).toFixed(2)); }catch(e){}                   // keep an all-time best too
+      pb=' · NEW BEST!';
+    }
     const onCd=(S.locks.trial||0)>Date.now();             // anti-farm: payout on a 10-min cooldown
     const reward=onCd?0:(50+Math.max(0,Math.round((45-time)*3)));
     if(reward>0){ S.locks.trial=Date.now()+10*60e3; addHex(reward,{quiet:true,src:'timetrial'}); save(); }
-    toast('⏱ TIME TRIAL — '+time.toFixed(1)+'s'+pb+(reward>0?('  +'+reward+' ⬡'):'  ⬡ payout cooling down'));
+    let beat='';
+    if(S.tChallenge && S.tChallenge.seed===TRIAL.seed && !S.tChallenge.beaten && time < S.tChallenge.ms/1000){
+      S.tChallenge.beaten=true; beat='  ·  ▲ RIVAL BEATEN'; floater('TIME CHALLENGE BEATEN'); sfxSting(); save();   // #4: out-ran the link sharer
+    }
+    toast('⏱ DAILY TRIAL — '+time.toFixed(1)+'s'+pb+beat+(reward>0?('  +'+reward+' ⬡'):(onCd?'  ⬡ payout cooling down':'')));
     burst(rover.position.x,rover.position.y+2,rover.position.z);
     if(typeof checkGoals==='function')checkGoals();
+    promptTrialShare(time,isBest);                          // #2: surface the share at the dopamine spike
   } else { toast('TIME TRIAL ended — '+TRIAL.idx+'/'+TRIAL.total+' gates.'); }
 }
 function tickTimeTrial(dt){
@@ -3890,17 +3940,27 @@ function tickTimeTrial(dt){
   if(rtActive || $('battle').classList.contains('open')) return;   // pause during a fight
   TRIAL.t+=dt;
   const p=rover.position, g=TRIAL.gates[TRIAL.idx];
+  /* sample THIS run's path (anchor-relative) so a new best becomes tomorrow-... today's ghost */
+  TRIAL._sampT+=dt;
+  if(TRIAL._sampT>=GHOST_DT && TRIAL.path.length<2400){ TRIAL._sampT-=GHOST_DT; TRIAL.path.push(+(p.x-TRIAL.sx).toFixed(1), +(p.z-TRIAL.sz).toFixed(1)); }
+  /* drive the best-run ghost along its stored path */
+  if(TRIAL.ghost){ const gp=_ghostAt(TRIAL.t); if(gp){ TRIAL.ghost.position.set(gp[0], terrainH(gp[0],gp[1])+0.5, gp[1]); } }
   if(g){
     g.scale.setScalar(1+0.08*Math.sin(TRIAL.t*4));
     const dx=g.position.x-p.x, dz=g.position.z-p.z;       // horizontal drive-through
     if(dx*dx+dz*dz < 144){                                // 12u — forgiving drive-through
       burst(g.position.x,g.position.y,g.position.z); sfxBlip((TRIAL.idx+1)/TRIAL.total);
-      scene.remove(g); if(g.geometry)g.geometry.dispose(); TRIAL.gates[TRIAL.idx]=null; TRIAL.idx++;
+      scene.remove(g); if(g.geometry)g.geometry.dispose(); TRIAL.gates[TRIAL.idx]=null;
+      TRIAL.splits.push(+TRIAL.t.toFixed(2));
+      if(TRIAL.ghostSplits && TRIAL.ghostSplits[TRIAL.idx]!=null) TRIAL.lastDelta=TRIAL.t-TRIAL.ghostSplits[TRIAL.idx];   // vs your best at this gate
+      TRIAL.idx++;
       if(TRIAL.idx>=TRIAL.total){ endTimeTrial(true); return; }
     }
   }
   const el=document.getElementById('trialHud');
-  if(el) el.textContent='⏱ GATE '+TRIAL.idx+'/'+TRIAL.total+'   '+TRIAL.t.toFixed(1)+'s'+(TRIAL.best!=null?'   BEST '+TRIAL.best.toFixed(1)+'s':'');
+  if(el){ let d='';
+    if(TRIAL.lastDelta!=null){ const ahead=TRIAL.lastDelta<0; d='   <span style="color:'+(ahead?'#7ad17a':'#e08a63')+'">'+(ahead?'▲ ':'▼ +')+Math.abs(TRIAL.lastDelta).toFixed(1)+'s</span>'; }
+    el.innerHTML='⏱ DAILY GATE '+TRIAL.idx+'/'+TRIAL.total+'   '+TRIAL.t.toFixed(1)+'s'+(TRIAL.best!=null?'   BEST '+TRIAL.best.toFixed(1)+'s':'')+d; }
 }
 
 /* ============================== PARKOUR TRIAL — third in-world game ==============================
@@ -4862,11 +4922,14 @@ function updateHUD(){
       else fc.style.display='none'; } }
   if(S.challenge && !S.challenge.beaten && claimedTileCount()>S.challenge.n){   /* #3: you out-held the planet's sharer */
     S.challenge.beaten=true; toast('▲ CHALLENGE BEATEN — you out-held '+(DOCTRINES[S.challenge.doc]||'them')+' ('+claimedTileCount()+' > '+S.challenge.n+')');
-    floater('CHALLENGE BEATEN'); sfxSting(); save(); }
+    floater('CHALLENGE BEATEN'); sfxSting(); save();
+    if(typeof floatShareChip==='function') floatShareChip('POST YOUR WIN ▸ BEAT-ME', ()=>share()); }   /* #2: nudge the share at the beat moment */
   renderChallenge();
   if(typeof checkWin==='function') checkWin();   // capstone: SECURE THE PLANET (scar + 10 sectors + Chorus broken)
 }
 function renderChallenge(){
+  { const tb=document.getElementById('trialBtn');   /* #4: show the inbound time-rival right on the button */
+    if(tb){ tb.textContent=(S.tChallenge && !S.tChallenge.beaten && S.tChallenge.seed===(dailySeed()>>>0)) ? ('⏱ BEAT '+(S.tChallenge.ms/1000).toFixed(1)+'s') : '⏱ TIME TRIAL'; } }
   const c=$('challengeChip'); if(!c) return;
   if(!S.challenge){ c.style.display='none'; return; }
   const held=claimedTileCount(), n=S.challenge.n, doc=DOCTRINES[S.challenge.doc]||'RIVAL';
@@ -5082,7 +5145,9 @@ function triumph(){
   const ov=document.getElementById('winOverlay');
   if(ov){ ov.querySelector('#winSub').innerHTML='PLANET '+(WORLD_SEED().toString(36).toUpperCase())+' SECURED · '+(DOCTRINES[S.faction]||'')+
       '<br>'+claimedTileCount()+' SECTORS HELD · THE VOID SCAR IS SILENT · THE CHORUS IS BROKEN';
-    ov.classList.add('open'); }
+    ov.classList.add('open');
+    const ws=ov.querySelector('#winShare');   /* #2: pull the eye to SHARE at the peak moment */
+    if(ws&&ws.animate&&!_reduceMotion){ try{ ws.animate([{boxShadow:'0 0 0 rgba(216,178,92,0)'},{boxShadow:'0 0 34px rgba(216,178,92,.95)'},{boxShadow:'0 0 0 rgba(216,178,92,0)'}],{duration:1500,iterations:3,delay:500}); }catch(e){} } }
   save(); updateHUD();
 }
 function newPlanet(){   // NG+: a fresh planet, keep the archive/tech you earned
@@ -5604,15 +5669,50 @@ function gridBlock(){
     'freeloncity.com/mars#s='+WORLD_SEED().toString(36)
   ].join('\n');
 }
+/* #1/#4: the DAILY TRIAL share — a result card whose hero is the TIME, and a deep-link that carries
+   the time so a friend lands on TODAY's identical course already chasing it (beat-me contest). */
+function trialShareURL(ms){ const u=location.origin+location.pathname; return u+'#daily&t='+(dailySeed()>>>0).toString(36)+'.'+Math.round(ms); }
+function makeTrialCard(time,isBest){
+  const W=LOWPERF?600:1200, H=Math.round(W*0.525);
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const Sc=W/1200;
+  x.fillStyle='#080604'; x.fillRect(0,0,W,H);
+  const gr=x.createRadialGradient(W*.5,H*.34,40*Sc,W*.5,H*.34,W*.72);
+  gr.addColorStop(0,'rgba(216,178,92,.13)'); gr.addColorStop(1,'rgba(8,6,4,0)'); x.fillStyle=gr; x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(216,178,92,.4)'; x.lineWidth=2*Sc; x.strokeRect(18*Sc,18*Sc,W-36*Sc,H-36*Sc);
+  x.textAlign='center'; x.textBaseline='middle';
+  x.fillStyle='#d8b25c'; x.font='bold '+(22*Sc)+'px ui-monospace,monospace'; x.fillText('⬡  MARS COMMAND  ·  DAILY TIME TRIAL', W*.5, H*.18);
+  x.fillStyle='#f0c75e'; x.font='bold '+(150*Sc)+'px ui-monospace,monospace'; x.fillText(time.toFixed(1)+'s', W*.5, H*.46);
+  x.fillStyle='rgba(242,234,216,.62)'; x.font=(20*Sc)+'px ui-monospace,monospace'; x.fillText('6 GATES · TODAY’S PLANET '+(dailySeed()>>>0).toString(36).toUpperCase(), W*.5, H*.64);
+  if(isBest){ x.fillStyle='#7ad17a'; x.font='bold '+(24*Sc)+'px ui-monospace,monospace'; x.fillText('★ NEW PERSONAL BEST', W*.5, H*.745); }
+  x.fillStyle='#f2ead8'; x.font='bold '+(26*Sc)+'px ui-monospace,monospace'; x.fillText('BEAT MY TIME ▸ freeloncity.com/mars', W*.5, H*.875);
+  return cv;
+}
+function shareTrial(time,isBest){
+  const ms=Math.round(time*1000), url=trialShareURL(ms);
+  const line='I ran today’s MARS COMMAND daily trial in '+time.toFixed(1)+'s'+(isBest?' (new best)':'')+'. Beat my time ▸ '+url+' @4040hex #FREELONCITY';
+  share({ card:makeTrialCard(time,isBest), line, url, fname:'mars-daily-trial-'+(dailySeed()>>>0).toString(36)+'.png' });
+}
+/* a transient, non-blocking share chip that floats up at a climax moment (PB / win) */
+function floatShareChip(label, onClick){
+  const old=document.getElementById('floatShareChip'); if(old) old.remove();
+  const c=document.createElement('button'); c.id='floatShareChip'; c.textContent=label;
+  c.style.cssText='position:fixed;bottom:200px;left:50%;transform:translateX(-50%) scale(.9);z-index:40;font:bold 14px ui-monospace,monospace;letter-spacing:.1em;color:#0a0806;background:linear-gradient(180deg,#f7d877,#d8b25c);border:none;border-radius:24px;padding:12px 26px;cursor:pointer;box-shadow:0 6px 30px rgba(216,178,92,.5);opacity:0;transition:opacity .3s,transform .3s';
+  c.onclick=()=>{ try{ onClick(); }catch(e){} c.remove(); };
+  document.body.appendChild(c);
+  requestAnimationFrame(()=>{ c.style.opacity='1'; c.style.transform='translateX(-50%) scale(1)'; });
+  setTimeout(()=>{ if(c.parentNode){ c.style.opacity='0'; setTimeout(()=>c.remove(),400); } }, 9000);
+}
+function promptTrialShare(time,isBest){ floatShareChip((isBest?'★ NEW BEST ':'')+'POST '+time.toFixed(1)+'s ▸ BEAT-ME', ()=>shareTrial(time,isBest)); }
 function share(opts){ opts=opts||{};
-  writeHashSeed(WORLD_SEED());
-  const card=makeOGCard();
+  const url = opts.url || shareURL();
+  if(!opts.url) writeHashSeed(WORLD_SEED());
+  const card = opts.card || makeOGCard();
   glyphStamp(); sfxBlip(.5);
-  const line=dispatchLine(opts.won)+'\n\n'+gridBlock(), url=shareURL();
+  const line = opts.line || (dispatchLine(opts.won)+'\n\n'+gridBlock());
   /* DELIVER the card — native share-sheet WITH the image where supported, else download the PNG + copy the line.
      The PNG is the shareable artifact (the whole virality bet); never discard it. */
   const deliver=blob=>{
-    const fname='mars-command-planet-'+(WORLD_SEED()).toString(36)+'.png';
+    const fname=opts.fname||('mars-command-planet-'+(WORLD_SEED()).toString(36)+'.png');
     const file = blob ? new File([blob],fname,{type:'image/png'}) : null;
     if(file && navigator.canShare && navigator.canShare({files:[file]})){
       navigator.share({files:[file], text:line, url, title:'FREELON CITY: MARS COMMAND'}).catch(()=>{});
@@ -7242,6 +7342,13 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   timeTrial:()=>{ startTimeTrial(); return {active:TRIAL.active, gates:TRIAL.total, best:TRIAL.best}; },
   trialInfo:()=>({active:TRIAL.active, idx:TRIAL.idx, total:TRIAL.total, t:+TRIAL.t.toFixed(1), best:TRIAL.best, next:TRIAL.gates[TRIAL.idx]?[+TRIAL.gates[TRIAL.idx].position.x.toFixed(0),+TRIAL.gates[TRIAL.idx].position.z.toFixed(0)]:null}),
   trialEnd:(won)=>{ endTimeTrial(won===true); return TRIAL.active; },
+  trialSim:(time)=>{ if(!TRIAL.active) startTimeTrial(); time=time||12.3;   /* force a full clear (rAF-free) to exercise persistence/ghost/share */
+    if(!TRIAL.path.length) TRIAL.path=[0,0, 12,8, 26,4, 40,18, 58,30, 72,46];
+    TRIAL.splits=[2.1,4.4,6.3,8.5,10.4,+time.toFixed(2)];
+    TRIAL.idx=TRIAL.total; TRIAL.t=time; endTimeTrial(true); return {best:TRIAL.best}; },
+  trialState:()=>{ let rec=null; try{ rec=JSON.parse(lsGet(dailyTrialKey())||'null'); }catch(e){}
+    return {seed:TRIAL.seed, best:TRIAL.best, ghostLoaded:TRIAL.ghostPath?TRIAL.ghostPath.length:0,
+      tChallenge:S.tChallenge||null, key:dailyTrialKey(), saved: rec?{t:rec.t, pathLen:(rec.path||[]).length, splits:rec.splits}:null }; },
   parkour:()=>{ startParkour(); return {active:PARK.active, rings:PARK.total}; },
   parkInfo:()=>({active:PARK.active, idx:PARK.idx, total:PARK.total, t:+PARK.t.toFixed(1), next:PARK.rings[PARK.idx]?[+PARK.rings[PARK.idx].position.x.toFixed(0),+PARK.rings[PARK.idx].position.y.toFixed(0),+PARK.rings[PARK.idx].position.z.toFixed(0)]:null}),
   parkEnd:(won)=>{ endParkour(won===true); return PARK.active; },

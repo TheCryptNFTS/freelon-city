@@ -34,6 +34,7 @@ const THEMES: Record<string, Theme> = {
   cipher: { title: "THE CIPHER", kicker: "DECODE THE SHIFT", accent: "#9B6DFF" },
   reckoning: { title: "THE RECKONING", kicker: "CIV WAR · BURN FOR YOUR SIDE", accent: "#E0556B" },
   "hex-match": { title: "HEX MATCH", kicker: "LINE UP THE SIGNAL", accent: "#3DDC97" },
+  mars: { title: "MARS COMMAND · DAILY TRIAL", kicker: "DRIVE · CLAIM · BEAT THE TIME", accent: "#E9C984" },
 };
 
 function clip(v: string | null, max: number): string {
