@@ -3685,10 +3685,12 @@ function animateEmile(dt,t){
   EMILE.anim += (Math.max(roverSpd,0)*dt/EMILE_CYCLE_DIST)*Math.PI*2;
   if(EMILE.landT>0) EMILE.landT=Math.max(0,EMILE.landT-dt);   // landing-compression timer
   if(EMILE.mixer){
-    if(!EMILE.grounded){
-      // AIRBORNE — pin a mid-stride mocap frame (procedural jump/fall/spin are axis-wrong on this re-exported rig → twisted limbs). Keep _curClip valid for the landing crossfade.
+    const airHold=EMILE._airHold;   // debug: force an airborne pose for inspection while grounded
+    if(!EMILE.grounded || airHold){
+      // AIRBORNE — drive the procedural jump/fall/spin pose on the rig (no mocap mid-air)
       if(EMILE.clips[EMILE._curClip]) EMILE.clips[EMILE._curClip].paused=true;
-      EMILE.mixer.update(0);
+      const st = airHold || (EMILE.spinT>0 ? 'spin' : (EMILE.vy>1.5 ? 'jump' : 'fall'));
+      poseEmile(st, t, 1);
     } else {
       if(EMILE.clips[EMILE._curClip]) EMILE.clips[EMILE._curClip].paused=false;
       // GROUNDED — REAL MOCAP: crossfade IDLE<->RUN by speed (hysteresis), run cadence tracks ground speed
@@ -3703,6 +3705,8 @@ function animateEmile(dt,t){
       EMILE.mixer.update(dt);
       // FOOTSTEP foley locked to the visible mocap cadence (2 steps / 0.7s cycle)
       if(want==='RUN' && roverSpd>0.6 && EMILE.clips.RUN){ const si=Math.floor(EMILE.clips.RUN.time/(0.7/2)); if(si!==EMILE._stepIdx){ EMILE._stepIdx=si; if(typeof sfxStep==='function')sfxStep(roverSpdRatio); } }
+      // LANDING SQUASH — brief body dip on touchdown, overlaid on the mocap pose (position-only = rig-safe, no axis risk)
+      if(EMILE.landT>0 && EMILE.bones.Hips){ const k=EMILE.landT/0.22, dip=Math.min(5,1+(EMILE.landV||0)*0.18)*k; EMILE.bones.Hips.position.y -= dip; }
     }
   }
   // contact-shadow blob on the ground under EMILE, shrinking as he rises
@@ -3720,6 +3724,10 @@ function animateEmile(dt,t){
     emileWrap.rotation.x=damp(emileWrap.rotation.x,tx,7,dt);
     emileWrap.rotation.z=damp(emileWrap.rotation.z,tz,7,dt);
   }
+  // DOUBLE-JUMP SPIN — roll the MODEL through a full flip over the spin window (signature Sonic move).
+  // On the model root (not emileWrap) so the slope-conform damp can't fight it / unwind the 2π after landing;
+  // forced back to 0 whenever not spinning, so it never leaves residual roll.
+  if(EMILE.model){ EMILE.model.rotation.x = (EMILE.spinT>0) ? -(1-Math.max(0,Math.min(0.35,EMILE.spinT))/0.35)*Math.PI*2 : 0; }
 }
 /* EMILE now ships REAL mocap: emile.glb = his rig + CC0/MIT locomotion (run/idle/walk) retargeted
    onto his own 35-bone skeleton in Blender (the FBX's own clips were empty stubs). Bone names are
@@ -7367,6 +7375,7 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
     return MARS.emileInfo(); },
   emileTune:(o)=>{ Object.assign(EMILE,o||{}); if(EMILE.model){ EMILE.model.scale.setScalar(EMILE.GLB_SCALE); EMILE.model.rotation.y=EMILE.GLB_FACE; } return {GLB_SCALE:EMILE.GLB_SCALE,GLB_FACE:+EMILE.GLB_FACE.toFixed(2),FOOT:EMILE.FOOT,SPD_MULT:EMILE.SPD_MULT,clip:EMILE._curClip,clips:Object.keys(EMILE.clips)}; },
   emileClip:(n)=>{ if(EMILE.clips[n]){ for(const k in EMILE.clips) EMILE.clips[k].stop(); EMILE.clips[n].reset().setEffectiveWeight(1).play(); EMILE._curClip=n; } return {playing:n,clips:Object.keys(EMILE.clips)}; },
+  emileAir:(state)=>{ EMILE._airHold=state||null; return {hold:EMILE._airHold}; },   /* debug: freeze an airborne pose (jump/fall/spin) for inspection; null clears */
   /* +++ rover-feel: drive manually for N seconds (same manualStep path the keyboard uses) */
   throttle:(dir,secs=1.5)=>{ const d=typeof dir==='string'
       ? ({fwd:{f:1},back:{b:1},left:{f:1,l:1},right:{f:1,r:1}}[dir]||{f:1}) : (dir||{f:1});
