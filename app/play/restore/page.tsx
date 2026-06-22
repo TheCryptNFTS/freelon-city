@@ -4,10 +4,10 @@ import { RestoreSignal } from "./RestoreSignal";
 export const metadata: Metadata = {
   title: "Restore the Signal · FREELON CITY",
   description:
-    "The city went dark at 404. Bring nodes online, generate signal, relight the ten civilizations. Holders compound.",
+    "The city went dark at 404. Bring nodes online, generate signal, relight the ten civilizations. Holders build faster.",
   openGraph: {
     title: "Restore the Signal · FREELON CITY",
-    description: "The city went dark at 404. Relight the ten civilizations. Holders compound.",
+    description: "The city went dark at 404. Relight the ten civilizations. Holders build faster.",
     images: [
       { url: "/api/og/play?t=RESTORE%20THE%20SIGNAL&k=IDLE%20%C2%B7%20THE%20CITY%20IS%20DARK", width: 1200, height: 630 },
     ],

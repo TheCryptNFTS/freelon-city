@@ -1097,7 +1097,7 @@ export function RestoreSignal() {
           steps={[
             { glyph: "◇", text: "The city went dark at 404. Bring nodes online to generate signal over time." },
             { glyph: "✦", text: "Spend signal to power up nodes — each upgrade compounds the city's output." },
-            { glyph: "∞", text: "It's one shared city. Light all ten civilizations back up; holders compound faster." },
+            { glyph: "∞", text: "It's one shared city. Light all ten civilizations back up; holders build faster." },
           ]}
         />
       </div>

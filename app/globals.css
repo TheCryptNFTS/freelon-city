@@ -89,14 +89,17 @@
   --mars-rust:   #A84F2A;
   --signal-blue: #4D8DFF;
   --signal-red:  #FF4D4D;
-  --void-purple: #8D5CFF;
+  /* 2026-06-22 brand sweep: was #8D5CFF (off-palette neon violet). Repointed to
+     gold so every consumer (Epic tier badge, status-chip purple, OtherSignals)
+     lands on-brand. Name kept to avoid a broad rename; treat as deprecated. */
+  --void-purple: #C8A75D;
 
   /* Semantic tokens */
   --success:        #5a9a4a;   /* up / claimed / verified */
   --success-bright: #7ab866;
   --danger:         #c54a3a;   /* down / error / sold out */
   --danger-bright:  #df6857;
-  --info:           #4a8acb;   /* info / link accent */
+  --info:           #C8A75D;   /* info / link accent — 2026-06-22 was #4a8acb blue, now gold */
 
   /* 2026-05-28 — civ colors shifted from "tasteful muted" to neon-noir
      saturation. The previous values were polite NFT-collection palette;
@@ -4995,7 +4998,7 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .streak-badge[data-tier="static"]  { color: #e5794a; border-color: rgba(229,121,74,0.5); background: rgba(229,121,74,0.06); }
 .streak-badge[data-tier="carrier"] { color: var(--gold-bright); border-color: rgba(200,170,100,0.5); background: rgba(200,170,100,0.06); }
 .streak-badge[data-tier="fire"]    { color: var(--gold-bright); border-color: var(--gold); background: rgba(200,170,100,0.14); box-shadow: 0 0 16px -4px rgba(200,170,100,0.4); }
-.streak-badge[data-tier="ghost"]   { color: #a989c7; border-color: rgba(169,137,199,0.5); background: rgba(58,42,110,0.16); }
+.streak-badge[data-tier="ghost"]   { color: #b8a888; border-color: rgba(184,168,136,0.5); background: rgba(40,34,22,0.4); }
 .streak-badge[data-tier="dead"]    { color: #e57966; border-color: rgba(229,121,102,0.5); background: rgba(197,74,58,0.10); }
 .streak-badge[data-tier="saint"]   { color: var(--gold-bright); border-color: var(--gold-bright); background: linear-gradient(135deg, rgba(200,170,100,0.1), rgba(233,201,132,0.2)); box-shadow: 0 0 32px -4px rgba(200,170,100,0.6); }
 

@@ -46,15 +46,15 @@ export function Ghost404() {
         bottom: 16,
         zIndex: 998,
         maxWidth: 320,
-        background: "rgba(12,12,20,0.96)",
-        border: "1px solid #3a2a6e",
+        background: "rgba(12,11,8,0.96)",
+        border: "1px solid rgba(200,167,93,0.32)",
         padding: "14px 16px",
         boxShadow: "0 8px 28px rgba(0,0,0,0.6)",
         animation: "ghost404-in 0.6s ease",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.28em", color: "#a989c7" }}>
+        <span style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.28em", color: "#b8a888" }}>
           ⬡ 04:04 UTC · GHOST TRANSMISSION
         </span>
         <button

@@ -76,7 +76,7 @@ export function FeaturedCitizenPicker({
         margin: "var(--s-4) auto",
         maxWidth: 1100,
         padding: "var(--s-4)",
-        border: "1px solid var(--gold)55",
+        border: "1px solid color-mix(in srgb, var(--gold) 33%, transparent)",
         borderRadius: 12,
         background: "linear-gradient(135deg, rgba(200,167,93,0.06), rgba(0,0,0,0.3))",
       }}

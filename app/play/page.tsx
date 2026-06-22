@@ -70,7 +70,7 @@ const GAMES = [
     title: "Restore the Signal",
     genre: "Like Cookie Clicker (idle game)",
     blurb:
-      "The city went dark at 404. Bring nodes online, generate signal, watch the ten civilizations light back up. Holders compound.",
+      "The city went dark at 404. Bring nodes online, generate signal, watch the ten civilizations light back up. Holders build faster.",
     accent: "var(--neon-magenta)",  },
   {
     href: "/play/proof",

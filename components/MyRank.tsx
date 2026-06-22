@@ -60,7 +60,7 @@ export function MyRank() {
       style={{
         margin: "var(--s-4) 0",
         padding: "var(--s-4)",
-        border: "1px solid var(--gold)44",
+        border: "1px solid color-mix(in srgb, var(--gold) 27%, transparent)",
         borderRadius: 12,
         background: "linear-gradient(90deg, rgba(200,167,93,0.08) 0%, rgba(0,0,0,0.4) 100%)",
         display: "grid",

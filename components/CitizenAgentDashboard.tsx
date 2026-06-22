@@ -756,7 +756,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         </p>
       ) : (
         <p className="agentdash-pay-note">
-          Unlocks every ability — write, strategy, research, red-team, dossier &amp; branded image generation — <strong>forever</strong>, and drops <strong>bonus ⬡</strong> in your wallet. Less than a month of ChatGPT. The unlock + training history stay with the FREELON when it changes hands.
+          Unlocks every ability — write, strategy, research, red-team, dossier &amp; branded image generation — for as long as the city runs the agent service, and drops <strong>bonus ⬡</strong> in your wallet. Less than a month of ChatGPT. The unlock + training history stay with the FREELON when it changes hands.
         </p>
       )}
       {payStep === "quoting" && <p className="agentdash-pay-note">Getting the price…</p>}
@@ -764,7 +764,7 @@ export function CitizenAgentDashboard({ citizenId }: Props) {
         <>
           <div className="agentdash-pay-amount">
             <span className="agentdash-pay-eth">{quote.amountEth} ETH</span>
-            <span className="agentdash-pay-usd">{payKind === "recharge" ? "refill" : "one-time · forever"} · {unlock?.tier}</span>
+            <span className="agentdash-pay-usd">{payKind === "recharge" ? "refill" : "one-time unlock"} · {unlock?.tier}</span>
           </div>
           <p className="agentdash-pay-to">
             Send the <strong>exact</strong> amount to<br />

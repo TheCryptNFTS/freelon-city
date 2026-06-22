@@ -65,7 +65,7 @@ export default async function TransmissionsPage({
         <details
           open
           style={{
-            border: "1px solid var(--gold)44",
+            border: "1px solid color-mix(in srgb, var(--gold) 27%, transparent)",
             background: "linear-gradient(180deg, rgba(200,167,93,0.05), rgba(0,0,0,0.3))",
             borderRadius: 14,
             overflow: "hidden",

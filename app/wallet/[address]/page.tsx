@@ -361,7 +361,7 @@ export default async function WalletPage({
           ) : (
             <>
               <span className="ws-value">SYNCING</span>
-              <span className="ws-sub">indexing on-chain history</span>
+              <span className="ws-sub">syncing work history</span>
             </>
           )}
         </div>

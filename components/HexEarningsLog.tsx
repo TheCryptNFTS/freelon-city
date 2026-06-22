@@ -34,10 +34,10 @@ const KIND_LABEL: Record<Event["kind"], string> = {
 
 const KIND_COLOR: Record<Event["kind"], string> = {
   hold: "#c8aa64",
-  sweep: "#5a9a4a",
+  sweep: "#d9a441",
   sweep_streak: "#e9c984",
-  quest: "#4a8acb",
-  manual: "#a989c7",
+  quest: "#bfa15a",
+  manual: "#a89878",
 };
 
 /** Renders "next tick at 00:00 UTC · ~+N ⬡/day".

@@ -81,7 +81,7 @@ export default async function TributePage({ params }: { params: Promise<{ handle
   // project, never as a claim that the honoree IS a citizen or is affiliated.
   const tweet =
     `⬡ @4040hex · tribute · ${h.honoree_handle || h.honoree}\n\n` +
-    `Citizen #${id4} of FREELON CITY is named in tribute to you (homage — not affiliated).\n` +
+    `Citizen #${id4} of FREELON CITY is named in tribute to ${h.honoree_handle || h.honoree} (homage — not affiliated).\n` +
     `Civilization: ${civ?.name}.\n` +
     `Doctrine: ${civ?.doctrine}.\n` +
     `The signal remembers.\n\n` +
