@@ -709,11 +709,11 @@ setTimeout(function(){
 <button id="returnBtn">▸ RETURN TO BASE</button>
 <button id="scanBtn">SIGNAL SCAN</button>
 <button id="crewsBtn">CREWS ▸</button>
-<button id="emileBtn">⚡ PLAY AS EMILE</button>
+<button id="emileBtn">▸ PLAY AS EMILE</button>
 <button id="relicBtn">⬡ RELIC RUN</button>
-<button id="trialBtn">⏱ TIME TRIAL</button>
-<button id="parkBtn">🤸 PARKOUR</button>
-<button id="gauntletBtn">⚡ GAUNTLET</button>
+<button id="trialBtn">▸ TIME TRIAL</button>
+<button id="parkBtn">▸ PARKOUR</button>
+<button id="gauntletBtn">▸ GAUNTLET</button>
 <button id="jumpBtn" aria-label="Jump">JUMP</button>
 <button id="dashBtn" aria-label="Dash">DASH</button>
 <button id="exportBtn">EXPORT SAVE</button>
@@ -3902,8 +3902,8 @@ function setPlayerMode(m){
   for(const w of roverWheels) w.visible=!onEmile;
   EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0; EMILE.spinT=0; clearAfterimage();
   document.body.classList.toggle('emileon', onEmile);
-  toast(onEmile?'⚡ EMILE — RUN · W A S D · SPACE JUMP · SHIFT DASH':'🛻 ROVER — DRIVE');
-  const tb=$('emileBtn'); if(tb){ tb.classList.toggle('on',onEmile); tb.textContent = onEmile ? '🛻 BACK TO ROVER' : '⚡ PLAY AS EMILE'; }
+  toast(onEmile?'EMILE — RUN · W A S D · SPACE JUMP · SHIFT DASH':'ROVER — DRIVE');
+  const tb=$('emileBtn'); if(tb){ tb.classList.toggle('on',onEmile); tb.textContent = onEmile ? '▸ BACK TO ROVER' : '▸ PLAY AS EMILE'; }
 }
 function togglePlayer(){ if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
   if(GAUNTLET.active) endGauntlet(false,true);   // a gauntlet owns relic/park sub-state — end it first so its teardown runs
@@ -3953,7 +3953,7 @@ function startRelicRun(){
   }
   document.body.classList.add('relicrun');
   _relicHudEl().style.display='block';
-  toast('⚡ RELIC RUN — grab all '+RELIC.total+' ⬡ before the clock runs out! (follow the gold)');
+  toast('▸ RELIC RUN — grab all '+RELIC.total+' ⬡ before the clock runs out! (follow the gold)');
   sfxTick(); if(typeof haptic==='function')haptic(.4,.1);
 }
 function endRelicRun(won, silent){
@@ -3992,7 +3992,7 @@ function tickRelicRun(dt,t){
     }
   }
   const el=document.getElementById('relicHud');
-  if(el) el.textContent='⬡ '+RELIC.got+' / '+RELIC.total+'      ⏱ '+Math.max(0,RELIC.timeLeft).toFixed(1)+'s';
+  if(el) el.textContent='⬡ '+RELIC.got+' / '+RELIC.total+'      ▸ '+Math.max(0,RELIC.timeLeft).toFixed(1)+'s';
   if(RELIC.got>=RELIC.total) endRelicRun(true);
   else if(RELIC.timeLeft<=0) endRelicRun(false);
 }
@@ -4000,7 +4000,7 @@ function tickRelicRun(dt,t){
 /* ============================== TIME TRIAL — second in-world game ==============================
    Drive the ROVER through a winding chain of gold gates IN ORDER, against the clock. Saves a
    personal best (localStorage). Showcases the rover (vs RELIC RUN's EMILE). Reuses terrainH +
-   burst/sfx + addHex. Trigger: ⏱ TIME TRIAL button / T key / MARS.timeTrial(). */
+   burst/sfx + addHex. Trigger: ▸ TIME TRIAL button / T key / MARS.timeTrial(). */
 const TRIAL={ active:false, gates:[], idx:0, t:0, total:6, best:null, seed:0,
   sx:0, sz:0, path:[], splits:[], _sampT:0, ghost:null, ghostPath:null, ghostSplits:null, lastDelta:null };
 const GHOST_DT=0.15;   // ghost path sample interval (s)
@@ -4059,7 +4059,7 @@ function startTimeTrial(){
   document.body.classList.add('trialrun'); _trialHudEl().style.display='block';
   const rival = (S.tChallenge && S.tChallenge.seed===TRIAL.seed && !S.tChallenge.beaten) ? '  ·  RIVAL '+(S.tChallenge.ms/1000).toFixed(1)+'s' : '';
   const aim = TRIAL.best!=null ? ('beat your '+TRIAL.best.toFixed(1)+'s') : 'set today’s time';
-  toast('⏱ DAILY TRIAL — 6 gates · '+aim+(TRIAL.ghostPath?'  ·  racing your ghost':'')+rival); sfxTick();
+  toast('▸ DAILY TRIAL — 6 gates · '+aim+(TRIAL.ghostPath?'  ·  racing your ghost':'')+rival); sfxTick();
 }
 function endTimeTrial(won, silent){
   const was=TRIAL.active; TRIAL.active=false; clearTrial();
@@ -4081,7 +4081,7 @@ function endTimeTrial(won, silent){
     if(S.tChallenge && S.tChallenge.seed===TRIAL.seed && !S.tChallenge.beaten && time < S.tChallenge.ms/1000){
       S.tChallenge.beaten=true; beat='  ·  ▲ RIVAL BEATEN'; floater('TIME CHALLENGE BEATEN'); sfxSting(); save();   // #4: out-ran the link sharer
     }
-    toast('⏱ DAILY TRIAL — '+time.toFixed(1)+'s'+pb+beat+(reward>0?('  +'+reward+' ⬡'):(onCd?'  ⬡ payout cooling down':'')));
+    toast('▸ DAILY TRIAL — '+time.toFixed(1)+'s'+pb+beat+(reward>0?('  +'+reward+' ⬡'):(onCd?'  ⬡ payout cooling down':'')));
     burst(rover.position.x,rover.position.y+2,rover.position.z);
     if(typeof checkGoals==='function')checkGoals();
     promptTrialShare(time,isBest);                          // #2: surface the share at the dopamine spike
@@ -4112,13 +4112,13 @@ function tickTimeTrial(dt){
   const el=document.getElementById('trialHud');
   if(el){ let d='';
     if(TRIAL.lastDelta!=null){ const ahead=TRIAL.lastDelta<0; d='   <span style="color:'+(ahead?'#7ad17a':'#e08a63')+'">'+(ahead?'▲ ':'▼ +')+Math.abs(TRIAL.lastDelta).toFixed(1)+'s</span>'; }
-    el.innerHTML='⏱ DAILY GATE '+TRIAL.idx+'/'+TRIAL.total+'   '+TRIAL.t.toFixed(1)+'s'+(TRIAL.best!=null?'   BEST '+TRIAL.best.toFixed(1)+'s':'')+d; }
+    el.innerHTML='▸ DAILY GATE '+TRIAL.idx+'/'+TRIAL.total+'   '+TRIAL.t.toFixed(1)+'s'+(TRIAL.best!=null?'   BEST '+TRIAL.best.toFixed(1)+'s':'')+d; }
 }
 
 /* ============================== PARKOUR TRIAL — third in-world game ==============================
    Jump EMILE through an ascending chain of gold rings in order (SPACE / double-jump) → an ARCHIVE
    FRAGMENT (different reward axis to the HEX games). 3D proximity = you must JUMP to each ring's
-   altitude. Trigger: 🤸 PARKOUR button / P key / MARS.parkour(). */
+   altitude. Trigger: ▸ PARKOUR button / P key / MARS.parkour(). */
 const PARK={ active:false, rings:[], idx:0, total:8, t:0, _chain:false };
 function _parkHudEl(){ let el=document.getElementById('parkHud'); if(!el){ el=document.createElement('div'); el.id='parkHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
 function clearPark(){ for(const r of PARK.rings){ if(!r) continue; scene.remove(r); if(r.geometry)r.geometry.dispose(); } PARK.rings.length=0; }
@@ -4143,7 +4143,7 @@ function startParkour(){
     revealAt(px,pz,28);
   }
   document.body.classList.add('parkrun'); _parkHudEl().style.display='block';
-  toast('🤸 PARKOUR — JUMP through all '+PARK.total+' rings in order! (SPACE · double-jump)'); sfxTick();
+  toast('▸ PARKOUR — JUMP through all '+PARK.total+' rings in order! (SPACE · double-jump)'); sfxTick();
 }
 function endParkour(won, silent){
   const was=PARK.active; PARK.active=false; clearPark();
@@ -4156,8 +4156,8 @@ function endParkour(won, silent){
     if(PARK.idx<PARK.total) return;                      // idempotency
     const onCd=(S.locks.parkour||0)>Date.now();          // anti-farm: fragment+⬡ on a 10-min cooldown
     if(!onCd){ S.locks.parkour=Date.now()+10*60e3; if(typeof awardFragment==='function')awardFragment('parkour'); addHex(40,{quiet:true,src:'parkour'}); save();
-      toast('🤸 PARKOUR CLEAR — ⬡ ARCHIVE FRAGMENT + 40 ⬡  ·  '+PARK.t.toFixed(1)+'s'); }
-    else toast('🤸 PARKOUR CLEAR! reward cooling down ('+fmtDur((S.locks.parkour||0)-Date.now())+')');
+      toast('▸ PARKOUR CLEAR — ⬡ ARCHIVE FRAGMENT + 40 ⬡  ·  '+PARK.t.toFixed(1)+'s'); }
+    else toast('▸ PARKOUR CLEAR! reward cooling down ('+fmtDur((S.locks.parkour||0)-Date.now())+')');
     burst(rover.position.x,rover.position.y+2,rover.position.z); if(typeof haptic==='function')haptic(.8,.25);
   } else { toast('PARKOUR ended — '+PARK.idx+'/'+PARK.total+' rings.'); }
 }
@@ -4176,13 +4176,13 @@ function tickParkour(dt,t){
     }
   }
   const el=document.getElementById('parkHud');
-  if(el) el.textContent='🤸 RING '+PARK.idx+'/'+PARK.total+'   '+PARK.t.toFixed(1)+'s';
+  if(el) el.textContent='▸ RING '+PARK.idx+'/'+PARK.total+'   '+PARK.t.toFixed(1)+'s';
 }
 
 /* ============================== EMILE GAUNTLET — chained showcase run ==============================
    RELICS ▸ RINGS ▸ SPRINT, EMILE-only, ONE combined clock, one localStorage best, one shareable card.
    Reuses RELIC/PARK spawn+detect via a _chain flag that intercepts their payout and advances instead.
-   PURE GLORY — pays NO ⬡ (honors the sink rule). Trigger: ⚡ GAUNTLET button / G key / MARS.gauntlet(). */
+   PURE GLORY — pays NO ⬡ (honors the sink rule). Trigger: ▸ GAUNTLET button / G key / MARS.gauntlet(). */
 const GAUNTLET={ active:false, phase:0, t:0, best:null, startX:0, startZ:0, finish:null };
 function _gauntHudEl(){ let el=document.getElementById('gauntHud'); if(!el){ el=document.createElement('div'); el.id='gauntHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
 function startGauntlet(){
@@ -4196,7 +4196,7 @@ function startGauntlet(){
   document.body.classList.add('gauntlet'); _gauntHudEl().style.display='block';
   startRelicRun(); RELIC._chain=true; RELIC.timeLeft=9999;   // chain leg 1; no per-leg timeout — the combined clock is the only timer
   const rh=document.getElementById('relicHud'); if(rh) rh.style.display='none';
-  toast('⚡ EMILE GAUNTLET — RELICS ▸ RINGS ▸ SPRINT · one clock, no breaks!'); sfxTick();
+  toast('▸ EMILE GAUNTLET — RELICS ▸ RINGS ▸ SPRINT · one clock, no breaks!'); sfxTick();
 }
 function gauntletAdvance(phase){
   GAUNTLET.phase=phase;
@@ -4212,7 +4212,7 @@ function buildFinishGate(){
   m.position.set(px,y,pz); m.lookAt(rover.position.x,y,rover.position.z); m.frustumCulled=false; scene.add(m);
   GAUNTLET.finish=m; revealAt(px,pz,40);
 }
-function gauntletFail(stage){ toast('⚡ GAUNTLET — out at '+stage+'. One clean run, no breaks.'); endGauntlet(false,true); }
+function gauntletFail(stage){ toast('▸ GAUNTLET — out at '+stage+'. One clean run, no breaks.'); endGauntlet(false,true); }
 function endGauntlet(won, silent){
   const was=GAUNTLET.active; GAUNTLET.active=false; GAUNTLET.phase=0; RELIC._chain=false; PARK._chain=false;
   if(GAUNTLET.finish){ scene.remove(GAUNTLET.finish); if(GAUNTLET.finish.geometry)GAUNTLET.finish.geometry.dispose(); GAUNTLET.finish=null; }
@@ -4225,11 +4225,11 @@ function endGauntlet(won, silent){
   if(won){
     const time=GAUNTLET.t; let pb=''; const isBest=(GAUNTLET.best==null||time<GAUNTLET.best);
     if(isBest){ GAUNTLET.best=time; try{ lsSet('mars_gauntlet_best', time.toFixed(2)); }catch(e){} pb=' · NEW BEST!'; }
-    toast('⚡ EMILE GAUNTLET — '+time.toFixed(1)+'s'+pb+'  ·  RELICS▸RINGS▸SPRINT cleared');   // PURE GLORY — no ⬡
+    toast('▸ EMILE GAUNTLET — '+time.toFixed(1)+'s'+pb+'  ·  RELICS▸RINGS▸SPRINT cleared');   // PURE GLORY — no ⬡
     burst(rover.position.x,rover.position.y+3,rover.position.z); if(typeof haptic==='function')haptic(.9,.3);
     if(typeof checkGoals==='function')checkGoals();
     promptGauntletShare(time,isBest);
-  } else { toast('⚡ GAUNTLET ENDED — clear all three legs in one run. Go again.'); }
+  } else { toast('▸ GAUNTLET ENDED — clear all three legs in one run. Go again.'); }
 }
 function tickGauntlet(dt,t){
   if(!GAUNTLET.active) return;
@@ -4242,9 +4242,9 @@ function tickGauntlet(dt,t){
   }
   const el=document.getElementById('gauntHud');
   if(el){ let label;
-    if(GAUNTLET.phase===1) label='⚡ ① RELICS '+RELIC.got+'/'+RELIC.total;
-    else if(GAUNTLET.phase===2) label='⚡ ② RINGS '+PARK.idx+'/'+PARK.total;
-    else label='⚡ ③ SPRINT ▸ FINISH';
+    if(GAUNTLET.phase===1) label='▸ ① RELICS '+RELIC.got+'/'+RELIC.total;
+    else if(GAUNTLET.phase===2) label='▸ ② RINGS '+PARK.idx+'/'+PARK.total;
+    else label='▸ ③ SPRINT ▸ FINISH';
     el.textContent=label+'   '+GAUNTLET.t.toFixed(1)+'s'+(GAUNTLET.best!=null?'   BEST '+GAUNTLET.best.toFixed(1)+'s':''); }
 }
 function makeGauntletCard(time,isBest){
@@ -4255,7 +4255,7 @@ function makeGauntletCard(time,isBest){
   gr.addColorStop(0,'rgba(216,178,92,.13)'); gr.addColorStop(1,'rgba(8,6,4,0)'); x.fillStyle=gr; x.fillRect(0,0,W,H);
   x.strokeStyle='rgba(216,178,92,.4)'; x.lineWidth=2*Sc; x.strokeRect(18*Sc,18*Sc,W-36*Sc,H-36*Sc);
   x.textAlign='center'; x.textBaseline='middle';
-  x.fillStyle='#d8b25c'; x.font='bold '+(22*Sc)+'px ui-monospace,monospace'; x.fillText('⚡  MARS COMMAND · EMILE GAUNTLET', W*.5, H*.18);
+  x.fillStyle='#d8b25c'; x.font='bold '+(22*Sc)+'px ui-monospace,monospace'; x.fillText('▸  MARS COMMAND · EMILE GAUNTLET', W*.5, H*.18);
   x.fillStyle='#f0c75e'; x.font='bold '+(150*Sc)+'px ui-monospace,monospace'; x.fillText(time.toFixed(1)+'s', W*.5, H*.46);
   x.fillStyle='rgba(242,234,216,.62)'; x.font=(20*Sc)+'px ui-monospace,monospace'; x.fillText('RELICS ▸ RINGS ▸ SPRINT · ONE RUN', W*.5, H*.64);
   if(isBest){ x.fillStyle='#7ad17a'; x.font='bold '+(24*Sc)+'px ui-monospace,monospace'; x.fillText('★ NEW PERSONAL BEST', W*.5, H*.745); }
@@ -5211,7 +5211,7 @@ function renderAnomChip(){   /* #2: a HUD chip pointing at today's daily anomaly
 }
 function renderChallenge(){
   { const tb=document.getElementById('trialBtn');   /* #4: show the inbound time-rival right on the button */
-    if(tb){ tb.textContent=(S.tChallenge && !S.tChallenge.beaten && S.tChallenge.seed===(dailySeed()>>>0)) ? ('⏱ BEAT '+(S.tChallenge.ms/1000).toFixed(1)+'s') : '⏱ TIME TRIAL'; } }
+    if(tb){ tb.textContent=(S.tChallenge && !S.tChallenge.beaten && S.tChallenge.seed===(dailySeed()>>>0)) ? ('▸ BEAT '+(S.tChallenge.ms/1000).toFixed(1)+'s') : '▸ TIME TRIAL'; } }
   const c=$('challengeChip'); if(!c) return;
   if(!S.challenge){ c.style.display='none'; return; }
   const held=claimedTileCount(), n=S.challenge.n, doc=DOCTRINES[S.challenge.doc]||'RIVAL';
@@ -6563,7 +6563,7 @@ function buildFoes(noRise){
   renderLanes();
 }
 const surgeTag = (m,li) => (li===surgeHidden && !surgeShown) ? '<span style="color:#d98a63">◇ UNREAD SURGE ×?</span>'
-  : m>1.2 ? '<span style="color:var(--gold-bright)">⚡ AMPLIFIED ×'+m.toFixed(2)+'</span>' : m<0.85 ? '<span style="color:#d98a63">▽ DAMPENED ×'+m.toFixed(2)+'</span>' : '<span style="color:rgba(242,234,216,.5)">· STEADY</span>';
+  : m>1.2 ? '<span style="color:var(--gold-bright)">▸ AMPLIFIED ×'+m.toFixed(2)+'</span>' : m<0.85 ? '<span style="color:#d98a63">▽ DAMPENED ×'+m.toFixed(2)+'</span>' : '<span style="color:rgba(242,234,216,.5)">· STEADY</span>';
 function renderLanes(){
   const row=$('laneRow'); row.innerHTML='';
   battleFoes.forEach((f,li)=>{
