@@ -3624,7 +3624,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .hex-404 .cta-row .btn { min-height: 44px; }
   .name-editor .btn,
   .dl-unlock-btn { min-height: 48px; }
-  .mobile-trigger { width: 44px; height: 44px; }
+  .mobile-trigger { width: auto; min-width: 44px; height: 44px; padding: 0 16px; }
 
   /* ---------- 3. Horizontal overflow guards on 375px ---------- */
   .lore-row-inner { grid-template-columns: 1fr; gap: var(--s-5); padding: var(--s-6) 16px; }

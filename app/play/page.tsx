@@ -131,7 +131,7 @@ export default function PlayHub() {
       {/* T11 2026-06-11 — play_entered funnel event (fire-once client beacon). */}
       <PageBeacon name="play_entered" />
       <section className="manifesto-hero">
-        <span className="kicker">⬡ FREELON CITY · ARCADE · PROTOTYPE</span>
+        <span className="kicker">⬡ FREELON CITY · ARCADE</span>
         <h1>
           Ways into <em>the signal</em>.
         </h1>
@@ -340,14 +340,14 @@ export default function PlayHub() {
           color: "var(--ink-fade)",
         }}
       >
-        PROTOTYPES · SCORES + PROGRESS SAVED LOCALLY · NOT ON-CHAIN
+        SCORES + PROGRESS SAVED LOCALLY · NOT ON-CHAIN
       </p>
 
       {/* 2026-06-07 funnel: the arcade has no own/unlock path — loop a visitor
           back to the real product so play isn't a dead-end door. */}
       <section style={{ marginTop: 40, textAlign: "center" }}>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", marginBottom: 14 }}>
-          These are toys. The real thing is a FREELON you own and train.
+          Free to play. The deeper game is a FREELON you own and train.
         </p>
         <Link className="btn btn-primary" href="/demo">
           <span className="ttl">MEET A CITIZEN · FREE →</span>

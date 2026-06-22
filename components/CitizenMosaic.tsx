@@ -5,7 +5,7 @@
  * Curated ids: visually strong, varied civs/castes (incl. the 1/1s at ends).
  */
 import styles from "./CitizenMosaic.module.css";
-import { imageUrl } from "@/lib/constants";
+import { heroImageUrl } from "@/lib/constants";
 
 const IDS = [1, 2268, 555, 1892, 777, 404, 123, 3690, 21, 1180, 2762, 4040];
 
@@ -17,7 +17,7 @@ export function CitizenMosaic() {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={id}
-            src={imageUrl(id)}
+            src={heroImageUrl(id)}
             alt={`Citizen #${id}`}
             loading="lazy"
             decoding="async"
