@@ -1729,7 +1729,7 @@ texLoader.load(STEAL.marsBump, t=>{
 });
 texLoader.load(STEAL.milkyWay, t=>{
   t.colorSpace=THREE.SRGBColorSpace; t.mapping=THREE.EquirectangularReflectionMapping;
-  if(!spaceScene.background) spaceScene.background=t;   // cubemap wins if it arrives
+  if(!spaceScene.background || spaceScene.background.isColor) spaceScene.background=t;   // install the equirect as a baseline (the init Color is truthy); cubemap still wins if it arrives
 });
 /* real Milky Way cubemap (three.js sample) — true starfield behind the globe + intro */
 { const ext=['px','nx','py','ny','pz','nz'];
@@ -4137,7 +4137,7 @@ addEventListener('keydown',e=>{
   else if(k==='d'||e.key==='ArrowRight') keyDrive.r=1;
   else if(k==='c'){ togglePlayer(); e.preventDefault(); return; }   // C — swap rover ⇄ EMILE
   else if(playerMode==='emile' && k===' ' && !rtActive && !$('battle').classList.contains('open')){ emileJump(); e.preventDefault(); e.stopImmediatePropagation(); return; }
-  else if(playerMode==='emile' && (k==='shift'||k==='shiftleft'||k==='shiftright')){ emileDash(); e.preventDefault(); return; }
+  else if(playerMode==='emile' && k==='shift'){ emileDash(); e.preventDefault(); return; }   // e.key for Shift is always 'shift' (shiftleft/right were dead e.code comparisons)
   else if(k==='r' && !rtActive){ startRelicRun(); e.preventDefault(); return; }   // R — start a RELIC RUN
   else if(k==='t' && !rtActive){ startTimeTrial(); e.preventDefault(); return; }  // T — start a TIME TRIAL
   else if(k==='p' && !rtActive){ startParkour(); e.preventDefault(); return; }    // P — start a PARKOUR TRIAL
@@ -4150,7 +4150,7 @@ addEventListener('keyup',e=>{
   else if(k==='s'||e.key==='ArrowDown') keyDrive.b=0;
   else if(k==='a'||e.key==='ArrowLeft') keyDrive.l=0;
   else if(k==='d'||e.key==='ArrowRight') keyDrive.r=0;
-  else if(k===' ') emileJumpRelease();   // variable jump height — release early = shorter hop
+  else if(k===' ' && mode==='play') emileJumpRelease();   // variable jump height — release early = shorter hop (play-mode only)
 });
 addEventListener('blur',()=>{ keyDrive.f=keyDrive.b=keyDrive.l=keyDrive.r=0; padDrive.f=padDrive.b=padDrive.l=padDrive.r=0; pointerHeld=false; });   // focus lost mid-hold → drop latched movement (else the rover self-drives on return)
 /* HOLD pointer to drive toward the cursor: only engages on a STILL hold (>180ms, no drag),
@@ -4292,7 +4292,7 @@ function roverUpdate(dt,t){
         if(EMILE.bufferT>0){ EMILE.bufferT=0; emileJump(); }   // a jump buffered just before touchdown fires now
       }
     } else {   // grounded
-      if(groundY < p.y-4.5 && roverSpd>5){ EMILE.grounded=false; EMILE.vy=0; }   // ran off a real drop (cliff/brow) — catch air; coyote (lit last frame) now forgives a late jump
+      if(terrainH(p.x,p.z) < p.y-4.5 && roverSpd>5){ EMILE.grounded=false; EMILE.vy=0; }   // detach on the RAW ground (not the lagging 4-sample avg) so a slow walk-off a sharp lip catches air on time, not late; the damp below still uses the smoothed groundY
       else { p.y=damp(p.y, groundY, 12, dt); EMILE.coyote=0.12; }                 // stick to ground + refill the coyote window
     }
   } else {
@@ -5188,8 +5188,8 @@ const DAILY_TEMPLATES=[
 ];
 function slate(){
   const r=mulberry32(hashStr(S.today.day));
-  /* never deal a dead directive: fragment daily needs an incomplete archive,
-     survey daily needs unsurveyed sites left */
+  /* never deal a dead FRAGMENT daily (it needs an incomplete archive) — that's the only
+     hard-blockable one; survey/scan/travel dailies reset their counters each day */
   const pool=[...DAILY_TEMPLATES.keys()].filter(i=>
     !(i===6 && S.archive.owned.length>=40));
   const idx=new Set();
@@ -5336,7 +5336,7 @@ function openBeaconPanel(p){
   const owned=Object.values(S.tiles).filter(t=>t.claimed).length;
   const cost=Math.round(100*Math.pow(1.5,owned));
   if(S.hex<cost){ toast('CLAIM COST ⬡ '+cost+' — INSUFFICIENT'); return; }
-  S.hex-=cost; rec.claimed=1; rec.claimCol=Date.now();
+  S.hex-=cost; rec.claimed=1; rec.claimCol=Date.now(); rec.tended=_playClock; rec.rival=0; rec.rivalAt=0; rec.warned=0;   // match claimTile: a fresh hold is tended + pushes the Chorus off (this fallback only runs if the content layer is absent)
   const g=poiGroups[p.id]; if(g){ siteCeremony(g); poiResolve(g); }
   S.xp+=20; shownHex=S.hex;
   toast(tileName(S.tile)+' CLAIMED · −⬡ '+cost);
@@ -6370,7 +6370,7 @@ function resolveBattle(squad,enemy){
       toast('SECTOR SECURED');
     }
     sfxSting(); addTrauma(.5); hitstop(60);
-    tw(360, EASE.outCubic, k=>{ renderer.toneMappingExposure=1.15+.18*Math.sin(k*Math.PI); });
+    tw(360, EASE.outCubic, k=>{ renderer.toneMappingExposure=1.32+.18*Math.sin(k*Math.PI); });   // pulse from + back to the 1.32 base (was 1.15 → left the scene a notch dark forever after a win)
   }else{
     const firstLoss = (S.wins||0)===0 && !(S.hardened && S.hardened[battleKey]);
     if(firstLoss){
