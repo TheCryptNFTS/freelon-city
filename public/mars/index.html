@@ -1222,6 +1222,7 @@ function tickFront(force){
   /* 2) ASSAULT + NEGLECT — your worst-tended away sector falls; the front (×2) and hostile terrain accelerate it */
   const ts=S.tiles||{}; let worst=null, wScore=0;
   for(const id in ts){ const r=ts[id]; if(!r||!r.claimed||id===HOME_TILE||id===S.tile) continue;
+    if(S.defend && S.defend.active && id===S.defend.tile) continue;   // #3: you're ACTIVELY defending this tile — it can't fall mid-fight (else the no-stake defend would convert to a HEX-paying fight)
     if(r.defendLockAt && _playClock<r.defendLockAt) continue;   // #3: a freshly-defended tile is briefly immune to re-assault
     const adj=tileNeighbors(id).some(n=>rivalSet[n]); r._adj=adj;
     const score=(_playClock-(r.tended||0))*(adj?2:1)*archHazard(id);
@@ -1260,8 +1261,10 @@ function tickFront(force){
   /* 4) WARLORD — once you're one step from winning (scar silenced + 10 held), the Chorus crowns a NAMED siege near your seat */
   if(S.scarBonus && claimedTileCount()>=WIN_SECTORS && !S.warlord && _playClock>=(S.warlordAt||0)){
     let wt = rivalTiles().slice().sort((a,b)=>gridDist(a,HOME_TILE)-gridDist(b,HOME_TILE))[0];
-    if(!wt){ const cand=tileNeighbors(HOME_TILE).find(n=>{ const r=S.tiles[n]; return n!==HOME_TILE && !(r&&(r.claimed||r.rival)); });
-      if(cand){ const rc=tileRec(cand); rc.rival=1; rc.rivalAt=_playClock; wt=cand; } }
+    if(!wt){ wt = tileNeighbors(HOME_TILE).find(n=>{ const r=S.tiles[n]; return n!==HOME_TILE && !(r&&(r.claimed||r.rival)); });
+      if(wt){ const rc=tileRec(wt); rc.rival=1; rc.rivalAt=_playClock; }
+      else { const held=Object.keys(S.tiles).filter(id=>id!==HOME_TILE && S.tiles[id] && S.tiles[id].claimed).sort((a,b)=>gridDist(a,HOME_TILE)-gridDist(b,HOME_TILE));
+        if(held.length){ wt=held[0]; const rc=tileRec(wt); rc.claimed=0; rc.rival=1; rc.rivalAt=_playClock; } } }   // guarantee a seat (the siege TAKES ground if it must) — never fail to crown, or the win softlocks
     if(wt){ const nm=WARLORD_NAMES[(S.frontEpoch||0)%WARLORD_NAMES.length];
       tileRec(wt).warlord=1; S.warlord={ id:wt, name:nm, spawnAt:_playClock, broken:false };
       toast('⚔ THE CHORUS CROWNS '+nm+' — BREAK THE SIEGE TO SECURE THE PLANET'); sfxThunk(); addTrauma(.5); dirty=true; }
@@ -1324,7 +1327,14 @@ function winDefend(){
 }
 function failDefend(reason){
   if(S.defend && reason!=='overrun') toast('⚔ DEFENSE ENDED — '+planetTileName(S.defend.tile)+' still exposed');
-  S.defend=null; rtDefend=false; removeDefendBeacon(); save(); updateHUD();
+  S.defend=null; rtDefend=false; removeDefendBeacon();
+  if(rtActive){   // defense in depth: if a defend is force-failed mid-combat, tear the fight down too (never strand a live RT fight as a normal HEX-paying one)
+    rtActive=false; rtFoes=[]; distK=1; document.body.classList.remove('fighting');
+    if(rtAimLine){ scene.remove(rtAimLine); rtAimLine.material.dispose(); rtAimLine=null; }
+    if(rtAimRing){ scene.remove(rtAimRing); rtAimRing.geometry.dispose(); rtAimRing.material.dispose(); rtAimRing=null; }
+    const h=$('rtHud'); if(h) h.style.display='none';
+  }
+  save(); updateHUD();
 }
 function endDefend(won){
   rtActive=false; rtFoes=[]; distK=1; document.body.classList.remove('fighting');
@@ -5410,7 +5420,7 @@ function openRecords(){
 const WIN_SECTORS = 10;
 function winState(){ const s=claimedTileCount(), c=chorusCount();
   return { scar:!!S.scarBonus, sectors:s, chorus:c, warlord:warlordActive(),
-    met: !!S.scarBonus && s>=WIN_SECTORS && c===0 && !warlordActive() }; }   // #4: an un-broken warlord blocks the win
+    met: !!S.scarBonus && s>=WIN_SECTORS && c===0 && !!(S.warlord && S.warlord.broken) }; }   // #4: the win REQUIRES the warlord siege to have been crowned AND broken — so it can't fire in the gap before the warlord crowns (the crown is guaranteed in tickFront step 4)
 function checkWin(){ if(S.won) return; if(winState().met) triumph(); }
 function breakWarlord(tid){   // #4: end the siege — claim the warlord tile, mark broken, pay an INFLUENCE bounty (no HEX)
   if(!S.warlord || S.warlord.broken) return;
@@ -7344,6 +7354,16 @@ function startGame(){
       if((S.goalIndex||0)>=WL_AT) S.goalIndex=(S.goalIndex||0)+1;
     }
     S.wlGoalMig=1; save();
+  }
+  /* CATCH-ALL self-heal: the guarded splices above only fire when goalPaid is exactly one short.
+     A save that skipped a whole migration era (e.g. pre-FC, never opened during the FC-only window)
+     can land two-or-more short, leaving goalPaid index-misaligned with GOALS → a HEX windfall or a
+     wrong NEXT chip. Any length mismatch → rebuild goalPaid from live done()-state (a done goal counts
+     as PAID, so re-completing it pays nothing = no windfall; undone = unpaid, pays when completed). */
+  if(Array.isArray(S.goalPaid) && S.goalPaid.length!==GOALS.length){
+    S.goalPaid=GOALS.map(g=>{ try{ return !!g.done(); }catch(e){ return false; } });
+    if((S.goalIndex||0)>GOALS.length) S.goalIndex=GOALS.length;
+    save();
   }
   cinePhase='done';
   /* spaceScene is NOT disposed — it becomes the live globe strategic map (next phase) */
