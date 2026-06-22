@@ -77,13 +77,13 @@
      kicker ⬡, focus rings, the carousel scrollbar — all now read gold. The
      glow is a soft gold luminance, not a neon spike. */
   --neon-cyan:    #E9C984;
-  --neon-magenta: #8D5CFF;  /* was #FF0070 hot-pink (off-palette) — repointed to brand void-purple (upgrade audit 2026-06-19) */
+  --neon-magenta: #a8341f;  /* dust-red — was void-purple #8D5CFF, off the black/gold/ivory/dust-red palette (polish swarm 2026-06-22) */
   --neon-glow-cyan:
     0 0 2px rgba(233, 201, 132, 0.7),
     0 0 16px rgba(233, 201, 132, 0.28);
   --neon-glow-magenta:
-    0 0 2px rgba(141, 92, 255, 0.85),
-    0 0 14px rgba(141, 92, 255, 0.35);
+    0 0 2px rgba(168, 52, 31, 0.85),
+    0 0 14px rgba(168, 52, 31, 0.35);
 
   /* Premium signal colors — use sparingly, one per context */
   --mars-rust:   #A84F2A;
@@ -183,7 +183,7 @@
   /* ---------------------------------------------------------------- */
 
   /* STATE COLORS — semantic, one per system state */
-  --state-active:    #7AE08D;   /* healthy / online / live */
+  --state-active:    #E9C984;   /* healthy / online / live — gold (was mint #7AE08D, off-palette green) polish swarm 2026-06-22 */
   --state-surge:     #E8B247;   /* gold surge / earning event */
   --state-unstable:  #FFD27A;   /* yellow caution */
   --state-warning:   #FF8A6E;   /* collapse / red warning */
@@ -191,7 +191,7 @@
   --state-offline:   #3a3a3a;   /* dim / no signal */
 
   /* STATE TINTS — translucent surfaces tinted by state */
-  --tint-active:   rgba(122,224,141,0.10);
+  --tint-active:   rgba(233,201,132,0.10);
   --tint-surge:    rgba(232,178,71,0.10);
   --tint-warning:  rgba(255,138,110,0.16);
   --tint-danger:   rgba(255,90,77,0.18);
@@ -7676,7 +7676,7 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .resume-id-link { color: var(--civ, var(--gold)); text-decoration: none; }
 .resume-id-link:hover { text-decoration: underline; }
 .resume-status { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.06em; }
-.resume-status.is-active { color: #7AE08D; }
+.resume-status.is-active { color: var(--state-active); }
 .resume-status.is-new { color: var(--ink-dim); }
 .resume-unlock { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.04em; }
 .resume-unlock.is-on { color: var(--gold); }

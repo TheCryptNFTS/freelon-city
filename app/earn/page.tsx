@@ -113,7 +113,7 @@ export default async function EarnPage() {
           style={{
             padding: "var(--s-5)",
             borderRadius: 14,
-            border: "1px solid var(--gold)44",
+            border: "1px solid rgba(200,167,93,0.27)",
             background: "linear-gradient(180deg, rgba(200,167,93,0.06) 0%, rgba(0,0,0,0.4) 100%)",
           }}
         >
@@ -143,14 +143,14 @@ export default async function EarnPage() {
       {/* ── HORIZON 3: THE LONG GAME ───────────────────────────────── */}
       <section style={{ marginBottom: "var(--s-6)" }}>
         <header style={{ marginBottom: "var(--s-3)" }}>
-          <span className="kicker" style={{ color: "#A989C7" }}>③ THE LONG GAME · WEEKS</span>
+          <span className="kicker" style={{ color: "var(--gold)" }}>③ THE LONG GAME · WEEKS</span>
         </header>
         <div
           style={{
             padding: "var(--s-5)",
             borderRadius: 14,
-            border: "1px solid #A989C744",
-            background: "linear-gradient(180deg, rgba(169,137,199,0.06) 0%, rgba(0,0,0,0.4) 100%)",
+            border: "1px solid rgba(200,167,93,0.27)",
+            background: "linear-gradient(180deg, rgba(200,167,93,0.06) 0%, rgba(0,0,0,0.4) 100%)",
           }}
         >
           <h2 style={{ fontFamily: "var(--display)", fontSize: 24, marginBottom: 12, letterSpacing: "-0.01em" }}>
@@ -160,7 +160,7 @@ export default async function EarnPage() {
               newcomer can't act on right now — folded behind a tap so Horizon 3
               leads with its headline + CTA (mirrors the BURN fold below). */}
           <details>
-            <summary style={{ cursor: "pointer", fontFamily: "var(--mono2)", fontSize: 12, color: "#A989C7", letterSpacing: "0.1em", marginBottom: 12 }}>
+            <summary style={{ cursor: "pointer", fontFamily: "var(--mono2)", fontSize: 12, color: "var(--gold)", letterSpacing: "0.1em", marginBottom: 12 }}>
               ▾ SEE ALL SIX LONG-GAME EARNERS
             </summary>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -169,42 +169,42 @@ export default async function EarnPage() {
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Sale share</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>·  every time you sell a freelon</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+{saleHexFor01Eth} ⬡ per 0.01 ETH</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>+{saleHexFor01Eth} ⬡ · scales with sale</span>
             </li>
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <span>
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Listing bounty</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· listings older than 24h</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+{ECONOMY.LISTING_BOUNTY_PER_DAY} ⬡/day each</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>+{ECONOMY.LISTING_BOUNTY_PER_DAY} ⬡/day each</span>
             </li>
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <span>
-                <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Passive holding</strong>
+                <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Background hold</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· pauses if cold</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+{ECONOMY.PER_CITIZEN_PER_DAY} ⬡/citizen/day</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>+{ECONOMY.PER_CITIZEN_PER_DAY} ⬡/citizen/day</span>
             </li>
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <span>
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Fresh blood</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· first freelon, one-time</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+{ECONOMY.FRESH_BLOOD_BOUNTY} ⬡</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>+{ECONOMY.FRESH_BLOOD_BOUNTY} ⬡</span>
             </li>
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <span>
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Quests</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· tourist / archivist / hunter / doctrine</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>+{ECONOMY.CITY_TOURIST_REWARD} → +{ECONOMY.DOCTRINE_MASTER_REWARD} ⬡</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>+{ECONOMY.CITY_TOURIST_REWARD} → +{ECONOMY.DOCTRINE_MASTER_REWARD} ⬡</span>
             </li>
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0" }}>
               <span>
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Transmissions</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>· earn when others boost yours</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "#A989C7", whiteSpace: "nowrap" }}>10% of every boost ⬡</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>10% of every boost ⬡</span>
             </li>
           </ul>
           </details>

@@ -104,9 +104,9 @@ const ITEMS: Array<{ status: Status; title: string; body: string; href?: string 
 ];
 
 const STATUS_STYLE: Record<Status, { color: string; bg: string; border: string; sub: string }> = {
-  SHIPPED: { color: "var(--state-active)", bg: "rgba(122,224,141,0.06)", border: "rgba(122,224,141,0.27)", sub: "in the city now" },
+  SHIPPED: { color: "var(--state-active)", bg: "rgba(233,201,132,0.06)", border: "rgba(233,201,132,0.27)", sub: "in the city now" },
   NOW:     { color: "var(--state-surge)", bg: "rgba(232,178,71,0.07)",  border: "rgba(232,178,71,0.40)", sub: "building this week" },
-  NEXT:    { color: "#A989C7", bg: "rgba(169,137,199,0.07)", border: "rgba(169,137,199,0.27)", sub: "committed direction" },
+  NEXT:    { color: "#C7A989", bg: "rgba(199,169,137,0.07)", border: "rgba(199,169,137,0.27)", sub: "committed direction" },
   LATER:   { color: "var(--ink-dim)", bg: "rgba(255,255,255,0.02)", border: "var(--line)", sub: "on the horizon" },
 };
 
@@ -118,7 +118,7 @@ export function CanonRoadmap() {
         No dated promises. Items move{" "}
         <strong style={{ color: "var(--state-active)" }}>SHIPPED</strong> →{" "}
         <strong style={{ color: "var(--state-surge)" }}>NOW</strong> →{" "}
-        <strong style={{ color: "#A989C7" }}>NEXT</strong> →{" "}
+        <strong style={{ color: "#C7A989" }}>NEXT</strong> →{" "}
         <strong style={{ color: "var(--ink-dim)" }}>LATER</strong> as the city is built. This page is part of the contract: it updates when work moves.
       </p>
 

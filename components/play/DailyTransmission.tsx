@@ -28,11 +28,14 @@ export function DailyTransmission() {
             margin: "12px 0 10px",
           }}
         >
-          The city <em>pays</em> the carriers.
+          The city <em>rewards</em> the carriers.
         </h2>
         <p className="lead" style={{ margin: "0 auto", maxWidth: 560 }}>
           Every UTC day, anyone who carries the signal earns +10 ⬡.
-          Hold a citizen to compound. Streaks pay extra.
+          Hold a citizen for a bigger reward. Streaks add more.
+        </p>
+        <p style={{ margin: "8px auto 0", maxWidth: 560, fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.04em", color: "var(--ink-dim)" }}>
+          ⬡ is a reward layer inside the city — not money, not redeemable.
         </p>
       </div>
 

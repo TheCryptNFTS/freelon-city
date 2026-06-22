@@ -245,8 +245,8 @@ export default async function WalletPage({
       : isCooling
       ? { state: "COOLING", color: "#E8B247", msg: `${ECONOMY.ACTIVITY_DECAY_DAYS - daysSinceActive}d until ${CANON.LOST.toLowerCase()} · post to reset` }
       : daysSinceActive <= 1
-      ? { state: CANON.RESTORED, color: "#7AE08D", msg: `Active today · meter flowing` }
-      : { state: CANON.ONLINE, color: "#7AE08D", msg: `${daysSinceActive}d since last action` };
+      ? { state: CANON.RESTORED, color: "var(--state-active)", msg: `Active today · meter flowing` }
+      : { state: CANON.ONLINE, color: "var(--state-active)", msg: `${daysSinceActive}d since last action` };
 
   const tokenIds = tokensRes?.tokenIds ?? [];
   const balance = tokensRes?.balance ?? 0;

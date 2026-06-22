@@ -64,8 +64,8 @@ export function ActivationProof({ compact = false }: { compact?: boolean }) {
         }
         .activation-proof--compact { padding: 5px 11px; font-size: 11px; }
         .activation-proof__dot {
-          width: 7px; height: 7px; border-radius: 999px; background: #7AE08D;
-          box-shadow: 0 0 8px rgba(122,224,141,0.7);
+          width: 7px; height: 7px; border-radius: 999px; background: var(--state-active);
+          box-shadow: 0 0 8px rgba(233,201,132,0.7);
           animation: apPulse 2s ease-in-out infinite;
         }
         .activation-proof__count { color: var(--ink); font-weight: 600; }

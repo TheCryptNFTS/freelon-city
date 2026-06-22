@@ -167,7 +167,7 @@ export function TransmissionCard({ t: initialT, compact }: { t: Public; compact?
           style={{
             padding: "8px 12px",
             border: `1px solid ${hasSignaled ? "var(--state-active)" : color}`,
-            background: hasSignaled ? "rgba(122,224,141,0.12)" : `${color}14`,
+            background: hasSignaled ? "rgba(233,201,132,0.12)" : `${color}14`,
             color: hasSignaled ? "var(--state-active)" : color,
             borderRadius: 8,
             fontFamily: "var(--mono2)",

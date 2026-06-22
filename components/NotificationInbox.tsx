@@ -9,9 +9,9 @@ type Prefs = { dmEnabled: boolean; optOut: NotifKind[] };
 const KIND_LABEL: Record<string, { label: string; color: string }> = {
   "decay-warning":        { label: "DECAY",     color: "#FF8A4D" },
   "streak-milestone-soon":{ label: "STREAK",    color: "var(--gold)" },
-  "transmission-boosted": { label: "BOOST",     color: "#A989C7" },
-  "civ-wars-monday":      { label: "CIV WARS",  color: "#7AB7FF" },
-  "civ-wars-mid-week":    { label: "CIV WARS",  color: "#7AB7FF" },
+  "transmission-boosted": { label: "BOOST",     color: "#C7A989" },
+  "civ-wars-monday":      { label: "CIV WARS",  color: "var(--gold-bright)" },
+  "civ-wars-mid-week":    { label: "CIV WARS",  color: "var(--gold-bright)" },
   "fresh-citizen":        { label: "WELCOME",   color: "var(--gold)" },
 };
 

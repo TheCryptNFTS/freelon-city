@@ -5,8 +5,8 @@ import { ReplySubmit } from "@/components/ReplySubmit";
 
 const CAT_LABEL: Record<string, { label: string; color: string }> = {
   "own-post":  { label: "OWN POST",       color: "var(--gold)" },
-  "reply":     { label: "REPLY",          color: "#7AB7FF" },
-  "quote":     { label: "QUOTE-REPLY",    color: "#A989C7" },
+  "reply":     { label: "REPLY",          color: "#E8B247" },
+  "quote":     { label: "QUOTE-REPLY",    color: "#C7A989" },
 };
 
 /**
