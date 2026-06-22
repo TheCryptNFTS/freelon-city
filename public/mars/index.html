@@ -1087,6 +1087,36 @@ function profLabel(tid){ const p=archProfile(tid);
   const yl=p.y>=1.2?'RICH':p.y>=1.05?'GOOD':p.y<=.85?'LEAN':'EVEN';
   const hb=Math.max(1,Math.min(5,Math.round(p.h*3)));
   return {yield:yl, hazard:'▮'.repeat(hb)+'▯'.repeat(5-hb), grip:p.g>1.05?'SLICK':p.g<.95?'HEAVY':'FIRM'}; }
+/* #2: DAILY ANOMALY — one UTC-seeded breach site/day on a real away sector; drive there + breach it
+   for the day's archive fragment + lore. NO ⬡ faucet (fragment/lore only). Reuses the scar mesh +
+   POI streaming wholesale via an `anomaly:true` flag. */
+function utcDay(){ return new Date().toISOString().slice(0,10); }
+const ANOM_LORE=[
+  'THE SIGNAL HERE FOLDS BACK ON ITSELF. SOMETHING IS LISTENING.',
+  'A SCAR IN THE FIELD, OPENED FRESH AT DAWN. CLOSE IT.',
+  'THE GROUND HUMS A FREQUENCY THAT WAS NOT TAUGHT.',
+  'TODAY THE CHORUS LEFT A DOOR AJAR. WALK THROUGH IT.',
+  'AN ANOMALY BLOOMS AND FADES WITH THE SUN. BREACH IT WHILE IT HOLDS.',
+  'THE ARCHIVE REMEMBERS THIS PLACE, THOUGH NO ONE BUILT IT.'
+];
+let _anomTileCache=null, _anomTileDay='';
+function anomalyTileId(){
+  const d=utcDay();
+  if(_anomTileDay===d && _anomTileCache) return _anomTileCache;
+  const rng=mulberry32((dailySeed()^0xA0C0)>>>0);
+  let id='30x40';
+  for(let tr=0;tr<24;tr++){ const r=6+Math.floor(rng()*52), c=Math.floor(rng()*128); id=r+'x'+c; if(id!==HOME_TILE) break; }   // rows 6..57 = drivable away sectors (avoid polar)
+  _anomTileDay=d; _anomTileCache=id; return id;
+}
+function anomalyClearedToday(){ return S.anomDay===utcDay(); }
+function anomalyTimeLeft(){ const n=new Date(); const mid=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()+1); return fmtDur(mid-Date.now()); }
+function anomalySite(){
+  const rng=mulberry32((dailySeed()^0xB0D0)>>>0), a=rng()*Math.PI*2, d=200+rng()*340;
+  return { id:'anom-'+utcDay(), type:'scar', anomaly:true,
+    name:'DAILY ANOMALY — '+(typeof planetTileName==='function'?planetTileName(anomalyTileId()):'SECTOR'),
+    lore:ANOM_LORE[dailySeed()%ANOM_LORE.length],
+    x:+(Math.cos(a)*d).toFixed(1), z:+(Math.sin(a)*d).toFixed(1), threat:5, hidden:false };
+}
 function planetGenSites(tid){
   if(tid===HOME_TILE) return null;
   const rng=mulberry32((hashStr(tid+':sites')^(S.seed>>>0))>>>0);   /* SEED: per-planet site layout */
@@ -1116,6 +1146,7 @@ function planetGenSites(tid){
     sites.push({ id:'w'+tid, type:'ambush', name:wonder.guard, lore:wonder.lore,
       x:gp.x, z:gp.z, threat:6, hidden:false, doc:wonder.doc??9, guardian:true });
   }
+  if(tid===anomalyTileId() && !anomalyClearedToday()) sites.push(anomalySite());   // #2: today's daily anomaly lives on this one sector
   return sites;
 }
 /* CLAIM ECONOMY — sink only */
@@ -1402,7 +1433,7 @@ let S = { v:3, hex:500, xp:0, wins:0, claimsTotal:0, buildings:[], zonesClaimed:
   streak:{lastDay:'', n:0, buffers:0}, today:freshToday(),
   weekly:{key:weekKey(), count:0}, goalIndex:0, archive:{owned:[], pity:0},
   tile:HOME_TILE, tiles:{}, tileOrder:[], gDisc:0, gClear:0, faction:-1, influence:0, perks:{}, shownLevel:1, exped:[],
-  uplink:[], terra:{}, seed:0, firstSignalShown:false, cosmetic:{} };
+  uplink:[], terra:{}, seed:0, firstSignalShown:false, cosmetic:{}, anomDay:'' };
 const loaded = load();
 
 /* ===== SHARE/SEED: a persistent worldSeed deep-linked in location.hash (#s=<base36>) ===== */
@@ -5069,7 +5100,18 @@ function updateHUD(){
     floater('CHALLENGE BEATEN'); sfxSting(); save();
     if(typeof floatShareChip==='function') floatShareChip('POST YOUR WIN ▸ BEAT-ME', ()=>share()); }   /* #2: nudge the share at the beat moment */
   renderChallenge();
+  renderAnomChip();
   if(typeof checkWin==='function') checkWin();   // capstone: SECURE THE PLANET (scar + 10 sectors + Chorus broken)
+}
+function renderAnomChip(){   /* #2: a HUD chip pointing at today's daily anomaly; one tap opens the map on its sector */
+  let c=document.getElementById('anomChip');
+  if(anomalyClearedToday() || mode!=='play'){ if(c) c.style.display='none'; return; }
+  if(!c){ c=document.createElement('div'); c.id='anomChip'; c.className='hud';
+    c.style.cssText='position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:25;font:9px/1.4 ui-monospace,monospace;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:6px 14px;cursor:pointer;backdrop-filter:blur(6px);white-space:nowrap';
+    c.onclick=()=>{ const rc=idRC(anomalyTileId()); if(typeof enterMap==='function')enterMap(); if(typeof focusTile==='function')focusTile(rc.row,rc.col); };
+    document.body.appendChild(c); }
+  c.style.display='block';
+  c.innerHTML='◇ DAILY ANOMALY · '+(typeof planetTileName==='function'?planetTileName(anomalyTileId()):'SECTOR')+' · '+anomalyTimeLeft();
 }
 function renderChallenge(){
   { const tb=document.getElementById('trialBtn');   /* #4: show the inbound time-rival right on the button */
@@ -5508,6 +5550,14 @@ function resolvePoi(p){
   if(S.cleared.includes(p.id)) return;
   if(S.exped.some(e=>e.id===p.id)){ toast('A CREW IS WORKING THIS SITE'); return; }   // no double-collect
   if(p.type==='beacon'){ openBeaconPanel(p); return; }   // beacons claim, never clear
+  if(p.anomaly){   // #2: the daily anomaly — fragment + lore only, NO ⬡ (returns before the scar/hex path)
+    if(anomalyClearedToday()){ toast('ANOMALY ALREADY STILLED TODAY'); return; }
+    S.anomDay=utcDay(); S.cleared.push(p.id); S.gClear++;
+    const gg=poiGroups[p.id]; if(gg){ siteCeremony(gg); poiResolve(gg); }
+    awardFragment('anomaly'); S.xp+=40;
+    showLore('THE DAILY ANOMALY IS STILLED','“'+(p.lore||'THE FIELD GOES QUIET.')+'”<br><b>ARCHIVE FRAGMENT RECOVERED · RETURN TOMORROW</b>');
+    sfxSting(); addTrauma(.5); hitstop(60); mmDirty=true; save(); updateHUD(); checkDailies(); checkGoals(); return;
+  }
   S.cleared.push(p.id);
   S.gClear++;                                            // planet-wide cleared count (goals read this)
   /* the world re-corrupts: deposits/caches/wrecks/ambushes come back; ruins + the scar are one-shot */
@@ -6210,16 +6260,22 @@ function openSitePanel(id){
   const cc=POI_COPY[p.type];
   $('zpTitle').innerHTML=`<span class="zpChip" style="background:${cleared?'#5a4a30':'#d8b25c'}"></span>${p.name}`;
   const hostile=p.type==='ambush'||p.type==='scar';
-  let rows=`<div class="zpRow"><span>STATUS</span><b>${cleared?cc.done:cc.live}</b></div>
-     <div class="zpRow"><span>TYPE</span><b>${cc.label}</b></div>
+  const _aLbl=p.anomaly?'DAILY ANOMALY':cc.label, _aLive=p.anomaly?'ANOMALY ACTIVE · '+anomalyTimeLeft():cc.live, _aDone=p.anomaly?'ANOMALY STILLED':cc.done;
+  let rows=`<div class="zpRow"><span>STATUS</span><b>${cleared?_aDone:_aLive}</b></div>
+     <div class="zpRow"><span>TYPE</span><b>${_aLbl}</b></div>
      ${hostile?`<div class="zpRow"><span>THREAT</span><span class="zpThreat">${'▮'.repeat(p.threat)}</span></div>`
               :`<div class="zpRow"><span>RESISTANCE</span><b>NONE</b></div>`}`;
-  if((p.type==='ambush'||p.type==='scar') && p.doc!=null) rows+=`<div class="zpRow"><span>DOCTRINE</span><b>${DOCTRINES[p.doc]}</b></div>`;
-  if(!cleared) rows+=`<div class="zpRow"><span>REWARD</span><b>+⬡ ${hexMult(poiReward(p))}${(p.type==='cache'||p.type==='wreck')?' · FRAGMENT':''}</b></div>`;
+  if((p.type==='ambush'||p.type==='scar') && !p.anomaly && p.doc!=null) rows+=`<div class="zpRow"><span>DOCTRINE</span><b>${DOCTRINES[p.doc]}</b></div>`;
+  if(!cleared) rows+= p.anomaly ? `<div class="zpRow"><span>REWARD</span><b>ARCHIVE FRAGMENT + LORE</b></div>`
+    : `<div class="zpRow"><span>REWARD</span><b>+⬡ ${hexMult(poiReward(p))}${(p.type==='cache'||p.type==='wreck')?' · FRAGMENT':''}</b></div>`;
   rows+=`<div class="zpLore">“${p.lore}”</div>`;
   $('zpBody').innerHTML=rows;
   const b=$('zoneLaunch');
   if(cleared){ b.style.display='none'; }
+  else if(p.anomaly){   // #2: daily anomaly — always engageable (no 12-win seal); a peaceful breach for fragment + lore
+    b.style.display='block'; b.classList.remove('off'); b.textContent='BREACH THE ANOMALY';
+    b.onclick=()=>{ closeZonePanel(); resolvePoi(p); };
+  }
   else if(p.type==='ambush' && !p.firstContact && !count('warroom')){
     b.style.display='block'; b.classList.add('off'); b.textContent='WAR ROOM REQUIRED'; b.onclick=null;
   }
@@ -6875,6 +6931,9 @@ function paintGlobe(){
     x.stroke(); x.restore(); x.globalAlpha=1; } }
   x.strokeStyle='#f0c75e'; x.lineWidth=1.2;
   for(const id of GG.wonders()){ const rc=idRC(id); hexGlyph(x,rc.col*TPX+TPX/2,rc.row*TPY+TPY/2,3.2); }
+  if(!anomalyClearedToday()){ const arc=idRC(anomalyTileId());   // #2: today's daily-anomaly target — dust-red ring + gold pip
+    x.save(); x.strokeStyle='#a8341f'; x.lineWidth=1.8; hexGlyph(x,arc.col*TPX+TPX/2,arc.row*TPY+TPY/2,4.4);
+    x.fillStyle='#f0c75e'; x.fillRect(arc.col*TPX+TPX/2-1.5,arc.row*TPY+TPY/2-1.5,3,3); x.restore(); }
   pcbDrawStatic();          // bake PCB traces into the static overlay (dark-side lights sample these)
   paintBandwidth(x);        // paid bandwidth ley-lines (hot=live), layered over the PCB adjacency
   paintGlobeMarkers();
@@ -7504,6 +7563,12 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   frag:()=>awardFragment('debug'),
   firstVow:()=>{ S.firstSignalShown=false; const b=S.buildings.filter(x=>PROD[x.t])[0]||{readyAt:Date.now()+30*60e3}; showFirstSignalPromise(b); return {el:!!document.getElementById('firstSignalVow'), txt:(document.getElementById('firstSignalT')||{}).textContent}; },
   streak:(target)=>{ if(typeof target==='number'){ S.streak.n=Math.max(0,target-1); S.streak.lastDay=''; const g=creditStreak(); save(); updateHUD(); return {n:S.streak.n, bonus:g, prizeUnlocked:_streakPrize, trail:(S.cosmetic&&S.cosmetic.trail)?'0x'+S.cosmetic.trail.toString(16):null, note:streakNote, arc:streakArc(true)}; } return {n:S.streak.n, trail:(S.cosmetic&&S.cosmetic.trail)?'0x'+S.cosmetic.trail.toString(16):null, arc:streakArc(true)}; },
+  anomaly:()=>({ tile:anomalyTileId(), region:(typeof planetTileName==='function'?planetTileName(anomalyTileId()):'?'), cleared:anomalyClearedToday(), timeLeft:anomalyTimeLeft(), chip:!!document.getElementById('anomChip') }),
+  anomalySim:()=>{ S.anomDay=''; const hex0=S.hex, frag0=(S.archive&&S.archive.owned?S.archive.owned.length:0);
+    const injectedBeforeClear=(planetGenSites(anomalyTileId())||[]).some(s=>s.anomaly);
+    const site=anomalySite(); resolvePoi(site);
+    const regenAfterClear=(planetGenSites(anomalyTileId())||[]).some(s=>s.anomaly);
+    return {injectedBeforeClear, regenAfterClear, cleared:anomalyClearedToday(), anomDay:S.anomDay, hexDelta:S.hex-hex0, fragGained:((S.archive&&S.archive.owned?S.archive.owned.length:0)-frag0)}; },
   claim:i=>tryClaim(i),
   zone:i=>openZonePanel(i),
   drive:(x,z)=>driveTo(x,z), recall:()=>returnToBase(), rover:()=>rover.position,
