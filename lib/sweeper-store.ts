@@ -1,9 +1,8 @@
 /**
  * Sweeper store — aggregates "who bought multiple citizens lately."
  *
- * Sister system to defender-store (which tracks bid-wall offers).
- * Where defender-store answers "who placed a defender BID", this
- * answers "who SWEPT citizens off the floor." Two different actions.
+ * Records who SWEPT citizens off the floor (buyer wallets), aggregated
+ * for the "Recent Sweepers" panel.
  *
  * Founder spec 2026-05-24:
  *   "the existing /hold-the-line page only shows defenders who placed

@@ -25,6 +25,7 @@ import { buildPersona } from "@/lib/missions/persona";
 import { citizenReason } from "@/lib/missions/llm";
 import { MODELS } from "@/lib/missions/models";
 import { GUARD_POT } from "@/lib/economy-constants";
+import { isGuardPotLive } from "@/lib/guard-pot";
 import {
   getRound,
   getSecret,
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
   if (!isSameOrigin(req)) return NextResponse.json({ error: "bad_origin" }, { status: 403 });
 
   // Fail-closed: no real ⬡ burns while the spectacle is dark in prod.
-  if (process.env.GUARD_POT_LIVE !== "true") {
+  if (!isGuardPotLive()) {
     return NextResponse.json({ error: "not_live", message: "The vault is sealed." }, { status: 503 });
   }
 

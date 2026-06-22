@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthed } from "@/lib/cron-auth";
 import { getRound, startNextRound } from "@/lib/guard-store";
+import { isGuardPotLive } from "@/lib/guard-pot";
 import { tweetGuardPot } from "@/lib/share";
 import { postTweet, hasXCredentials } from "@/lib/x-post";
 import { upstash, hasUpstash } from "@/lib/upstash-client";
@@ -38,7 +39,7 @@ export async function GET(req: Request) {
   if (!cronAuthed(auth)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  if (!process.env.GUARD_POT_LIVE) {
+  if (!isGuardPotLive()) {
     return NextResponse.json({ mode: "disabled", reason: "GUARD_POT_LIVE not set" });
   }
 

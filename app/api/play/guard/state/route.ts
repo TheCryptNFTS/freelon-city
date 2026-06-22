@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { getRound, getBoard } from "@/lib/guard-store";
+import { isGuardPotLive } from "@/lib/guard-pot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
   const rl = await limit(req, "guard:state", { max: 60, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
 
-  const live = process.env.GUARD_POT_LIVE === "true";
+  const live = isGuardPotLive();
   const round = await getRound();
   const board = await getBoard(round.round, 30);
 

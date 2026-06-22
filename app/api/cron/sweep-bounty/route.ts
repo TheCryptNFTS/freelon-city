@@ -206,9 +206,8 @@ export async function GET(req: Request) {
               }, e);
             }
 
-            // Record sweep event for /hold-the-line "Recent Sweepers"
-            // panel — aggregates by buyer wallet over trailing 4h window.
-            // Sister system to defender-store (which tracks bid offers).
+            // Record sweep event for the "Recent Sweepers" aggregation —
+            // by buyer wallet over a trailing 4h window.
             try {
               const { recordSweep } = await import("@/lib/sweeper-store");
               await recordSweep({
