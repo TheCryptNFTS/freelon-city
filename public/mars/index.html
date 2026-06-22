@@ -943,6 +943,10 @@ const RUIN_LORE={
   p22:'BEFORE THE CITY, THE COUNT. BEFORE THE COUNT, THE HUNGER TO COUNT.',
 };
 const SCAR_LORE='THE SCAR DOES NOT CLOSE. BUT FROM TONIGHT, IT ANSWERS TO THE CITY.';
+/* #4: WARLORD — the siege climax. When you are one step from winning, the Chorus crowns a NAMED warlord that besieges your command seat; you must break it before the planet is yours. Territory/influence only — no HEX. */
+const WARLORD_NAMES=['THE NULL CANTOR','THE HOLLOW CHORUS','THE SCAR-CROWNED','THE LAST DISSONANCE','THE UNMADE WARDEN','THE SILENCE THAT COUNTS'];
+const WARLORD_LORE='IT WAS THE PART OF THE SIGNAL THAT REFUSED TO BE A CITY. NOW IT WEARS A CROWN AND MARCHES.';
+function warlordActive(){ return !!(S.warlord && S.warlord.id && !S.warlord.broken); }
 
 /* ============================== PLANET: regions / wonders / sites / faction claims ==============================
    Claiming SINKS real ⬡ (escalating) and yields INFLUENCE + faction control — never sources ⬡
@@ -1253,6 +1257,15 @@ function tickFront(force){
       if(gridDist(best,HOME_TILE)<=2) toast('⚠ THE CHORUS NEARS YOUR COMMAND SEAT');
     }
   }
+  /* 4) WARLORD — once you're one step from winning (scar silenced + 10 held), the Chorus crowns a NAMED siege near your seat */
+  if(S.scarBonus && claimedTileCount()>=WIN_SECTORS && !S.warlord && _playClock>=(S.warlordAt||0)){
+    let wt = rivalTiles().slice().sort((a,b)=>gridDist(a,HOME_TILE)-gridDist(b,HOME_TILE))[0];
+    if(!wt){ const cand=tileNeighbors(HOME_TILE).find(n=>{ const r=S.tiles[n]; return n!==HOME_TILE && !(r&&(r.claimed||r.rival)); });
+      if(cand){ const rc=tileRec(cand); rc.rival=1; rc.rivalAt=_playClock; wt=cand; } }
+    if(wt){ const nm=WARLORD_NAMES[(S.frontEpoch||0)%WARLORD_NAMES.length];
+      tileRec(wt).warlord=1; S.warlord={ id:wt, name:nm, spawnAt:_playClock, broken:false };
+      toast('⚔ THE CHORUS CROWNS '+nm+' — BREAK THE SIEGE TO SECURE THE PLANET'); sfxThunk(); addTrauma(.5); dirty=true; }
+  }
   if(dirty){ mmDirty=true; if(typeof paintGlobe==='function' && mode==='map') paintGlobe(); save(); updateHUD(); }
 }
 setInterval(tickFront, 30e3);
@@ -1322,7 +1335,7 @@ function endDefend(won){
 }
 function claimTile(tid){
   const st=tileClaimState(tid); if(!st.ok){ toast(st.why); return false; }
-  const rec=tileRec(tid), wasRival=!!rec.rival;
+  const rec=tileRec(tid), wasRival=!!rec.rival, wasWarlord=(warlordActive()&&S.warlord.id===tid);   // #4: retaking the warlord tile breaks the siege
   S.hex-=st.cost; S.today.spent+=st.cost; trackSpend(st.cost,'claim'); shownHex=S.hex; trackOnce('first_claim');
   rec.claimed=1; rec.claimCol=Date.now(); rec.faction=S.faction;
   rec.tended=_playClock; rec.corrupted=0; rec.rival=0; rec.rivalAt=0; rec.warned=0;   /* fresh hold is tended; pushes the Chorus off this ground */
@@ -1338,6 +1351,7 @@ function claimTile(tid){
   sfxSting(); addTrauma(.45); hitstop(50); haptic([0,30,20,45],.5); mmDirty=true;
   if(typeof syncHomeCity==='function') syncHomeCity();   // the city skyline grows by one
   if(tid===S.tile) plantTileOutpost(tid);                // raise the outpost on this very sector
+  if(wasWarlord) breakWarlord(tid);                      // #4: the siege ends when its tile is retaken
   recordRun(false);                                      // update this planet's Hall of Records best
   save(); updateHUD(); checkDailies(); checkGoals();
   return true;
@@ -5162,7 +5176,8 @@ function updateHUD(){
   $('archiveVal').textContent=S.archive.owned.length+'/40';
   $('bannerVal').innerHTML=S.faction<0?'—':DOCTRINES[S.faction].slice(0,4)+' <span class="glyph">·</span> ◇'+(S.influence||0);
   { const cc=chorusCount(), fc=$('frontChip');
-    if(fc){ if(cc>0){ fc.style.display=''; const cl=claimedTileCount(), trend=cc<cl?'▾':cc>cl*1.5?'▴':'·';
+    if(fc){ if(warlordActive()){ fc.style.display=''; $('frontVal').innerHTML='<span style="color:#e0816a">⚔ '+(S.warlord.name.split(' ').slice(-1)[0])+'</span>'; }   /* #4: the siege overrides the front readout */
+      else if(cc>0){ fc.style.display=''; const cl=claimedTileCount(), trend=cc<cl?'▾':cc>cl*1.5?'▴':'·';
         $('frontVal').innerHTML='<span style="color:#d98a63">⚠ '+cc+'</span> <span class="glyph">'+trend+'</span>'; }
       else fc.style.display='none'; } }
   if(S.challenge && !S.challenge.beaten && claimedTileCount()>S.challenge.n){   /* #3: you out-held the planet's sharer */
@@ -5171,6 +5186,7 @@ function updateHUD(){
     if(typeof floatShareChip==='function') floatShareChip('POST YOUR WIN ▸ BEAT-ME', ()=>share()); }   /* #2: nudge the share at the beat moment */
   renderChallenge();
   renderAnomChip();
+  renderWarlordBeacon();
   if(typeof checkWin==='function') checkWin();   // capstone: SECURE THE PLANET (scar + 10 sectors + Chorus broken)
 }
 function renderAnomChip(){   /* #2: a HUD chip pointing at today's daily anomaly; one tap opens the map on its sector */
@@ -5393,23 +5409,58 @@ function openRecords(){
    Uses planet-tile claims (claimedTileCount) — the same "sectors held" the front & share track. */
 const WIN_SECTORS = 10;
 function winState(){ const s=claimedTileCount(), c=chorusCount();
-  return { scar:!!S.scarBonus, sectors:s, chorus:c, met: !!S.scarBonus && s>=WIN_SECTORS && c===0 }; }
+  return { scar:!!S.scarBonus, sectors:s, chorus:c, warlord:warlordActive(),
+    met: !!S.scarBonus && s>=WIN_SECTORS && c===0 && !warlordActive() }; }   // #4: an un-broken warlord blocks the win
 function checkWin(){ if(S.won) return; if(winState().met) triumph(); }
+function breakWarlord(tid){   // #4: end the siege — claim the warlord tile, mark broken, pay an INFLUENCE bounty (no HEX)
+  if(!S.warlord || S.warlord.broken) return;
+  if(tid && S.warlord.id!==tid) return;
+  const id=S.warlord.id, rec=tileRec(id);
+  rec.warlord=0; rec.rival=0; rec.rivalAt=0; rec.claimed=1; rec.faction=S.faction; rec.tended=_playClock; rec.warned=0;
+  S.warlord.broken=true; S.warlord.brokenAt=_playClock;
+  const inf=60; S.influence=(S.influence||0)+inf;
+  toast('▲ '+S.warlord.name+' LIES BROKEN AT THE GATE — THE SIEGE ENDS · +'+inf+' INFLUENCE'); floater('SIEGE BROKEN');
+  sfxSting(); if(typeof sfxFanfare==='function')sfxFanfare(); addTrauma(.6); hitstop(80);
+  mmDirty=true; save(); updateHUD(); checkGoals(); checkWin();
+}
 function triumph(){
   if(S.won) return; S.won=Date.now(); recordRun(true);
   sfxSting(); sfxFanfare(); addTrauma(.7); hitstop(140); haptic([0,90,50,130,50,180],.85); if(typeof combatFlash==='function'&&!_reduceMotion) combatFlash();
   const ov=document.getElementById('winOverlay');
   if(ov){ ov.querySelector('#winSub').innerHTML='PLANET '+(WORLD_SEED().toString(36).toUpperCase())+' SECURED · '+(DOCTRINES[S.faction]||'')+
-      '<br>'+claimedTileCount()+' SECTORS HELD · THE VOID SCAR IS SILENT · THE CHORUS IS BROKEN';
+      '<br>'+claimedTileCount()+' SECTORS HELD · THE VOID SCAR IS SILENT · THE CHORUS IS BROKEN'
+      +((S.warlord&&S.warlord.name)?'<br>'+S.warlord.name+' LIES BROKEN AT THE GATE':'');
     ov.classList.add('open');
     const ws=ov.querySelector('#winShare');   /* #2: pull the eye to SHARE at the peak moment */
     if(ws&&ws.animate&&!_reduceMotion){ try{ ws.animate([{boxShadow:'0 0 0 rgba(216,178,92,0)'},{boxShadow:'0 0 34px rgba(216,178,92,.95)'},{boxShadow:'0 0 0 rgba(216,178,92,0)'}],{duration:1500,iterations:3,delay:500}); }catch(e){} } }
   save(); updateHUD();
 }
+function startWarlordFight(tid){   // #4: the dramatic break — a Void-Heart-style boss on the warlord tile (full stake)
+  if(rtActive || !warlordActive()) return;
+  tid=tid||S.warlord.id; if(S.warlord.id!==tid) return;
+  if(mode!=='play'||crossing||$('battle').classList.contains('open')){ toast('FINISH WHAT YOU’RE DOING FIRST'); return; }
+  removeWarlordBeacon(); rtWarlord=tid;
+  startRTCombat(null,null);   // full-stake boss; breakWarlord fires on a win (endRTCombat)
+  if(!rtActive) rtWarlord=null;
+}
+function showWarlordBeacon(){
+  removeWarlordBeacon();
+  const b=document.createElement('button'); b.id='warlordBeacon';
+  b.style.cssText='position:fixed;bottom:300px;right:26px;z-index:40;font:bold 12px ui-monospace,monospace;letter-spacing:.08em;color:#0a0806;background:linear-gradient(180deg,#e0936a,#a8341f);border:none;border-radius:22px;padding:11px 22px;cursor:pointer;box-shadow:0 6px 28px rgba(168,52,31,.6)';
+  b.textContent='⚔ BREAK THE SIEGE ▸';
+  b.onclick=()=>startWarlordFight(S.warlord&&S.warlord.id);
+  document.body.appendChild(b);
+}
+function removeWarlordBeacon(){ const b=document.getElementById('warlordBeacon'); if(b) b.remove(); }
+function renderWarlordBeacon(){   // show the boss beacon only while standing on the live warlord tile
+  if(warlordActive() && S.tile===S.warlord.id && mode==='play' && !rtActive){ if(!document.getElementById('warlordBeacon')) showWarlordBeacon(); }
+  else removeWarlordBeacon();
+}
 function newPlanet(){   // NG+: a fresh planet, keep the archive/tech you earned
   const ns=(hashStr(String(S.seed)+':'+(S.won||0)+':'+claimedTileCount())^0x9e3779b9)>>>0;
   S.seed=ns>>>0; S.tiles={}; S.tileOrder=[]; S.reveal=''; S.cleared=[]; S.discovered=[]; S.detected=[];
   S.zonesClaimed=[]; S.uplink=[]; S.terra={}; S.scarBonus=false; S.won=0; S.challenge=null;
+  S.warlord=null; S.warlordAt=0;   // #4: a fresh planet starts uncrowned
   S.tile=HOME_TILE; S.rover={x:14,z:8};
   try{ location.hash=''; writeHashSeed(S.seed); }catch(e){}   /* clear ALL hash params first → a stale c= challenge can't survive NG+ and re-bind on the fresh planet */
   save(); location.reload();   /* reload re-evals the module → archetype cache + all per-tile state start fresh on the new seed */
@@ -5468,6 +5519,7 @@ const GOALS=[
   {text:'FACE THE VOID SCAR',         done:()=>S.cleared.includes('p24'),    hex:400},
   {text:'CLAIM ALL 10 SECTORS',       done:()=>S.zonesClaimed.length>=10,    hex:500, prog:()=>[S.zonesClaimed.length,10]},
   {text:'RECOVER ALL 40 FRAGMENTS',   done:()=>S.archive.owned.length>=40,   hex:1000, prog:()=>[S.archive.owned.length,40]},
+  {text:'BREAK THE WARLORD — THE CHORUS CROWNS A SIEGE', done:()=>!!(S.warlord&&S.warlord.broken), hex:600, prog:()=>[(S.warlord&&S.warlord.broken)?1:0,1]},
   {text:'SECURE THE PLANET — SILENCE THE SCAR · HOLD 10 · BREAK THE CHORUS', done:()=>!!S.won, hex:1500, prog:()=>[Math.min(claimedTileCount(),WIN_SECTORS),WIN_SECTORS]},
 ];
 function renderNext(){
@@ -6794,7 +6846,7 @@ function resolveBattle(squad,enemy){
    rover; you STEER to aim + FIRE (click / space / trigger) with cone-assist, DRIVE to dodge,
    and manage INTEGRITY. Wins/losses route through the existing resolveBattle reward/cost logic,
    and every shot fires the tracer+muzzle+impact+hitstop+shake+audio+haptic juice already built. */
-let rtActive=false, rtFoes=[], rtInteg=100, rtFireCd=0, rtClock=0, rtAimLine=null, rtAimRing=null, rtDefend=false;
+let rtActive=false, rtFoes=[], rtInteg=100, rtFireCd=0, rtClock=0, rtAimLine=null, rtAimRing=null, rtDefend=false, rtWarlord=null;
 const rtArena={x:0,z:0,r:108};
 const _coarse = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);   // touch device → auto-fire + touch hint
 if(_coarse){ const _h=document.getElementById('hint'); if(_h) _h.innerHTML='TAP · DRIVE&nbsp;&nbsp;·&nbsp;&nbsp;SCAN ▸ REVEAL&nbsp;&nbsp;·&nbsp;&nbsp;TAP SITE ▸ INSPECT&nbsp;&nbsp;·&nbsp;&nbsp;DRAG · LOOK&nbsp;&nbsp;·&nbsp;&nbsp;HOLD · STEER'; }   // touch players get touch verbs, not WASD
@@ -6819,9 +6871,10 @@ function startRTCombat(zone,poi){
     rtFoes.push({mesh:m, hp:Math.max(16,Math.round(f.pw)), pw:f.pw, alive:true, atkCd:1.2+Math.random()*1.0});
   }
   /* BOSS — the Void Scar climax: foe[0] becomes the towering VOID HEART (heavy HP, looms dead-ahead); the other two are shard-adds */
-  const isBoss = !!(poi && poi.type==='scar');
+  const isBoss = !!(poi && poi.type==='scar') || !!rtWarlord;   // #4: the warlord reuses the Void Heart boss path
   if(isBoss && rtFoes.length){
     const b=rtFoes[0]; b.boss=true; b.hp=Math.max(220, Math.round(b.hp*4)); b.maxHp=b.hp; b.pw=Math.max(b.pw, 60);
+    if(rtWarlord){ b.hp=Math.round(b.hp*1.25); b.maxHp=b.hp; }   // a notch harder than the Void Heart
     b.mesh.scale.multiplyScalar(2.4);
     const hx=Math.sin(roverHeading), hz=Math.cos(roverHeading), bx=rtArena.x+hx*58, bz=rtArena.z+hz*58;
     b.mesh.position.set(bx, terrainH(bx,bz), bz);
@@ -6841,14 +6894,14 @@ function startRTCombat(zone,poi){
     rtAimRing.rotation.x=-Math.PI/2; rtAimRing.visible=false; scene.add(rtAimRing);
   }
   const _hint=document.getElementById('rtHint'); if(_hint) _hint.textContent=_coarse?'HOLD ▸ STEER + DODGE · AUTO-FIRES ON TARGET':'STEER TO AIM · TAP FIRE ▸ CLICK / SPACE · WASD TO DODGE';
-  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent=isBoss?'⬡ THE VOID SCAR — SILENCE THE HEART':'⬡ CONTACT — PURGE THE CORRUPTION';
+  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent = rtWarlord?('⚔ '+((S.warlord&&S.warlord.name)||'THE WARLORD')+' — BREAK THE SIEGE') : isBoss?'⬡ THE VOID SCAR — SILENCE THE HEART':'⬡ CONTACT — PURGE THE CORRUPTION';
   $('rtHud').style.display='block'; rtRenderHud();
   toast(isBoss?'THE VOID SCAR ANSWERS — SILENCE THE HEART':'CONTACT — PURGE THE CORRUPTION'); sfxThunk(); addTrauma(isBoss?.5:.3); haptic(isBoss?[0,200,80,200]:[0,120,60,140],isBoss?.95:.7);
 }
 function rtRenderHud(){
   const alive=rtFoes.filter(f=>f.alive).length;
   const boss=rtFoes.find(f=>f.boss);
-  const fe=$('rtFoes'); if(fe) fe.textContent = boss&&boss.alive ? 'VOID HEART'+(alive>1?' · +'+(alive-1)+' SHARD'+(alive>2?'S':''):'') : alive+' CONTACT'+(alive!==1?'S':'');
+  const fe=$('rtFoes'); if(fe) fe.textContent = boss&&boss.alive ? ((rtWarlord?((S.warlord&&S.warlord.name)||'WARLORD'):'VOID HEART')+(alive>1?' · +'+(alive-1)+' SHARD'+(alive>2?'S':''):'')) : alive+' CONTACT'+(alive!==1?'S':'');
   const pct=Math.max(0,Math.min(100,rtInteg)), bar=$('rtIntegBar');
   if(bar){ bar.style.width=pct+'%'; bar.style.background = pct>50?'var(--gold)':pct>22?'#d98a63':'var(--red)'; }
   const bw=$('rtBossWrap'), bb=$('rtBossBar');
@@ -6939,6 +6992,7 @@ function rtUpdate(dt){
 function endRTCombat(won){
   if(!rtActive) return;
   if(rtDefend){ endDefend(won); return; }   // #3: a DEFEND resolves via influence (no resolveBattle / no HEX result)
+  const _wl=rtWarlord; rtWarlord=null;      // #4: a warlord boss is a normal full-stake fight that ALSO breaks the siege on a win
   rtActive=false; rtFoes=[]; distK=1; document.body.classList.remove('fighting');
   if(rtAimLine){ scene.remove(rtAimLine); rtAimLine.material.dispose(); rtAimLine=null; }
   if(rtAimRing){ scene.remove(rtAimRing); rtAimRing.geometry.dispose(); rtAimRing.material.dispose(); rtAimRing=null; }
@@ -6947,6 +7001,7 @@ function endRTCombat(won){
   $('battleTitle').textContent = won?'CONTACT PURGED':'OVERRUN — SQUAD REPELLED';
   $('battleThr').textContent=''; $('battleMsg').innerHTML='';
   resolveBattle(won?1:0, won?0:1);                 // existing reward/cost path + result message + clearFoeMeshes
+  if(_wl && won) breakWarlord(_wl);                // #4: break the siege on top of the normal purge reward (no new HEX)
   $('battleClose').textContent='CLOSE'; $('battleClose').disabled=false;
 }
 { const w=document.getElementById('rtWithdraw'); if(w) w.onclick=()=>{ if(rtActive) endRTCombat(false); }; }   // the only live control during a fight — bail out as a repel
@@ -7266,6 +7321,16 @@ function startGame(){
       if((S.goalIndex||0)>=FC_AT) S.goalIndex=(S.goalIndex||0)+1;
     }
     S.fcGoalMig=1; save();
+  }
+  /* #4: same one-time guarded splice for the BREAK THE WARLORD rung (inserted just before SECURE THE PLANET).
+     New flag, own index — never reuse fcGoalMig, never bump the save version. */
+  if(!S.wlGoalMig){
+    const WL_AT=GOALS.length-2;   // warlord rung sits immediately before SECURE THE PLANET
+    if(Array.isArray(S.goalPaid) && S.goalPaid.length===GOALS.length-1){
+      S.goalPaid.splice(WL_AT,0,true);
+      if((S.goalIndex||0)>=WL_AT) S.goalIndex=(S.goalIndex||0)+1;
+    }
+    S.wlGoalMig=1; save();
   }
   cinePhase='done';
   /* spaceScene is NOT disposed — it becomes the live globe strategic map (next phase) */
@@ -7738,6 +7803,14 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
     let w=0; for(let i=0;i<6 && rtDefend;i++){ rtFoes.forEach(f=>f.alive=false); if(defendWaveAdvance()){ w++; } else { endRTCombat(true); break; } }
     return {tile:tid, beacon, started, wavesAdvanced:w, hexDelta:S.hex-hex0, infDelta:(S.influence||0)-inf0, lockSet:!!(S.tiles[tid]&&S.tiles[tid].defendLockAt>_playClock), defendCleared:S.defend===null, rtCleared:(!rtActive&&!rtDefend)}; },
   defendFail:()=>{ if(rtDefend){ endRTCombat(false); } else failDefend('debug'); return {defend:S.defend, rtDefend}; },
+  warlord:()=>S.warlord||null,
+  crownWarlord:()=>{ S.scarBonus=true; S.warlordAt=0; let i=0; while(claimedTileCount()<WIN_SECTORS && i<40){ S.tiles['9x'+(10+i)]={claimed:1,faction:S.faction<0?0:S.faction,tended:_playClock}; i++; } S.warlord=null; tickFront(true); return MARS.warlord(); },
+  fightWarlord:()=>{ if(warlordActive()) startWarlordFight(S.warlord.id); return {active:rtActive, rtWarlord:!!rtWarlord, rt:MARS.rt()}; },
+  warlordSim:()=>{ const hex0=S.hex, inf0=S.influence||0; S.scarBonus=true; S.warlordAt=0; let i=0; while(claimedTileCount()<WIN_SECTORS && i<40){ S.tiles['9x'+(10+i)]={claimed:1,faction:S.faction<0?0:S.faction,tended:_playClock}; i++; } S.warlord=null; tickFront(true);
+    const crowned=warlordActive(), wid=S.warlord&&S.warlord.id, ws0=winState();
+    if(S.warlord) breakWarlord(S.warlord.id); const ws1=winState();
+    const goal=GOALS.find(g=>/BREAK THE WARLORD/.test(g.text));
+    return {crowned, wid, winGate_blockedByWarlord_before:!!ws0.warlord, warlordActive_after:warlordActive(), broken:!!(S.warlord&&S.warlord.broken), winGate_warlord_after:!!ws1.warlord, goalDone:goal?!!goal.done():null, hexDelta:S.hex-hex0, infDelta:(S.influence||0)-inf0}; },
   arch:id=>{ const a=archetypeOf(id||S.tile), p=archProfile(id||S.tile); return a?{key:a.key,name:a.name,yield:p.y,hazard:p.h,grip:p.g}:null; },
   globe:()=>({phase:mapPhase,yaw:+gYaw.toFixed(2),pitch:+gPitch.toFixed(2),dist:mapDist,cur:S.tile,cost:tileClaimCost(),claimed:claimedTileCount()}),
   tile:()=>S.tile, goTo:id=>crossTo(id,0,0), info:id=>tileInfo(id||S.tile),
