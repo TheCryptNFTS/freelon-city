@@ -117,8 +117,10 @@ export default async function Home() {
               pivot — superseded. Same beloved "Where X becomes Y" shape, new
               thesis; subline = the civilization in plain words + provenance. */}
           {/* HERO ANCHOR (cheap-fix #10): one large framed citizen grounds the
-              composition at desktop widths. CSS-only placement; hidden <1100px. */}
-          <img src="/og/art/hero-eclipse.png" alt="" aria-hidden className="hero-anchor" loading="eager" decoding="async" />
+              composition at desktop widths. Decorative CSS background, gated to
+              >=1100px in globals.css so phones never download the art (perf P0,
+              polish swarm 2026-06-22). */}
+          <div aria-hidden className="hero-anchor" />
           <h1 className="hero-landing__h1">
             Where AI becomes a <strong>civilization</strong>.
           </h1>

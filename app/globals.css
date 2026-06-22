@@ -8648,7 +8648,8 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
     display: block;
     position: absolute; right: max(24px, 4vw); top: 50%;
     transform: translateY(-50%) rotate(2deg);
-    width: clamp(260px, 24vw, 360px); aspect-ratio: 1/1; object-fit: cover;
+    width: clamp(260px, 24vw, 360px); aspect-ratio: 1/1;
+    background: url(/og/art/hero-eclipse.png) center / cover no-repeat;
     border-radius: 18px;
     border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
     box-shadow:
