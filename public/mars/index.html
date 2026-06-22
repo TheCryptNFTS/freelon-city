@@ -1324,7 +1324,7 @@ function plantTileOutpost(tid){
   tileOutpost.position.set(b.x, terrainH(b.x,b.z), b.z);
   awayGroup.add(tileOutpost);
   tileOutpost.scale.setScalar(.01);
-  tw(800, EASE.outBack, k=>tileOutpost&&tileOutpost.scale.setScalar(Math.max(.01,k)));
+  { const _sp=tileOutpost; tw(800, EASE.outBack, k=>_sp&&_sp.scale.setScalar(Math.max(.01,k))); }   // capture the node so a fast 2nd claim's tween can't scale the new outpost
   burst(b.x,terrainH(b.x,b.z)+2,b.z);
 }
 /* claim dossier in the zone-panel chrome (beacon route) */
@@ -3060,6 +3060,7 @@ function pruneFx(root){
     let i=pulsers.indexOf(o); if(i>=0) pulsers.splice(i,1);
     i=smokes.findIndex(s=>s.sprite===o); if(i>=0) smokes.splice(i,1);
     if(o.isMesh||o.isSprite){
+      if(o.userData&&o.userData.shared) return;   // cache-cloned GLB shares geometry/material with MODEL_CACHE — disposing here corrupts every building of that type
       if(o.geometry&&o.geometry.dispose&&!o.isSprite) o.geometry.dispose();
       if(o.material&&o.material.dispose) o.material.dispose();
     }
@@ -3069,7 +3070,7 @@ function pruneFx(root){
 function buildMesh(t){
   const g=new THREE.Group();
   if(MODEL_CACHE[t]){
-    g.add(MODEL_CACHE[t].clone(true));
+    const _cl=MODEL_CACHE[t].clone(true); _cl.traverse(o=>{ if(o.isMesh) o.userData.shared=true; }); g.add(_cl);   // tag shared buffers so pruneFx never disposes the cache
     const l=new THREE.PointLight(GOLD,40,30); l.position.y=8; g.add(l);
     if(t==='warroom'){ const r=new THREE.PointLight(0xa8341f,40,28); r.position.y=6; g.add(r); }
     g.add(groundPad(t==='warroom'||t==='foundry' ? 8.5 : 7));
@@ -4151,6 +4152,7 @@ addEventListener('keyup',e=>{
   else if(k==='d'||e.key==='ArrowRight') keyDrive.r=0;
   else if(k===' ') emileJumpRelease();   // variable jump height — release early = shorter hop
 });
+addEventListener('blur',()=>{ keyDrive.f=keyDrive.b=keyDrive.l=keyDrive.r=0; padDrive.f=padDrive.b=padDrive.l=padDrive.r=0; pointerHeld=false; });   // focus lost mid-hold → drop latched movement (else the rover self-drives on return)
 /* HOLD pointer to drive toward the cursor: only engages on a STILL hold (>180ms, no drag),
    so a normal click/orbit-drag is never hijacked. */
 let holdTimer=0, holdPtr={x:0,y:0};
@@ -5675,7 +5677,7 @@ const poiDetected=id=>S.detected.includes(id)||S.discovered.includes(id)||S.clea
 function detectPoi(p,quiet){
   if(poiDetected(p.id)) return false;
   S.detected.push(p.id);
-  const g=poiGroups[p.id]; g.visible=true;
+  const g=poiGroups[p.id]; if(!g) return false; g.visible=true;
   if(!S.cleared.includes(p.id)) addDetectBeacon(g,POI_COPY[p.type].label);
   if(!quiet){ toast('SIGNAL DETECTED ▸ '+p.name); sfxBlip(.8); }
   mmDirty=true;
@@ -6067,7 +6069,7 @@ function paintBattle(){
 /* ---- enemy trio: 3 CORRUPTED SIGNAL BEASTS, powers sum ≈ enemyRange roll ---- */
 const BEAST_A=['NULL','ROT','HUSK','SCREE','GRIME','ASH','RUST','MAW','SHARD','BLIGHT'];
 const BEAST_B=['HERALD','GORGER','WRAITH','SPINE','CHORUS','HUSK','REND','CRAWLER'];
-function buildFoes(){
+function buildFoes(noRise){
   const di=battleDi(), [e0,e1]=enemyRange();
   const total=Math.round((e0+Math.floor(Math.random()*(e1-e0+1)))*(1+((S.hardened&&S.hardened[battleKey])||0)*0.12)*archHazard(S.tile)*((S.wins||0)===0?0.6:1));   // each prior repel hardens · hostile sectors field more · until your FIRST WIN, fights are eased 40% so you can learn the controls
   const w=[.30,.24,.46].map(x=>x*(.85+Math.random()*.3)), ws=w.reduce((a,b)=>a+b,0);
@@ -6085,7 +6087,7 @@ function buildFoes(){
   laneCard=[null,null,null]; holdIdx=null;
   laneSurge=[1.45,1.0,0.62].sort(()=>Math.random()-.5);   // redistributes power (sum≈3) — where you place your strongest card matters
   surgeHidden = Math.floor(Math.random()*3); surgeShown=false;   // ONE lane's surge stays masked until you commit — a genuine read/risk
-  spawnFoeMeshes();
+  spawnFoeMeshes(noRise);
   renderLanes();
 }
 const surgeTag = (m,li) => (li===surgeHidden && !surgeShown) ? '<span style="color:#d98a63">◇ UNREAD SURGE ×?</span>'
@@ -6315,7 +6317,7 @@ function stageLanes(){
 }
 /* optional diegetic stage: corrupted shards rise behind the modal, facing the rover */
 let foeStage=null;
-function spawnFoeMeshes(){
+function spawnFoeMeshes(noRise){
   clearFoeMeshes();
   if(!battleFoes || typeof rover==='undefined') return;
   foeStage=new THREE.Group();
@@ -6328,7 +6330,7 @@ function spawnFoeMeshes(){
     mesh.position.set(px, gy-9, pz);          // start below the dust, rise to ground (feet/centre at gy)
     mesh.rotation.y=Math.atan2(rover.position.x-px, rover.position.z-pz);
     foeStage.add(mesh);
-    tw(620+i*120, EASE.outBack, k=>{ mesh.position.y=gy-9+9*k; });
+    if(!noRise){ tw(620+i*120, EASE.outBack, k=>{ mesh.position.y=gy-9+9*k; }); } else { mesh.position.y=gy; }   // RT re-rings the foes itself — skip the rise tween so it doesn't fight the re-placement
   });
   scene.add(foeStage); addTrauma(.18);
 }
@@ -6407,7 +6409,7 @@ function startRTCombat(zone,poi){
   S.hex-=BATTLE_STAKE; S.today.spent+=BATTLE_STAKE; trackSpend(BATTLE_STAKE,'battle'); shownHex=S.hex; updateHUD();
   battleGen++; battleZone=zone||null; battlePoi=poi||null;
   battleKey = poi ? poi.id : zone ? 'z'+zone.id : 'mission';
-  buildFoes();                                   // populates battleFoes + spawnFoeMeshes(foeStage)
+  buildFoes(true);                               // RT: skip the foe rise-tween (the ring re-placement below owns their position)
   rtArena.x=rover.position.x; rtArena.z=rover.position.z; rtArena.r=108;
   rtFoes=[];
   const n=foeStage?foeStage.children.length:0;
@@ -6984,7 +6986,7 @@ function spawnGhostConvoy(){
     ghostGroup.add(wrap);
     const g={curve,wrap,body,trail,tg,TN,u:rng(),spd:GHOST_SPD*(.8+rng()*.5),
       _len:Math.max(1,curve.getLength()),                      // cached once (getLength is O(n))
-      lastMark:performance.now()/1000-rng()*20, hum:rng()<.7, humAt:0, _hist:[]};
+      lastMark:clock.elapsedTime-rng()*20, hum:rng()<.7, humAt:0, _hist:[]};   // same clock the loop compares against (was perf.now → markers never dropped)
     ghostConvoy.push(g);
   }
 }
