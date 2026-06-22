@@ -198,6 +198,14 @@
   body.relicrun #relicBtn, body.trialrun #trialBtn{display:none!important}
   body.parkrun #relicBtn, body.parkrun #emileBtn{display:none!important}
   @media (max-width:900px){ #parkBtn{left:14px;bottom:236px;transform:none} }
+  #gauntletBtn{position:fixed;bottom:236px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+    background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
+    font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
+  body.playing #gauntletBtn{display:block}
+  #gauntletBtn:hover{background:rgba(216,178,92,.18)}
+  body.mapping #gauntletBtn, body.relicrun #gauntletBtn, body.trialrun #gauntletBtn, body.parkrun #gauntletBtn, body.gauntlet #gauntletBtn{display:none!important}
+  body.gauntlet #relicBtn, body.gauntlet #trialBtn, body.gauntlet #parkBtn, body.gauntlet #emileBtn{display:none!important}
+  @media (max-width:900px){ #gauntletBtn{left:14px;bottom:284px;transform:none} }
   #jumpBtn{position:fixed;bottom:130px;right:30px;z-index:23;width:74px;height:74px;border-radius:50%;
     background:rgba(216,178,92,.16);border:1.5px solid var(--gold);color:var(--gold-bright);font-family:inherit;
     font-size:10px;letter-spacing:.16em;cursor:pointer;display:none;backdrop-filter:blur(6px);
@@ -705,6 +713,7 @@ setTimeout(function(){
 <button id="relicBtn">⬡ RELIC RUN</button>
 <button id="trialBtn">⏱ TIME TRIAL</button>
 <button id="parkBtn">🤸 PARKOUR</button>
+<button id="gauntletBtn">⚡ GAUNTLET</button>
 <button id="jumpBtn" aria-label="Jump">JUMP</button>
 <button id="dashBtn" aria-label="Dash">DASH</button>
 <button id="exportBtn">EXPORT SAVE</button>
@@ -3772,6 +3781,7 @@ function setPlayerMode(m){
   const tb=$('emileBtn'); if(tb){ tb.classList.toggle('on',onEmile); tb.textContent = onEmile ? '🛻 BACK TO ROVER' : '⚡ PLAY AS EMILE'; }
 }
 function togglePlayer(){ if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
+  if(GAUNTLET.active) endGauntlet(false,true);   // a gauntlet owns relic/park sub-state — end it first so its teardown runs
   if(RELIC.active) endRelicRun(false,true); if(TRIAL.active) endTimeTrial(false,true); if(PARK.active) endParkour(false,true);   // switching seats ends an active mini-game (don't strand its targets)
   setPlayerMode(playerMode==='emile'?'rover':'emile'); }
 function emileJump(){
@@ -3790,13 +3800,14 @@ function emileDash(){ if(playerMode!=='emile'||EMILE.dashCd>0) return; EMILE.das
   const db=document.getElementById('dashBtn'); if(db){ db.addEventListener('pointerdown',e=>{ e.preventDefault(); emileDash(); }); }
   const rb=document.getElementById('relicBtn'); if(rb) rb.onclick=()=>startRelicRun();
   const tb=document.getElementById('trialBtn'); if(tb) tb.onclick=()=>startTimeTrial();
-  const pb=document.getElementById('parkBtn'); if(pb) pb.onclick=()=>startParkour(); }
+  const pb=document.getElementById('parkBtn'); if(pb) pb.onclick=()=>startParkour();
+  const gb=document.getElementById('gauntletBtn'); if(gb) gb.onclick=()=>startGauntlet(); }
 
 /* ============================== RELIC RUN — first in-world game ==============================
    A Sonic-style time-trial: grab all the floating ⬡ relics before the clock runs out.
    Built to SHOWCASE fast EMILE — reuses terrainH, the player transform, burst/sfx FX + addHex reward.
    Zero new assets (procedural octahedron relics). Trigger: ⬡ RELIC RUN button / R key / MARS.relicRun(). */
-const RELIC={ active:false, items:[], total:0, got:0, timeLeft:0, par:50 };
+const RELIC={ active:false, items:[], total:0, got:0, timeLeft:0, par:50, _chain:false };
 function _relicHudEl(){ let el=document.getElementById('relicHud'); if(!el){ el=document.createElement('div'); el.id='relicHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
 function clearRelics(){ for(const m of RELIC.items){ scene.remove(m); if(m.geometry)m.geometry.dispose(); } RELIC.items.length=0; }
 function startRelicRun(){
@@ -3825,6 +3836,8 @@ function endRelicRun(won, silent){
   document.body.classList.remove('relicrun');
   const el=document.getElementById('relicHud'); if(el) el.style.display='none';
   if(silent||!was) return;
+  if(RELIC._chain){ RELIC._chain=false;                         // GAUNTLET leg — never pays out; advance or fail
+    if(won && RELIC.got>=RELIC.total) gauntletAdvance(2); else gauntletFail('relics'); return; }
   if(won){
     if(RELIC.got<RELIC.total){ return; }                        // idempotency — only a real all-collected clear pays
     const onCd=(S.locks.relic||0)>Date.now();                   // anti-farm: payout on a 10-min cooldown (gameplay still free)
@@ -3981,7 +3994,7 @@ function tickTimeTrial(dt){
    Jump EMILE through an ascending chain of gold rings in order (SPACE / double-jump) → an ARCHIVE
    FRAGMENT (different reward axis to the HEX games). 3D proximity = you must JUMP to each ring's
    altitude. Trigger: 🤸 PARKOUR button / P key / MARS.parkour(). */
-const PARK={ active:false, rings:[], idx:0, total:8, t:0 };
+const PARK={ active:false, rings:[], idx:0, total:8, t:0, _chain:false };
 function _parkHudEl(){ let el=document.getElementById('parkHud'); if(!el){ el=document.createElement('div'); el.id='parkHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
 function clearPark(){ for(const r of PARK.rings){ if(!r) continue; scene.remove(r); if(r.geometry)r.geometry.dispose(); } PARK.rings.length=0; }
 function startParkour(){
@@ -4012,6 +4025,8 @@ function endParkour(won, silent){
   document.body.classList.remove('parkrun');
   const el=document.getElementById('parkHud'); if(el) el.style.display='none';
   if(silent||!was) return;
+  if(PARK._chain){ PARK._chain=false;                    // GAUNTLET leg — never pays out; advance or fail
+    if(won && PARK.idx>=PARK.total) gauntletAdvance(3); else gauntletFail('rings'); return; }
   if(won){
     if(PARK.idx<PARK.total) return;                      // idempotency
     const onCd=(S.locks.parkour||0)>Date.now();          // anti-farm: fragment+⬡ on a 10-min cooldown
@@ -4038,6 +4053,96 @@ function tickParkour(dt,t){
   const el=document.getElementById('parkHud');
   if(el) el.textContent='🤸 RING '+PARK.idx+'/'+PARK.total+'   '+PARK.t.toFixed(1)+'s';
 }
+
+/* ============================== EMILE GAUNTLET — chained showcase run ==============================
+   RELICS ▸ RINGS ▸ SPRINT, EMILE-only, ONE combined clock, one localStorage best, one shareable card.
+   Reuses RELIC/PARK spawn+detect via a _chain flag that intercepts their payout and advances instead.
+   PURE GLORY — pays NO ⬡ (honors the sink rule). Trigger: ⚡ GAUNTLET button / G key / MARS.gauntlet(). */
+const GAUNTLET={ active:false, phase:0, t:0, best:null, startX:0, startZ:0, finish:null };
+function _gauntHudEl(){ let el=document.getElementById('gauntHud'); if(!el){ el=document.createElement('div'); el.id='gauntHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
+function startGauntlet(){
+  if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;
+  if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
+  if(GAUNTLET.active) endGauntlet(false,true);
+  if(RELIC.active) endRelicRun(false,true); if(TRIAL.active) endTimeTrial(false,true); if(PARK.active) endParkour(false,true);
+  if(playerMode!=='emile') setPlayerMode('emile');
+  try{ GAUNTLET.best=+(lsGet('mars_gauntlet_best')||0)||null; }catch(e){ GAUNTLET.best=null; }
+  GAUNTLET.active=true; GAUNTLET.phase=1; GAUNTLET.t=0; GAUNTLET.startX=rover.position.x; GAUNTLET.startZ=rover.position.z; GAUNTLET.finish=null;
+  document.body.classList.add('gauntlet'); _gauntHudEl().style.display='block';
+  startRelicRun(); RELIC._chain=true; RELIC.timeLeft=9999;   // chain leg 1; no per-leg timeout — the combined clock is the only timer
+  const rh=document.getElementById('relicHud'); if(rh) rh.style.display='none';
+  toast('⚡ EMILE GAUNTLET — RELICS ▸ RINGS ▸ SPRINT · one clock, no breaks!'); sfxTick();
+}
+function gauntletAdvance(phase){
+  GAUNTLET.phase=phase;
+  if(phase===2){ startParkour(); PARK._chain=true; const el=document.getElementById('parkHud'); if(el) el.style.display='none';
+    if(typeof floater==='function')floater('② RINGS'); if(typeof sfxBlip==='function')sfxBlip(.6); }
+  else if(phase===3){ buildFinishGate(); if(typeof floater==='function')floater('③ SPRINT'); if(typeof sfxBlip==='function')sfxBlip(.8); }
+  _gauntHudEl().style.display='block';
+}
+function buildFinishGate(){
+  if(GAUNTLET.finish){ scene.remove(GAUNTLET.finish); if(GAUNTLET.finish.geometry)GAUNTLET.finish.geometry.dispose(); }
+  const a=roverHeading, px=rover.position.x+Math.sin(a)*120, pz=rover.position.z+Math.cos(a)*120, y=terrainH(px,pz)+9;
+  const m=new THREE.Mesh(new THREE.TorusGeometry(10,1.6,8,28), matGold(3.0));
+  m.position.set(px,y,pz); m.lookAt(rover.position.x,y,rover.position.z); m.frustumCulled=false; scene.add(m);
+  GAUNTLET.finish=m; revealAt(px,pz,40);
+}
+function gauntletFail(stage){ toast('⚡ GAUNTLET — out at '+stage+'. One clean run, no breaks.'); endGauntlet(false,true); }
+function endGauntlet(won, silent){
+  const was=GAUNTLET.active; GAUNTLET.active=false; GAUNTLET.phase=0; RELIC._chain=false; PARK._chain=false;
+  if(GAUNTLET.finish){ scene.remove(GAUNTLET.finish); if(GAUNTLET.finish.geometry)GAUNTLET.finish.geometry.dispose(); GAUNTLET.finish=null; }
+  clearRelics(); clearPark();
+  document.body.classList.remove('gauntlet','relicrun','parkrun');
+  const el=document.getElementById('gauntHud'); if(el) el.style.display='none';
+  const rh=document.getElementById('relicHud'); if(rh) rh.style.display='none';
+  const ph=document.getElementById('parkHud'); if(ph) ph.style.display='none';
+  if(silent||!was) return;
+  if(won){
+    const time=GAUNTLET.t; let pb=''; const isBest=(GAUNTLET.best==null||time<GAUNTLET.best);
+    if(isBest){ GAUNTLET.best=time; try{ lsSet('mars_gauntlet_best', time.toFixed(2)); }catch(e){} pb=' · NEW BEST!'; }
+    toast('⚡ EMILE GAUNTLET — '+time.toFixed(1)+'s'+pb+'  ·  RELICS▸RINGS▸SPRINT cleared');   // PURE GLORY — no ⬡
+    burst(rover.position.x,rover.position.y+3,rover.position.z); if(typeof haptic==='function')haptic(.9,.3);
+    if(typeof checkGoals==='function')checkGoals();
+    promptGauntletShare(time,isBest);
+  } else { toast('⚡ GAUNTLET ENDED — clear all three legs in one run. Go again.'); }
+}
+function tickGauntlet(dt,t){
+  if(!GAUNTLET.active) return;
+  if(rtActive || $('battle').classList.contains('open')) return;
+  GAUNTLET.t+=dt;
+  if(GAUNTLET.phase===3 && GAUNTLET.finish){
+    const g=GAUNTLET.finish, p=rover.position; g.scale.setScalar(1+0.08*Math.sin(t*4));
+    const dx=g.position.x-p.x, dz=g.position.z-p.z;
+    if(dx*dx+dz*dz<169){ endGauntlet(true); return; }     // 13u — forgiving finish at sprint speed
+  }
+  const el=document.getElementById('gauntHud');
+  if(el){ let label;
+    if(GAUNTLET.phase===1) label='⚡ ① RELICS '+RELIC.got+'/'+RELIC.total;
+    else if(GAUNTLET.phase===2) label='⚡ ② RINGS '+PARK.idx+'/'+PARK.total;
+    else label='⚡ ③ SPRINT ▸ FINISH';
+    el.textContent=label+'   '+GAUNTLET.t.toFixed(1)+'s'+(GAUNTLET.best!=null?'   BEST '+GAUNTLET.best.toFixed(1)+'s':''); }
+}
+function makeGauntletCard(time,isBest){
+  const W=LOWPERF?600:1200, H=Math.round(W*0.525);
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const Sc=W/1200;
+  x.fillStyle='#080604'; x.fillRect(0,0,W,H);
+  const gr=x.createRadialGradient(W*.5,H*.34,40*Sc,W*.5,H*.34,W*.72);
+  gr.addColorStop(0,'rgba(216,178,92,.13)'); gr.addColorStop(1,'rgba(8,6,4,0)'); x.fillStyle=gr; x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(216,178,92,.4)'; x.lineWidth=2*Sc; x.strokeRect(18*Sc,18*Sc,W-36*Sc,H-36*Sc);
+  x.textAlign='center'; x.textBaseline='middle';
+  x.fillStyle='#d8b25c'; x.font='bold '+(22*Sc)+'px ui-monospace,monospace'; x.fillText('⚡  MARS COMMAND · EMILE GAUNTLET', W*.5, H*.18);
+  x.fillStyle='#f0c75e'; x.font='bold '+(150*Sc)+'px ui-monospace,monospace'; x.fillText(time.toFixed(1)+'s', W*.5, H*.46);
+  x.fillStyle='rgba(242,234,216,.62)'; x.font=(20*Sc)+'px ui-monospace,monospace'; x.fillText('RELICS ▸ RINGS ▸ SPRINT · ONE RUN', W*.5, H*.64);
+  if(isBest){ x.fillStyle='#7ad17a'; x.font='bold '+(24*Sc)+'px ui-monospace,monospace'; x.fillText('★ NEW PERSONAL BEST', W*.5, H*.745); }
+  x.fillStyle='#f2ead8'; x.font='bold '+(26*Sc)+'px ui-monospace,monospace'; x.fillText('BEAT MY RUN ▸ freeloncity.com/mars', W*.5, H*.875);
+  return cv;
+}
+function shareGauntlet(time,isBest){
+  const url=location.origin+location.pathname+'#s='+(WORLD_SEED()).toString(36);
+  const line='I cleared the MARS COMMAND EMILE Gauntlet (relics ▸ rings ▸ sprint) in '+time.toFixed(1)+'s'+(isBest?' (new best)':'')+'. Beat my run ▸ '+url+' @4040hex #FREELONCITY';
+  share({ card:makeGauntletCard(time,isBest), line, url, fname:'mars-gauntlet-'+(WORLD_SEED()).toString(36)+'.png' });
+}
+function promptGauntletShare(time,isBest){ floatShareChip((isBest?'★ NEW BEST ':'')+'POST '+time.toFixed(1)+'s ▸ GAUNTLET', ()=>shareGauntlet(time,isBest)); }
 
 /* shortest-arc angular damping — naive lerp spins the long way through ±PI */
 function wrapAng(a){ a=(a+Math.PI)%(Math.PI*2); return a<0 ? a+Math.PI : a-Math.PI; }
@@ -4238,6 +4343,7 @@ addEventListener('keydown',e=>{
   else if(k==='r' && !rtActive){ startRelicRun(); e.preventDefault(); return; }   // R — start a RELIC RUN
   else if(k==='t' && !rtActive){ startTimeTrial(); e.preventDefault(); return; }  // T — start a TIME TRIAL
   else if(k==='p' && !rtActive){ startParkour(); e.preventDefault(); return; }    // P — start a PARKOUR TRIAL
+  else if(k==='g' && !rtActive){ startGauntlet(); e.preventDefault(); return; }   // G — start the EMILE GAUNTLET
   else return;
   e.preventDefault(); hasDest=false;   // taking the wheel cancels the waypoint target
 });
@@ -7359,6 +7465,7 @@ function animate(){
   if(mode==='play') tickRelicRun(dt,t);
   if(mode==='play') tickTimeTrial(dt);
   if(mode==='play') tickParkour(dt,t);
+  if(mode==='play') tickGauntlet(dt,t);
   if(mode==='play') updateCamera(dt,t);
   renderFrame(mode==='map'&&mapPhase==='orbit' ? spaceScene : scene);
 }
@@ -7419,6 +7526,13 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   parkour:()=>{ startParkour(); return {active:PARK.active, rings:PARK.total}; },
   parkInfo:()=>({active:PARK.active, idx:PARK.idx, total:PARK.total, t:+PARK.t.toFixed(1), next:PARK.rings[PARK.idx]?[+PARK.rings[PARK.idx].position.x.toFixed(0),+PARK.rings[PARK.idx].position.y.toFixed(0),+PARK.rings[PARK.idx].position.z.toFixed(0)]:null}),
   parkEnd:(won)=>{ endParkour(won===true); return PARK.active; },
+  gauntlet:()=>{ startGauntlet(); return {active:GAUNTLET.active, phase:GAUNTLET.phase}; },
+  gauntInfo:()=>({active:GAUNTLET.active, phase:GAUNTLET.phase, t:+GAUNTLET.t.toFixed(1), best:GAUNTLET.best, relicGot:RELIC.got, parkIdx:PARK.idx, finish:!!GAUNTLET.finish}),
+  gauntSim:(time)=>{ const hex0=S.hex; startGauntlet();
+    RELIC.got=RELIC.total; endRelicRun(true);          // leg 1 clear → advance to rings
+    PARK.idx=PARK.total; endParkour(true);             // leg 2 clear → advance to sprint
+    GAUNTLET.t=(time||30); endGauntlet(true);           // leg 3 finish
+    return {best:GAUNTLET.best, active:GAUNTLET.active, phase:GAUNTLET.phase, hexDelta:S.hex-hex0, chip:!!document.getElementById('floatShareChip')}; },
   jump:()=>{ emileJump(); return {vy:+EMILE.vy.toFixed(1), grounded:EMILE.grounded, jumps:EMILE.jumps}; },
   dash:()=>{ emileDash(); return {dashT:+EMILE.dashT.toFixed(2), ghosts:afterimage.filter(a=>a.sp.visible).length}; },
   emileTrail:(secs=0.4)=>{ emileDash(); const n=Math.round((secs||0.4)*60); for(let i=0;i<n;i++) animateEmile(1/60, performance.now()/1000+i/60); return {dashT:+EMILE.dashT.toFixed(2), live:afterimage.filter(a=>a.sp.visible).length, total:AI_N, color:'0x'+emileTrailColor().toString(16)}; },
