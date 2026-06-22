@@ -19,6 +19,7 @@ const GAME_TITLES: Record<string, string> = {
   cipher: "The Cipher",
   reckoning: "The Reckoning",
   "hex-match": "Hex Match",
+  mars: "Mars Command",
 };
 
 const VALID_GAMES = new Set(Object.keys(GAME_TITLES));
@@ -80,7 +81,16 @@ export default async function ShareScorePage({
 }) {
   const sp = await searchParams;
   const g = str(sp.g).toLowerCase();
-  const dest = VALID_GAMES.has(g) ? `/play/${g}` : "/play";
+  // Mars carries its destination planet/score in `to` (a URL hash like "daily&t=..."
+  // or "s=..."); sanitize to a same-origin fragment so it can never become an
+  // open redirect or a javascript: payload.
+  const to = str(sp.to).replace(/[^a-z0-9=&._-]/gi, "").slice(0, 80);
+  const dest =
+    g === "mars"
+      ? `/mars${to ? "#" + to : ""}`
+      : VALID_GAMES.has(g)
+        ? `/play/${g}`
+        : "/play";
   const game = VALID_GAMES.has(g) ? GAME_TITLES[g] : "the arcade";
 
   return (

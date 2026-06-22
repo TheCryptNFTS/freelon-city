@@ -4253,7 +4253,7 @@ function makeGauntletCard(time,isBest){
   return cv;
 }
 function shareGauntlet(time,isBest){
-  const url=location.origin+location.pathname+'#s='+(WORLD_SEED()).toString(36);
+  const url=unfurlURL(time.toFixed(1)+'s','EMILE GAUNTLET','s='+(WORLD_SEED()).toString(36),isBest?'NEW BEST':'');
   const line='I cleared the MARS COMMAND EMILE Gauntlet (relics ▸ rings ▸ sprint) in '+time.toFixed(1)+'s'+(isBest?' (new best)':'')+'. Beat my run ▸ '+url+' @4040hex #FREELONCITY';
   share({ card:makeGauntletCard(time,isBest), line, url, fname:'mars-gauntlet-'+(WORLD_SEED()).toString(36)+'.png' });
 }
@@ -5982,7 +5982,7 @@ function glyphStamp(){
 }
 function dispatchLine(won){ const hs=heroStat(won);
   const lead = won ? 'I secured a planet on Mars. ' : 'I am rebuilding the signal on Mars. ';
-  return lead+hs.k+': '+hs.v+'. Race my planet ▸ '+shareURL()+' @4040hex #FREELONCITY'; }
+  return lead+hs.k+': '+hs.v+'. Race my planet ▸ '+planetUnfurlURL()+' @4040hex #FREELONCITY'; }
 /* V2 — the Wordle text-grid: a spoiler-free, status-bearing block that pastes as TEXT into any
    chat (no image host). Travels with every share alongside the PNG card + deep-link. */
 function gridBlock(){
@@ -6001,6 +6001,18 @@ function gridBlock(){
 /* #1/#4: the DAILY TRIAL share — a result card whose hero is the TIME, and a deep-link that carries
    the time so a friend lands on TODAY's identical course already chasing it (beat-me contest). */
 function trialShareURL(ms){ const u=location.origin+location.pathname; return u+'#daily&t='+(dailySeed()>>>0).toString(36)+'.'+Math.round(ms); }
+/* THE UNFURL LINK — points at /share/score, which server-renders a UNIQUE planet+score OG card
+   (so a pasted link shows a real picture on X/Discord) then bounces the human to /mars#<hash>.
+   Absolute prod origin: /share/score only exists on the deployed site, not the standalone dev server. */
+const _SITE='https://www.freeloncity.com';
+function unfurlURL(n, nl, hash, tag){
+  let q='g=mars&n='+encodeURIComponent(n)+'&nl='+encodeURIComponent(nl)+'&to='+encodeURIComponent(hash);
+  if(tag) q+='&tag='+encodeURIComponent(tag);
+  return _SITE+'/share/score?'+q;
+}
+function planetUnfurlURL(){ const hs=heroStat(); let hash='s='+(WORLD_SEED()).toString(36);
+  const held=claimedTileCount(); if(held>=1 && S.faction>=0) hash+='&c='+held+'.'+S.faction;
+  return unfurlURL(hs.v, hs.k, hash, ''); }
 function makeTrialCard(time,isBest){
   const W=LOWPERF?600:1200, H=Math.round(W*0.525);
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const x=cv.getContext('2d'); const Sc=W/1200;
@@ -6017,7 +6029,8 @@ function makeTrialCard(time,isBest){
   return cv;
 }
 function shareTrial(time,isBest){
-  const ms=Math.round(time*1000), url=trialShareURL(ms);
+  const ms=Math.round(time*1000), hash='daily&t='+(dailySeed()>>>0).toString(36)+'.'+ms;
+  const url=unfurlURL(time.toFixed(1)+'s','DAILY TRIAL',hash,isBest?'NEW BEST':'');   // unfurls a unique card → bounces to today's planet
   const line='I ran today’s MARS COMMAND daily trial in '+time.toFixed(1)+'s'+(isBest?' (new best)':'')+'. Beat my time ▸ '+url+' @4040hex #FREELONCITY';
   share({ card:makeTrialCard(time,isBest), line, url, fname:'mars-daily-trial-'+(dailySeed()>>>0).toString(36)+'.png' });
 }
@@ -6047,7 +6060,7 @@ function showFirstSignalPromise(b){
   setTimeout(()=>{ clearInterval(iv); if(d.parentNode){ d.style.opacity='0'; setTimeout(()=>d.remove(),500); } }, 9000);
 }
 function share(opts){ opts=opts||{};
-  const url = opts.url || shareURL();
+  const url = opts.url || planetUnfurlURL();   // a pasted link unfurls a unique planet card → bounces to the game
   if(!opts.url) writeHashSeed(WORLD_SEED());
   const card = opts.card || makeOGCard();
   glyphStamp(); sfxBlip(.5);
