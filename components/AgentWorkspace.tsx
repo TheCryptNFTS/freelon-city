@@ -190,6 +190,13 @@ export function AgentWorkspace(props: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  // A11y: Escape closes the image lightbox for keyboard users.
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLightbox(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
   // CITY CREATION LOOP (Prompt step 1): publish a just-rendered image to the City
   // Archive (/transmissions). Reuses the existing POST /api/transmissions (which
   // walletProof-gates + burns the existing submission cost). FREELONS only (needs
@@ -803,7 +810,17 @@ export function AgentWorkspace(props: Props) {
             <div
               key={t.id}
               className={`${styles.threadRow} ${t.id === activeId ? styles.activeThread : ""}`}
+              role="button"
+              tabIndex={0}
+              aria-current={t.id === activeId}
               onClick={() => { setActiveId(t.id); setSidebarOpen(false); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActiveId(t.id);
+                  setSidebarOpen(false);
+                }
+              }}
             >
               <span className={styles.threadTitle}>{t.title}</span>
               <button
@@ -1353,8 +1370,14 @@ export function AgentWorkspace(props: Props) {
       </main>
 
       {lightbox && (
-        <div className={styles.lightbox} onClick={() => setLightbox(null)}>
-          <img src={lightbox} alt="" />
+        <div
+          className={styles.lightbox}
+          onClick={() => setLightbox(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Expanded image — click or press Escape to close"
+        >
+          <img src={lightbox} alt="Expanded view of the generated image" />
         </div>
       )}
 

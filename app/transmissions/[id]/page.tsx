@@ -24,7 +24,9 @@ export async function generateMetadata({
     openGraph: {
       title: `⬡ TRANSMISSION · ${civ?.name ?? t.civ}`,
       description: t.caption.slice(0, 160),
-      images: [{ url: t.imageUrl, width: 1200, height: 630 }],
+      // User-pasted image of unknown dimensions — declaring 1200x630 made X/Discord
+      // letterbox or crop. Omit dimensions so crawlers measure the real image.
+      images: [{ url: t.imageUrl }],
     },
     twitter: {
       card: "summary_large_image",

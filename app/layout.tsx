@@ -31,7 +31,7 @@ const SHARE_DESC =
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.freeloncity.com"),
   title: {
-    default: "404 — FREELON CITY",
+    default: SHARE_TITLE,
     template: "%s · FREELON CITY",
   },
   description: SHARE_DESC,
@@ -101,6 +101,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             route — it is homepage-only art. The preload moved to
             app/page.tsx (ReactDOM.preload), scoped to the page that paints it. */}
         <link rel="preconnect" href="https://gateway.pinata.cloud" />
+        {/* Structured data — helps SERP brand rendering + sitelinks search box. */}
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "FREELON CITY",
+                url: "https://www.freeloncity.com",
+                logo: "https://www.freeloncity.com/logo.png",
+                description: SHARE_DESC,
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "FREELON CITY",
+                url: "https://www.freeloncity.com",
+              },
+            ]),
+          }}
+        />
       </head>
       <body>
         <StyledJsxRegistry>

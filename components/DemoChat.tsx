@@ -540,6 +540,7 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                 rows={1}
                 maxLength={400}
                 placeholder={`Ask ${agent.name} anything…`}
+                aria-label={`Ask ${agent.name} anything`}
                 disabled={busy}
                 style={{
                   flex: 1,

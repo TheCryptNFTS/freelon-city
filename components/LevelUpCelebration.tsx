@@ -25,8 +25,17 @@ export function LevelUpCelebration({
 }) {
   useEffect(() => {
     const t = setTimeout(onClose, 7000);
-    return () => clearTimeout(t);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => { clearTimeout(t); window.removeEventListener("keydown", onKey); };
   }, [onClose]);
+
+  // Respect reduced-motion: the confetti animates via inline styles the global
+  // @media block can't reach, so we skip the layer entirely when reduced.
+  const prefersReduced = useMemo(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
 
   // Pre-computed confetti pieces (stable per mount).
   const pieces = useMemo(
@@ -54,9 +63,9 @@ export function LevelUpCelebration({
       onClick={onClose}
       style={{ position: "fixed", inset: 0, zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(6,6,9,0.55)", backdropFilter: "blur(2px)" }}
     >
-      {/* confetti layer */}
+      {/* confetti layer — skipped under prefers-reduced-motion */}
       <div aria-hidden style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
-        {pieces.map((p, i) => (
+        {!prefersReduced && pieces.map((p, i) => (
           <span
             key={i}
             style={{

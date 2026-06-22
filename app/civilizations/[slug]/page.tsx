@@ -29,17 +29,22 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = (CIVILIZATIONS as Record<string, { name: string; doctrine: string }>)[slug];
+  const c = (CIVILIZATIONS as Record<string, { name: string; doctrine: string; role?: string; essence?: string; rivalLine?: string }>)[slug];
   if (!c) return { title: "Not found" };
   // The per-civ OG card already exists at /api/og/civ-pride/[slug]; wire it
   // into the page metadata so a shared civ link unfurls with that image
   // instead of the imageless title-only card it had before.
   const og = `/api/og/civ-pride/${slug}`;
   const title = `${c.name} · ${c.doctrine}`;
+  // Real sentence beats the one-word doctrine for SEO/share descriptions.
+  const description = [`${c.name} — ${c.doctrine}.`, c.role, c.essence ?? c.rivalLine]
+    .filter(Boolean)
+    .join(" ")
+    .slice(0, 160);
   return {
     title,
-    openGraph: { title, description: c.doctrine, images: [{ url: og, width: 1200, height: 630 }] },
-    twitter: { card: "summary_large_image", title, description: c.doctrine, images: [og] },
+    openGraph: { title, description, images: [{ url: og, width: 1200, height: 630 }] },
+    twitter: { card: "summary_large_image", title, description, images: [og] },
   };
 }
 

@@ -12,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
         // /api/og/* (the OG images) and rendering the gray placeholder on
         // every share. The non-OG /api routes return JSON or 4xx to bots,
         // so indexing them is harmless.
-        disallow: ["/_next/"],
+        disallow: ["/_next/", "/api/admin/"],
       },
     ],
     sitemap: "https://www.freeloncity.com/sitemap.xml",

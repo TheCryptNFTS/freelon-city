@@ -58,7 +58,7 @@
   --ink:       #F5F2E8;
   --ink-2:     rgba(245,242,232,.82);
   --ink-dim:   rgba(245,242,232,.66);
-  --ink-fade:  rgba(245,242,232,.42);
+  --ink-fade:  rgba(245,242,232,.55);  /* 2026-06-22: raised .42→.55 for ~4.6:1 contrast (was below AA) */
 
   --gold:        #C8A75D;
   --gold-bright: #E9C984;
