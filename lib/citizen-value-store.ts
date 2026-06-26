@@ -5,8 +5,9 @@
  *   - Each citizen NFT accumulates hex from trade events only.
  *     Every sale that touches token #X adds +CITIZEN_HEX_PER_SALE to
  *     that token's lifetime hex ledger.
- *   - Citizen "value" = weighted blend of last sale ETH, trait rarity,
- *     accumulated hex, and days-held-by-current-carrier. 0–1000 scale.
+ *   - Citizen "value" = weighted blend of trait rarity, accumulated hex,
+ *     and days-held-by-current-carrier. 0–1000 scale. Deliberately NOT a
+ *     function of the secondary sale price (no floor/appreciation coupling).
  *   - Civ rank = position within citizen's own civilization, by value.
  *     "#3 of 600 in Red Corruption" — bragging right.
  *
@@ -299,59 +300,48 @@ function getTraitRarity(): Map<number, number> {
 }
 
 /**
- * Compute citizen value 0-1000.
+ * Compute citizen "standing" 0-1000.
  *
- * Weights (founder spec):
- *   - 40% last sale ETH (normalized to floor; 1× floor = 100% of this band)
- *   - 30% trait rarity
- *   - 20% accumulated hex (normalized to a 4000⬡ ceiling)
- *   - 10% days held by current carrier (normalized to 365d ceiling)
+ * Weights — deliberately DECOUPLED from the secondary sale price so a
+ * citizen's standing never moves with the floor (no implied "appreciation"):
+ *   - 45% trait rarity            (who the citizen IS — fixed at mint)
+ *   - 35% accumulated hex         (in-app activity, 4000⬡ ceiling)
+ *   - 20% days held by carrier    (loyalty, 365d ceiling)
  *
- * Pure function — `stats` + `floorEth` are inputs.
+ * Pure function — `stats` is the only input.
  */
 export type CitizenStats = Awaited<ReturnType<typeof getCitizenStats>>;
 
 export function computeCitizenValue(
   tokenId: number,
   stats: CitizenStats,
-  floorEth: number,
   nowSec: number = Math.floor(Date.now() / 1000),
 ): {
   value: number;            // 0-1000
   breakdown: {
-    salePts: number;        // 0-400
-    rarityPts: number;      // 0-300
-    hexPts: number;         // 0-200
-    holdPts: number;        // 0-100
+    rarityPts: number;      // 0-450
+    hexPts: number;         // 0-350
+    holdPts: number;        // 0-200
   };
 } {
-  // Sale component: 0 if no sale, 100% at floor, 200%+ scales linearly
-  // and is capped at 2× floor → full 400 pts.
-  const floorRef = floorEth > 0 ? floorEth : 0.001;
-  const saleRatio = stats.lastSaleEth > 0
-    ? Math.min(2, stats.lastSaleEth / floorRef) / 2
-    : 0;
-  const salePts = saleRatio * 400;
-
-  // Rarity component: trait-derived 0-1 → 0-300.
+  // Rarity component: trait-derived 0-1 → 0-450.
   const rarity = getTraitRarity().get(tokenId) ?? 0;
-  const rarityPts = rarity * 300;
+  const rarityPts = rarity * 450;
 
-  // Hex component: accumulated hex / 4000 ceiling → 0-200. Sharp floor at 0.
+  // Hex component: accumulated hex / 4000 ceiling → 0-350. Sharp floor at 0.
   const hexRatio = Math.min(1, stats.hex / 4000);
-  const hexPts = hexRatio * 200;
+  const hexPts = hexRatio * 350;
 
-  // Hold component: days since most recent transfer, capped at 365d → 0-100.
+  // Hold component: days since most recent transfer, capped at 365d → 0-200.
   const heldSec = stats.transferTs > 0 ? Math.max(0, nowSec - stats.transferTs) : 0;
   const heldDays = heldSec / 86400;
   const holdRatio = Math.min(1, heldDays / 365);
-  const holdPts = holdRatio * 100;
+  const holdPts = holdRatio * 200;
 
-  const value = Math.round(salePts + rarityPts + hexPts + holdPts);
+  const value = Math.round(rarityPts + hexPts + holdPts);
   return {
     value,
     breakdown: {
-      salePts: Math.round(salePts),
       rarityPts: Math.round(rarityPts),
       hexPts: Math.round(hexPts),
       holdPts: Math.round(holdPts),
@@ -377,7 +367,6 @@ export function computeCitizenValue(
  */
 export async function getCitizenCivRank(
   tokenId: number,
-  floorEth: number,
 ): Promise<{ rank: number; outOf: number; civSlug: string } | null> {
   const civSlug = civilizationOf(tokenId);
   if (!civSlug) return null;
@@ -387,7 +376,7 @@ export async function getCitizenCivRank(
   const now = Math.floor(Date.now() / 1000);
   const scored = ids.map((id) => ({
     id,
-    value: computeCitizenValue(id, statsBatch.get(id)!, floorEth, now).value,
+    value: computeCitizenValue(id, statsBatch.get(id)!, now).value,
   }));
   scored.sort((a, b) => b.value - a.value);
   const idx = scored.findIndex((s) => s.id === tokenId);
@@ -396,12 +385,11 @@ export async function getCitizenCivRank(
 }
 
 /** For dashboard "Top 10 by value" panel. */
-export async function getTopCitizensByValue(limit: number, floorEth: number): Promise<Array<{
+export async function getTopCitizensByValue(limit: number): Promise<Array<{
   id: number;
   value: number;
   civ: string;
   hex: number;
-  lastSaleEth: number;
 }>> {
   const all = allCitizens();
   const ids = all.map((c) => c.id);
@@ -410,9 +398,8 @@ export async function getTopCitizensByValue(limit: number, floorEth: number): Pr
   const scored = all.map((c) => ({
     id: c.id,
     civ: c.civilization,
-    value: computeCitizenValue(c.id, statsBatch.get(c.id)!, floorEth, now).value,
+    value: computeCitizenValue(c.id, statsBatch.get(c.id)!, now).value,
     hex: statsBatch.get(c.id)?.hex || 0,
-    lastSaleEth: statsBatch.get(c.id)?.lastSaleEth || 0,
   }));
   scored.sort((a, b) => b.value - a.value);
   return scored.slice(0, limit);

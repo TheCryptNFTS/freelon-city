@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import { preload } from "react-dom";
 import reveals from "@/components/HomeReveals.module.css";
 import { COLLECTION_META, STATUS_EXPLAINERS, loadCollection } from "@/lib/collections-data";
-import { getFloors, formatFloor } from "@/lib/floor-prices";
 import { isAgenticCollection } from "@/lib/agent-subject";
 import { SignalInventoryPanel } from "@/components/SignalInventory";
 import { GraveyardSection } from "@/components/archive/GraveyardSection";
@@ -78,7 +77,6 @@ export default async function CollectionsIndex() {
   const slugs = Object.keys(COLLECTION_META).sort(
     (a, b) => COLLECTION_META[a].order - COLLECTION_META[b].order,
   );
-  const floors = await getFloors([...slugs, "freelons"]);
   const covers = Object.fromEntries(slugs.map((s) => [s, cover(s)]));
 
   // Civilization page (2026-06-11): the grid reads as city history — oldest
@@ -167,7 +165,6 @@ export default async function CollectionsIndex() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gridAutoRows: "1fr", gap: "var(--s-3)" }}>
         {cards.map((c, i) => {
-          const floor = formatFloor(floors[c.slug]);
           // PERF 2026-06-11: the first card's cover IS the page's LCP element —
           // lazy-loading it added a 21s load delay on simulated mobile. Only
           // that card loads eager/high-priority; everything below stays lazy
@@ -221,7 +218,6 @@ export default async function CollectionsIndex() {
                       status means in plain words (can I buy / use this now?).
                       Same title-attr pattern as the Agent badge above. */}
                   <span title={STATUS_EXPLAINERS[c.status]} style={{ cursor: "help" }}>● {c.status}</span>
-                  {floor && <span style={{ color: "var(--gold)" }}>FLOOR {floor}</span>}
                 </header>
                 <h3 style={{ fontFamily: "var(--display)", fontSize: 22, lineHeight: 1.1, margin: 0, color: "var(--ink)" }}>{c.title}</h3>
                 {/* The ROLE — each collection is a kind of citizen (founder framing

@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   title: "Dashboard · Pulse",
   description:
     "Live city economy in one place. Hex Index, holder distribution, trait heat, civ wars, top earners, live sales.",
-  openGraph: { images: [{ url: "/api/og/hex-index", width: 1200, height: 630 }] },
-  twitter: { card: "summary_large_image", images: ["/api/og/hex-index"] },
+  openGraph: { images: [{ url: "/api/og/universe?b=2", width: 1200, height: 630 }] },
+  twitter: { card: "summary_large_image", images: ["/api/og/universe?b=2"] },
 };
 
 const SITE = "https://www.freeloncity.com";
@@ -98,10 +98,8 @@ export default async function Dashboard() {
 
       {/* ── OVERVIEW (existing live economy dashboard + folded /numbers receipts) ── */}
       <section id="overview" style={{ scrollMarginTop: 96 }}>
-        {/* Row 1 — HOLDER NUMBERS FIRST (Phase 3 directive).
-            Investor question #1 is "who owns this collection?". Lead
-            with the holder map + per-civ value cap before any generic
-            floor / index stats. */}
+        {/* Row 1 — HOLDER MAP FIRST. Lead with who holds the collection
+            and each civ's in-app standing before any generic stats. */}
         <div className="dash-grid dash-grid-2">
           <HolderDistributionChart />
           <CivValueChart />
@@ -172,13 +170,7 @@ export default async function Dashboard() {
       <section className="dash-share">
         <span className="kicker">⬡ SHARE THE CITY</span>
         <div className="ui-cta-row dash-share-row">
-          <a href={tweetUrl("HEX INDEX — live signal of FREELON CITY:")} target="_blank" rel="noreferrer" className="btn btn-primary">
-            <span className="ttl">SHARE HEX INDEX <span className="ar">↗</span></span>
-          </a>
-          <a href={tweetUrl("Civ-by-civ floor cap of FREELON CITY:")} target="_blank" rel="noreferrer" className="btn btn-secondary">
-            <span className="ttl">SHARE CIV VALUE <span className="ar">↗</span></span>
-          </a>
-          <a href={tweetUrl("Holder map of FREELON CITY:")} target="_blank" rel="noreferrer" className="btn btn-ghost">
+          <a href={tweetUrl("Holder map of FREELON CITY:")} target="_blank" rel="noreferrer" className="btn btn-primary">
             <span className="ttl">SHARE HOLDERS <span className="ar">↗</span></span>
           </a>
         </div>

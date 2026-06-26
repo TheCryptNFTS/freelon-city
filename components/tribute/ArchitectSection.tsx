@@ -71,7 +71,7 @@ export function ArchitectSection() {
           }}
         >
           <Fact label="STATUS"        value="Active · daily commits · independent" />
-          <Fact label="FUNDING"       value="None. Secondary royalties are the only revenue." />
+          <Fact label="FUNDING"       value="Self-funded. Revenue is paid features — ETH activation and recharge — not secondary royalties." />
           <Fact label="COMMITMENT"    value="No sunset date. No exit timeline." />
           <Fact label="GOVERNANCE"    value="Sole architect. Inputs welcome via /relay & DM." />
           <Fact label="CONTACT"       value={<a href="https://x.com/4040hex" target="_blank" rel="noreferrer" style={{ color: "var(--gold)" }}>@4040hex on X</a>} />

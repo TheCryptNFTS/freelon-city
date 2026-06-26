@@ -1,40 +1,31 @@
 /**
- * COLLAPSE MODE — dynamic-difficulty layer.
+ * COLLAPSE MODE — neutralized.
  *
- * Reads the floor + hex-index history maintained by /api/hex-index.
- * When the city is in measurable collapse, returns multipliers and
- * sink discounts that the rest of the app respects. When the city is
- * healthy, returns identity (×1, no discount).
+ * This layer used to throttle earnings and discount sinks when the
+ * SECONDARY ETH FLOOR fell. That coupled the in-app economy to the
+ * secondary market price — exactly the "your floor drives the machine"
+ * trap we refuse to build. It has been disabled: getCollapseState()
+ * now always reports healthy (identity ×1, no discount), so nothing in
+ * the app reacts to the floor.
  *
- * Trigger: floor < COLLAPSE_FLOOR_THRESHOLD ETH for at least 1
- * snapshot (24h cadence) AND most-recent 24h hex-index change ≤
- * COLLAPSE_CHANGE_THRESHOLD_24H.
- *
- * Effects (active simultaneously when triggered):
- *   - Earnings brownout: every active-earning route applies a 0.5×
- *     multiplier to the hex paid. Floor-tied throttling.
- *   - Tithe discount: NAMING / REALIGN / TITHE / FEATURE costs all
- *     drop to a fraction (default 0.4×) so balances actually burn.
- *   - Dump-burn escalation: dumper burn rate + cap rise, rescuer
- *     bounty rises. Already-soft floor gets harder to push lower.
- *
- * Surface: lib/collapse-mode.getCollapseState() is the one entry point.
- * Cached in memory for 60s to avoid hammering the hex-index endpoint
- * on every read. Failure → "not collapsing" (fail-open: when in doubt,
- * don't throttle real users).
+ * The type + helpers are kept so the many call sites
+ * (applyEarnMultiplier / applySinkMultiplier / CollapseBanner) keep
+ * working unchanged — they all short-circuit to identity when inactive.
+ * If a future dynamic-difficulty layer is wanted, drive it from an
+ * IN-APP activity signal, never from the sale price.
  */
 
 export type CollapseState = {
   active: boolean;
-  /** ETH floor at last read. */
+  /** ETH floor at last read. Always 0 now — no longer read. */
   floor: number;
-  /** 24h hex-index change in percent. null if history insufficient. */
+  /** 24h hex-index change in percent. Always null now. */
   change24h: number | null;
-  /** Multiplier applied to active-earning hex (e.g. 0.5 during collapse). */
+  /** Multiplier applied to active-earning hex. Always 1. */
   earnMultiplier: number;
-  /** Multiplier applied to sink costs (NAMING, REALIGN, TITHE…) (e.g. 0.4). */
+  /** Multiplier applied to sink costs. Always 1. */
   sinkMultiplier: number;
-  /** Human-readable banner copy when active. */
+  /** Human-readable banner copy when active. Always empty. */
   banner: string;
 };
 
@@ -47,67 +38,13 @@ const HEALTHY: CollapseState = {
   banner: "",
 };
 
-// Trigger thresholds. Tune these as conditions evolve. Conservative
-// defaults — too aggressive and we punish carriers during normal
-// price fluctuation.
-const COLLAPSE_FLOOR_THRESHOLD = 0.005;       // ETH
-const COLLAPSE_CHANGE_THRESHOLD_24H = -10;    // percent (must be ≤ this to trigger)
-const EARN_MULTIPLIER = 0.5;
-const SINK_MULTIPLIER = 0.4;
-const CACHE_MS = 60_000;
-
-let cached: { state: CollapseState; ts: number } | null = null;
-
-async function readIndex(): Promise<{ floor: number; change24h: number | null } | null> {
-  // Server-side: call our own hex-index endpoint. Caches 5 min on
-  // its end, so this is cheap.
-  const base = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  try {
-    const r = await fetch(`${base}/api/hex-index`, { cache: "no-store" });
-    if (!r.ok) return null;
-    const d = (await r.json()) as { floor?: number; change24h?: number | null };
-    return {
-      floor: Number(d.floor || 0),
-      change24h: d.change24h == null ? null : Number(d.change24h),
-    };
-  } catch {
-    return null;
-  }
-}
-
 /**
- * Return the current collapse state. Cached for 60s. Safe to call from
- * any server route — never throws.
+ * Return the current collapse state. Always healthy — the economy no
+ * longer reacts to the secondary price. Safe to call from any server
+ * route; never throws, never fetches.
  */
 export async function getCollapseState(): Promise<CollapseState> {
-  if (cached && Date.now() - cached.ts < CACHE_MS) return cached.state;
-  const idx = await readIndex();
-  if (!idx) {
-    // Fail open
-    cached = { state: HEALTHY, ts: Date.now() };
-    return HEALTHY;
-  }
-  const floorOk = idx.floor > 0 && idx.floor < COLLAPSE_FLOOR_THRESHOLD;
-  const changeOk = idx.change24h != null && idx.change24h <= COLLAPSE_CHANGE_THRESHOLD_24H;
-  const active = floorOk && changeOk;
-  const state: CollapseState = active
-    ? {
-        active: true,
-        floor: idx.floor,
-        change24h: idx.change24h,
-        earnMultiplier: EARN_MULTIPLIER,
-        sinkMultiplier: SINK_MULTIPLIER,
-        banner: `⚠ THE GRID IS DIMMING · earning ${Math.round((1 - EARN_MULTIPLIER) * 100)}% reduced · burns ${Math.round((1 - SINK_MULTIPLIER) * 100)}% off`,
-      }
-    : {
-        ...HEALTHY,
-        floor: idx.floor,
-        change24h: idx.change24h,
-      };
-  cached = { state, ts: Date.now() };
-  return state;
+  return HEALTHY;
 }
 
 /**

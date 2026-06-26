@@ -1,8 +1,8 @@
 /**
  * Active-economy crediters folded into the per-wallet tick.
  *
- *   - Sale share:     5% of every freelon sale (capped 3/day) — incentivises
- *                     liquidity and rewards sellers.
+ *   - Sale share:     a FLAT hex bounty per freelon sale (capped 3/day) —
+ *                     rewards liquidity/turnover, NOT the sale price.
  *   - Fresh blood:    one-time 100 hex bounty for a wallet's first freelon
  *                     acquisition. 7d cooldown to deter sybil shuffling.
  *   - Listing bounty: 5 hex/day per active listing, capped 25/day.
@@ -19,7 +19,7 @@ import {
   getWalletHex,
   patchWalletHex,
 } from "@/lib/wallet-hex-store";
-import { ECONOMY, ethToHex } from "@/lib/economy-constants";
+import { ECONOMY } from "@/lib/economy-constants";
 import { withLock } from "@/lib/upstash-lock";
 import { CANON } from "@/lib/canon";
 
@@ -38,8 +38,8 @@ type RawSale = {
   transaction?: string;
 };
 
-/** Credit 5% of recent sale ETH (as hex) for sales the wallet made since the
- * last cursor. Capped at SALE_SHARE_MAX_PER_24H sales counted per UTC day.
+/** Credit a flat hex bounty per sale the wallet made since the last cursor.
+ * Capped at SALE_SHARE_MAX_PER_24H sales counted per UTC day.
  *
  * Wrapped in a per-wallet lock so two concurrent ticks (e.g. user opens
  * /wallet in two tabs) can't both read the same cursor and double-credit.
@@ -102,17 +102,15 @@ async function _creditSaleShareInner(address: string): Promise<{ credited: numbe
 
     let totalCredit = 0;
     let newestTs = cursor;
-    const { paymentToEth } = await import("@/lib/eth-math");
     for (const ev of eligible) {
-      const eth = paymentToEth(ev.payment);
-      const share = (eth * ECONOMY.SALE_SHARE_PCT) / 100;
-      // Backstop cap on a single sale-share credit (anti-wash-trade) — bounds the
-      // damage of one spoofed/absurd sale price. Not a rate change.
-      const hex = Math.min(ethToHex(share), ECONOMY.SALE_SHARE_HEX_CAP);
+      // FLAT bounty per counted sale — deliberately NOT a function of the sale
+      // price. Rewards real turnover/liquidity without ever paying more when the
+      // secondary price climbs (no floor-appreciation coupling).
+      const hex = ECONOMY.SALE_SHARE_FLAT;
       if (hex > 0) {
         await creditWalletHex(address, hex, {
           kind: "manual",
-          note: `Sale share · #${ev.nft?.identifier} · ${eth.toFixed(4)} ETH × ${ECONOMY.SALE_SHARE_PCT}%`,
+          note: `Sale share · #${ev.nft?.identifier} · flat liquidity bounty`,
         });
         totalCredit += hex;
       }

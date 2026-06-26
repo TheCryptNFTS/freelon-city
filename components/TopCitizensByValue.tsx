@@ -1,11 +1,11 @@
 /**
  * <TopCitizensByValue /> — dashboard panel showing the top 10 citizens
- * by computed value (sale × rarity × accumulated hex × hold time).
+ * by computed standing (rarity × accumulated hex × hold time).
  *
- * Server component. Fetches floor from OpenSea once, then asks the
- * citizen-value store to compute & sort. Reads via a single Upstash
- * pipeline (one round trip for all 4040 token stats). Whole render
- * is <500ms typical.
+ * Server component. Asks the citizen-value store to compute & sort.
+ * Reads via a single Upstash pipeline (one round trip for all 4040
+ * token stats). Whole render is <500ms typical. Standing is decoupled
+ * from the secondary sale price by design.
  *
  * Caches via Next's `revalidate` at the route, not here — this is
  * called inline from the dashboard server render.
@@ -15,27 +15,10 @@ import { CIVILIZATIONS } from "@/lib/constants";
 import { CitizenAvatar } from "@/components/CitizenAvatar";
 import { getTopCitizensByValue } from "@/lib/citizen-value-store";
 
-async function fetchFloor(): Promise<number> {
-  const apiKey = process.env.OPENSEA_API_KEY;
-  if (!apiKey) return 0.003;
-  try {
-    const r = await fetch(
-      "https://api.opensea.io/api/v2/collections/freelons/stats",
-      { headers: { "X-API-KEY": apiKey, accept: "application/json" }, next: { revalidate: 300 } },
-    );
-    if (!r.ok) return 0.003;
-    const d = (await r.json()) as { total?: { floor_price?: number } };
-    return Number(d?.total?.floor_price || 0.003);
-  } catch {
-    return 0.003;
-  }
-}
-
 export async function TopCitizensByValue() {
-  const floor = await fetchFloor();
   let top: Awaited<ReturnType<typeof getTopCitizensByValue>> = [];
   try {
-    top = await getTopCitizensByValue(10, floor);
+    top = await getTopCitizensByValue(10);
   } catch {
     return null; // store unreachable — render nothing rather than a broken card
   }
@@ -69,7 +52,7 @@ export async function TopCitizensByValue() {
             textTransform: "uppercase",
           }}
         >
-          SALE × RARITY × HEX × HELD
+          RARITY × HEX × HELD
         </span>
       </header>
 

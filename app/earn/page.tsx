@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 // ── Page ─────────────────────────────────────────────────────────────
 export default async function EarnPage() {
-  const saleHexFor01Eth = Math.round(0.01 * ECONOMY.SALE_SHARE_PCT / 100 * ECONOMY.HEX_PER_ETH);
+  const saleShareFlat = ECONOMY.SALE_SHARE_FLAT;
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 var(--s-4) var(--s-7)" }}>
@@ -169,7 +169,7 @@ export default async function EarnPage() {
                 <strong style={{ fontFamily: "var(--display)", color: "var(--ink)", fontSize: 15 }}>Sale share</strong>
                 <span style={{ fontFamily: "var(--mono2)", color: "var(--ink-dim)", fontSize: 11, marginLeft: 8 }}>·  every time you sell a freelon</span>
               </span>
-              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>+{saleHexFor01Eth} ⬡ · scales with sale</span>
+              <span style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold)", whiteSpace: "nowrap" }}>+{saleShareFlat} ⬡ · flat per sale</span>
             </li>
             <li style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
               <span>

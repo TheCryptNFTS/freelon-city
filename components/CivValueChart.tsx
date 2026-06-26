@@ -12,18 +12,19 @@ export function CivValueChart() {
   // (or non-numeric total/floor) would throw and white-screen the dashboard — the
   // lone un-normalized fetch here vs its `?? []` siblings. Normalize before use.
   if (!data || !Array.isArray(data.civs)) return <div className="civ-chart-loading">SCANNING CIV LEDGER...</div>;
-  const max = Math.max(0, ...data.civs.map(c => Number(c.value) || 0));
-  const sorted = [...data.civs].sort((a, b) => b.value - a.value);
+  const max = Math.max(0, ...data.civs.map(c => Number(c.population) || 0));
+  const sorted = [...data.civs].sort((a, b) => b.population - a.population);
+  const totalPop = data.civs.reduce((a, c) => a + (Number(c.population) || 0), 0);
 
   return (
     <div className="civ-chart">
       <div className="chart-head">
-        <span className="kicker">⬡ MARKET CAP AT FLOOR · BY CIVILIZATION</span>
+        <span className="kicker">⬡ CIVILIZATION SIZE · BY POPULATION</span>
         <span className="chart-total">
-          CAP @ FLOOR · {(Number(data.total) || 0).toFixed(2)} ETH · floor {(Number(data.floor) || 0).toFixed(4)}
+          {totalPop.toLocaleString()} citizens across {data.civs.length} civilizations
         </span>
         <span className="chart-disclaimer">
-          Hypothetical: if every citizen sold at the current floor. Not lifetime volume.
+          How the collection is split across civilizations. Not a price or valuation.
         </span>
       </div>
       <div className="chart-rows">
@@ -31,9 +32,8 @@ export function CivValueChart() {
           <div key={c.slug} className="chart-row" style={{ "--civ": c.color } as React.CSSProperties}>
             <span className="row-name">{c.name}</span>
             <div className="row-bar-wrap">
-              <div className="row-bar" style={{ width: `${max > 0 ? (c.value / max) * 100 : 0}%`, background: c.color }} />
+              <div className="row-bar" style={{ width: `${max > 0 ? (c.population / max) * 100 : 0}%`, background: c.color }} />
             </div>
-            <span className="row-value">{c.value.toFixed(2)} ETH</span>
             <span className="row-pop">{c.population} cit.</span>
           </div>
         ))}

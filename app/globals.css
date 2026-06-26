@@ -5100,14 +5100,6 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
 .heat-row:first-child { border-top: none; }
 .heat-bar { height: 4px; background: var(--gold); margin-top: 4px; grid-column: 1 / -1; }
 
-/* ============================ UNDERVALUED ============================ */
-.undervalued-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--s-3); margin-top: var(--s-4); }
-.undervalued-card { background: var(--surface); border: 1px solid var(--line); padding: var(--s-3); text-decoration: none; color: inherit; transition: border-color 200ms ease; }
-.undervalued-card:hover { border-color: var(--gold); }
-.undervalued-card img { width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--bg); margin-bottom: var(--s-3); }
-.undervalued-card .price { font-family: var(--display); font-size: 22px; color: var(--gold-bright); }
-.undervalued-card .meta { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.18em; color: var(--ink-dim); text-transform: uppercase; }
-
 /* ============================ MAYOR BROADCAST ============================ */
 .civ-broadcast { padding: var(--s-4); border-left: 3px solid; background: rgba(255,255,255,0.02); margin-top: var(--s-4); }
 .civ-broadcast .cb-kicker { font-family: var(--mono2); font-size: 10px; letter-spacing: 0.24em; color: var(--gold); text-transform: uppercase; }

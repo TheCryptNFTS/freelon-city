@@ -3,10 +3,8 @@ import { useEffect, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 
 type NetWorth = {
-  value: number;
   balance: number;
-  globalFloor: number;
-  civs: Array<{ civ: string; count: number; floor: number; value: number }>;
+  civs: Array<{ civ: string; count: number }>;
 };
 
 export function HexNetWorth() {

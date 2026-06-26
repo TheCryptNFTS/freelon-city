@@ -61,15 +61,14 @@ export const ECONOMY = {
   STREAK_7_BONUS: 100,
   STREAK_30_BONUS: 500,
 
-  // ─── NEW: Sale share ────────────────────────────────────────────────
-  // When a wallet sells a freelon, they earn this percent of sale ETH
-  // converted to hex via HEX_PER_ETH. Capped per 24h to deter wash.
-  SALE_SHARE_PCT: 5,                 // 5% of sale ETH
+  // ─── Sale share ─────────────────────────────────────────────────────
+  // A FLAT hex bounty per freelon sale a wallet makes — rewards real
+  // liquidity/turnover, NOT the price it sold for. Deliberately decoupled
+  // from sale ETH so the economy never pays out more when the secondary
+  // price goes up (no "floor appreciation" coupling). Mirrors the buy-side
+  // SWEEP_BOUNTY. Capped per 24h to deter wash.
+  SALE_SHARE_FLAT: 25,               // flat hex per counted sale
   SALE_SHARE_MAX_PER_24H: 3,         // max 3 sales counted per wallet/day
-  // Backstop ceiling on a SINGLE sale-share credit. Not a rate change — bounds
-  // the blast radius of one absurd/spoofed sale price (anti-wash-trade). At the
-  // 5% rate this caps the per-sale credit at the share of a ~0.5 ETH sale.
-  SALE_SHARE_HEX_CAP: 2500,
 
   // ─── NEW: Fresh-blood bounty ────────────────────────────────────────
   // First freelon purchase ever for a wallet → one-time bounty.
