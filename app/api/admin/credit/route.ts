@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { creditWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,12 @@ function authed(req: Request): boolean {
 }
 
 export async function POST(req: Request) {
+  // Throttle BEFORE the token check so an attacker can't brute-force the admin
+  // token (or hammer the constant-time compare) at full speed. A legitimate
+  // operator issues a handful of manual credits — a tight cap costs them nothing.
+  const rl = await limit(req, "admin:credit", { max: 10, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   if (!process.env.ADMIN_PREFLIGHT_TOKEN) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }

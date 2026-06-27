@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { boostTransmission, getTransmission } from "@/lib/transmissions-store";
-import { isSameOrigin, requireProvenWallet } from "@/lib/x-session";
+import { isSameOriginStrict, requireProvenWallet } from "@/lib/x-session";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { debitWalletHex, creditWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 
@@ -23,7 +23,10 @@ export async function POST(
 ) {
   const rl = await limit(req, "tx:boost", { max: 30, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
-  if (!isSameOrigin(req)) {
+  // Strict: this POST spends ⬡ and is reached only from the browser behind a
+  // proven-wallet session, so a request with neither Origin nor Referer is
+  // anomalous and rejected (defense-in-depth on the HEX-spend surface).
+  if (!isSameOriginStrict(req)) {
     return NextResponse.json({ error: "bad_origin" }, { status: 403 });
   }
 

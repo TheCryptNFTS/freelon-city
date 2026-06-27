@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { getWalletTokens } from "@/lib/wallet-tokens";
 import { getProgress } from "@/lib/progression-store";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const revalidate = 60;
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ address: string }> }
 ) {
+  const rl = await limit(req, "wallet:tokens", { max: 60, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   const { address } = await params;
   const tokens = await getWalletTokens(address, 200);
   if (!tokens) {

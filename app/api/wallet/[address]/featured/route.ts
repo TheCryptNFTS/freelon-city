@@ -19,13 +19,17 @@ import {
 } from "@/lib/featured-citizen-store";
 import { getWalletTokens, normalizeAddress } from "@/lib/wallet-tokens";
 import { requireSessionBound, isSameOrigin } from "@/lib/x-session";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ address: string }> },
 ) {
+  const rl = await limit(req, "wallet:featured", { max: 60, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   const { address } = await params;
   const norm = normalizeAddress(address);
   if (!norm) return NextResponse.json({ error: "invalid_address" }, { status: 400 });

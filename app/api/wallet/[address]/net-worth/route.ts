@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getWalletTokens } from "@/lib/wallet-tokens";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 import citizensData from "@/data/citizens.json";
 
 export const revalidate = 300;
@@ -13,9 +14,12 @@ for (const c of citizensData as Citizen[]) CITIZEN_CIV[c.id] = c.civilization;
 // against the secondary floor is the implied-equity framing we don't ship.
 // Callers only need the citizen count + per-civ split.
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ address: string }> },
 ) {
+  const rl = await limit(req, "wallet:net-worth", { max: 60, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   const { address } = await params;
   const tokens = await getWalletTokens(address);
   if (!tokens) {

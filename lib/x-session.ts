@@ -183,6 +183,25 @@ export function isSameOrigin(req: Request): boolean {
 }
 
 /**
+ * Fail-CLOSED same-origin check for value-moving POSTs (HEX spends, payments)
+ * that are reached ONLY from the browser behind a proven-wallet / bound session.
+ *
+ * isSameOrigin() deliberately ACCEPTS a request with no Origin AND no Referer so
+ * legitimate non-browser callers (curl, server-to-server, wallet-signature flows)
+ * still work. But a route gated by requireProvenWallet/a bound x-session cookie is
+ * only ever hit by a real browser, which always sends at least one of those
+ * headers. For those routes, a missing-both request is anomalous, so we reject it
+ * — closing the residual CSRF/forgery surface. Use ONLY where there is no
+ * non-browser (signature/server) auth path; otherwise use isSameOrigin().
+ */
+export function isSameOriginStrict(req: Request): boolean {
+  const hasOrigin = !!req.headers.get("origin");
+  const hasReferer = !!req.headers.get("referer");
+  if (!hasOrigin && !hasReferer) return false;
+  return isSameOrigin(req);
+}
+
+/**
  * 2026-05-30 — the site serves on both freeloncity.com (apex) and
  * www.freeloncity.com. Auth cookies were host-only, so a session set on one
  * host wasn't sent on the other → users appeared logged out / OAuth looped.

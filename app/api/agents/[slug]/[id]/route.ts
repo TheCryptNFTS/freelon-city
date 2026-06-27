@@ -47,7 +47,10 @@ function resolveSister(slug: string, id: number) {
   return getCollectionToken(slug, id); // null if id/slug not voiced
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ slug: string; id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ slug: string; id: string }> }) {
+  const rl = await limit(req, "collection:agent:get", { max: 60, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   const { slug, id } = await params;
   const tid = parseInt(id, 10);
   if (!Number.isFinite(tid) || tid < 1) return NextResponse.json({ error: "invalid id" }, { status: 400 });

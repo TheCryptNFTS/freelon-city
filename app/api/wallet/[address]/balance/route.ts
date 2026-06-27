@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getWalletBalanceVerified, isValidAddress } from "@/lib/wallet-tokens";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 /**
  * GET /api/wallet/[address]/balance
@@ -22,6 +23,9 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ address: string }> },
 ) {
+  const rl = await limit(req, "wallet:balance", { max: 90, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   const { address } = await params;
   if (!isValidAddress(address)) {
     return NextResponse.json(

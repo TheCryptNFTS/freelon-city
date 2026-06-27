@@ -3,6 +3,7 @@ import { getWalletTokens } from "@/lib/wallet-tokens";
 import { listActivatedTokenIds, getUnlock } from "@/lib/missions/unlock-store";
 import { bulkLife } from "@/lib/progression-store";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
+import { limit, tooManyResponse } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,9 +18,12 @@ export const dynamic = "force-dynamic";
  * the owned∩activated tokens (usually a handful), never per-owned-token.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ address: string }> },
 ) {
+  const rl = await limit(req, "wallet:portfolio", { max: 60, windowSec: 60 });
+  if (!rl.ok) return tooManyResponse(rl);
+
   const { address } = await params;
   const tokens = await getWalletTokens(address, 200);
   if (!tokens) {

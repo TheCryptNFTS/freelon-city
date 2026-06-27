@@ -16,9 +16,10 @@ export async function POST(req: Request) {
   const rl = await limit(req, "tithe:post", { max: 10, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
 
-  // CSRF: same-origin only
-  const { isSameOrigin } = await import("@/lib/x-session");
-  if (!isSameOrigin(req)) {
+  // CSRF: same-origin only. Strict — this POST spends ⬡ behind a proven-wallet
+  // session, so a request missing both Origin and Referer is anomalous.
+  const { isSameOriginStrict } = await import("@/lib/x-session");
+  if (!isSameOriginStrict(req)) {
     return NextResponse.json({ error: "bad_origin" }, { status: 403 });
   }
 

@@ -23,12 +23,12 @@ assets only, with attribution — never copyrighted material.
 - [x] 8. awaken_no_wallet_browser unmeasured — fire on noWallet branch. WorkspaceUnlock.tsx:70.
 - [x] 9. buy_intent_return unmeasured — fire when readBuyIntent() non-null on later load. IdentityGreeting.tsx:37.
 
-## BATCH 2 — security hardening (additive, OWASP)
-- [ ] 10. Rate-limit unthrottled wallet GETs (net-worth/tokens/portfolio/featured/balance) — burns RPC/OpenSea quota. OWASP API4. SEVERITY High.
-- [ ] 11. Rate-limit sister-collection agent GET. app/api/agents/[slug]/[id]/route.ts:50. OWASP API4.
-- [ ] 12. Rate-limit admin/credit before auth check. app/api/admin/credit/route.ts:36. OWASP A07.
-- [ ] 13. mission reward bypasses farmable cap — add `{farmable:true}`. app/api/mission/claim/route.ts:140. (matches BLUEPRINT:56 invariant)
-- [ ] 14. isSameOrigin fail-closed when Origin AND Referer both absent (value-moving POSTs only). lib/x-session.ts:182. (defense-in-depth; scope carefully)
+## BATCH 2 — security hardening (additive, OWASP) — SHIPPED
+- [x] 10. Rate-limit unthrottled wallet GETs (net-worth/tokens/portfolio/featured/balance) — burns RPC/OpenSea quota. OWASP API4. SEVERITY High.
+- [x] 11. Rate-limit sister-collection agent GET. app/api/agents/[slug]/[id]/route.ts:50. OWASP API4.
+- [x] 12. Rate-limit admin/credit before auth check. app/api/admin/credit/route.ts:36. OWASP A07.
+- [x] 13. mission reward bypasses farmable cap — add `{farmable:true}`. app/api/mission/claim/route.ts:140. (matches BLUEPRINT:56 invariant)
+- [x] 14. isSameOrigin fail-closed when Origin AND Referer both absent — new isSameOriginStrict applied to 3 proven-wallet HEX-spend POSTs (tx/boost, tithe, city/boost). lib/x-session.ts. (defense-in-depth; scoped to browser-only value-moving routes)
 
 ## BATCH 3 — accessibility (WCAG 2.1 AA)
 - [ ] 15. AgentWorkspace `<img onClick>` lightbox triggers → `<button>` (keyboard). SC 2.1.1/4.1.2. AgentWorkspace.tsx:1034,1222.

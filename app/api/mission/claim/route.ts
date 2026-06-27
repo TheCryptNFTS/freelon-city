@@ -137,10 +137,18 @@ export async function POST(req: Request) {
   let credited = false;
   if (/^0x[a-f0-9]{40}$/.test(key)) {
     try {
-      await creditWalletHex(key, MISSION_REWARD, {
-        kind: "quest",
-        note: `Daily mission: ${requestedId} (+${MISSION_REWARD}⬡)`,
-      });
+      await creditWalletHex(
+        key,
+        MISSION_REWARD,
+        {
+          kind: "quest",
+          note: `Daily mission: ${requestedId} (+${MISSION_REWARD}⬡)`,
+        },
+        // Daily mission is a low-effort repeatable faucet — it must count against
+        // the per-wallet farmable daily ceiling (BLUEPRINT invariant), same as
+        // sweeps/quests. Without this flag the reward minted outside the cap.
+        { farmable: true },
+      );
       credited = true;
     } catch {
       /* non-fatal */
