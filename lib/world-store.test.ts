@@ -3,6 +3,7 @@ import {
   applyBuild,
   emptyWorld,
   normalizeOwner,
+  isWalletAddress,
   getWorld,
   registerVisit,
   buildPlot,
@@ -30,6 +31,40 @@ describe("normalizeOwner", () => {
   });
   it("empty input yields empty string (route rejects it)", () => {
     expect(normalizeOwner("")).toBe("");
+  });
+});
+
+describe("isWalletAddress — the demo↔wallet key-collision guard", () => {
+  it("matches exactly a lowercase 0x + 40 hex (what getProvenWallet emits)", () => {
+    expect(isWalletAddress("0x" + "a".repeat(40))).toBe(true);
+    expect(isWalletAddress("0x" + "0123456789abcdef".repeat(2) + "abcdefab")).toBe(true);
+  });
+  it("rejects normal handles, short/long strings, and uppercase", () => {
+    expect(isWalletAddress("billythefounder")).toBe(false);
+    expect(isWalletAddress("0x" + "a".repeat(39))).toBe(false); // too short
+    expect(isWalletAddress("0x" + "a".repeat(41))).toBe(false); // too long
+    expect(isWalletAddress("0x" + "A".repeat(40))).toBe(false); // not lowercased
+    expect(isWalletAddress("0xnothex" + "g".repeat(34))).toBe(false);
+  });
+  it("a handle that normalizes to a wallet shape is still caught", () => {
+    // normalizeOwner keeps [a-z0-9_] and slices to 42 → an attacker-chosen
+    // 0x…-shaped owner survives intact; isWalletAddress must flag it.
+    const collide = normalizeOwner("0x" + "b".repeat(40));
+    expect(collide).toBe("0x" + "b".repeat(40));
+    expect(isWalletAddress(collide)).toBe(true);
+  });
+});
+
+describe("buildPlot — DEMO path refuses a wallet-shaped owner (key-collision fix)", () => {
+  it("rejects a 0x… owner with bad_owner and never writes", async () => {
+    const victim = "0x" + "d".repeat(40); // same shape as a proven wallet key
+    const res = await buildPlot(victim, 5);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.reason).toBe("bad_owner");
+    // nothing was persisted under the wallet-shaped key
+    const reread = await getWorld(victim);
+    expect(reread.owned).toEqual([]);
+    expect(reread.visits).toBe(0);
   });
 });
 

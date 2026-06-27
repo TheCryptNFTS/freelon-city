@@ -63,9 +63,25 @@ export function emptyWorld(owner: string): WorldState {
   return { owner, hex: STARTER_HEX, owned: [], visits: 0, lastSeen: 0 };
 }
 
+/**
+ * True iff `s` has the exact shape of a proven wallet key (lowercase 0x + 40 hex,
+ * what getProvenWallet emits). DEMO/handle owners must NEVER match this — a handle
+ * that did would collide with that wallet's world record in the shared key
+ * namespace, letting an UNAUTHENTICATED demo write corrupt a real wallet's owned[]
+ * (claiming plots for free → permanent already_owned denial). The demo paths
+ * reject such owners; only the wallet path (keyed on a PROVEN address) may use it.
+ */
+export function isWalletAddress(s: string): boolean {
+  return /^0x[a-f0-9]{40}$/.test(s);
+}
+
 export type BuildResult =
   | { ok: true; state: WorldState }
-  | { ok: false; reason: "bad_plot" | "already_owned" | "insufficient_hex"; state: WorldState };
+  | {
+      ok: false;
+      reason: "bad_plot" | "already_owned" | "insufficient_hex" | "bad_owner";
+      state: WorldState;
+    };
 
 /**
  * PURE server-authoritative build validation. No I/O — unit-testable. Returns a
@@ -157,6 +173,12 @@ export async function registerVisit(owner: string): Promise<WorldState> {
  * 500-HEX stipend, never real HEX. Keyed on a sanitized handle.
  */
 export async function buildPlot(owner: string, idx: number): Promise<BuildResult> {
+  // A demo/handle owner must never be a wallet-shaped key — that would let this
+  // UNAUTHENTICATED, ledger-free path write into a proven wallet's world record
+  // (shared key namespace). Reject before touching storage.
+  if (isWalletAddress(owner)) {
+    return { ok: false, reason: "bad_owner", state: emptyWorld(owner) };
+  }
   const gotLock = await acquireLock(owner);
   try {
     const rec = await read(owner);
@@ -193,7 +215,16 @@ export async function buildPlotForWallet(wallet: string, idx: number): Promise<R
   if (!Number.isInteger(idx) || idx < 0 || idx >= PLOT_COUNT) {
     return { ok: false, reason: "bad_plot", state: await read(wallet) };
   }
+  // FAIL CLOSED on the money path. Unlike the demo/visit paths (best-effort
+  // because a lost stipend write is harmless), proceeding here WITHOUT the lock
+  // lets two concurrent same-wallet builds both read a stale rec, both pass the
+  // already-owned check, and both DEBIT — the serialized ledger lock prevents
+  // under-payment but not this lost-write OVER-charge (real HEX burned, one plot).
+  // Mirror debitWalletHex's own failClosed posture: refuse and let the caller retry.
   const gotLock = await acquireLock(wallet);
+  if (!gotLock) {
+    return { ok: false, reason: "busy", state: await read(wallet) };
+  }
   try {
     const rec = await read(wallet);
     if (rec.owned.includes(idx)) {

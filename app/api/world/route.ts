@@ -28,6 +28,7 @@ import { getProvenWallet, isSameOrigin } from "@/lib/x-session";
 import { getWalletHex } from "@/lib/wallet-hex-store";
 import {
   normalizeOwner,
+  isWalletAddress,
   getWorld,
   registerVisit,
   buildPlot,
@@ -63,7 +64,12 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const owner = normalizeOwner(url.searchParams.get("owner") || "");
-  if (!owner) return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+  // Reject empty AND wallet-shaped handles: a 0x… handle would collide with that
+  // wallet's REAL world key in the shared namespace (registerVisit would even
+  // bump a stranger's visit count). Demo lives strictly in handle space.
+  if (!owner || isWalletAddress(owner)) {
+    return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+  }
   const state = await registerVisit(owner);
   return NextResponse.json({
     ok: true,
@@ -119,7 +125,9 @@ export async function POST(req: Request) {
   // ─── DEMO build: in-world stipend only, keyed on a handle. No real value. ───
   if (body.action === "build") {
     const owner = normalizeOwner(body.owner || "");
-    if (!owner) return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+    if (!owner || isWalletAddress(owner)) {
+      return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+    }
     const res = await buildPlot(owner, Number(body.idx));
     return NextResponse.json(
       res.ok
@@ -129,7 +137,8 @@ export async function POST(req: Request) {
   }
 
   // Unknown action — return current demo state so the client can still reconcile.
+  // Same handle-space rule: never read a wallet-shaped key for an unauth caller.
   const owner = normalizeOwner(body.owner || "");
-  const state = owner ? await getWorld(owner) : null;
+  const state = owner && !isWalletAddress(owner) ? await getWorld(owner) : null;
   return NextResponse.json({ ok: false, error: "bad_action", state }, { status: 400 });
 }
