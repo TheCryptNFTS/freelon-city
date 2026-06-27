@@ -67,6 +67,61 @@ function getPublicClient() {
   return publicClientPromise;
 }
 
+async function resolveBalanceImpl(addr: string): Promise<number> {
+  // Try RPC first. Discord 2026-05-25 (Peterhawk71): the prior
+  // implementation short-circuited on `if (rpcBal > 0) return rpcBal`,
+  // so when RPC returned a partial count we never cross-checked
+  // OpenSea. Now we always run both and take the MAX — RPC is
+  // canonical for the contract, but the server tokens endpoint
+  // also paginates OpenSea as a backfill, so any positive answer
+  // from either source is real.
+  let rpcBal = 0;
+  try {
+    const publicClient = await getPublicClient();
+    const bal = (await publicClient.readContract({
+      address: CONTRACT as `0x${string}`,
+      abi: ABI,
+      functionName: "balanceOf",
+      args: [addr as `0x${string}`],
+    })) as bigint;
+    rpcBal = Number(bal);
+  } catch {/* fall through to server route */}
+
+  // Always also fetch the server-authoritative count (OpenSea-backed,
+  // paginated). takes the max so a stale RPC undercount can't pin a
+  // user to the wrong holder status.
+  let svrBal = 0;
+  try {
+    const r = await fetch(`/api/wallet/${addr.toLowerCase()}/tokens`, { cache: "no-store" });
+    if (r.ok) {
+      const j = (await r.json()) as { tokenIds?: number[]; balance?: number };
+      const idLen = Array.isArray(j.tokenIds) ? j.tokenIds.length : 0;
+      const reported = typeof j.balance === "number" ? j.balance : 0;
+      svrBal = Math.max(idLen, reported);
+    }
+  } catch {/* fall through */}
+
+  return Math.max(rpcBal, svrBal);
+}
+
+// PERF: four header components (HexPill / SeeAgent / HolderLinks / MobileNav)
+// each mount useHolder on every route, so a connected wallet fired 4 identical
+// balanceOf reads + 4 identical /tokens fetches per cold load. Dedupe by
+// coalescing concurrent resolves for the same address onto one in-flight
+// promise. IN-FLIGHT only — cleared on settle so a later re-resolve (after a
+// buy/sell or accountsChanged) still refetches fresh, never serves stale.
+const inflightBalance = new Map<string, Promise<number>>();
+function resolveBalance(addr: string): Promise<number> {
+  const key = addr.toLowerCase();
+  const existing = inflightBalance.get(key);
+  if (existing) return existing;
+  const p = resolveBalanceImpl(key).finally(() => {
+    if (inflightBalance.get(key) === p) inflightBalance.delete(key);
+  });
+  inflightBalance.set(key, p);
+  return p;
+}
+
 // window.ethereum type lives in lib/ethereum.d.ts
 
 export type HolderState = {
@@ -98,43 +153,6 @@ export function useHolder(): HolderState {
 
   useEffect(() => {
     let cancelled = false;
-
-    async function resolveBalance(addr: string): Promise<number> {
-      // Try RPC first. Discord 2026-05-25 (Peterhawk71): the prior
-      // implementation short-circuited on `if (rpcBal > 0) return rpcBal`,
-      // so when RPC returned a partial count we never cross-checked
-      // OpenSea. Now we always run both and take the MAX — RPC is
-      // canonical for the contract, but the server tokens endpoint
-      // also paginates OpenSea as a backfill, so any positive answer
-      // from either source is real.
-      let rpcBal = 0;
-      try {
-        const publicClient = await getPublicClient();
-        const bal = (await publicClient.readContract({
-          address: CONTRACT as `0x${string}`,
-          abi: ABI,
-          functionName: "balanceOf",
-          args: [addr as `0x${string}`],
-        })) as bigint;
-        rpcBal = Number(bal);
-      } catch {/* fall through to server route */}
-
-      // Always also fetch the server-authoritative count (OpenSea-backed,
-      // paginated). takes the max so a stale RPC undercount can't pin a
-      // user to the wrong holder status.
-      let svrBal = 0;
-      try {
-        const r = await fetch(`/api/wallet/${addr.toLowerCase()}/tokens`, { cache: "no-store" });
-        if (r.ok) {
-          const j = (await r.json()) as { tokenIds?: number[]; balance?: number };
-          const idLen = Array.isArray(j.tokenIds) ? j.tokenIds.length : 0;
-          const reported = typeof j.balance === "number" ? j.balance : 0;
-          svrBal = Math.max(idLen, reported);
-        }
-      } catch {/* fall through */}
-
-      return Math.max(rpcBal, svrBal);
-    }
 
     // Resolve a specific address into holder state (or clear when null). Used by
     // the initial mount AND by the live connect/disconnect listeners below.
