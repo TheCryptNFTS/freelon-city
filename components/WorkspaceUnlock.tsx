@@ -6,9 +6,9 @@ import { trackEvent } from "@/lib/track";
 /**
  * In-workspace ETH unlock — the pay flow holders were missing.
  *
- * The ETH activation UI used to live in CitizenAgentDashboard, which is no
- * longer mounted anywhere after the profile was slimmed to the workspace front
- * door. Holders trying to pay 0.01 ETH hit a dead-end link ("can't find where
+ * The ETH activation UI used to live in the old CitizenAgentDashboard, which was
+ * unmounted (and since removed) after the profile was slimmed to the workspace
+ * front door. Holders trying to pay 0.01 ETH hit a dead-end link ("can't find where
  * to unlock"). This restores the exact quote → pay → claim flow against
  * /api/citizens/[id]/unlock, rendered in the CENTER of the workspace (always
  * visible on mobile — not buried in the right info-drawer that overlapped).

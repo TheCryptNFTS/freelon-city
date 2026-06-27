@@ -1384,9 +1384,12 @@ export function AgentWorkspace(props: Props) {
             </div>
           ) : (
             <div className={styles.inputRow}>
-              <div className={styles.imageHint}>Render {name} into the selected scene.</div>
+              <div className={styles.imageHint}>
+                Render {name} into the selected scene.
+                {agent?.imageHexCost ? ` Costs ${agent.imageHexCost}⬡.` : ""}
+              </div>
               <button className={styles.send} onClick={send} disabled={sending}>
-                {sending ? "Rendering…" : "Generate"}
+                {sending ? "Rendering…" : agent?.imageHexCost ? `Generate · ${agent.imageHexCost}⬡` : "Generate"}
               </button>
             </div>
           )}

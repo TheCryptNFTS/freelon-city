@@ -7,7 +7,7 @@
  * into the HTML (visible to logged-out buyers and OG bots, survives sale). PURE
  * spec data + two fail-quiet enrichments (on-chain owner, accumulated hex) that
  * degrade to "—" if a source is slow. No owner gate — a résumé is public by
- * design. The owner-only controls live in CitizenAgentDashboard (#run) below.
+ * design. The owner-only ETH-activation controls live in WorkspaceUnlock.
  */
 import Link from "next/link";
 import { getProgress, levelProgress } from "@/lib/progression-store";

@@ -1,5 +1,7 @@
-"use client";
-
+// Pure presentational — builds tweet-intent share links from static civ data and
+// renders anchor tags. No hooks, handlers, or browser APIs, so it stays a server
+// component (its only importer, civilizations/[slug]/page.tsx, is server-rendered)
+// rather than shipping an unnecessary client bundle + hydration boundary.
 import { CIVILIZATIONS } from "@/lib/constants";
 
 type CivDef = {

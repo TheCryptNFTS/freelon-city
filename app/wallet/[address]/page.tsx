@@ -106,17 +106,30 @@ async function fetchLongestHeld(
   let next: string | null = null;
   let pages = 0;
   const MAX_PAGES = 6;
+  // Hard wall-clock budget (matches fetchHolders above): with no per-fetch
+  // timeout, 6 sequential pages against a slow OpenSea could blow past Vercel's
+  // 10s function limit and 500 the whole page. Bound the loop and abort each
+  // fetch on the remaining budget; partial data just yields an approximate
+  // "longest held" rather than a crash.
+  const HARD_BUDGET_MS = 7000;
+  const startedAt = Date.now();
 
   try {
     do {
+      if (Date.now() - startedAt > HARD_BUDGET_MS) break;
       const url = `https://api.opensea.io/api/v2/events/accounts/${address}?event_type=transfer&chain=ethereum&limit=50${
         next ? `&next=${encodeURIComponent(next)}` : ""
       }`;
+      const remainingMs = Math.max(500, HARD_BUDGET_MS - (Date.now() - startedAt));
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), remainingMs);
       const res = await fetch(url, {
         headers: { "X-API-KEY": apiKey, accept: "application/json" },
         next: { revalidate: 600 },
-      });
-      if (!res.ok) break;
+        signal: ac.signal,
+      }).catch(() => null);
+      clearTimeout(timer);
+      if (!res || !res.ok) break;
       type RawTransferEv = {
         event_type?: string;
         to_address?: string;
