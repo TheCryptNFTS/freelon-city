@@ -58,8 +58,9 @@ const $ = (id) => document.getElementById(id);
 
 // ---------------------------------------------------------------------------
 // IDENTITY + LOCAL BELIEF LEDGER (HexMind stub)
-// The differentiator: the world remembers YOU across visits. Slice 1 keeps the
-// ledger client-side (localStorage); the Supabase server-of-record lands next.
+// The differentiator: the world remembers YOU across visits. The localStorage
+// ledger is the offline view; /api/world (lib/world-store, Upstash KV) is the
+// server-of-record that reconciles it when this slice is served same-origin.
 // ---------------------------------------------------------------------------
 const params = new URLSearchParams(location.search);
 const NAME = (params.get("name") || localStorage.getItem("freelon_world_name") || "citizen").slice(0, 24);
@@ -75,6 +76,49 @@ ledger.lastSeen = Date.now();
 if (typeof ledger.hex !== "number") ledger.hex = 500;   // starter stipend (in-world only, non-cashable)
 ledger.owned = Array.isArray(ledger.owned) ? ledger.owned : []; // plot indices owned
 saveLedger(ledger);
+
+// ---------------------------------------------------------------------------
+// SERVER-OF-RECORD SYNC (optimistic client, authoritative server)
+// The localStorage ledger above is the OFFLINE view. When this slice is served
+// same-origin under freeloncity.com/world/city, /api/world is the truth: it
+// validates + SINKS HEX (lib/world-store) and we reconcile to whatever it says.
+// When served from the static dev copy (no /api), every call fails softly and
+// the localStorage ledger stands in — the route is an upgrade, not a dependency.
+// ---------------------------------------------------------------------------
+let serverLive = false; // becomes true once a /api/world call succeeds
+function reconcile(state) {
+  // Server is authority: overwrite the local economy fields from it, persist,
+  // and repaint owned towers (the optimistic build may be confirmed or undone).
+  if (!state) return;
+  if (typeof state.hex === "number") ledger.hex = state.hex;
+  if (Array.isArray(state.owned)) ledger.owned = state.owned.slice();
+  if (typeof state.visits === "number") ledger.visits = state.visits;
+  saveLedger(ledger);
+}
+async function syncWorld() {
+  try {
+    const r = await fetch(`/api/world?owner=${encodeURIComponent(NAME)}`, { cache: "no-store" });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j && j.ok && j.state) { serverLive = true; reconcile(j.state); }
+  } catch { /* offline / static-served — keep the localStorage ledger */ }
+}
+async function serverBuild(idx) {
+  // Returns true if the server confirmed the build, false if it rejected it,
+  // null if the server is unreachable (caller keeps the optimistic local state).
+  try {
+    const r = await fetch("/api/world", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ owner: NAME, action: "build", idx }),
+    });
+    if (!r.ok && r.status !== 400) return null;
+    const j = await r.json();
+    serverLive = true;
+    if (j && j.state) reconcile(j.state);
+    return !!(j && j.ok);
+  } catch { return null; }
+}
 
 // ---------------------------------------------------------------------------
 // RENDERER / SCENE
@@ -376,6 +420,13 @@ function tryBuild(idx) {
   }
   renderOwned();
   toast("BUILT · −100⬡", true);
+  // Reconcile against the server-of-record. If it's live and REJECTS the build
+  // (e.g. a double-spend raced from another device), reconcile() rolls the local
+  // ledger back to the server's truth and we re-render + tell the player.
+  serverBuild(idx).then((confirmed) => {
+    if (confirmed === false) { renderOwned(); toast("server: build undone", false); }
+    else if (confirmed === true) { renderOwned(); }
+  });
 }
 addEventListener("click", (e) => pickPlot(e.clientX, e.clientY));
 function toast(msg, good) {
@@ -446,6 +497,9 @@ addEventListener("resize", () => {
   try {
     bootmsg.textContent = "initialising physics…";
     await RAPIER.init();
+    // Pull the server-of-record (if same-origin /api/world exists) BEFORE we
+    // render owned towers, so reload shows the authoritative HEX + parcels.
+    await syncWorld();
     renderOwned();
     initPhysics();
     bootmsg.textContent = "entering the city…";
