@@ -14,6 +14,7 @@ import { CitizenCheckIn } from "@/components/CitizenCheckIn";
 import { CitizenResume } from "@/components/CitizenResume";
 import { CitizenAgentExplainer } from "@/components/CitizenAgentExplainer";
 import { ActivationProof } from "@/components/ActivationProof";
+import { CitizenLifeHero } from "@/components/CitizenLifeHero";
 import { CitizenWorkspaceCta } from "@/components/CitizenWorkspaceCta";
 import { EvolvePanel } from "@/components/EvolvePanel";
 import YourStable from "@/components/YourStable";
@@ -177,9 +178,19 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             {/* PRESENCE (2026-06-11, kit: .living-city/ai-presence.md) — DORMANT
                 breath + civ aura (.tinted reads --civ). On activated shells the
                 stronger gold awaken-breathe keeps winning (higher specificity). */}
-            <div className={`img-shell relic-card${isActivated ? " is-activated" : ""} ${presence.aura} ${presence.tinted} ${presence.breath}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageUrl(tid)} alt={c.name} />
+            {/* LIVING HERO (2026-06-26) — the art awakens on load (dead→alive)
+                and, left alone, the light goes out of its eye until you touch
+                it. The shell still owns the civ-halo frame + AWAKENED glyph;
+                the breath now comes from the portrait itself, so presence.breath
+                is dropped to avoid a double-breath beat. */}
+            <div className={`img-shell relic-card${isActivated ? " is-activated" : ""} ${presence.aura} ${presence.tinted}`}>
+              <CitizenLifeHero
+                tokenId={tid}
+                src={imageUrl(tid)}
+                name={customName?.name || c.transmission_name || c.name}
+                fill
+                frame={false}
+              />
               {isActivated && <span className="activated-glyph" aria-label="Activated agent">⬡ AWAKENED</span>}
             </div>
             <div className="img-meta">

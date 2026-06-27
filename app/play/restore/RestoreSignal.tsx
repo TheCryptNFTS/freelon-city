@@ -8,6 +8,7 @@ import {
   CITY_CIVS,
   MIN_BOOST_HEX,
   STRUCTURES,
+  activationMultiplier,
   baseRate,
   companionMultiplier,
   costOf,
@@ -55,6 +56,8 @@ type WalletView = {
   companionMultiplier?: number;
   cryptCount?: number;
   reclaimMultiplier?: number;
+  activatedCount?: number;
+  activationMultiplier?: number;
 };
 type Leader = { address: string; contributed: number; structures: number };
 
@@ -126,7 +129,8 @@ export function RestoreSignal() {
       holderMultiplier(wallet.balance) *
       (wallet.setMultiplier ?? setMultiplier(wallet.setTiers ?? 0)) *
       (wallet.companionMultiplier ?? companionMultiplier(wallet.oogieCount ?? 0)) *
-      (wallet.reclaimMultiplier ?? reclaimMultiplier(wallet.cryptCount ?? 0))
+      (wallet.reclaimMultiplier ?? reclaimMultiplier(wallet.cryptCount ?? 0)) *
+      (wallet.activationMultiplier ?? activationMultiplier(wallet.activatedCount ?? 0))
     : 0;
 
   // ── initial public load (no wallet needed) ──────────────────────────────
@@ -322,6 +326,9 @@ export function RestoreSignal() {
     wallet?.companionMultiplier ?? companionMultiplier(oogieCount);
   const cryptCount = wallet?.cryptCount ?? 0;
   const reclaimMult = wallet?.reclaimMultiplier ?? reclaimMultiplier(cryptCount);
+  const activatedCount = wallet?.activatedCount ?? 0;
+  const activationMult =
+    wallet?.activationMultiplier ?? activationMultiplier(activatedCount);
 
   // Prestige standing from lifetime contribution (display-only).
   const rank = restorerRank(wallet?.contributed ?? 0);
@@ -452,6 +459,11 @@ export function RestoreSignal() {
         {reclaimMult > 1 ? (
           <span style={{ color: "var(--state-active)", display: "block", marginTop: 4 }}>
             ⊘ {cryptCount} DEAD SIGNAL{cryptCount === 1 ? "" : "S"} RECLAIMED · ×{reclaimMult.toFixed(2)} OUTPUT
+          </span>
+        ) : null}
+        {activationMult > 1 ? (
+          <span style={{ color: "var(--gold-bright)", display: "block", marginTop: 4 }}>
+            ⬡ {activatedCount} FREELON{activatedCount === 1 ? "" : "S"} AWAKE · ×{activationMult.toFixed(2)} OUTPUT
           </span>
         ) : null}
       </div>

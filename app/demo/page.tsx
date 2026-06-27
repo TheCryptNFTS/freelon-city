@@ -1,6 +1,7 @@
 import { getCollectionToken } from "@/lib/collection-persona";
 import { FREELON_DEMO_DISPLAY } from "@/lib/demo-freelon";
 import { DemoChat, type DemoAgent } from "@/components/DemoChat";
+import { MemoryProof } from "@/components/MemoryProof";
 import { PageBeacon } from "@/components/PageBeacon";
 import styles from "@/components/DemoSplit.module.css";
 
@@ -106,6 +107,21 @@ export default function DemoPage() {
           5 free messages shared across all citizens. No wallet needed.
         </p>
       </header>
+
+      {/* THE MEMORY PROOF (2026-06-26 punchlist #3 + ELON_ALGORITHM_REVIEW
+          "move MemoryProof to /demo"): the staged, zero-cost "it remembers MY
+          fact" beat — the single surface where the thesis is felt AND shareable.
+          It sits ABOVE the live chat: the staged proof shows what ownership
+          gives (memory across sessions), then the live (stateless) demo below
+          lets the stranger actually talk. The share card carries the visitor's
+          OWN typed fact — the virality wedge of "it remembers you". */}
+      <div style={{ marginBottom: "var(--s-5)" }}>
+        <MemoryProof />
+      </div>
+
+      <div style={{ marginBottom: "var(--s-3)" }}>
+        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ NOW TALK TO A LIVE ONE</span>
+      </div>
 
       {/* ReferralBeacon mount removed T11 2026-06-11 — it is now global in
           app/layout.tsx (a second mount here would double-fire the event). */}

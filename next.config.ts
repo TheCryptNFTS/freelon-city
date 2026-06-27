@@ -144,6 +144,25 @@ const config: NextConfig = {
       "object-src 'none'",
       "upgrade-insecure-requests",
     ].join("; ");
+    // 2026-06-26 — EMBED WIDGET (/embed/[id]) is the "Living PFP" iframe holders
+    // drop into their own sites, so it is the ONE surface that must allow
+    // cross-origin framing (frame-ancestors *). That is safe ONLY because the
+    // embed page is inert: it renders the living portrait + an external link out
+    // and carries NO wallet, auth, form, or money action — nothing worth
+    // clickjacking. The policy is otherwise tighter than the app CSP (no
+    // opensea/rpc/x connect-src — the widget needs none).
+    const EMBED_CSP = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
+      "img-src 'self' data: blob: https://gateway.pinata.cloud https://ipfs.io https://dweb.link https://*.seadn.io https://*.public.blob.vercel-storage.com",
+      "connect-src 'self'",
+      "frame-ancestors *",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; ");
     return [
       {
         // Long-term immutable cache for static binary assets in /public/.
@@ -162,8 +181,6 @@ const config: NextConfig = {
         // Non-CSP hardening — applies to EVERY path, including the /mars game.
         source: "/(.*)",
         headers: [
-          // Clickjacking protection
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
           // MIME-sniffing protection
           { key: "X-Content-Type-Options", value: "nosniff" },
           // Referrer leak control
@@ -175,12 +192,21 @@ const config: NextConfig = {
         ],
       },
       {
+        // Clickjacking protection on every path EXCEPT the embeddable widget,
+        // which is meant to be iframed cross-origin (its CSP frame-ancestors *
+        // is what permits that; X-Frame-Options has no allow-any value, so it is
+        // simply omitted for /embed). The embed page is inert — no money/auth.
+        source: "/((?!embed(?:/|$)).*)",
+        headers: [{ key: "X-Frame-Options", value: "SAMEORIGIN" }],
+      },
+      {
         // Strict app CSP — every path EXCEPT the /mars game. The negative
         // lookahead excludes "/mars" and "/mars/*" but NOT "/mars-command"
         // (the React landing keeps this strict policy). Browsers enforce
         // multiple CSP headers as their INTERSECTION, so the game path must
-        // receive ONLY the relaxed policy below — hence this exclusion.
-        source: "/((?!mars(?:/|$)).*)",
+        // receive ONLY the relaxed policy below — hence this exclusion. /embed
+        // is likewise excluded (it gets EMBED_CSP with frame-ancestors *).
+        source: "/((?!mars(?:/|$)|embed(?:/|$)).*)",
         headers: [
           {
             key: "Content-Security-Policy",
@@ -239,6 +265,11 @@ const config: NextConfig = {
       {
         source: "/mars/:path*",
         headers: [{ key: "Content-Security-Policy", value: MARS_CSP }],
+      },
+      // EMBED WIDGET — relaxed-framing CSP scoped to the /embed path only.
+      {
+        source: "/embed/:path*",
+        headers: [{ key: "Content-Security-Policy", value: EMBED_CSP }],
       },
     ];
   },

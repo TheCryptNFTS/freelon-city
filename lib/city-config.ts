@@ -82,6 +82,25 @@ export function reclaimMultiplier(cryptCount: number): number {
   return 1 + Math.min(cryptCount * RECLAIM_BONUS_PER, RECLAIM_BONUS_CAP);
 }
 
+/** Activation bonus — the WOW thesis made economic: awakening a SECOND FREELON
+ *  makes your FIRST one stronger. A DEPTH bonus keyed on how many of your held
+ *  tokens are ACTIVATED (paid the ETH awaken), so the network of citizens you've
+ *  brought to life compounds. Distinct axis from the OOGIE/Crypt bonuses; stacks
+ *  with them. Keyed on (activatedCount - 1) so the first activation is the price
+ *  of entry, not a bonus — the compounding only begins with the second.
+ *
+ *  HARD ISOLATION (finance + red-team rulings 2026-06-26): this multiplies the
+ *  CITY-SIGNAL faucet rate ONLY. It NEVER grants premium runs (real model spend
+ *  is fixed by the unlock pool) and NEVER credits the real hex ledger. It is a
+ *  stateless rate multiplier read from server-verified ownership ∩ activation —
+ *  no one-time grant event, so no replay/TOCTOU surface. Fail-safe: ≤1 → 1.0x. */
+export const ACTIVATION_BONUS_PER = 0.05; // +5% city output per activated FREELON beyond the first
+export const ACTIVATION_BONUS_CAP = 0.4; // capped at +40% (~9 activations)
+export function activationMultiplier(activatedCount: number): number {
+  if (activatedCount <= 1) return 1;
+  return 1 + Math.min((activatedCount - 1) * ACTIVATION_BONUS_PER, ACTIVATION_BONUS_CAP);
+}
+
 /** The ten civilizations relight at these cumulative GLOBAL-signal milestones.
  *  Tuned for a shared city: far higher than the solo prototype because the
  *  whole community contributes to one bar. Colors mirror lib/constants. */

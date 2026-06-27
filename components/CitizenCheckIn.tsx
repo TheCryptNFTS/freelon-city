@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { trackEvent } from "@/lib/track";
 
-type CheckIn = { tokenId: number; day: string; line: string; level: number; className: string };
+type CheckIn = { tokenId: number; day: string; line: string; level: number; className: string; streak?: number; isReturn?: boolean };
 
 type Props = {
   citizenId: number;
@@ -19,6 +20,21 @@ export function CitizenCheckIn({ citizenId, initial, rank }: Props) {
   useEffect(() => {
     setCheckin(initial);
   }, [initial]);
+
+  // The one retention signal that proves the thesis: did anyone view a check-in
+  // on day 2+ (is_return), and how deep is the streak? tokenId+day is a joinable
+  // return key, so this beats Vercel's cookieless blindness. Fire once per view.
+  const fired = useRef(false);
+  useEffect(() => {
+    if (checkin && !fired.current) {
+      fired.current = true;
+      trackEvent("checkin_viewed", {
+        tokenId: citizenId,
+        streak: checkin.streak ?? 1,
+        is_return: !!checkin.isReturn,
+      });
+    }
+  }, [checkin, citizenId]);
 
   async function generate() {
     setBusy(true);
@@ -45,7 +61,11 @@ export function CitizenCheckIn({ citizenId, initial, rank }: Props) {
     <section className="checkin">
       <div className="checkin-hd">
         <span className="kicker">⬡ TODAY&apos;S TRANSMISSION</span>
-        {rank ? <span className="checkin-rank">RANK #{rank.toLocaleString()} · BY LEVEL</span> : null}
+        {checkin && (checkin.streak ?? 1) >= 2 ? (
+          <span className="checkin-rank">⬡ {checkin.streak}-DAY THREAD</span>
+        ) : rank ? (
+          <span className="checkin-rank">RANK #{rank.toLocaleString()} · BY LEVEL</span>
+        ) : null}
       </div>
 
       {checkin ? (

@@ -14,5 +14,8 @@ import { usePathname } from "next/navigation";
 export function ChromeGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   if (pathname && (pathname === "/agent" || pathname.startsWith("/agent/"))) return null;
+  // /embed/[id] is the chrome-free Living PFP widget meant to be iframed into
+  // holders' own pages — site Header/Footer/nav must never render inside it.
+  if (pathname && pathname.startsWith("/embed/")) return null;
   return <>{children}</>;
 }

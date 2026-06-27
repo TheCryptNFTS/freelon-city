@@ -5,6 +5,8 @@ import { getCitizen, civilizationColor } from "@/lib/citizens";
 import { imageUrl, openseaUrl, CIVILIZATIONS, CONTRACT } from "@/lib/constants";
 import { getName } from "@/lib/name-store";
 import { AskAndShare } from "./AskAndShare";
+import { CitizenLifeHero } from "@/components/CitizenLifeHero";
+import { EmbedSnippet } from "@/components/EmbedSnippet";
 
 export const dynamicParams = true;
 export const revalidate = 600;
@@ -106,9 +108,17 @@ export default async function CardPage({
         {civilizationName.toUpperCase()} · {c.doctrine?.toUpperCase()}
       </div>
 
+      {/* LIVING portrait (2026-06-26) — the card art awakens on load and watches
+          the cursor. neglectDeath off: a share artifact should never sit dead. */}
       <div className="hex-frame-card">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl(tid)} alt={displayName} />
+        <CitizenLifeHero
+          tokenId={tid}
+          src={imageUrl(tid)}
+          name={displayName}
+          fill
+          frame={false}
+          neglectDeath={false}
+        />
       </div>
 
       <dl className="card-stats">
@@ -137,6 +147,8 @@ export default async function CardPage({
         lastSale={lastSale}
         openseaUrl={openseaUrl(tid)}
       />
+
+      <EmbedSnippet tokenId={tid} name={displayName} />
 
       <div className="card-actions" style={{ marginTop: "var(--s-5)" }}>
         <Link className="btn" href={`/citizens/${tid}`}>

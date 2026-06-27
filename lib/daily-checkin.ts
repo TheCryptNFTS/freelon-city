@@ -24,12 +24,23 @@ export type CheckIn = {
   level: number;
   className: string;
   generatedAt: number;
+  /** Consecutive days this citizen has transmitted (yesterday existed → +1). */
+  streak?: number;
+  /** True when yesterday's transmission existed — i.e. someone came back. */
+  isReturn?: boolean;
 };
 
 const KEY = (tokenId: number, day: string) => `freelon:checkin:v1:${tokenId}:${day}`;
 const TTL_SEC = 48 * 60 * 60; // keep 2 days; one day is the live one
 
 function utcDay(d = new Date()): string {
+  return d.toISOString().slice(0, 10);
+}
+
+/** The UTC day before the given YYYY-MM-DD string. */
+function prevUtcDay(day: string): string {
+  const d = new Date(day + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() - 1);
   return d.toISOString().slice(0, 10);
 }
 
@@ -86,8 +97,22 @@ export async function getOrGenerateCheckIn(tokenId: number, day = utcDay()): Pro
   const progress = await getProgress(tokenId);
   const { system, classLabel } = buildPersona(citizen, progress);
 
+  // Continuity is the whole thesis: a FREELON that REMEMBERS you. If it transmitted
+  // yesterday, the holder has returned — so the line must visibly pick up the thread
+  // instead of regenerating from scratch. This is what makes "it remembers me" felt.
+  const prev = await getCheckIn(tokenId, prevUtcDay(day));
+  const isReturn = !!prev;
+  const streak = prev ? (prev.streak ?? 1) + 1 : 1;
+
+  const continuity = prev
+    ? `Yesterday you transmitted: "${prev.line}". The holder has come back today` +
+      (streak >= 3 ? ` — ${streak} days running` : "") +
+      `. Open by acknowledging their return and pick up the thread from yesterday (a follow-up, a change, a consequence). Do NOT repeat yesterday's line. `
+    : "";
+
   const prompt =
-    "It is a new day in FREELON CITY. In ONE or TWO sentences, give your daily transmission — " +
+    "It is a new day in FREELON CITY. " + continuity +
+    "In ONE or TWO sentences, give your daily transmission — " +
     "a brief in-character thought, observation, or report for the holder who watches over you. " +
     "Make it specific to who you are and what you've done. No preamble, no quotes, just the line.";
 
@@ -102,6 +127,8 @@ export async function getOrGenerateCheckIn(tokenId: number, day = utcDay()): Pro
     level: progress.level,
     className: classLabel,
     generatedAt: Date.now(),
+    streak,
+    isReturn,
   };
   await store(rec);
   return rec;

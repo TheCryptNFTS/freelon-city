@@ -8302,6 +8302,7 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .mproof__divider span { font-family: var(--mono2); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-dim); white-space: nowrap; }
 .mproof__foot { padding: 0 16px 18px; text-align: center; animation: mproof-in .5s cubic-bezier(0.2,0.7,0.2,1) both; }
 .mproof__sell { font-family: var(--mono2); font-size: 12.5px; color: var(--ink-2); line-height: 1.6; margin: 0 auto 14px; max-width: 44ch; }
+.mproof__share { display: inline-flex; margin: 0 auto 12px; }
 .mproof__cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .mproof__composer { display: flex; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--line); background: var(--surface); }
 .mproof__input {
@@ -8637,27 +8638,42 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 /* ════ 2026-06-11 "looks cheap" pass (founder-approved 10-fix list) ════ */
 
 /* #10 HERO ANCHOR — the eclipse 1/1 grounds the hero at desktop widths. */
-.hero-anchor { display: none; }
+/* HERO ANCHOR — one bright, large citizen render grounds the cold-land glance.
+   2026-06-26 (wow punchlist #6): the render now LEADS on mobile too (was
+   desktop-only, leaving phones to glance at a murky brightness(0.5) city). On
+   phones it sits as a centered block ABOVE the headline (first flex item in the
+   centered column); on desktop it returns to the absolute-right composition.
+   Art is a 23KB 560px webp (hero-eclipse-sm) so the mobile render is cheap —
+   the perf reason the desktop gate existed is answered by the smaller asset. */
+.hero-anchor {
+  display: block;
+  width: clamp(168px, 52vw, 248px); aspect-ratio: 1/1;
+  margin: 0 auto;
+  background: url(/og/art/hero-eclipse-sm.webp) center / cover no-repeat;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(245,242,232,0.12),
+    0 1px 2px rgba(0,0,0,0.4),
+    0 18px 46px -16px rgba(0,0,0,0.8),
+    0 0 60px -18px rgba(233,201,132,0.42);
+  animation: imgFade 0.7s ease-out both;
+}
 @media (min-width: 1100px) {
   .hero-anchor {
-    display: block;
-    position: absolute; right: max(24px, 4vw); top: 50%;
+    position: absolute; right: max(10px, 2.5vw); top: 50%;
+    margin: 0;
     transform: translateY(-50%) rotate(2deg);
-    width: clamp(260px, 24vw, 360px); aspect-ratio: 1/1;
-    background: url(/og/art/hero-eclipse.png) center / cover no-repeat;
-    border-radius: 18px;
-    border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+    width: clamp(260px, 24vw, 360px);
     box-shadow:
       inset 0 1px 0 rgba(245,242,232,0.12),
       0 1px 2px rgba(0,0,0,0.4),
       0 24px 60px -18px rgba(0,0,0,0.8),
       0 0 70px -20px rgba(233,201,132,0.35);
-    animation: imgFade 0.7s ease-out both;
   }
   /* keep the text column clear of the anchor: shift the whole column left
      instead of squeezing individual elements into ragged towers. */
   .hero-landing__inner { position: relative; padding-right: clamp(300px, 27vw, 410px); }
-  .hero-anchor { right: max(10px, 2.5vw); }
 }
 
 /* #6 CARD DEPTH — one premium-card recipe on the workhorse surfaces.

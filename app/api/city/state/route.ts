@@ -3,6 +3,7 @@ import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { getCityState, getCityWallet } from "@/lib/city-store";
 import {
+  activationMultiplier,
   civsLitAt,
   companionMultiplier,
   reclaimMultiplier,
@@ -48,6 +49,8 @@ export async function GET(req: Request) {
           companionMultiplier: companionMultiplier(wallet.oogieCount),
           cryptCount: wallet.cryptCount,
           reclaimMultiplier: reclaimMultiplier(wallet.cryptCount),
+          activatedCount: wallet.activatedCount,
+          activationMultiplier: activationMultiplier(wallet.activatedCount),
         }
       : null,
   });

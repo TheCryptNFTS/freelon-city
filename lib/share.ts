@@ -554,6 +554,29 @@ export function tweetDemoReply(input: { agentName: string; reply: string }): str
 }
 
 /**
+ * "IT REMEMBERED ME" share — the homepage MemoryProof beat turned into a one-tap
+ * brag that carries the VISITOR'S OWN fact (the thing they typed and the citizen
+ * recalled). This is the virality point of the "it remembers you" thesis: the
+ * shared card isn't about the project, it's about THEM — their own sentence read
+ * back to them by an AI character. The /share/remember landing unfurls the
+ * /api/og/remember image of their fact. Tag-first so X doesn't suppress it.
+ * Copy-safe: the recalled line is the visitor's own words, no value/return claim.
+ */
+export function tweetMemoryProof(input: { fact: string }): string {
+  const fact = input.fact.replace(/\s+/g, " ").trim().slice(0, 80);
+  const shareUrl = `${SITE}/share/remember?${new URLSearchParams({ f: fact }).toString()}&ref=rem-`;
+  return [
+    `⬡ ${HANDLE} · I told a FREELON one thing about me. I closed the tab. I came back.`,
+    ``,
+    `It remembered: "${fact}."`,
+    ``,
+    `Every citizen of FREELON CITY is an AI character that remembers you. Meet one free:`,
+    `${HASHTAGS}`,
+    shareUrl,
+  ].join("\n");
+}
+
+/**
  * Generic share — used by the ShareOG component.
  */
 export function tweetGeneric(text: string, pageUrl: string): string {

@@ -3,6 +3,7 @@ import { isValidAddress, getWalletTokens } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { accrueWallet, derivedCastes, getCityState } from "@/lib/city-store";
 import {
+  activationMultiplier,
   civsLitAt,
   companionMultiplier,
   reclaimMultiplier,
@@ -45,13 +46,16 @@ export async function POST(req: Request) {
 
   // Verified ownership → refresh cached balance + caste set for the multiplier
   // and build gating. Tolerate OpenSea/RPC failure (accrue with cached values).
-  let ownership: { balance: number; castes: ReturnType<typeof derivedCastes> } | undefined;
+  let ownership:
+    | { balance: number; castes: ReturnType<typeof derivedCastes>; freelonTokenIds: number[] }
+    | undefined;
   try {
     const tokens = await getWalletTokens(address, 500);
     if (tokens) {
       ownership = {
         balance: tokens.balance,
         castes: derivedCastes(tokens.tokenIds),
+        freelonTokenIds: tokens.tokenIds,
       };
     }
   } catch {
@@ -79,6 +83,8 @@ export async function POST(req: Request) {
       companionMultiplier: companionMultiplier(wallet.oogieCount),
       cryptCount: wallet.cryptCount,
       reclaimMultiplier: reclaimMultiplier(wallet.cryptCount),
+      activatedCount: wallet.activatedCount,
+      activationMultiplier: activationMultiplier(wallet.activatedCount),
     },
     gain,
   });

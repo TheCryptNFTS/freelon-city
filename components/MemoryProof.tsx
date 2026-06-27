@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FramedAgent } from "@/components/FramedAgent";
 import { FREELON_DEMO_DISPLAY } from "@/lib/demo-freelon";
 import { trackEvent } from "@/lib/track";
+import { tweetIntent, tweetMemoryProof } from "@/lib/share";
 
 /**
  * MEMORY PROOF — the homepage's "understanding by demonstration" beat (2026-06-09).
@@ -235,8 +236,21 @@ export function MemoryProof() {
             That memory is saved to this citizen — and when one is yours, every job it does
             lands on a public record that travels with the NFT.
           </p>
+          {/* Share FIRST (2026-06-26 punchlist #3): the wow ("it remembered ME")
+              was dead-ending into two buy buttons with zero way to spread it. The
+              shared card carries the visitor's OWN typed fact — it's about them,
+              not us — which is the whole virality wedge of the memory thesis. */}
+          <a
+            className="btn btn-primary btn-sm mproof__share"
+            href={tweetIntent(tweetMemoryProof({ fact }))}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => trackEvent("memory_proof_share")}
+          >
+            <span className="ttl">⬡ It remembered me — share it →</span>
+          </a>
           <div className="mproof__cta">
-            <Link className="btn btn-primary btn-sm" href="/demo" onClick={() => trackEvent("memory_proof_to_demo")}>
+            <Link className="btn btn-secondary btn-sm" href="/demo" onClick={() => trackEvent("memory_proof_to_demo")}>
               <span className="ttl">Talk to a live one — free →</span>
             </Link>
             {/* T11 2026-06-11 — folded `memory_proof_to_opensea` into the canonical

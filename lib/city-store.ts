@@ -22,6 +22,7 @@ import {
   CITY_SEASON,
   STARTING_SIGNAL,
   STRUCTURE_BY_KEY,
+  activationMultiplier,
   baseRate,
   civsLitAt,
   companionMultiplier,
@@ -31,6 +32,7 @@ import {
   setMultiplier,
 } from "@/lib/city-config";
 import { getWalletSet } from "@/lib/signal-set";
+import { listActivatedTokenIds } from "@/lib/missions/unlock-store";
 import { upstash, hasUpstash } from "@/lib/upstash-client";
 import type { CasteName } from "@/lib/constants";
 
@@ -51,6 +53,7 @@ export type CityWallet = {
   setTiers: number; // cached count of connected collections held (Full Signal bonus)
   oogieCount: number; // cached OOGIE count (companion depth bonus); shares the set scan
   cryptCount: number; // cached The Crypt count (reclaim bonus); shares the set scan
+  activatedCount: number; // cached count of OWNED FREELONs that are ETH-activated (compounding depth bonus); city signal only
   setCheckedTs: number; // when the cross-collection set was last scanned
   seeded: boolean; // whether the one-time starting grant was applied
   lastTickTs: number;
@@ -90,6 +93,7 @@ function emptyWallet(addr: string): CityWallet {
     setTiers: 0,
     oogieCount: 0,
     cryptCount: 0,
+    activatedCount: 0,
     setCheckedTs: 0,
     seeded: false,
     lastTickTs: Date.now(),
@@ -219,7 +223,7 @@ async function setCityWallet(w: CityWallet): Promise<void> {
  */
 export async function accrueWallet(
   addr: string,
-  ownership?: { balance: number; castes: CasteName[] },
+  ownership?: { balance: number; castes: CasteName[]; freelonTokenIds?: number[] },
 ): Promise<{ wallet: CityWallet; gain: number }> {
   const w = await getCityWallet(addr);
   if (ownership) {
@@ -251,6 +255,24 @@ export async function accrueWallet(
     } catch {
       /* keep cached setTiers */
     }
+    // Activation depth (compounding bonus): how many of the FREELONs this wallet
+    // OWNS are ETH-activated. Server-verified — the owned tokenIds come from the
+    // caller's on-chain ownership read, intersected with the activation ledger.
+    // City signal only; never grants runs or real hex. Fail-safe: a failed scan
+    // (or no tokenIds passed) leaves the cached count, defaulting to 0 → 1.0x.
+    if (ownership?.freelonTokenIds && ownership.freelonTokenIds.length > 0) {
+      try {
+        const activated = await listActivatedTokenIds();
+        w.activatedCount = ownership.freelonTokenIds.filter((id) =>
+          activated.has(id),
+        ).length;
+      } catch {
+        /* keep cached activatedCount */
+      }
+    } else if (ownership && (ownership.freelonTokenIds?.length ?? 0) === 0) {
+      // Verified ownership read succeeded but the wallet holds no FREELONs.
+      w.activatedCount = 0;
+    }
   }
   const elapsedSec = Math.min(
     Math.max(0, (now - w.lastTickTs) / 1000),
@@ -261,7 +283,8 @@ export async function accrueWallet(
     holderMultiplier(w.balance) *
     setMultiplier(w.setTiers) *
     companionMultiplier(w.oogieCount) *
-    reclaimMultiplier(w.cryptCount);
+    reclaimMultiplier(w.cryptCount) *
+    activationMultiplier(w.activatedCount);
   const gain = rate * elapsedSec;
   w.lastTickTs = now;
   if (gain > 0) {
