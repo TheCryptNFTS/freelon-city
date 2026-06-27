@@ -6,10 +6,12 @@ import {
   getWorld,
   registerVisit,
   buildPlot,
+  buildPlotForWallet,
   PLOT_COUNT,
   BUILD_COST,
   STARTER_HEX,
 } from "@/lib/world-store";
+import { creditWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 
 // No UPSTASH_* env in the test runner, so the store uses its in-memory Map.
 // applyBuild is PURE (no I/O) — the heart of the server-authoritative seam.
@@ -125,5 +127,43 @@ describe("async store loop (in-memory fallback)", () => {
     const reread = await getWorld(owner);
     expect(reread.hex).toBe(STARTER_HEX);
     expect(reread.owned).toEqual([]);
+  });
+});
+
+describe("buildPlotForWallet — REAL HEX sink (in-memory wallet ledger)", () => {
+  const WALLET = "0x" + "b".repeat(40);
+
+  it("rejects an out-of-range plot before any debit", async () => {
+    const res = await buildPlotForWallet(WALLET, 99999);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.reason).toBe("bad_plot");
+  });
+
+  it("refuses to build when the wallet has no HEX (insufficient, nothing sunk)", async () => {
+    const broke = "0x" + "c".repeat(40);
+    const res = await buildPlotForWallet(broke, 3);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.reason).toBe("insufficient_hex");
+    expect((await getWalletHex(broke)).balance).toBe(0);
+  });
+
+  it("SINKS exactly BUILD_COST of real HEX and records the parcel", async () => {
+    await creditWalletHex(WALLET, 250, { kind: "manual", note: "test fund" });
+    const before = (await getWalletHex(WALLET)).balance;
+    const res = await buildPlotForWallet(WALLET, 14);
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.state.owned).toContain(14);
+      expect(res.balance).toBe(before - BUILD_COST); // burned, not refunded
+    }
+    expect((await getWalletHex(WALLET)).balance).toBe(before - BUILD_COST);
+  });
+
+  it("rejects a double-buy without a second debit", async () => {
+    const bal = (await getWalletHex(WALLET)).balance;
+    const res = await buildPlotForWallet(WALLET, 14); // already owned above
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.reason).toBe("already_owned");
+    expect((await getWalletHex(WALLET)).balance).toBe(bal); // no extra burn
   });
 });

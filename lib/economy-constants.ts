@@ -175,6 +175,7 @@ export const ECONOMY = {
   TITHE_MIN: 250,                    // was 100
   NAMING_COST: 500,                  // was 100 — ~$17 at peg
   REALIGN_COST: 2_500,               // was 500 — ~$87 at peg
+  WORLD_BUILD_COST: 100,             // /world/city — sink one parcel-build (~$3.50 at peg, pure sink, no yield)
   BOOST_LISTING_PER_DAY: 100,        // pin on /market for 24h
   FEATURE_CITIZEN_24H: 1_000,        // hero slot on /civilizations
   CUSTOM_TITLE_COST: 5_000,          // vanity carrier title

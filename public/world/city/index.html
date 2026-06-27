@@ -36,8 +36,8 @@
 <canvas id="c"></canvas>
 <div id="boot"><div class="b1">FREELON WORLD</div><div class="b2" id="bootmsg">loading engine…</div></div>
 <div class="hud" id="top">FREELON <b>WORLD</b> · vertical slice<br><span id="fps">– fps</span> · <span id="chunks">chunks 0</span> · <span id="plots">plots 0</span></div>
-<div class="hud" id="wealth"><span class="hex" id="hex">0</span> ⬡<br><span id="netw" style="color:var(--ink2);font-size:11px">net worth 0</span></div>
-<div class="hud" id="hint">WASD / arrows to drive · click a glowing plot to BUILD (100⬡) · drive up to the figure to be remembered</div>
+<div class="hud" id="wealth"><span class="hex" id="hex">0</span> ⬡ <span id="mode" style="font-size:10px;color:var(--ink2);letter-spacing:.08em">· demo ⬡</span><br><span id="netw" style="color:var(--ink2);font-size:11px">net worth 0</span></div>
+<div class="hud" id="hint">WASD / arrows to drive · click a gold plot to BUILD (100⬡) · gold figure = WARDEN (remembers you) · cyan figure = DISPATCH (signal runs)</div>
 <div id="say"><span class="who" id="sayWho">CITIZEN</span><span id="sayMsg"></span></div>
 <div class="toast" id="toast"></div>
 
@@ -75,6 +75,7 @@ ledger.visits = (ledger.visits || 0) + 1;
 ledger.lastSeen = Date.now();
 if (typeof ledger.hex !== "number") ledger.hex = 500;   // starter stipend (in-world only, non-cashable)
 ledger.owned = Array.isArray(ledger.owned) ? ledger.owned : []; // plot indices owned
+ledger.runs = ledger.runs || 0; // signal-runs completed (a memory stat the Dispatcher recalls)
 saveLedger(ledger);
 
 // ---------------------------------------------------------------------------
@@ -85,38 +86,63 @@ saveLedger(ledger);
 // When served from the static dev copy (no /api), every call fails softly and
 // the localStorage ledger stands in — the route is an upgrade, not a dependency.
 // ---------------------------------------------------------------------------
-let serverLive = false; // becomes true once a /api/world call succeeds
-function reconcile(state) {
-  // Server is authority: overwrite the local economy fields from it, persist,
-  // and repaint owned towers (the optimistic build may be confirmed or undone).
-  if (!state) return;
-  if (typeof state.hex === "number") ledger.hex = state.hex;
-  if (Array.isArray(state.owned)) ledger.owned = state.owned.slice();
-  if (typeof state.visits === "number") ledger.visits = state.visits;
+let serverLive = false;      // becomes true once a /api/world call succeeds
+let worldMode = "demo";      // "wallet" (real HEX, proven session) | "demo" (in-world stipend)
+// Reconcile to the server's truth. `balance` is the SPENDABLE HEX: the real
+// wallet balance in wallet-mode, the in-world stipend in demo-mode. We mirror it
+// into ledger.hex so the HUD + optimistic guard read one number either way.
+function reconcile(state, balance) {
+  if (state) {
+    if (Array.isArray(state.owned)) ledger.owned = state.owned.slice();
+    if (typeof state.visits === "number") ledger.visits = state.visits;
+  }
+  if (typeof balance === "number") ledger.hex = balance;
+  else if (state && typeof state.hex === "number") ledger.hex = state.hex;
   saveLedger(ledger);
 }
 async function syncWorld() {
   try {
-    const r = await fetch(`/api/world?owner=${encodeURIComponent(NAME)}`, { cache: "no-store" });
+    // Same-origin: the x_session cookie rides along, so the server decides
+    // wallet-vs-demo. Sending ?owner= is only used in demo-mode.
+    const r = await fetch(`/api/world?owner=${encodeURIComponent(NAME)}`, { cache: "no-store", credentials: "same-origin" });
     if (!r.ok) return;
     const j = await r.json();
-    if (j && j.ok && j.state) { serverLive = true; reconcile(j.state); }
+    if (j && j.ok) {
+      serverLive = true;
+      worldMode = j.mode === "wallet" ? "wallet" : "demo";
+      const badge = document.getElementById("mode");
+      if (badge) {
+        // Be unambiguous about whether real value is at stake (legal clarity).
+        badge.textContent = worldMode === "wallet" ? "· your real ⬡" : "· demo ⬡ (in-world)";
+        badge.style.color = worldMode === "wallet" ? "var(--gold)" : "var(--ink2)";
+      }
+      reconcile(j.state, j.balance);
+    }
   } catch { /* offline / static-served — keep the localStorage ledger */ }
 }
 async function serverBuild(idx) {
   // Returns true if the server confirmed the build, false if it rejected it,
   // null if the server is unreachable (caller keeps the optimistic local state).
+  // In wallet-mode this SINKS real HEX; the spender is derived server-side from
+  // the proven session, so we never send a wallet address from the client.
+  const payload = worldMode === "wallet"
+    ? { action: "build_real", idx }
+    : { action: "build", owner: NAME, idx };
   try {
     const r = await fetch("/api/world", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ owner: NAME, action: "build", idx }),
+      credentials: "same-origin",
+      body: JSON.stringify(payload),
     });
-    if (!r.ok && r.status !== 400) return null;
-    const j = await r.json();
+    // 402 (insufficient) / 200-reject still carry an authoritative body to
+    // reconcile; only a true network/5xx-without-body is "unreachable".
+    let j = null;
+    try { j = await r.json(); } catch {}
+    if (!j) return r.ok ? true : null;
     serverLive = true;
-    if (j && j.state) reconcile(j.state);
-    return !!(j && j.ok);
+    reconcile(j.state, j.balance);
+    return !!j.ok;
   } catch { return null; }
 }
 
@@ -324,6 +350,62 @@ function showSay(who, msg) {
 }
 
 // ---------------------------------------------------------------------------
+// THE DISPATCHER — a SECOND HexMind character + the driving objective loop.
+// She hands you a "signal run": drive through 3 checkpoints in order. Completing
+// it makes her REMEMBER your run count (the differentiator), persisted locally.
+// Reward is RECOGNITION, not HEX — a HEX payout is the deferred yield step that
+// needs SIM_YIELD_DAILY_CAP first (treasury rule), so this loop mints nothing.
+// ---------------------------------------------------------------------------
+const dispatcher = new THREE.Group();
+const dBody = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.3, 6, 12),
+  new THREE.MeshStandardMaterial({ color: 0x5fd0e8, emissive: 0x186a7a, emissiveIntensity: 0.5, roughness: 0.4, metalness: 0.3 }));
+dBody.position.y = 1.25; dBody.castShadow = true;
+const dHead = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 0),
+  new THREE.MeshStandardMaterial({ color: 0xc8f4ff, emissive: 0x5fd0e8, emissiveIntensity: 0.35 }));
+dHead.position.y = 2.4;
+dispatcher.add(dBody); dispatcher.add(dHead);
+dispatcher.position.set(-DISTRICT / 2 - 10, 0, -8);
+scene.add(dispatcher);
+const dRing = new THREE.Mesh(new THREE.RingGeometry(2.2, 2.5, 32),
+  new THREE.MeshBasicMaterial({ color: 0x5fd0e8, transparent: true, opacity: 0.4, side: THREE.DoubleSide }));
+dRing.rotation.x = -Math.PI / 2; dRing.position.copy(dispatcher.position); dRing.position.y = 0.06;
+scene.add(dRing);
+
+// Checkpoint route — three rings scattered across the drivable area.
+const ROUTE = [new THREE.Vector3(64, 0, 60), new THREE.Vector3(-72, 0, 46), new THREE.Vector3(40, 0, -78)];
+const CP_R = 7;            // pass-through radius
+const checkpoints = ROUTE.map((p, i) => {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(4.5, 0.45, 10, 28),
+    new THREE.MeshStandardMaterial({ color: 0x5fd0e8, emissive: 0x5fd0e8, emissiveIntensity: 0.9, roughness: 0.3 }));
+  m.position.set(p.x, 3, p.z); m.rotation.x = Math.PI / 2; m.visible = false;
+  scene.add(m);
+  return m;
+});
+let runActive = false, runStep = 0, dispatcherArmed = true;
+function startRun() {
+  runActive = true; runStep = 0; dispatcherArmed = false;
+  checkpoints.forEach((m, i) => m.visible = i === 0);
+  const r = ledger.runs;
+  const greet = r === 0
+    ? `First run, ${NAME}. Three checkpoints, in order — I'll be watching the signal.`
+    : `Run #${r + 1}, ${NAME}. You've cleared ${r} before. Beat your own ghost — go.`;
+  showSay("FREELON · DISPATCH", greet);
+}
+function advanceRun() {
+  checkpoints[runStep].visible = false;
+  runStep++;
+  if (runStep >= ROUTE.length) {
+    runActive = false;
+    ledger.runs += 1; saveLedger(ledger);
+    toast("RUN COMPLETE · logged", true);
+    showSay("FREELON · DISPATCH", `Clean run, ${NAME}. That's ${ledger.runs} on record. I don't forget a driver.`);
+  } else {
+    checkpoints[runStep].visible = true;
+    toast(`checkpoint ${runStep}/${ROUTE.length}`, true);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // PHYSICS (Rapier) — real raycast vehicle to de-risk driving at 60fps.
 // ---------------------------------------------------------------------------
 let world, vehicle, chassisBody, carMesh, wheelMeshes = [];
@@ -477,6 +559,17 @@ function frame(now) {
   if (dToGreeter < 6) greet();
   else if (dToGreeter > 16) greeted = false; // re-arm after leaving
 
+  // dispatcher + the signal-run objective loop
+  dRing.rotation.z -= dt * 1.3;
+  const dToDispatch = Math.hypot(t.x - dispatcher.position.x, t.z - dispatcher.position.z);
+  if (!runActive && dispatcherArmed && dToDispatch < 6) startRun();
+  else if (!runActive && dToDispatch > 16) dispatcherArmed = true; // re-arm after leaving
+  if (runActive) {
+    const cp = checkpoints[runStep];
+    cp.rotation.z += dt * 2;
+    if (Math.hypot(t.x - cp.position.x, t.z - cp.position.z) < CP_R) advanceRun();
+  }
+
   // fps
   fpsAcc += dt; fpsN++; fpsT += dt;
   if (fpsT > 0.5) { $("fps").textContent = Math.round(fpsN / fpsAcc) + " fps"; fpsAcc = 0; fpsN = 0; fpsT = 0; }
@@ -508,7 +601,11 @@ addEventListener("resize", () => {
       step: (n = 1) => { for (let i = 0; i < n; i++) { vehicle.updateVehicle(1/60); world.step(); } },
       drive: () => { keys.KeyW = true; setTimeout(() => keys.KeyW = false, 1200); },
       build: (idx) => tryBuild(idx),
-      state: () => ({ name: NAME, visits: ledger.visits, hex: ledger.hex, owned: [...ledger.owned], chunks: chunkMap.size, carY: chassisBody.translation().y }),
+      state: () => ({ name: NAME, mode: worldMode, visits: ledger.visits, hex: ledger.hex, owned: [...ledger.owned], runs: ledger.runs, chunks: chunkMap.size, carY: chassisBody.translation().y }),
+      // objective-loop hooks for headless verification (can't drive a car in a hidden tab)
+      runState: () => ({ active: runActive, step: runStep, total: ROUTE.length, runs: ledger.runs }),
+      forceRun: () => startRun(),
+      clearCheckpoint: () => { if (runActive) advanceRun(); },
       // headless paint hook (rAF is frozen when the tab is hidden): position the
       // chase cam on the car, stream chunks, render one frame for screenshotting.
       render: () => {

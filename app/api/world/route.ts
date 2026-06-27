@@ -1,45 +1,82 @@
 /**
  * FREELON WORLD route — the server-authoritative seam for the open-world sim
  * slice (/world/city). Mirrors the existing lib/*-store.ts → route.ts shape used
- * everywhere else in this app (play-event, progression).
+ * everywhere else in this app (play-event, progression, city/boost).
  *
- *   GET  /api/world?owner=<key>     → { ok, state }   load + register a visit
- *   POST /api/world  { owner, action:"build", idx }   server-validated mutation
+ *   GET  /api/world[?owner=<handle>]        → { ok, mode, owner, state, balance }
+ *   POST /api/world  { action:"build", owner, idx }      DEMO  (in-world stipend)
+ *   POST /api/world  { action:"build_real", idx }        REAL  (sinks real HEX)
  *
- * AUTHORITY (docs/WORLD_BUILD_PLAN.md): the 3D client is an OPTIMISTIC view. It
- * may show the tower the instant you click, but the TRUTH is decided here —
- * lib/world-store validates range/ownership/balance and SINKS the HEX. A client
- * that lies (build a plot it can't afford, or one out of range) is rejected and
- * the route returns the real server state for the client to reconcile against.
+ * TWO MODES (security review 2026-06-27):
+ *  - DEMO: anonymous / handle-only visitors. Spends the throwaway 500-HEX in-world
+ *    stipend, keyed on a sanitized handle. No real value moves. This keeps the
+ *    slice publicly playable for cold visitors who haven't connected a wallet.
+ *  - REAL: a session that has CRYPTOGRAPHICALLY PROVEN a wallet (via /api/x/prove).
+ *    Building SINKS the player's real per-wallet HEX. Auth mirrors /api/city/boost
+ *    EXACTLY (same-origin + valid X session + proven wallet) and the spender is
+ *    DERIVED FROM THE SESSION — never a client-supplied address — so there is no
+ *    IDOR drain vector. A rejected build returns the authoritative state to
+ *    reconcile; it never throws an HTTP error for a normal rejection.
  *
  * Same-origin in prod (freeloncity.com/world/city → /api/world). The static dev
- * copy (port 8868) has no /api, so the client degrades to its localStorage
- * ledger — the route is an UPGRADE to server-of-record, not a hard dependency.
+ * copy (port 8868) has no /api, so the client degrades to its localStorage ledger.
  */
 import { NextResponse } from "next/server";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
-import { normalizeOwner, getWorld, registerVisit, buildPlot } from "@/lib/world-store";
+import { requireXSession } from "@/lib/require-x";
+import { getProvenWallet, isSameOrigin } from "@/lib/x-session";
+import { getWalletHex } from "@/lib/wallet-hex-store";
+import {
+  normalizeOwner,
+  getWorld,
+  registerVisit,
+  buildPlot,
+  buildPlotForWallet,
+  BUILD_COST,
+} from "@/lib/world-store";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** GET ?owner= → load the player's world and count the visit. */
+/**
+ * GET → load the player's world. If the session has a proven wallet we return
+ * REAL mode (keyed on the wallet, with the real ledger balance); otherwise DEMO
+ * mode keyed on the ?owner= handle. A GET counts as a "visit" (greeter memory).
+ */
 export async function GET(req: Request) {
   const rl = await limit(req, "world-get", { max: 60, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
 
+  const wallet = getProvenWallet(req);
+  if (wallet) {
+    const state = await registerVisit(wallet);
+    const ledger = await getWalletHex(wallet);
+    return NextResponse.json({
+      ok: true,
+      mode: "wallet",
+      owner: wallet,
+      state,
+      balance: ledger.balance, // REAL HEX — what the client spends/shows
+      buildCost: BUILD_COST,
+    });
+  }
+
   const url = new URL(req.url);
   const owner = normalizeOwner(url.searchParams.get("owner") || "");
   if (!owner) return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
-
-  // A GET on boot is a "visit" — bump the greeter's memory denominator, then
-  // return the (now-current) state.
   const state = await registerVisit(owner);
-  return NextResponse.json({ ok: true, state });
+  return NextResponse.json({
+    ok: true,
+    mode: "demo",
+    owner,
+    state,
+    balance: state.hex, // in-world stipend, non-real
+    buildCost: BUILD_COST,
+  });
 }
 
 type InBody = { owner?: string; action?: string; idx?: number };
 
-/** POST { owner, action:"build", idx } → server-authoritative mutation. */
 export async function POST(req: Request) {
   const rl = await limit(req, "world-build", { max: 30, windowSec: 60 });
   if (!rl.ok) return tooManyResponse(rl);
@@ -51,22 +88,48 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "bad_json" }, { status: 400 });
   }
 
-  const owner = normalizeOwner(body.owner || "");
-  if (!owner) return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+  // ─── REAL build: sinks real HEX. Auth mirrors /api/city/boost exactly. ───
+  if (body.action === "build_real") {
+    if (!isSameOrigin(req)) {
+      return NextResponse.json({ ok: false, error: "bad_origin" }, { status: 403 });
+    }
+    const session = await requireXSession(req, {});
+    if (session instanceof NextResponse) return session;
 
-  if (body.action === "build") {
-    const idx = Number(body.idx);
-    const res = await buildPlot(owner, idx);
-    // Always 200 with the authoritative state attached: a rejected build is a
-    // normal optimistic-reconcile event for the client, not an HTTP error.
+    // The spender is the wallet THIS SESSION has proven — never a body string.
+    const wallet = getProvenWallet(req);
+    if (!wallet) {
+      return NextResponse.json(
+        { ok: false, error: "wallet_proof_required", message: "Sign with your wallet once to build with ⬡." },
+        { status: 401 },
+      );
+    }
+
+    const res = await buildPlotForWallet(wallet, Number(body.idx));
+    if (res.ok) {
+      return NextResponse.json({ ok: true, mode: "wallet", state: res.state, balance: res.balance });
+    }
+    const status = res.reason === "insufficient_hex" ? 402 : res.reason === "busy" ? 503 : 200;
     return NextResponse.json(
-      res.ok
-        ? { ok: true, state: res.state }
-        : { ok: false, reason: res.reason, state: res.state },
+      { ok: false, mode: "wallet", reason: res.reason, state: res.state, balance: res.balance },
+      { status },
     );
   }
 
-  // Unknown action — return current state so the client can still reconcile.
-  const state = await getWorld(owner);
+  // ─── DEMO build: in-world stipend only, keyed on a handle. No real value. ───
+  if (body.action === "build") {
+    const owner = normalizeOwner(body.owner || "");
+    if (!owner) return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+    const res = await buildPlot(owner, Number(body.idx));
+    return NextResponse.json(
+      res.ok
+        ? { ok: true, mode: "demo", state: res.state }
+        : { ok: false, mode: "demo", reason: res.reason, state: res.state },
+    );
+  }
+
+  // Unknown action — return current demo state so the client can still reconcile.
+  const owner = normalizeOwner(body.owner || "");
+  const state = owner ? await getWorld(owner) : null;
   return NextResponse.json({ ok: false, error: "bad_action", state }, { status: 400 });
 }

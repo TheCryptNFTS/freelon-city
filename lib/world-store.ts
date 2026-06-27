@@ -17,14 +17,22 @@
  */
 
 import { upstash, hasUpstash } from "@/lib/upstash-client";
+import { ECONOMY } from "@/lib/economy-constants";
+import {
+  debitWalletHex,
+  creditWalletHex,
+  getWalletHex,
+  InsufficientHexError,
+  WalletBusyError,
+} from "@/lib/wallet-hex-store";
 
-// Slice constants. Production note: move asset/upkeep costs into
-// lib/economy-constants.ts (ECONOMY) and add SIM_YIELD_DAILY_CAP before any
-// yield-bearing assets ship — see the treasury section of WORLD_BUILD_PLAN.md.
+// Slice constants. SIM_YIELD_DAILY_CAP is still owed before any yield-bearing
+// asset ships — see the treasury section of WORLD_BUILD_PLAN.md. (Building is a
+// PURE SINK today: no yield, so the cap doesn't bind yet — finance sign-off 2026-06-27.)
 export const PLOTS_PER_SIDE = 8;
 export const PLOT_COUNT = PLOTS_PER_SIDE * PLOTS_PER_SIDE; // 64
-export const BUILD_COST = 100;
-export const STARTER_HEX = 500;
+export const BUILD_COST: number = ECONOMY.WORLD_BUILD_COST; // single source of truth
+export const STARTER_HEX = 500; // DEMO/anonymous in-world stipend ONLY — never real HEX
 
 export type WorldState = {
   owner: string; // sanitized player key (wallet address or display name in the slice)
@@ -143,18 +151,88 @@ export async function registerVisit(owner: string): Promise<WorldState> {
   }
 }
 
-/** Server-authoritative build: lock → read → validate+sink → persist. */
+/**
+ * DEMO build: lock → read → validate+sink IN-WORLD stipend → persist. Used for
+ * anonymous/handle visitors who have NOT proven a wallet. Spends the throwaway
+ * 500-HEX stipend, never real HEX. Keyed on a sanitized handle.
+ */
 export async function buildPlot(owner: string, idx: number): Promise<BuildResult> {
   const gotLock = await acquireLock(owner);
   try {
     const rec = await read(owner);
     const res = applyBuild(rec, idx);
     if (res.ok) await write(res.state);
-    // PRODUCTION: on success, also debit the real per-wallet ledger
-    // (lib/wallet-hex-store) so a world purchase sinks the player's actual HEX,
-    // per the treasury rule. The slice keeps a self-contained stipend instead.
     return res;
   } finally {
     if (gotLock) await releaseLock(owner);
+  }
+}
+
+export type RealBuildResult =
+  | { ok: true; state: WorldState; balance: number }
+  | {
+      ok: false;
+      reason: "bad_plot" | "already_owned" | "insufficient_hex" | "busy" | "error";
+      state: WorldState;
+      balance?: number;
+    };
+
+/**
+ * PRODUCTION build: SINKS the player's REAL per-wallet HEX (lib/wallet-hex-store)
+ * — a true treasury sink, burned, never refunded once the build lands. ONLY
+ * callable for a wallet the session has CRYPTOGRAPHICALLY PROVEN (the route gates
+ * this; this function trusts `wallet` is already proven). World state is keyed on
+ * the proven wallet, NOT a client string. The in-world `hex`/stipend is irrelevant
+ * here — the wallet ledger is the sole source of truth (no free faucet).
+ *
+ * Ordering (per security review, mirrors /api/city/boost): validate cheaply →
+ * DEBIT → only then append the plot. If the world write fails AFTER the debit
+ * landed, REFUND so an infra hiccup can't silently burn HEX for nothing.
+ */
+export async function buildPlotForWallet(wallet: string, idx: number): Promise<RealBuildResult> {
+  if (!Number.isInteger(idx) || idx < 0 || idx >= PLOT_COUNT) {
+    return { ok: false, reason: "bad_plot", state: await read(wallet) };
+  }
+  const gotLock = await acquireLock(wallet);
+  try {
+    const rec = await read(wallet);
+    if (rec.owned.includes(idx)) {
+      const ledger = await getWalletHex(wallet);
+      return { ok: false, reason: "already_owned", state: rec, balance: ledger.balance };
+    }
+
+    // SINK real HEX first. The authoritative spend-lock lives inside debitWalletHex.
+    try {
+      await debitWalletHex(wallet, BUILD_COST, { kind: "manual", note: "world build" });
+    } catch (e) {
+      if (e instanceof InsufficientHexError) {
+        return { ok: false, reason: "insufficient_hex", state: rec, balance: e.balance };
+      }
+      if (e instanceof WalletBusyError) {
+        return { ok: false, reason: "busy", state: rec };
+      }
+      return { ok: false, reason: "error", state: rec };
+    }
+
+    // Debit landed — append the plot. On write failure, refund the burn.
+    const next: WorldState = { ...rec, hex: 0, owned: [...rec.owned, idx].sort((a, b) => a - b) };
+    try {
+      await write(next);
+    } catch {
+      try {
+        await creditWalletHex(wallet, BUILD_COST, {
+          kind: "manual",
+          note: "world build refund (state write failed)",
+        });
+      } catch {
+        /* refund itself failed — surfaced as `error` for manual reconcile */
+      }
+      return { ok: false, reason: "error", state: rec };
+    }
+
+    const ledger = await getWalletHex(wallet);
+    return { ok: true, state: next, balance: ledger.balance };
+  } finally {
+    if (gotLock) await releaseLock(wallet);
   }
 }
