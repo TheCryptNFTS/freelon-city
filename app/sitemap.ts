@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllCitizens, getHonoraries } from "@/lib/citizens";
 import { CIVILIZATIONS } from "@/lib/constants";
+import { COLLECTION_SLUGS } from "@/lib/collections-data";
 
 const BASE = "https://www.freeloncity.com";
 
@@ -16,6 +17,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/", "/citizens", "/crypt-tcg", "/play", "/dashboard", "/earn",
     "/sync", "/collections", "/civilizations", "/shop", "/transmissions",
     "/canon", "/tribute", "/press", "/help", "/developers",
+    // SEO #29 (2026-06-27) — indexable public content surfaces that were missing.
+    // VERIFIED real pages with their own metadata (not redirects, not noindex):
+    // /demo + /proof = cold-acquisition surfaces with dedicated OG cards; /report
+    // = the weekly Signal Report ritual; /live = the live city feed;
+    // /carrier-of-the-week = weekly public content; /mars = the static MARS COMMAND
+    // game (rewrite, full meta + canonical). EXCLUDED on verification: /remember,
+    // /start, /archive (all redirect now), /world/city (noindex prototype slice).
+    "/demo", "/proof", "/report", "/live", "/carrier-of-the-week", "/mars",
     "/legal", "/legal/terms", "/legal/privacy", "/legal/honorary-notice", "/legal/dmca",
   ].map((p) => ({
     url: `${BASE}${p}`,
@@ -27,6 +36,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Civilization detail pages
   const civRoutes: MetadataRoute.Sitemap = Object.keys(CIVILIZATIONS).map((slug) => ({
     url: `${BASE}/civilizations/${slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  // Per-collection detail pages (SEO #29) — statically generated (generateStaticParams)
+  const collectionRoutes: MetadataRoute.Sitemap = COLLECTION_SLUGS.map((slug) => ({
+    url: `${BASE}/collections/${slug}`,
     lastModified: now,
     changeFrequency: "monthly" as const,
     priority: 0.7,
@@ -60,5 +77,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       };
     });
 
-  return [...staticRoutes, ...vanityRoutes, ...civRoutes, ...tributeRoutes, ...citizenRoutes];
+  return [...staticRoutes, ...collectionRoutes, ...vanityRoutes, ...civRoutes, ...tributeRoutes, ...citizenRoutes];
 }

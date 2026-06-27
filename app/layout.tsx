@@ -35,6 +35,14 @@ export const metadata: Metadata = {
     template: "%s · FREELON CITY",
   },
   description: SHARE_DESC,
+  // SEO #28 (2026-06-27) — site-wide self-referencing canonical. There were ZERO
+  // canonicals before, and the many vanity rewrites (/undervalued→/dashboard,
+  // /numbers→/dashboard, the 1/1 vanity URLs, etc.) served duplicate content with
+  // no canonical signal. A relative "./" resolves per-route against metadataBase to
+  // each page's own resolved path, so every page self-canonicalizes and rewrite
+  // targets collapse onto their real URL. Pages that set their own alternates
+  // (citizens/[id], OG surfaces) override this.
+  alternates: { canonical: "./" },
   // PWA / installable-app metadata (2026-06-16). manifest → app/manifest.ts;
   // appleWebApp makes iOS "Add to Home Screen" launch standalone with the brand
   // title + a translucent status bar over the warm-black chrome.

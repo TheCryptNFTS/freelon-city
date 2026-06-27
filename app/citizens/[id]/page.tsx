@@ -168,8 +168,44 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     ),
   ]);
 
+  // SEO #30 (2026-06-27) — per-page structured data. Citizen profiles are the
+  // 4,040 deepest pages on the site and carried ZERO JSON-LD, so Google saw them
+  // as generic pages. A CreativeWork describes the citizen as an artwork (name,
+  // image, collection it's part of), and a BreadcrumbList gives the
+  // Home › Citizens › #NNNN trail for SERP breadcrumb rendering. Plain serialized
+  // facts already on the page — no new claims.
+  const BASE = "https://www.freeloncity.com";
+  const displayName = customName?.name || c.transmission_name || c.name;
+  const citizenUrl = `${BASE}/citizens/${tid}`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CreativeWork",
+      name: displayName,
+      url: citizenUrl,
+      image: imageUrl(tid),
+      description: `${c.shape} · ${c.civilization.replace("-", " ")} · ${c.caste} · ${c.tier}`,
+      identifier: id4,
+      isPartOf: { "@type": "Collection", name: "FREELON CITY", url: `${BASE}/citizens` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "FREELON CITY", item: BASE },
+        { "@type": "ListItem", position: 2, name: "Citizens", item: `${BASE}/citizens` },
+        { "@type": "ListItem", position: 3, name: `#${id4}`, item: citizenUrl },
+      ],
+    },
+  ];
+
   return (
     <div className="citizen-page" style={{ "--civ": color } as React.CSSProperties}>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <article className="citizen-grid">
         <aside className="citizen-image">
           {/* Art rises first (slot 0); the sticky positioning stays on the

@@ -47,11 +47,11 @@ assets only, with attribution — never copyrighted material.
 - [x] 26. Code-split HexMatch tutorial island via next/dynamic (ssr:false, client component). HexMatch.tsx.
 - [x] 27. Defer below-fold TransformsWall on homepage via next/dynamic (server component, ssr stays on). app/page.tsx.
 
-## BATCH 5 — SEO / metadata
-- [ ] 28. Add `alternates:{canonical}` site-wide (0 today; vanity rewrites dup content).
-- [ ] 29. Sitemap omits indexable routes (/remember,/proof,/demo,/collections/[slug],...). app/sitemap.ts:18.
-- [ ] 30. Per-page JSON-LD (CreativeWork on citizens/[id], BreadcrumbList). app/layout.tsx:105.
-- [ ] 31. Index policy for static games (/mars,/world/city): sitemap+title or noindex.
+## BATCH 5 — SEO / metadata — SHIPPED
+- [x] 28. Site-wide self-referencing canonical via `alternates:{canonical:"./"}` in root layout (relative "./" resolves per-route to each page's own path; collapses vanity rewrites onto their real URL; per-page metadata overrides). app/layout.tsx.
+- [x] 29. Sitemap: added VERIFIED indexable routes /demo,/proof,/report,/live,/carrier-of-the-week,/mars + all /collections/[slug] (COLLECTION_SLUGS). EXCLUDED on verification: /remember,/start,/archive (now redirects), /world/city (noindex). app/sitemap.ts.
+- [x] 30. Per-page JSON-LD on citizens/[id]: CreativeWork (name/image/isPartOf collection) + BreadcrumbList (Home›Citizens›#NNNN). app/citizens/[id]/page.tsx.
+- [x] 31. Static-game index policy: /mars (polished, full meta) → +canonical link + added to sitemap; /world/city ("Slice 1" prototype) → meta robots noindex,nofollow. public/mars/index.html, public/world/city/index.html.
 
 ## BATCH 6 — UX clarity & conversion polish (Nielsen)
 - [ ] 32. Awaken copy leads with abilities, not "it remembers you" — reorder. WorkspaceUnlock.tsx:149.
