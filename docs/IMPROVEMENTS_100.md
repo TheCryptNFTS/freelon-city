@@ -53,15 +53,15 @@ assets only, with attribution — never copyrighted material.
 - [x] 30. Per-page JSON-LD on citizens/[id]: CreativeWork (name/image/isPartOf collection) + BreadcrumbList (Home›Citizens›#NNNN). app/citizens/[id]/page.tsx.
 - [x] 31. Static-game index policy: /mars (polished, full meta) → +canonical link + added to sitemap; /world/city ("Slice 1" prototype) → meta robots noindex,nofollow. public/mars/index.html, public/world/city/index.html.
 
-## BATCH 6 — UX clarity & conversion polish (Nielsen)
-- [ ] 32. Awaken copy leads with abilities, not "it remembers you" — reorder. WorkspaceUnlock.tsx:149.
-- [ ] 33. my-citizens empty state has no "just bought, awaiting index" path → dead-ends a returning buyer. MyCitizens.tsx:127.
-- [ ] 34. Demo exhaustion-wall OWN CTA is dim equal-weight link → make primary. DemoChat.tsx:476.
-- [ ] 35. Demo memory panel buries the "forgets when you leave" contrast → lead with it. DemoChat.tsx:173.
-- [ ] 36. Trust line at the non-refundable pay checkbox ("official wallet · verifiable on Etherscan"). WorkspaceUnlock.tsx:169.
-- [ ] 37. Demo share routes to generic universe OG, not the personalized /share/remember card. DemoChat.tsx:459.
-- [ ] 38. Mobile in-app-browser hint at /sync connect action. app/sync/page.tsx:66.
-- [ ] 39. Reservation confirmation / address echo to catch typo'd emails. ClaimForm.tsx.
+## BATCH 6 — UX clarity & conversion polish (Nielsen) — SHIPPED
+- [x] 32. Already satisfied — awaken copy leads with abilities ("switches on every premium ability — strategy, research, red-team, dossier & branded image generation"), NOT "it remembers you". ("forever" durability claim left untouched — FLAGGED L2.) WorkspaceUnlock.tsx:172.
+- [x] 33. my-citizens empty state: added "just bought? ownership takes a few min" line + "I JUST BOUGHT ONE — RE-CHECK" button (re-runs portfolio load via extracted loadPortfolio) so a returning buyer isn't dead-ended into buying again. MyCitizens.tsx, globals.css.
+- [x] 34. Demo wall OWN CTA promoted from a dim underline (equal to share/proof) to a distinct gold-outline secondary; email ClaimForm stays the single primary. DemoChat.tsx.
+- [x] 35. Demo memory panel: the "demo forgets / owned keeps" contrast now persists while the panel is POPULATED (it previously only showed in the empty state — gone exactly when loss-aversion bites). DemoChat.tsx.
+- [x] 36. Trust line at the non-refundable pay checkbox: "Official awakening wallet — verify it on Etherscan ↗" linking etherscan.io/address/{toWallet}. WorkspaceUnlock.tsx.
+- [x] 37. Already satisfied — demo share routes to personalized /share/quote (unfurls citizen's own words), not generic universe OG (done earlier as audit #115). lib/share.ts:540.
+- [x] 38. Proactive mobile in-app-browser hint on /sync connect — shown when mobile + no injected wallet, before the user taps and bounces. app/sync/SyncWalletAction.tsx.
+- [x] 39. ClaimForm done-state echoes the submitted email + "Not right? Fix it" reset, to catch typo'd addresses at capture instead of silently losing the lead. ClaimForm.tsx.
 
 ## BATCH 7 — dead code & cleanup
 - [ ] 40. Delete orphaned CityFeedTicker (never rendered). components/CityFeedTicker.tsx.

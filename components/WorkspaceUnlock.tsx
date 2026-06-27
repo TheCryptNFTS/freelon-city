@@ -189,6 +189,18 @@ export function WorkspaceUnlock({
           <p style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim, #8a8a92)", margin: "8px 0 0", wordBreak: "break-all" }}>
             Send the exact amount to <code style={{ color: "var(--ink-2, #b8b8c0)" }}>{quote.toWallet}</code>
           </p>
+          {/* #36 (2026-06-27) — trust microcopy at the non-refundable checkout.
+              The destination is the official awakening wallet and the payment is a
+              real on-chain tx; linking it to Etherscan lets a wary buyer verify the
+              address themselves before they commit. Factual, no new claim. */}
+          <a
+            href={`https://etherscan.io/address/${quote.toWallet}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "inline-block", fontFamily: "var(--mono2)", fontSize: 11, color: accent, margin: "6px 0 0", textDecoration: "none", borderBottom: `1px solid color-mix(in srgb, ${accent} 50%, transparent)` }}
+          >
+            Official awakening wallet — verify it on Etherscan ↗
+          </a>
           <label style={{ display: "flex", gap: 8, alignItems: "flex-start", margin: "12px 0 0", fontSize: 12, color: "var(--ink-2, #b8b8c0)", cursor: "pointer" }}>
             <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} style={{ marginTop: 2 }} />
             <span>I understand this is an on-chain, non-refundable payment.</span>

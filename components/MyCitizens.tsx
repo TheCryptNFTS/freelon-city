@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useHolder } from "@/lib/useHolder";
 import { WalletConnect } from "@/components/WalletConnect";
@@ -29,22 +29,26 @@ export function MyCitizens() {
   const [err, setErr] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "activated" | "working" | "locked">("all");
 
-  useEffect(() => {
+  // Extracted so the empty-state "just bought — re-check" button (#33) can
+  // re-run the same load a returning buyer needs when ownership hasn't indexed
+  // yet, without duplicating the fetch.
+  const loadPortfolio = useCallback(async () => {
     if (!h.address) return;
-    let cancelled = false;
     setLoading(true);
     setErr(null);
-    fetch(`/api/wallet/${h.address}/portfolio`, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j: Portfolio & { error?: string }) => {
-        if (cancelled) return;
-        if (j.error) { setErr("Couldn't load your roster — retry."); return; }
-        setData(j);
-      })
-      .catch(() => { if (!cancelled) setErr("Couldn't load your roster — retry."); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+    try {
+      const r = await fetch(`/api/wallet/${h.address}/portfolio`, { cache: "no-store" });
+      const j: Portfolio & { error?: string } = await r.json();
+      if (j.error) { setErr("Couldn't load your roster — retry."); return; }
+      setData(j);
+    } catch {
+      setErr("Couldn't load your roster — retry.");
+    } finally {
+      setLoading(false);
+    }
   }, [h.address]);
+
+  useEffect(() => { void loadPortfolio(); }, [loadPortfolio]);
 
   // ── Not connected ──────────────────────────────────────────────────────
   if (!h.loading && !h.address) {
@@ -127,8 +131,18 @@ export function MyCitizens() {
       {!loading && total === 0 && !err && (
         <div className="mycit-empty">
           <p>No FREELONS in this wallet.</p>
-          <a className="btn btn-primary" href="https://opensea.io/assets/ethereum/0xa79e73c9828db3fcd7c77be7d9f356fb684b5504" target="_blank" rel="noreferrer" onClick={() => trackEvent("opensea_click", { from: "my_citizens_empty" })}>
-            <span className="ttl">GET A FREELON ↗</span>
+          {/* #33 (2026-06-27) — a buyer who JUST minted/bought lands here while
+              OpenSea/our index still catches up, and "No FREELONS" with only a
+              buy CTA reads like their purchase vanished. Give the just-bought path
+              a re-check before pushing them to buy again. */}
+          <p className="mycit-empty-note">
+            Just bought one? Ownership can take a few minutes to show up on-chain.
+          </p>
+          <button type="button" className="btn btn-primary" onClick={() => { trackEvent("portfolio_recheck", { from: "my_citizens_empty" }); void loadPortfolio(); }}>
+            <span className="ttl">I JUST BOUGHT ONE — RE-CHECK ↻</span>
+          </button>
+          <a className="mycit-empty-buy" href="https://opensea.io/assets/ethereum/0xa79e73c9828db3fcd7c77be7d9f356fb684b5504" target="_blank" rel="noreferrer" onClick={() => trackEvent("opensea_click", { from: "my_citizens_empty" })}>
+            Don&apos;t have one yet? Get a FREELON ↗
           </a>
         </div>
       )}

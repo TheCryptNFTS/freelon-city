@@ -8475,7 +8475,10 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
 .mycit-head p { color: var(--ink-2); font-size: 16px; line-height: 1.5; max-width: 60ch; }
 .mycit-connect { margin-top: var(--s-5, 24px); }
 .mycit-err { color: var(--state-danger, #FF5A4D); font-family: var(--mono2); font-size: 13px; margin-bottom: 16px; }
-.mycit-empty { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; color: var(--ink-2); }
+.mycit-empty { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; color: var(--ink-2); }
+.mycit-empty-note { font-size: 13px; color: var(--ink-dim); margin: -4px 0 0; line-height: 1.5; }
+.mycit-empty-buy { font-family: var(--mono2); font-size: 12px; letter-spacing: 0.04em; color: var(--ink-dim); text-decoration: underline; margin-top: 2px; }
+.mycit-empty-buy:hover { color: var(--ink-2); }
 
 .mycit-filters { display: flex; gap: 8px; margin-bottom: var(--s-4, 20px); flex-wrap: wrap; }
 .mycit-filter {

@@ -28,6 +28,17 @@ export function SyncWalletAction() {
   const [addr, setAddr] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [err, setErr] = useState<string | null>(null);
+  // #38 (2026-06-27) — proactive mobile in-app-browser hint. On a phone in plain
+  // Safari/Chrome there's no injected wallet, so CONNECT can only deep-link out
+  // (MetaMask) and Coinbase/other-wallet users are left guessing. Detect that
+  // state on mount and tell them to open the page inside their wallet's browser
+  // BEFORE they tap and bounce. Client-only check so it can't mismatch SSR.
+  const [showMobileHint, setShowMobileHint] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    if (isMobile && !window.ethereum) setShowMobileHint(true);
+  }, []);
 
   // On mount, detect an already-connected wallet (no prompt — just
   // mirrors the header's eth_accounts read). Lets a returning user
@@ -136,6 +147,20 @@ export function SyncWalletAction() {
       >
         Read-only · no transaction · we never move your assets
       </p>
+      {showMobileHint && (
+        <p
+          style={{
+            marginTop: 8,
+            fontSize: 12,
+            lineHeight: 1.5,
+            color: "var(--ink-2)",
+            textAlign: "center",
+          }}
+        >
+          On a phone? Open this page <strong>inside your wallet app&apos;s browser</strong>{" "}
+          (MetaMask, Coinbase Wallet) — tapping connect in Safari/Chrome can&apos;t reach your wallet.
+        </p>
+      )}
       {err && (
         <p className="sync-wallet-action__err" role="alert">
           ⚠ {err}

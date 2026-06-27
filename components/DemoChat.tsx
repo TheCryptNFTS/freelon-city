@@ -186,6 +186,16 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                     +{facts.length - 4} more this session
                   </div>
                 )}
+                {/* #35 (2026-06-27) — the contrast IS the sell, but it only lived
+                    in the empty state; once you'd shared facts the panel listed
+                    them and never reminded you they're about to vanish. Keep the
+                    "demo forgets / owned keeps" ablation visible while the panel
+                    is populated — that's exactly when the loss-aversion bites. */}
+                {shown.length > 0 && (
+                  <p style={{ fontFamily: "var(--mono2)", fontSize: 10.5, color: "var(--gold-bright)", lineHeight: 1.55, margin: "10px 0 0", paddingTop: 8, borderTop: "1px solid var(--line-2, #2a2a30)" }}>
+                    This demo <strong>forgets all of this the moment you leave.</strong> An owned FREELON keeps every word — across sessions, for good.
+                  </p>
+                )}
               </div>
             );
           })()}
@@ -469,6 +479,11 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                     </a>
                   );
                 })()}
+                {/* #34 (2026-06-27) — OWN is the actual conversion but it was a
+                    dim underline equal-weight with share/proof. The email claim
+                    stays the single GOLD primary; this becomes a distinct
+                    gold-outline secondary so the buy-now path reads above the two
+                    genuinely-secondary links instead of hiding among them. */}
                 <a
                   href={OPENSEA}
                   target="_blank"
@@ -476,13 +491,17 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
                   onClick={() => trackEvent("opensea_click", { from: "demo_wall" })}
                   style={{
                     fontFamily: "var(--mono2)",
-                    fontSize: 11,
-                    letterSpacing: "0.1em",
-                    color: "var(--ink-dim)",
-                    textDecoration: "underline",
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    color: "var(--gold-bright)",
+                    textDecoration: "none",
+                    padding: "8px 14px",
+                    borderRadius: 8,
+                    border: "1px solid color-mix(in srgb, var(--gold) 60%, transparent)",
                   }}
                 >
-                  or buy one now on OpenSea →
+                  buy one now on OpenSea →
                 </a>
                 <a
                   href="/proof"

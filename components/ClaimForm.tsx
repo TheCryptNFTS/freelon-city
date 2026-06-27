@@ -77,9 +77,22 @@ export function ClaimForm({
         <div style={{ fontFamily: "var(--display)", fontSize: 20, color: "var(--ink)", lineHeight: 1.2, marginBottom: 8 }}>
           You&apos;re on the list.
         </div>
-        <p style={{ fontFamily: "var(--mono2)", fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 16 }}>
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 10 }}>
           We&apos;ll reach out about claiming your FREELON. No payment, nothing locked — and we&apos;ll never
           ask for a seed phrase.
+        </p>
+        {/* #39 (2026-06-27) — echo the address so a typo'd email
+            (you@gmial.com) is caught HERE, not silently lost. The fix link
+            re-opens the form pre-filled so they can correct + resubmit. */}
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 12, color: "var(--ink-dim)", lineHeight: 1.6, marginBottom: 16 }}>
+          We&apos;ll write to <strong style={{ color: "var(--ink-2)" }}>{email.trim()}</strong>.{" "}
+          <button
+            type="button"
+            onClick={() => { setDone(false); setError(null); }}
+            style={{ font: "inherit", color: accent, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}
+          >
+            Not right? Fix it
+          </button>
         </p>
         <a
           href={tweetIntent(`${SHARE_TEXT} ${SHARE_URL}`)}
