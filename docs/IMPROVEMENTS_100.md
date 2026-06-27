@@ -30,14 +30,14 @@ assets only, with attribution — never copyrighted material.
 - [x] 13. mission reward bypasses farmable cap — add `{farmable:true}`. app/api/mission/claim/route.ts:140. (matches BLUEPRINT:56 invariant)
 - [x] 14. isSameOrigin fail-closed when Origin AND Referer both absent — new isSameOriginStrict applied to 3 proven-wallet HEX-spend POSTs (tx/boost, tithe, city/boost). lib/x-session.ts. (defense-in-depth; scoped to browser-only value-moving routes)
 
-## BATCH 3 — accessibility (WCAG 2.1 AA)
-- [ ] 15. AgentWorkspace `<img onClick>` lightbox triggers → `<button>` (keyboard). SC 2.1.1/4.1.2. AgentWorkspace.tsx:1034,1222.
-- [ ] 16. Lightbox focus trap + focus restore. SC 2.4.3. AgentWorkspace.tsx:1382.
-- [ ] 17. Visible focusable close button on lightbox. SC 2.1.1. AgentWorkspace.tsx:1385.
-- [ ] 18. Meaningful images with empty alt — civ face, transmission artwork. SC 1.1.1. civilizations/page.tsx:105, TransmissionSubmit.tsx:210.
-- [ ] 19. Add app/global-error.tsx branded fallback. (Next.js convention; layout-level errors)
-- [ ] 20. Touch targets <44px — workspace SEND 38px, Crypt buttons 40px → 44. AgentWorkspace.module.css:426; live-crypt-match-mobile.css:95,101.
-- [ ] 21. Bottom-nav clearance on scroll viewport not footer. app/layout.tsx:138 main padding-bottom.
+## BATCH 3 — accessibility (WCAG 2.1 AA) — SHIPPED
+- [x] 15. AgentWorkspace `<img onClick>` lightbox triggers → `<button>` (keyboard). SC 2.1.1/4.1.2. AgentWorkspace.tsx:1034,1222.
+- [x] 16. Lightbox focus trap + focus restore. SC 2.4.3. AgentWorkspace.tsx:1382.
+- [x] 17. Visible focusable close button on lightbox. SC 2.1.1. AgentWorkspace.tsx:1385.
+- [x] 18. Meaningful images with empty alt — transmission preview given real alt. civ face left as-is (already correctly decorative: wrapped in aria-hidden span, civ name in adjacent text). SC 1.1.1. TransmissionSubmit.tsx:210.
+- [x] 19. Add app/global-error.tsx branded fallback (self-contained html/body, inlined brand styles). (Next.js convention; layout-level errors)
+- [x] 20. Touch targets — workspace SEND 38→44px. AgentWorkspace.module.css:426. (Crypt buttons live in the SEPARATE crypt-game repo, not this codebase — out of scope for this pass.)
+- [x] 21. Bottom-nav clearance on scroll viewport — added html scroll-padding-bottom (≤720px) so anchor jumps clear the fixed nav; footer padding kept for the resting case. app/globals.css.
 
 ## BATCH 4 — performance (Core Web Vitals)
 - [ ] 22. logo.png 296KB served at 36px → re-encode small WebP. Header.tsx:21.

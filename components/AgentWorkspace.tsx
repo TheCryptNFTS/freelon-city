@@ -192,12 +192,24 @@ export function AgentWorkspace(props: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  // A11y: Escape closes the image lightbox for keyboard users.
+  const lightboxCloseRef = useRef<HTMLButtonElement | null>(null);
+  // A11y (WCAG 2.4.3): the image lightbox is a modal dialog. Escape closes it,
+  // focus moves into it on open and is RESTORED to the trigger on close, and Tab
+  // is trapped on the only focusable child (the close button) so keyboard users
+  // can't tab "behind" the overlay.
   useEffect(() => {
     if (!lightbox) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLightbox(null); };
+    const prevFocus = document.activeElement as HTMLElement | null;
+    lightboxCloseRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setLightbox(null); return; }
+      if (e.key === "Tab") { e.preventDefault(); lightboxCloseRef.current?.focus(); }
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      prevFocus?.focus?.();
+    };
   }, [lightbox]);
   // CITY CREATION LOOP (Prompt step 1): publish a just-rendered image to the City
   // Archive (/transmissions). Reuses the existing POST /api/transmissions (which
@@ -1031,7 +1043,9 @@ export function AgentWorkspace(props: Props) {
                   {m.abilityLabel && m.role === "agent" && <div className={styles.bubbleTag}>{m.abilityLabel}</div>}
                   {m.kind === "image" && m.imageUrl ? (
                     <>
-                      <img src={m.imageUrl} alt={m.abilityLabel || "render"} className={styles.bubbleImg} onClick={() => setLightbox(m.imageUrl!)} />
+                      <button type="button" className={styles.imgBtn} onClick={() => setLightbox(m.imageUrl!)} aria-label={`Expand ${m.abilityLabel || "render"}`}>
+                        <img src={m.imageUrl} alt={m.abilityLabel || "render"} className={styles.bubbleImg} />
+                      </button>
                       {/* Creation loop: publish this render to the City Archive */}
                       {canPublish && m.role === "agent" && (() => {
                         const st = publishState[m.imageUrl!] ?? "idle";
@@ -1219,7 +1233,9 @@ export function AgentWorkspace(props: Props) {
                   <h3>Gallery</h3>
                   <div className={styles.galGrid}>
                     {gallery.map((g) => (
-                      <img key={g.id} src={g.body} alt="" className={styles.galThumb} onClick={() => setLightbox(g.body)} />
+                      <button key={g.id} type="button" className={styles.imgBtn} onClick={() => setLightbox(g.body)} aria-label="Expand gallery image">
+                        <img src={g.body} alt="" className={styles.galThumb} />
+                      </button>
                     ))}
                   </div>
                 </section>
@@ -1387,6 +1403,15 @@ export function AgentWorkspace(props: Props) {
           aria-modal="true"
           aria-label="Expanded image — click or press Escape to close"
         >
+          <button
+            type="button"
+            ref={lightboxCloseRef}
+            className={styles.lightboxClose}
+            onClick={(e) => { e.stopPropagation(); setLightbox(null); }}
+            aria-label="Close expanded image"
+          >
+            ×
+          </button>
           <img src={lightbox} alt="Expanded view of the generated image" />
         </div>
       )}

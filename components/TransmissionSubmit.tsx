@@ -207,7 +207,7 @@ export function TransmissionSubmit({ onSubmitted }: { onSubmitted?: (id: string)
         <div className="tx-preview">
           <span className="kicker">PREVIEW</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt="" />
+          <img src={imageUrl} alt="Preview of the image you're about to transmit" />
         </div>
       )}
 

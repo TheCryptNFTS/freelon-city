@@ -8731,6 +8731,11 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
    the footer AND the bar (ChromeGate), so it never needs this. */
 @media (max-width: 720px) {
   .site-footer { padding-bottom: calc(var(--s-5) + 60px + env(safe-area-inset-bottom)); }
+  /* Clearance on the SCROLL VIEWPORT, not just the footer: an in-page anchor jump
+     (e.g. /dashboard#heat) would otherwise land its target under the fixed bottom
+     nav. scroll-padding-bottom reserves the nav's height so anchored scrolls stop
+     above it. Non-visual (only affects scroll anchoring), so no layout shift. */
+  html { scroll-padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
 }
 
 /* ── upgrade audit 2026-06-19 — mobile a11y ───────────────────────────── */
