@@ -8,9 +8,13 @@ import {
   registerVisit,
   buildPlot,
   buildPlotForWallet,
+  recordRun,
+  recordLap,
   PLOT_COUNT,
   BUILD_COST,
   STARTER_HEX,
+  MIN_LAP_MS,
+  MAX_LAP_MS,
 } from "@/lib/world-store";
 import { creditWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
 
@@ -162,6 +166,73 @@ describe("async store loop (in-memory fallback)", () => {
     const reread = await getWorld(owner);
     expect(reread.hex).toBe(STARTER_HEX);
     expect(reread.owned).toEqual([]);
+  });
+});
+
+describe("recordRun / recordLap — RECOGNITION-ONLY server-of-record (ZERO HEX)", () => {
+  it("emptyWorld seeds runs=0 and bestLap=null", () => {
+    const w = emptyWorld("runner");
+    expect(w.runs).toBe(0);
+    expect(w.bestLap).toBe(null);
+  });
+
+  it("recordRun increments the run count and persists across a re-read", async () => {
+    const owner = normalizeOwner("runner_one");
+    const a = await recordRun(owner);
+    expect(a.ok).toBe(true);
+    if (a.ok) expect(a.state.runs).toBe(1);
+    await recordRun(owner);
+    const reread = await getWorld(owner);
+    expect(reread.runs).toBe(2);
+    // never mints HEX — the stipend is untouched
+    expect(reread.hex).toBe(STARTER_HEX);
+  });
+
+  it("recordLap sets the best on a first plausible lap", async () => {
+    const owner = normalizeOwner("lapper_one");
+    const res = await recordLap(owner, 30000);
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.best).toBe(true);
+      expect(res.state.bestLap).toBe(30000);
+    }
+  });
+
+  it("recordLap keeps the faster lap and ignores a slower one", async () => {
+    const owner = normalizeOwner("lapper_two");
+    await recordLap(owner, 25000);
+    const slower = await recordLap(owner, 40000);
+    expect(slower.ok).toBe(true);
+    if (slower.ok) {
+      expect(slower.best).toBe(false);
+      expect(slower.state.bestLap).toBe(25000); // unchanged
+    }
+    const faster = await recordLap(owner, 18000);
+    if (faster.ok) {
+      expect(faster.best).toBe(true);
+      expect(faster.state.bestLap).toBe(18000);
+    }
+    expect((await getWorld(owner)).bestLap).toBe(18000);
+  });
+
+  it("recordLap rejects an implausible time (hygiene bounds) without touching bestLap", async () => {
+    const owner = normalizeOwner("lapper_cheat");
+    await recordLap(owner, 22000); // a legit lap first
+    for (const bad of [0.2, MIN_LAP_MS - 1, MAX_LAP_MS + 1, NaN, Infinity, -5]) {
+      const res = await recordLap(owner, bad);
+      expect(res.ok).toBe(false);
+      if (!res.ok) expect(res.reason).toBe("bad_lap");
+    }
+    expect((await getWorld(owner)).bestLap).toBe(22000); // the legit best stands
+  });
+
+  it("rejects an empty owner with bad_owner (never writes)", async () => {
+    const run = await recordRun("");
+    expect(run.ok).toBe(false);
+    if (!run.ok) expect(run.reason).toBe("bad_owner");
+    const lap = await recordLap("", 30000);
+    expect(lap.ok).toBe(false);
+    if (!lap.ok) expect(lap.reason).toBe("bad_owner");
   });
 });
 

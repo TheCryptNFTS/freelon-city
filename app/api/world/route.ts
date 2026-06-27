@@ -31,6 +31,8 @@ import {
   isWalletAddress,
   getWorld,
   registerVisit,
+  recordRun,
+  recordLap,
   buildPlot,
   buildPlotForWallet,
   BUILD_COST,
@@ -81,7 +83,23 @@ export async function GET(req: Request) {
   });
 }
 
-type InBody = { owner?: string; action?: string; idx?: number };
+type InBody = { owner?: string; action?: string; idx?: number; lapMs?: number };
+
+/**
+ * Resolve the world key for a RECOGNITION-ONLY write (signal-run / lap). Prefer the
+ * session's PROVEN wallet so the record is keyed on it; otherwise fall back to the
+ * sanitized handle. Returns null for an empty or wallet-shaped handle — the same
+ * shared-namespace guard GET/build use, so an unauthenticated caller can never
+ * write run/lap stats into a real wallet's record. These paths mint ZERO HEX, so
+ * no money-path auth (same-origin/X-session) is required — only this key guard.
+ */
+function resolveRecognitionOwner(req: Request, bodyOwner: string | undefined): string | null {
+  const wallet = getProvenWallet(req);
+  if (wallet) return wallet;
+  const owner = normalizeOwner(bodyOwner || "");
+  if (!owner || isWalletAddress(owner)) return null;
+  return owner;
+}
 
 export async function POST(req: Request) {
   const rl = await limit(req, "world-build", { max: 30, windowSec: 60 });
@@ -119,6 +137,36 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { ok: false, mode: "wallet", reason: res.reason, state: res.state, balance: res.balance },
       { status },
+    );
+  }
+
+  // ─── RECOGNITION-ONLY: record a completed signal run. Mints ZERO HEX. ───
+  // Makes the run count server-of-record (DISPATCH's memory). The capped-HEX seam
+  // (docs/WORLD_HEX_REWARD_DECISION.md) attaches in recordRun, NOT here, and only
+  // once its two blockers clear — this endpoint deliberately pays nothing.
+  if (body.action === "complete_run") {
+    const owner = resolveRecognitionOwner(req, body.owner);
+    if (!owner) return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+    const res = await recordRun(owner);
+    return NextResponse.json(
+      res.ok
+        ? { ok: true, mode: isWalletAddress(owner) ? "wallet" : "demo", state: res.state }
+        : { ok: false, reason: res.reason, state: res.state },
+      { status: res.ok ? 200 : 400 },
+    );
+  }
+
+  // ─── RECOGNITION-ONLY: record a time-trial lap, keep personal best. ZERO HEX. ───
+  // MARSHAL's memory. `bad_lap` rejects an implausible time (hygiene, not anti-cheat).
+  if (body.action === "complete_lap") {
+    const owner = resolveRecognitionOwner(req, body.owner);
+    if (!owner) return NextResponse.json({ ok: false, error: "bad_owner" }, { status: 400 });
+    const res = await recordLap(owner, Number(body.lapMs));
+    return NextResponse.json(
+      res.ok
+        ? { ok: true, best: res.best, mode: isWalletAddress(owner) ? "wallet" : "demo", state: res.state }
+        : { ok: false, reason: res.reason, state: res.state },
+      { status: res.ok ? 200 : res.reason === "bad_lap" ? 422 : 400 },
     );
   }
 

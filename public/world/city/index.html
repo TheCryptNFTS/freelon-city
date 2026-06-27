@@ -101,6 +101,9 @@ function reconcile(state, balance) {
   if (state) {
     if (Array.isArray(state.owned)) ledger.owned = state.owned.slice();
     if (typeof state.visits === "number") ledger.visits = state.visits;
+    // The Dispatcher's + Marshal's memory is server-of-record when same-origin.
+    if (typeof state.runs === "number") ledger.runs = state.runs;
+    if (typeof state.bestLap === "number" || state.bestLap === null) ledger.bestLap = state.bestLap;
   }
   if (typeof balance === "number") ledger.hex = balance;
   else if (state && typeof state.hex === "number") ledger.hex = state.hex;
@@ -150,6 +153,34 @@ async function serverBuild(idx) {
     reconcile(j.state, j.balance);
     return !!j.ok;
   } catch { return null; }
+}
+// RECOGNITION-ONLY server-of-record for the skill loops. These mint ZERO HEX — they
+// only persist the run count / best lap so DISPATCH + MARSHAL remember you across
+// devices. Fire-and-forget + reconcile: when served statically (no /api) the call
+// fails softly and the optimistic localStorage stat stands in.
+async function serverRun() {
+  const payload = worldMode === "wallet" ? { action: "complete_run" } : { action: "complete_run", owner: NAME };
+  try {
+    const r = await fetch("/api/world", {
+      method: "POST", headers: { "content-type": "application/json" },
+      credentials: "same-origin", body: JSON.stringify(payload),
+    });
+    let j = null; try { j = await r.json(); } catch {}
+    if (j && j.ok) { serverLive = true; reconcile(j.state, j.balance); }
+  } catch { /* offline / static — keep optimistic local run count */ }
+}
+async function serverLap(lapMs) {
+  const payload = worldMode === "wallet"
+    ? { action: "complete_lap", lapMs }
+    : { action: "complete_lap", owner: NAME, lapMs };
+  try {
+    const r = await fetch("/api/world", {
+      method: "POST", headers: { "content-type": "application/json" },
+      credentials: "same-origin", body: JSON.stringify(payload),
+    });
+    let j = null; try { j = await r.json(); } catch {}
+    if (j && j.ok) { serverLive = true; reconcile(j.state, j.balance); }
+  } catch { /* offline / static — keep optimistic local best lap */ }
 }
 
 // ---------------------------------------------------------------------------
@@ -508,6 +539,7 @@ function advanceRun() {
   if (runStep >= ROUTE.length) {
     runActive = false;
     ledger.runs += 1; saveLedger(ledger);
+    serverRun(); // server-of-record (reconciles run count); ZERO HEX
     toast("RUN COMPLETE · logged", true);
     showSay("FREELON · DISPATCH", `Clean run, ${NAME}. That's ${ledger.runs} on record. I don't forget a driver.`);
   } else {
@@ -625,6 +657,7 @@ function finishLap() {
   const prev = ledger.bestLap;
   const best = !prev || elapsed < prev;
   if (best) { ledger.bestLap = elapsed; saveLedger(ledger); }
+  serverLap(elapsed); // server-of-record (keeps personal best); ZERO HEX
   $("race").textContent = `LAP ${fmtLap(elapsed)}${best ? " · NEW BEST" : ` · best ${fmtLap(prev)}`}`;
   toast(best ? "NEW RECORD" : "lap complete", true);
   showSay("FREELON · MARSHAL", best

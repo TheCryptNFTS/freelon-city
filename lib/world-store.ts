@@ -40,7 +40,17 @@ export type WorldState = {
   owned: number[]; // plot indices [0, PLOT_COUNT)
   visits: number;
   lastSeen: number;
+  runs: number; // signal-runs completed — DISPATCH's authoritative memory
+  bestLap: number | null; // fastest time-trial lap in ms — MARSHAL's authoritative memory
 };
+
+// Plausibility bounds for a recorded lap. RECOGNITION-ONLY today (no HEX), so
+// these are hygiene (reject a teleport-instant or absurd time, e.g. the headless
+// 0.2ms test artifact) — NOT anti-cheat. The credit-gated version (see
+// docs/WORLD_HEX_REWARD_DECISION.md) needs real per-checkpoint server validation
+// before any lap can pay out.
+export const MIN_LAP_MS = 6000; // sub-6s around the whole circuit is physically impossible
+export const MAX_LAP_MS = 10 * 60 * 1000; // 10 min — anything slower is a stale/abandoned timer
 
 // DEV-ONLY in-memory fallback (used only when !hasUpstash). globalThis-backed so
 // it's one shared instance across Next's per-route module bundles in dev.
@@ -60,7 +70,7 @@ export function normalizeOwner(input: string): string {
 }
 
 export function emptyWorld(owner: string): WorldState {
-  return { owner, hex: STARTER_HEX, owned: [], visits: 0, lastSeen: 0 };
+  return { owner, hex: STARTER_HEX, owned: [], visits: 0, lastSeen: 0, runs: 0, bestLap: null };
 }
 
 /**
@@ -113,6 +123,8 @@ async function read(owner: string): Promise<WorldState> {
     const rec = JSON.parse(raw) as WorldState;
     rec.owned = Array.isArray(rec.owned) ? rec.owned.filter((n) => Number.isInteger(n) && n >= 0 && n < PLOT_COUNT) : [];
     if (typeof rec.hex !== "number") rec.hex = STARTER_HEX;
+    if (typeof rec.runs !== "number" || !Number.isFinite(rec.runs) || rec.runs < 0) rec.runs = 0;
+    if (typeof rec.bestLap !== "number" || !Number.isFinite(rec.bestLap)) rec.bestLap = null;
     return rec;
   } catch {
     return emptyWorld(owner);
@@ -162,6 +174,58 @@ export async function registerVisit(owner: string): Promise<WorldState> {
     rec.lastSeen = Date.now();
     await write(rec);
     return rec;
+  } finally {
+    if (gotLock) await releaseLock(owner);
+  }
+}
+
+export type RunResult = { ok: true; state: WorldState } | { ok: false; reason: "bad_owner"; state: WorldState };
+export type LapResult =
+  | { ok: true; best: boolean; state: WorldState }
+  | { ok: false; reason: "bad_lap" | "bad_owner"; state: WorldState };
+
+/**
+ * SERVER-OF-RECORD for the DISPATCH signal-run. Increments the authoritative run
+ * count. RECOGNITION-ONLY — mints ZERO HEX (the capped-credit seam is gated on
+ * docs/WORLD_HEX_REWARD_DECISION.md blockers: this records the objective but does
+ * NOT pay for it). The credited version would attach a creditWalletHex(...,
+ * {farmable:true}) call HERE, behind a proven wallet + server-validated checkpoints.
+ */
+export async function recordRun(owner: string): Promise<RunResult> {
+  if (!owner) return { ok: false, reason: "bad_owner", state: emptyWorld(owner) };
+  const gotLock = await acquireLock(owner);
+  try {
+    const rec = await read(owner);
+    rec.runs += 1;
+    rec.lastSeen = Date.now();
+    await write(rec);
+    return { ok: true, state: rec };
+  } finally {
+    if (gotLock) await releaseLock(owner);
+  }
+}
+
+/**
+ * SERVER-OF-RECORD for the MARSHAL time-trial. Records a lap and keeps the player's
+ * personal best. `bad_lap` rejects an implausible time (sub-6s is physically
+ * impossible around the circuit; >10min is a stale/abandoned timer) — hygiene, NOT
+ * anti-cheat. RECOGNITION-ONLY — mints ZERO HEX even on a personal best; the
+ * SIM_LAP_PR_REWARD credit is the gated seam (PR-only, behind real checkpoint
+ * validation per docs/WORLD_HEX_REWARD_DECISION.md), NOT wired here.
+ */
+export async function recordLap(owner: string, lapMs: number): Promise<LapResult> {
+  if (!owner) return { ok: false, reason: "bad_owner", state: emptyWorld(owner) };
+  if (!Number.isFinite(lapMs) || lapMs < MIN_LAP_MS || lapMs > MAX_LAP_MS) {
+    return { ok: false, reason: "bad_lap", state: await read(owner) };
+  }
+  const gotLock = await acquireLock(owner);
+  try {
+    const rec = await read(owner);
+    const best = rec.bestLap == null || lapMs < rec.bestLap;
+    if (best) rec.bestLap = lapMs;
+    rec.lastSeen = Date.now();
+    await write(rec);
+    return { ok: true, best, state: rec };
   } finally {
     if (gotLock) await releaseLock(owner);
   }
