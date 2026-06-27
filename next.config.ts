@@ -28,6 +28,11 @@ const config: NextConfig = {
       // in BOTH dev and prod, and keeps location.pathname === "/mars" so the
       // game's shareURL() emits freeloncity.com/mars#s=… seed links.
       { source: "/mars", destination: "/mars/index.html" },
+      // 2026-06-27 — FREELON WORLD (vertical slice). Same self-contained static
+      // game pattern as /mars: public/world/city/index.html boots at the clean
+      // /world/city URL in dev + prod, keeping location.pathname stable for share
+      // links. Three.js + Rapier (physics) are self-hosted under world/city/vendor.
+      { source: "/world/city", destination: "/world/city/index.html" },
       { source: "/origin-signal",    destination: "/citizens/1" },
       { source: "/patient-zero",     destination: "/citizens/404" },
       { source: "/genesis-hex",      destination: "/citizens/1337" },
@@ -151,6 +156,25 @@ const config: NextConfig = {
     // and carries NO wallet, auth, form, or money action — nothing worth
     // clickjacking. The policy is otherwise tighter than the app CSP (no
     // opensea/rpc/x connect-src — the widget needs none).
+    // 2026-06-27 — FREELON WORLD slice. Same relaxed-but-self-contained policy as
+    // MARS_CSP: Three.js + Rapier are self-hosted under /world/city/vendor, every
+    // asset is same-origin. 'unsafe-eval' covers Rapier's WebAssembly physics core
+    // (compat build inlines the .wasm); 'unsafe-inline' covers the game's inline
+    // <script type="module">. Scoped to /world ONLY — rest of site keeps strict CSP.
+    const WORLD_CSP = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
+      "img-src 'self' data: blob:",
+      "connect-src 'self'",
+      "worker-src 'self' blob:",
+      "media-src 'self' blob:",
+      "frame-ancestors 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; ");
     const EMBED_CSP = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
@@ -206,7 +230,7 @@ const config: NextConfig = {
         // multiple CSP headers as their INTERSECTION, so the game path must
         // receive ONLY the relaxed policy below — hence this exclusion. /embed
         // is likewise excluded (it gets EMBED_CSP with frame-ancestors *).
-        source: "/((?!mars(?:/|$)|embed(?:/|$)).*)",
+        source: "/((?!mars(?:/|$)|world(?:/|$)|embed(?:/|$)).*)",
         headers: [
           {
             key: "Content-Security-Policy",
@@ -265,6 +289,16 @@ const config: NextConfig = {
       {
         source: "/mars/:path*",
         headers: [{ key: "Content-Security-Policy", value: MARS_CSP }],
+      },
+      // FREELON WORLD game — relaxed CSP scoped to /world only (clean URL +
+      // direct sub-path hits of the static build under public/world/*).
+      {
+        source: "/world/city",
+        headers: [{ key: "Content-Security-Policy", value: WORLD_CSP }],
+      },
+      {
+        source: "/world/:path*",
+        headers: [{ key: "Content-Security-Policy", value: WORLD_CSP }],
       },
       // EMBED WIDGET — relaxed-framing CSP scoped to the /embed path only.
       {

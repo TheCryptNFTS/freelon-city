@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>FREELON WORLD — Slice 1</title>
+<style>
+  :root { --gold:#e8c46a; --ink:#0b0c10; --ink2:#9aa3b2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; background:#05060a; color:#e9edf5; font-family:ui-monospace,Menlo,monospace; overflow:hidden; }
+  #c { position:fixed; inset:0; display:block; }
+  .hud { position:fixed; pointer-events:none; z-index:10; text-shadow:0 1px 2px #000; }
+  #top { top:12px; left:12px; font-size:13px; line-height:1.5; }
+  #top b { color:var(--gold); }
+  #hint { bottom:14px; left:12px; font-size:12px; color:var(--ink2); }
+  #wealth { top:12px; right:14px; text-align:right; font-size:13px; }
+  #wealth .hex { color:var(--gold); font-size:20px; font-weight:700; }
+  #say { position:fixed; left:50%; bottom:64px; transform:translateX(-50%); z-index:11;
+    max-width:min(560px,86vw); background:rgba(10,12,18,.86); border:1px solid var(--gold);
+    border-radius:12px; padding:12px 16px; font-size:14px; line-height:1.45; opacity:0;
+    transition:opacity .3s; pointer-events:none; }
+  #say.on { opacity:1; }
+  #say .who { color:var(--gold); font-weight:700; display:block; margin-bottom:3px; letter-spacing:.04em; }
+  #boot { position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:#05060a; z-index:50; flex-direction:column; gap:10px; }
+  #boot .b1 { color:var(--gold); font-size:15px; letter-spacing:.1em; }
+  #boot .b2 { color:var(--ink2); font-size:12px; }
+  .toast { position:fixed; left:50%; top:54px; transform:translateX(-50%); z-index:12;
+    background:rgba(10,12,18,.9); border:1px solid #2a3142; border-radius:8px; padding:7px 14px;
+    font-size:13px; opacity:0; transition:opacity .25s; }
+  .toast.on { opacity:1; }
+  .toast.good { border-color:var(--gold); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="boot"><div class="b1">FREELON WORLD</div><div class="b2" id="bootmsg">loading engine…</div></div>
+<div class="hud" id="top">FREELON <b>WORLD</b> · vertical slice<br><span id="fps">– fps</span> · <span id="chunks">chunks 0</span> · <span id="plots">plots 0</span></div>
+<div class="hud" id="wealth"><span class="hex" id="hex">0</span> ⬡<br><span id="netw" style="color:var(--ink2);font-size:11px">net worth 0</span></div>
+<div class="hud" id="hint">WASD / arrows to drive · click a glowing plot to BUILD (100⬡) · drive up to the figure to be remembered</div>
+<div id="say"><span class="who" id="sayWho">CITIZEN</span><span id="sayMsg"></span></div>
+<div class="toast" id="toast"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three.module.js",
+  "rapier": "./vendor/rapier.es.js"
+}}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+import * as RAPIER from "rapier";
+
+const boot = document.getElementById("boot");
+const bootmsg = document.getElementById("bootmsg");
+const $ = (id) => document.getElementById(id);
+
+// ---------------------------------------------------------------------------
+// IDENTITY + LOCAL BELIEF LEDGER (HexMind stub)
+// The differentiator: the world remembers YOU across visits. Slice 1 keeps the
+// ledger client-side (localStorage); the Supabase server-of-record lands next.
+// ---------------------------------------------------------------------------
+const params = new URLSearchParams(location.search);
+const NAME = (params.get("name") || localStorage.getItem("freelon_world_name") || "citizen").slice(0, 24);
+localStorage.setItem("freelon_world_name", NAME);
+const LEDGER_KEY = "freelon_world_ledger_v1";
+function loadLedger() {
+  try { return JSON.parse(localStorage.getItem(LEDGER_KEY) || "{}"); } catch { return {}; }
+}
+function saveLedger(l) { localStorage.setItem(LEDGER_KEY, JSON.stringify(l)); }
+const ledger = loadLedger();
+ledger.visits = (ledger.visits || 0) + 1;
+ledger.lastSeen = Date.now();
+if (typeof ledger.hex !== "number") ledger.hex = 500;   // starter stipend (in-world only, non-cashable)
+ledger.owned = Array.isArray(ledger.owned) ? ledger.owned : []; // plot indices owned
+saveLedger(ledger);
+
+// ---------------------------------------------------------------------------
+// RENDERER / SCENE
+// ---------------------------------------------------------------------------
+const canvas = $("c");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0d16);
+scene.fog = new THREE.Fog(0x0a0d16, 60, 220);
+
+const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.3, 1200);
+camera.position.set(0, 12, 20);
+
+const hemi = new THREE.HemisphereLight(0xbcd0ff, 0x2a2012, 1.05);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffe6b0, 2.4);
+sun.position.set(40, 80, 30);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 300;
+sun.shadow.camera.left = -120; sun.shadow.camera.right = 120;
+sun.shadow.camera.top = 120; sun.shadow.camera.bottom = -120;
+scene.add(sun);
+
+// District ground (visual)
+const WORLD = 240; // metres half-not; ground is WORLD x WORLD
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x232b40, roughness: 0.9, metalness: 0.05 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(WORLD, WORLD), groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+const grid = new THREE.GridHelper(WORLD, 60, 0x2a3350, 0x161b29);
+grid.position.y = 0.02;
+scene.add(grid);
+
+// ---------------------------------------------------------------------------
+// PARCELS — the buy/build/own seam. A grid of plots you can purchase with HEX.
+// ---------------------------------------------------------------------------
+const PLOT = 12;                 // plot size in metres
+const PLOTS_PER_SIDE = 8;        // 8x8 = 64 plots in a central district
+const DISTRICT = PLOT * PLOTS_PER_SIDE;
+const plotMeshes = [];
+const buildings = new THREE.Group();
+scene.add(buildings);
+const plotGroup = new THREE.Group();
+scene.add(plotGroup);
+const BUILD_COST = 100;
+
+function plotCenter(ix, iz) {
+  const x = (ix - PLOTS_PER_SIDE / 2 + 0.5) * PLOT;
+  const z = (iz - PLOTS_PER_SIDE / 2 + 0.5) * PLOT;
+  return new THREE.Vector3(x, 0, z);
+}
+const plotGeo = new THREE.PlaneGeometry(PLOT * 0.92, PLOT * 0.92);
+const openMat = new THREE.MeshBasicMaterial({ color: 0xe8c46a, transparent: true, opacity: 0.12 });
+const ownedMat = new THREE.MeshBasicMaterial({ color: 0x4cd2a0, transparent: true, opacity: 0.10 });
+for (let iz = 0; iz < PLOTS_PER_SIDE; iz++) {
+  for (let ix = 0; ix < PLOTS_PER_SIDE; ix++) {
+    const idx = iz * PLOTS_PER_SIDE + ix;
+    const m = new THREE.Mesh(plotGeo, openMat.clone());
+    m.rotation.x = -Math.PI / 2;
+    const c = plotCenter(ix, iz);
+    m.position.set(c.x, 0.05, c.z);
+    m.userData = { idx, ix, iz };
+    plotGroup.add(m);
+    plotMeshes[idx] = m;
+  }
+}
+function buildingFor(idx) {
+  const ix = idx % PLOTS_PER_SIDE, iz = Math.floor(idx / PLOTS_PER_SIDE);
+  const c = plotCenter(ix, iz);
+  const h = 4 + (Math.abs(Math.sin(idx * 12.9898)) * 10);
+  const g = new THREE.BoxGeometry(PLOT * 0.62, h, PLOT * 0.62);
+  const mat = new THREE.MeshStandardMaterial({ color: 0x2b3550, roughness: 0.6, metalness: 0.25, emissive: 0x0a1730, emissiveIntensity: 0.6 });
+  const b = new THREE.Mesh(g, mat);
+  b.position.set(c.x, h / 2, c.z);
+  b.castShadow = true; b.receiveShadow = true;
+  const cap = new THREE.Mesh(new THREE.BoxGeometry(PLOT * 0.66, 0.4, PLOT * 0.66),
+    new THREE.MeshStandardMaterial({ color: 0xe8c46a, emissive: 0xe8c46a, emissiveIntensity: 0.4, roughness: 0.4 }));
+  cap.position.set(c.x, h + 0.2, c.z);
+  buildings.add(b); buildings.add(cap);
+}
+function renderOwned() {
+  for (const idx of ledger.owned) {
+    if (plotMeshes[idx]) plotMeshes[idx].material = ownedMat.clone();
+  }
+  // rebuild building meshes
+  while (buildings.children.length) buildings.remove(buildings.children[0]);
+  for (const idx of ledger.owned) buildingFor(idx);
+  refreshWealth();
+}
+
+function refreshWealth() {
+  $("hex").textContent = Math.round(ledger.hex);
+  $("plots").textContent = "plots " + ledger.owned.length;
+  // Net worth = in-world holdings score (NON-CASHABLE). Buildings carry a notional
+  // build value; this is a status score, never money, never withdrawable.
+  $("netw").textContent = "net worth " + (ledger.owned.length * BUILD_COST);
+}
+
+// ---------------------------------------------------------------------------
+// CHUNK STREAMING STUB — proves the load/unload + draw-distance seam.
+// Decorative prop chunks activate within radius of the car and deactivate beyond.
+// ---------------------------------------------------------------------------
+const CHUNK = 40;
+const CHUNK_RADIUS = 2; // chunks
+const chunkMap = new Map(); // key -> {group, lod}
+const rockGeoHi = new THREE.IcosahedronGeometry(1.1, 1);
+const rockGeoLo = new THREE.IcosahedronGeometry(1.1, 0);
+const rockMat = new THREE.MeshStandardMaterial({ color: 0x3a3326, roughness: 1 });
+function chunkKey(cx, cz) { return cx + "," + cz; }
+function buildChunk(cx, cz) {
+  const g = new THREE.Group();
+  // deterministic scatter so a chunk looks identical each time it streams in
+  let seed = (cx * 73856093) ^ (cz * 19349663);
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const count = 10;
+  const inst = new THREE.InstancedMesh(rockGeoHi, rockMat, count);
+  const lo = new THREE.InstancedMesh(rockGeoLo, rockMat, count);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < count; i++) {
+    const x = cx * CHUNK + (rnd() - 0.5) * CHUNK;
+    const z = cz * CHUNK + (rnd() - 0.5) * CHUNK;
+    // keep props out of the central buildable district
+    if (Math.abs(x) < DISTRICT / 2 + 4 && Math.abs(z) < DISTRICT / 2 + 4) continue;
+    const s = 0.6 + rnd() * 1.8;
+    dummy.position.set(x, s * 0.4, z);
+    dummy.rotation.set(rnd() * 3, rnd() * 6, rnd() * 3);
+    dummy.scale.setScalar(s);
+    dummy.updateMatrix();
+    inst.setMatrixAt(i, dummy.matrix);
+    lo.setMatrixAt(i, dummy.matrix);
+  }
+  inst.castShadow = true;
+  g.add(inst); g.add(lo);
+  lo.visible = false;
+  scene.add(g);
+  return { group: g, hi: inst, lo, cx, cz };
+}
+function updateChunks(px, pz) {
+  const ccx = Math.round(px / CHUNK), ccz = Math.round(pz / CHUNK);
+  const need = new Set();
+  for (let dz = -CHUNK_RADIUS; dz <= CHUNK_RADIUS; dz++) {
+    for (let dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
+      const cx = ccx + dx, cz = ccz + dz;
+      const key = chunkKey(cx, cz);
+      need.add(key);
+      if (!chunkMap.has(key)) chunkMap.set(key, buildChunk(cx, cz));
+      // LOD: far ring uses low-poly
+      const ch = chunkMap.get(key);
+      const far = Math.abs(dx) + Math.abs(dz) > CHUNK_RADIUS;
+      ch.hi.visible = !far; ch.lo.visible = far;
+    }
+  }
+  for (const [key, ch] of chunkMap) {
+    if (!need.has(key)) { scene.remove(ch.group); ch.hi.dispose?.(); chunkMap.delete(key); }
+  }
+  $("chunks").textContent = "chunks " + chunkMap.size;
+}
+
+// ---------------------------------------------------------------------------
+// THE GREETER — a HexMind-driven character who remembers you by name.
+// ---------------------------------------------------------------------------
+const greeter = new THREE.Group();
+const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.6, 1.4, 6, 12),
+  new THREE.MeshStandardMaterial({ color: 0xe8c46a, emissive: 0x7a5a18, emissiveIntensity: 0.5, roughness: 0.4, metalness: 0.3 }));
+body.position.y = 1.3; body.castShadow = true;
+const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1),
+  new THREE.MeshStandardMaterial({ color: 0xfff0c8, emissive: 0xe8c46a, emissiveIntensity: 0.3 }));
+head.position.y = 2.5;
+greeter.add(body); greeter.add(head);
+greeter.position.set(0, 0, DISTRICT / 2 + 8);
+scene.add(greeter);
+const greetRing = new THREE.Mesh(new THREE.RingGeometry(2.4, 2.7, 32),
+  new THREE.MeshBasicMaterial({ color: 0xe8c46a, transparent: true, opacity: 0.4, side: THREE.DoubleSide }));
+greetRing.rotation.x = -Math.PI / 2; greetRing.position.copy(greeter.position); greetRing.position.y = 0.06;
+scene.add(greetRing);
+
+let greeted = false;
+function greet() {
+  if (greeted) return; greeted = true;
+  const v = ledger.visits, owned = ledger.owned.length;
+  const prevOwned = ledger.greetedOwned;
+  let msg;
+  if (v <= 1) msg = `New signal. I'm logging you as “${NAME}.” Build something — I'll still know it next time you roll through.`;
+  else if (typeof prevOwned === "number" && owned !== prevOwned)
+    msg = `Back again, ${NAME}. Last time you held ${prevOwned} plot${prevOwned===1?"":"s"}; now it's ${owned}. I kept count.`;
+  else if (owned > 0) msg = `I remember you, ${NAME}. Visit #${v}. Your ${owned} plot${owned===1?"":"s"} are exactly where you left them.`;
+  else msg = `Welcome back, ${NAME}. Visit #${v}. You haven't built yet — the gold plots are open.`;
+  ledger.greetedOwned = owned; saveLedger(ledger);
+  showSay("FREELON · WARDEN", msg);
+}
+function showSay(who, msg) {
+  $("sayWho").textContent = who; $("sayMsg").textContent = msg;
+  $("say").classList.add("on");
+  clearTimeout(showSay._t);
+  showSay._t = setTimeout(() => $("say").classList.remove("on"), 6500);
+}
+
+// ---------------------------------------------------------------------------
+// PHYSICS (Rapier) — real raycast vehicle to de-risk driving at 60fps.
+// ---------------------------------------------------------------------------
+let world, vehicle, chassisBody, carMesh, wheelMeshes = [];
+function initPhysics() {
+  world = new RAPIER.World(new RAPIER.Vector3(0, -9.81 * 2.2, 0));
+
+  // ground collider
+  const gBody = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  world.createCollider(RAPIER.ColliderDesc.cuboid(WORLD / 2, 0.5, WORLD / 2).setTranslation(0, -0.5, 0), gBody);
+
+  // building colliders (so the car can't drive through owned towers)
+  for (const idx of ledger.owned) {
+    const ix = idx % PLOTS_PER_SIDE, iz = Math.floor(idx / PLOTS_PER_SIDE);
+    const c = plotCenter(ix, iz);
+    const cb = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(c.x, 4, c.z));
+    world.createCollider(RAPIER.ColliderDesc.cuboid(PLOT * 0.31, 8, PLOT * 0.31), cb);
+  }
+
+  // chassis
+  const chassisDesc = RAPIER.RigidBodyDesc.dynamic()
+    .setTranslation(0, 2.5, DISTRICT / 2 - 6)
+    .setLinearDamping(0.35).setAngularDamping(0.6);
+  chassisBody = world.createRigidBody(chassisDesc);
+  world.createCollider(RAPIER.ColliderDesc.cuboid(1.0, 0.35, 2.0).setDensity(2.0), chassisBody);
+
+  vehicle = world.createVehicleController(chassisBody);
+  const down = new RAPIER.Vector3(0, -1, 0);
+  const axle = new RAPIER.Vector3(-1, 0, 0);
+  const wx = 0.95, wz = 1.35, restLen = 0.35, radius = 0.4;
+  const corners = [[-wx, -0.2, wz], [wx, -0.2, wz], [-wx, -0.2, -wz], [wx, -0.2, -wz]];
+  for (const [x, y, z] of corners) {
+    vehicle.addWheel(new RAPIER.Vector3(x, y, z), down, axle, restLen, radius);
+  }
+  for (let i = 0; i < 4; i++) {
+    vehicle.setWheelSuspensionStiffness(i, 24);
+    vehicle.setWheelMaxSuspensionTravel(i, 0.4);
+    vehicle.setWheelFrictionSlip(i, 1000);
+  }
+
+  // car visuals
+  carMesh = new THREE.Group();
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.7, 4.0),
+    new THREE.MeshStandardMaterial({ color: 0xc94f3a, roughness: 0.35, metalness: 0.5 }));
+  cab.position.y = 0.1; cab.castShadow = true;
+  const top = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.6, 2.0),
+    new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.2, metalness: 0.6 }));
+  top.position.set(0, 0.6, -0.2);
+  carMesh.add(cab); carMesh.add(top);
+  const wgeo = new THREE.CylinderGeometry(radius, radius, 0.3, 16);
+  const wmat = new THREE.MeshStandardMaterial({ color: 0x101216, roughness: 0.8 });
+  for (const [x, , z] of corners) {
+    const w = new THREE.Mesh(wgeo, wmat);
+    w.rotation.z = Math.PI / 2;
+    w.position.set(x, -0.2, z);
+    w.castShadow = true;
+    carMesh.add(w); wheelMeshes.push(w);
+  }
+  scene.add(carMesh);
+}
+
+// ---------------------------------------------------------------------------
+// INPUT
+// ---------------------------------------------------------------------------
+const keys = {};
+addEventListener("keydown", (e) => { keys[e.code] = true; if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault(); });
+addEventListener("keyup", (e) => { keys[e.code] = false; });
+
+// click / tap a plot to build
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+function pickPlot(clientX, clientY) {
+  ndc.x = (clientX / innerWidth) * 2 - 1;
+  ndc.y = -(clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects(plotMeshes, false);
+  if (!hits.length) return;
+  const idx = hits[0].object.userData.idx;
+  tryBuild(idx);
+}
+const PLOT_COUNT = PLOTS_PER_SIDE * PLOTS_PER_SIDE;
+function tryBuild(idx) {
+  if (!Number.isInteger(idx) || idx < 0 || idx >= PLOT_COUNT) { toast("no such plot", false); return; }
+  if (ledger.owned.includes(idx)) { toast("already yours", false); return; }
+  if (ledger.hex < BUILD_COST) { toast("not enough ⬡", false); return; }
+  ledger.hex -= BUILD_COST;                 // HEX is SPENT (sink) — never refunded, never cashable
+  ledger.owned.push(idx);
+  saveLedger(ledger);
+  // add physics collider for the new tower
+  const ix = idx % PLOTS_PER_SIDE, iz = Math.floor(idx / PLOTS_PER_SIDE);
+  const c = plotCenter(ix, iz);
+  if (world) {
+    const cb = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(c.x, 4, c.z));
+    world.createCollider(RAPIER.ColliderDesc.cuboid(PLOT * 0.31, 8, PLOT * 0.31), cb);
+  }
+  renderOwned();
+  toast("BUILT · −100⬡", true);
+}
+addEventListener("click", (e) => pickPlot(e.clientX, e.clientY));
+function toast(msg, good) {
+  const t = $("toast"); t.textContent = msg;
+  t.className = "toast on" + (good ? " good" : "");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.className = "toast", 1400);
+}
+
+// ---------------------------------------------------------------------------
+// LOOP
+// ---------------------------------------------------------------------------
+let last = performance.now(), fpsAcc = 0, fpsN = 0, fpsT = 0;
+const tmpV = new THREE.Vector3(), tmpQ = new THREE.Quaternion();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000); last = now;
+
+  // input → vehicle
+  const engineForce = (keys.KeyW || keys.ArrowUp ? -900 : 0) + (keys.KeyS || keys.ArrowDown ? 500 : 0);
+  let steer = (keys.KeyA || keys.ArrowLeft ? 0.5 : 0) + (keys.KeyD || keys.ArrowRight ? -0.5 : 0);
+  const brake = keys.Space ? 60 : 0;
+  // rear-wheel drive (wheels 2,3), front steering (0,1)
+  vehicle.setWheelEngineForce(2, engineForce);
+  vehicle.setWheelEngineForce(3, engineForce);
+  vehicle.setWheelSteering(0, steer);
+  vehicle.setWheelSteering(1, steer);
+  for (let i = 0; i < 4; i++) vehicle.setWheelBrake(i, brake);
+
+  vehicle.updateVehicle(dt);
+  world.step();
+
+  // sync car mesh
+  const t = chassisBody.translation(), r = chassisBody.rotation();
+  carMesh.position.set(t.x, t.y, t.z);
+  carMesh.quaternion.set(r.x, r.y, r.z, r.w);
+  // visual steer on front wheels
+  wheelMeshes[0].rotation.y = steer; wheelMeshes[1].rotation.y = steer;
+
+  // chase camera
+  tmpQ.set(r.x, r.y, r.z, r.w);
+  tmpV.set(0, 5.5, 13).applyQuaternion(tmpQ).add(carMesh.position);
+  camera.position.lerp(tmpV, 1 - Math.pow(0.0008, dt));
+  camera.lookAt(t.x, t.y + 1.5, t.z);
+
+  // streaming + greeter proximity
+  updateChunks(t.x, t.z);
+  greetRing.rotation.z += dt;
+  const dToGreeter = Math.hypot(t.x - greeter.position.x, t.z - greeter.position.z);
+  if (dToGreeter < 6) greet();
+  else if (dToGreeter > 16) greeted = false; // re-arm after leaving
+
+  // fps
+  fpsAcc += dt; fpsN++; fpsT += dt;
+  if (fpsT > 0.5) { $("fps").textContent = Math.round(fpsN / fpsAcc) + " fps"; fpsAcc = 0; fpsN = 0; fpsT = 0; }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ---------------------------------------------------------------------------
+// BOOT
+// ---------------------------------------------------------------------------
+(async function main() {
+  try {
+    bootmsg.textContent = "initialising physics…";
+    await RAPIER.init();
+    renderOwned();
+    initPhysics();
+    bootmsg.textContent = "entering the city…";
+    // expose for headless verification (rAF-frozen when tab hidden)
+    window.WORLD = {
+      step: (n = 1) => { for (let i = 0; i < n; i++) { vehicle.updateVehicle(1/60); world.step(); } },
+      drive: () => { keys.KeyW = true; setTimeout(() => keys.KeyW = false, 1200); },
+      build: (idx) => tryBuild(idx),
+      state: () => ({ name: NAME, visits: ledger.visits, hex: ledger.hex, owned: [...ledger.owned], chunks: chunkMap.size, carY: chassisBody.translation().y }),
+      // headless paint hook (rAF is frozen when the tab is hidden): position the
+      // chase cam on the car, stream chunks, render one frame for screenshotting.
+      render: () => {
+        const t = chassisBody.translation(), r = chassisBody.rotation();
+        carMesh.position.set(t.x, t.y, t.z); carMesh.quaternion.set(r.x, r.y, r.z, r.w);
+        tmpQ.set(r.x, r.y, r.z, r.w);
+        tmpV.set(0, 6, 14).applyQuaternion(tmpQ).add(carMesh.position);
+        camera.position.copy(tmpV); camera.lookAt(t.x, t.y + 1.5, t.z);
+        updateChunks(t.x, t.z);
+        renderer.render(scene, camera);
+      },
+    };
+    boot.style.display = "none";
+    requestAnimationFrame(frame);
+  } catch (err) {
+    bootmsg.textContent = "boot error: " + (err?.message || err);
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
