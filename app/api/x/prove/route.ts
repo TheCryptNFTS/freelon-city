@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyMessage } from "viem";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
+import { consumeNonce } from "@/lib/auth-nonce-store";
 import {
   getSessionFromRequest,
   signSession,
@@ -17,10 +18,11 @@ export const dynamic = "force-dynamic";
  * POST /api/x/prove  { address, signature }
  *
  * Proves the caller controls `address` by verifying a personal_sign over the
- * canonical walletProofMessage, then RE-ISSUES the session cookie with
- * `walletProof` set. This is the ONLY way a session gains wallet authority —
- * the OAuth `bind` param is attacker-chooseable and must never be trusted to
- * move ⬡ (see security note in lib/x-session.ts).
+ * canonical walletProofMessage carrying a single-use nonce (issued by
+ * /api/x/prove/nonce, consumed here so the signature can't be replayed), then
+ * RE-ISSUES the session cookie with `walletProof` set. This is the ONLY way a
+ * session gains wallet authority — the OAuth `bind` param is attacker-chooseable
+ * and must never be trusted to move ⬡ (see security note in lib/x-session.ts).
  *
  * A signature here unlocks all spend rails for the 7-day session life, so a
  * holder signs at most once. An X session is NOT required: a wallet-only
@@ -45,11 +47,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "address + signature required" }, { status: 400 });
   }
 
+  // Consume (single-use delete) the challenge nonce issued by /api/x/prove/nonce.
+  // Missing/expired -> reject. This is what makes a captured signature un-replayable:
+  // the nonce it was signed over is gone after the first redemption.
+  const nonce = await consumeNonce(address, "xprove");
+  if (!nonce) {
+    return NextResponse.json({ error: "nonce_missing_or_expired" }, { status: 401 });
+  }
+
+  // Rebuild the EXACT message SERVER-SIDE from the stored nonce — the client
+  // never supplies the message string, so it can't smuggle a different statement
+  // past the signature check.
   let sigOk = false;
   try {
     sigOk = await verifyMessage({
       address: address as `0x${string}`,
-      message: walletProofMessage(address),
+      message: walletProofMessage(address, nonce),
       signature: signature as `0x${string}`,
     });
   } catch {

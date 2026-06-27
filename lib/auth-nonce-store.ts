@@ -14,7 +14,10 @@ import { upstash, hasUpstash } from "@/lib/upstash-client";
 
 const NONCE_TTL_SEC = 300; // 5 minutes
 
-const KEY = (addr: string) => `freelon:authNonce:v1:${addr.toLowerCase()}`;
+// `scope` namespaces the nonce so independent challenge flows for the same
+// address (SIWE game-login = "v1", wallet-proof session = "xprove") can't
+// consume each other's nonce. Default "v1" keeps existing keys byte-identical.
+const KEY = (addr: string, scope: string) => `freelon:authNonce:${scope}:${addr.toLowerCase()}`;
 
 // key -> { nonce, expiresAt(ms) }
 const memory = new Map<string, { nonce: string; expiresAt: number }>();
@@ -24,14 +27,14 @@ export function generateNonce(): string {
 }
 
 /** Issue (overwrite) a single-use nonce for `addr`, 5-minute TTL. */
-export async function issueNonce(addr: string): Promise<string> {
+export async function issueNonce(addr: string, scope = "v1"): Promise<string> {
   const a = addr.toLowerCase();
   const nonce = generateNonce();
   if (!hasUpstash) {
-    memory.set(KEY(a), { nonce, expiresAt: Date.now() + NONCE_TTL_SEC * 1000 });
+    memory.set(KEY(a, scope), { nonce, expiresAt: Date.now() + NONCE_TTL_SEC * 1000 });
     return nonce;
   }
-  await upstash(["SET", KEY(a), nonce, "EX", String(NONCE_TTL_SEC)]);
+  await upstash(["SET", KEY(a, scope), nonce, "EX", String(NONCE_TTL_SEC)]);
   return nonce;
 }
 
@@ -40,11 +43,11 @@ export async function issueNonce(addr: string): Promise<string> {
  * (single-use). Returns null if none exists / expired. A second consume of the
  * same nonce therefore always fails — the replay guard.
  */
-export async function consumeNonce(addr: string): Promise<string | null> {
+export async function consumeNonce(addr: string, scope = "v1"): Promise<string | null> {
   const a = addr.toLowerCase();
   if (!hasUpstash) {
-    const rec = memory.get(KEY(a));
-    memory.delete(KEY(a));
+    const rec = memory.get(KEY(a, scope));
+    memory.delete(KEY(a, scope));
     if (!rec) return null;
     if (rec.expiresAt < Date.now()) return null;
     return rec.nonce;
@@ -53,7 +56,7 @@ export async function consumeNonce(addr: string): Promise<string | null> {
     // Atomic read-and-delete (2026-06-16): GET-then-DEL let two concurrent
     // verifies with the same signature both read the nonce before either deleted
     // it, minting two sessions. GETDEL makes consume single-use in one op.
-    const raw = (await upstash(["GETDEL", KEY(a)])) as string | null;
+    const raw = (await upstash(["GETDEL", KEY(a, scope)])) as string | null;
     return raw ?? null;
   } catch {
     return null;

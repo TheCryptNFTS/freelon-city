@@ -93,6 +93,9 @@ Verify-first caught many false agent findings: buttons with visible text already
 - [x] 61. EvolvePanel AI-art images had no reserved dimensions (`height:auto`, no aspect-ratio container) → layout shift on load. Added intrinsic `width/height={800}` (art is square) so the browser reserves the box. CWV CLS. EvolvePanel.tsx:205,225.
 - [x] 62. my-citizens is a personalized, wallet-gated roster (thin/duplicate for crawlers) — added `robots:{index:false,follow:true}`. Google thin/personalized-page guidance. app/my-citizens/page.tsx:6.
 
+## BATCH 10 — wallet-proof replay hardening (E1, was FLAGGED) — SHIPPED
+- [x] 63. **E1 — wallet-proof signature replay.** `walletProofMessage` was STATIC per address (no nonce), so a single captured signature could be POSTed to `/api/x/prove` from an attacker's session to bind the victim's wallet **forever** and spend their ⬡. Fix mirrors the existing SIWE game-login pattern (auth-nonce-store GETDEL single-use): new same-origin `POST /api/x/prove/nonce` issues a 5-min single-use nonce (scope `"xprove"`, namespaced so it never collides with the `"v1"` game-login nonce — additive `scope` param defaults keep existing keys byte-identical); `walletProofMessage(address, nonce)` embeds it; client `proveWallet` fetches → signs → redeems; `/api/x/prove` consumes the nonce and rebuilds the message SERVER-SIDE before `verifyMessage`. A replayed signature now finds no live nonce (401), and an old signature against a fresh nonce fails verification (401). All ~11 `proveWallet(address)` callers untouched (signature unchanged). New `lib/wallet-proof.test.ts` (6 cases) covers both replay paths + scope isolation with a real EOA key. OWASP (auth replay). Deploy note: an old open tab mid-sign during rollout gets one 401 → re-sign (non-destructive). lib/auth-nonce-store.ts, lib/wallet-proof.ts, app/api/x/prove/nonce/route.ts, app/api/x/prove/route.ts.
+
 ---
 
 ## FLAGGED — needs Billy / counsel sign-off (NOT auto-implemented)
@@ -102,7 +105,7 @@ Verify-first caught many false agent findings: buttons with visible text already
 - [FLAG] L4. Privacy: disclose inbound-email PII channel. privacy/page.tsx.
 - [FLAG] L5. Privacy-consent link at email capture. ClaimForm.tsx.
 - [FLAG] L6. Guard-the-Pot prompt hardening before GUARD_POT_LIVE flips. play/guard/attempt.
-- [FLAG] E1. Wallet-proof nonce/expiry (replay hardening) — touches auth. wallet-proof.ts.
+- [x] E1. SHIPPED as item 63 — wallet-proof replay hardening (server-issued single-use nonce). See Batch 10.
 - [FLAG] E2. Per-wallet daily HEX hard cap circuit breaker. economy-constants + wallet-hex-store.
 - [FLAG] E3. X-gate snipe + sale-share faucets (sybil) — policy: blocks non-X holders.
 - [FLAG] E4. Carrier STARTING 50⬡ grant folding into spendable wallet HEX. carrier.ts:53.
