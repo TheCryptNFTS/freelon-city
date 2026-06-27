@@ -129,9 +129,9 @@ export default async function Home() {
             An AI civilization that <strong>remembers you</strong>.
           </h1>
           <p className="hero-landing__tag">
-            FREELON CITY — alive on-chain since 2023. Every face is a living AI
-            citizen you can talk to. Meet one free, then own and train it — its
-            whole life travels with the NFT.
+            Every face here is a live AI citizen you can talk to — free. Own one
+            and it learns your jobs, keeps a work history that travels with the
+            NFT, and never forgets you.
           </p>
           {/* ONE primary (MEET A CITIZEN — experience it first), OWN secondary.
               EARN HEX lives in the header; the closing CTA repeats OWN at the buy
