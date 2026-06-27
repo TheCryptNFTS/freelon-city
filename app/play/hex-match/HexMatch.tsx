@@ -22,9 +22,18 @@ import {
 } from "@/lib/hex-match-engine";
 import { cue } from "@/lib/arcade-feedback";
 import { awardXp, getProgress, rankedUp, rankFor, equippedCosmetic } from "@/lib/arcade-progress";
+import dynamic from "next/dynamic";
 import { ArcadeSoundToggle } from "@/components/ArcadeSoundToggle";
-import { ArcadeTutorial } from "@/components/ArcadeTutorial";
 import { tweetHexMatch, tweetIntent } from "@/lib/share";
+
+// The tutorial overlay is a shared client island that opens via an effect
+// (first-run auto-open + a persistent re-open trigger), so it's never needed for
+// the initial paint of the board. Code-split it out of the play bundle (ssr:false)
+// to cut initial JS / TBT — it mounts client-side after the game is interactive.
+const ArcadeTutorial = dynamic(
+  () => import("@/components/ArcadeTutorial").then((m) => m.ArcadeTutorial),
+  { ssr: false },
+);
 import {
   dayNumber,
   dayKey,

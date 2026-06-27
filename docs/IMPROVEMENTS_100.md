@@ -39,13 +39,13 @@ assets only, with attribution — never copyrighted material.
 - [x] 20. Touch targets — workspace SEND 38→44px. AgentWorkspace.module.css:426. (Crypt buttons live in the SEPARATE crypt-game repo, not this codebase — out of scope for this pass.)
 - [x] 21. Bottom-nav clearance on scroll viewport — added html scroll-padding-bottom (≤720px) so anchor jumps clear the fixed nav; footer padding kept for the resting case. app/globals.css.
 
-## BATCH 4 — performance (Core Web Vitals)
-- [ ] 22. logo.png 296KB served at 36px → re-encode small WebP. Header.tsx:21.
-- [ ] 23. terminal-bg-{1,2,3}.png (~1.7MB ea) + og/art PNGs → WebP. public/generated, public/og/art.
-- [ ] 24. preconnect/dns-prefetch blob.vercel-storage + ipfs/dweb fallbacks. app/layout.tsx:103.
-- [ ] 25. transmission-still MP4s preload="none" + poster. public/transmission-stills.
-- [ ] 26. Code-split heavy play islands (HexMatch tutorial/share sheets). next/dynamic. HexMatch.tsx:23.
-- [ ] 27. Defer below-fold TransformsWall on homepage. next/dynamic. app/page.tsx:7.
+## BATCH 4 — performance (Core Web Vitals) — SHIPPED
+- [x] 22. logo.png 296KB served at 36px → re-encoded IN PLACE (sharp, 256-colour palette, 296→65KB). Kept .png (next/image Header + OG-universe Satori render + manifest all reference /logo.png; Satori needs PNG). Header.tsx:21.
+- [x] 23. og/art PNGs downscaled+recompressed IN PLACE (sharp; PIECES 1024²→480², hero 760²→720²; ~7.1MB→1.04MB total, −85%). Kept .png NOT WebP — these feed @vercel/og Satori where WebP support is unreliable; .webp companions already serve the web UI. terminal-bg-{1,2,3}.png are ORPHANED (0 code refs) → defer deletion to Batch 7, not convert. app/api/og/universe/route.tsx.
+- [x] 24. dns-prefetch blob.vercel-storage + seadn.io + ipfs/dweb fallbacks (preconnect reserved for pinata; blob subdomain is per-store/dynamic so dns-prefetch only). app/layout.tsx:109.
+- [x] 25. Already satisfied — TransmissionLoop has a poster (the still it was generated from) AND preload="metadata" (NOT "auto"); it's an autoplay-on-scroll loop so browsers only fetch full bytes once in-viewport. preload="none" is a no-op with autoPlay. TransmissionLoop.tsx:23.
+- [x] 26. Code-split HexMatch tutorial island via next/dynamic (ssr:false, client component). HexMatch.tsx.
+- [x] 27. Defer below-fold TransformsWall on homepage via next/dynamic (server component, ssr stays on). app/page.tsx.
 
 ## BATCH 5 — SEO / metadata
 - [ ] 28. Add `alternates:{canonical}` site-wide (0 today; vanity rewrites dup content).

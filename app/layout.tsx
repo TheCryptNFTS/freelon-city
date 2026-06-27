@@ -101,6 +101,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             route — it is homepage-only art. The preload moved to
             app/page.tsx (ReactDOM.preload), scoped to the page that paints it. */}
         <link rel="preconnect" href="https://gateway.pinata.cloud" />
+        {/* Image-host DNS hints. Citizen art + agent renders are served from
+            *.public.blob.vercel-storage.com (subdomain is per-store/dynamic, so an
+            exact preconnect can't be pinned) and OpenSea's seadn.io CDN; IPFS
+            gateways are the fallback art path. dns-prefetch resolves at the domain
+            level and is free, shaving the DNS round-trip off the first image. */}
+        <link rel="dns-prefetch" href="https://blob.vercel-storage.com" />
+        <link rel="dns-prefetch" href="https://seadn.io" />
+        <link rel="dns-prefetch" href="https://ipfs.io" />
+        <link rel="dns-prefetch" href="https://dweb.link" />
         {/* Structured data — helps SERP brand rendering + sitelinks search box. */}
         <script
           type="application/ld+json"

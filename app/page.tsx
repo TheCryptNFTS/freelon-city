@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { preload } from "react-dom";
 import reveals from "@/components/HomeReveals.module.css";
 import { HeroVideo } from "@/components/HeroVideo";
-import TransformsWall from "@/components/TransformsWall";
+// Below-fold + self-hides until its feed loads, so it's never part of the LCP or
+// the initial paint. Code-split it out of the homepage bundle to cut initial JS /
+// TBT (Core Web Vitals). SSR stays on (default) — it renders null until data.
+const TransformsWall = dynamic(() => import("@/components/TransformsWall"));
 import { ActivationProof } from "@/components/ActivationProof";
 import { CityWeekBand } from "@/components/CityWeekBand";
 import { CityPulse } from "@/components/CityPulse";
