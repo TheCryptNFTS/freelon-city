@@ -87,7 +87,7 @@ const config: NextConfig = {
       // Stats / market cluster → /dashboard (overview · heat · snipes · civ-war · earners)
       { source: "/numbers",     destination: "/dashboard",          permanent: true },
       { source: "/heat",        destination: "/dashboard#heat",     permanent: true },
-      { source: "/undervalued", destination: "/dashboard#snipes",   permanent: true },
+      { source: "/undervalued", destination: "/dashboard#heat",     permanent: true },
       { source: "/civ-wars",    destination: "/dashboard#civ-war",  permanent: true },
       { source: "/leaderboard", destination: "/dashboard#earners",  permanent: true },
 

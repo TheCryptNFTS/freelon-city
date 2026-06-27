@@ -44,6 +44,9 @@ export function WorkspaceUnlock({
   // Fire-once funnel guard: awaken_started is the missing denominator for
   // activation_paid (tx-abandon rate). Fires on the AWAKEN intent, before pay.
   const startedRef = useRef(false);
+  // Fire-once guard for the revenue event (claim can be reached via pay() or the
+  // manual tx-hash paste; both are one legit activation).
+  const paidRef = useRef(false);
 
   function eth(): Eth | null {
     return typeof window !== "undefined" ? ((window as unknown as { ethereum?: Eth }).ethereum ?? null) : null;
@@ -69,6 +72,9 @@ export function WorkspaceUnlock({
       // and helpful inline instead, with a one-tap wallet-browser deep link.
       if (!eth()) {
         setNoWallet(true);
+        // The in-app-browser dead-end (X/Safari w/o injected wallet) is a real
+        // reported drop — count it so we can size how many awakens die here.
+        trackEvent("unlock_blocked", { source: "workspace", reason: "no_wallet_browser" });
         return;
       }
       onConnect();
@@ -88,13 +94,18 @@ export function WorkspaceUnlock({
         if (res.ok && d.ok && !d.already) {
           setQuote({ amountEth: d.amountEth, amountWei: d.amountWei, toWallet: d.toWallet, expiresAt: d.expiresAt });
           setStep("await");
+          // The price reveal is the highest-friction sub-step — measure quote→pay drop.
+          trackEvent("awaken_quote_shown", { source: "workspace", citizenId });
           return;
         }
         if (d.already) { onUnlocked(); return; }
-        setErr(d.message || d.error || "Couldn't get an unlock price. Try again."); setStep("idle"); return;
+        setErr(d.message || d.error || "Couldn't get an unlock price. Try again."); setStep("idle");
+        trackEvent("unlock_blocked", { source: "workspace", reason: "quote_error" });
+        return;
       }
     } catch (e) {
       setErr((e as Error).message || "Couldn't get an unlock price."); setStep("idle");
+      trackEvent("unlock_blocked", { source: "workspace", reason: "quote_error" });
     } finally { setBusy(false); }
   }
 
@@ -109,8 +120,19 @@ export function WorkspaceUnlock({
       const d = await res.json().catch(() => ({}));
       if (res.status === 401 && d?.error === "auth_required" && !creds) { creds = await sign(); continue; }
       if (res.status === 425) { setNote("Payment received — waiting for confirmations…"); await new Promise((r) => setTimeout(r, 5000)); continue; }
-      if (res.ok && d.ok) { setNote(null); onUnlocked(); return true; }
-      setErr(d.message || d.error || "Couldn't confirm the unlock."); setStep("await"); setBusy(false); return false;
+      if (res.ok && d.ok) {
+        setNote(null);
+        // THE revenue event — was dark (only fired in the unmounted dashboard).
+        if (!paidRef.current) {
+          paidRef.current = true;
+          trackEvent("activation_paid", { source: "workspace", citizenId });
+        }
+        onUnlocked();
+        return true;
+      }
+      setErr(d.message || d.error || "Couldn't confirm the unlock."); setStep("await"); setBusy(false);
+      trackEvent("unlock_blocked", { source: "workspace", reason: "claim_error" });
+      return false;
     }
     setErr("Still confirming on-chain. Wait a minute, then press Verify again."); setStep("await"); setBusy(false); return false;
   }
@@ -127,6 +149,7 @@ export function WorkspaceUnlock({
       await claim(txHash);
     } catch (e2) {
       setErr((e2 as Error).message || "Payment was cancelled or failed."); setBusy(false);
+      trackEvent("unlock_blocked", { source: "workspace", reason: "pay_rejected" });
     }
   }
 

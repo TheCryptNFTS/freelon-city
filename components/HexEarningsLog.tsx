@@ -87,8 +87,14 @@ export function HexEarningsLog({ address }: { address: string }) {
     if (!address) return;
     let cancelled = false;
     fetch(`/api/wallet/${address}/hex`)
-      .then((r) => r.json())
-      .then((d: Data) => { if (!cancelled) setData(d); })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: Data | null) => {
+        if (cancelled) return;
+        // An error/rate-limit (429) body is truthy but has no balance/events —
+        // route it to the error state instead of crashing on data.balance below.
+        if (d && typeof d.balance === "number" && Array.isArray(d.events)) setData(d);
+        else setErr(true);
+      })
       .catch(() => { if (!cancelled) setErr(true); });
     return () => { cancelled = true; };
   }, [address]);

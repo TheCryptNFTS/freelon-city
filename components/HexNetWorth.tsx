@@ -20,8 +20,14 @@ export function HexNetWorth() {
     let cancelled = false;
     setLoading(true);
     fetch(`/api/wallet/${h.address}/net-worth`)
-      .then((r) => r.json())
-      .then((d) => { if (!cancelled) setData(d); })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled) return;
+        // Guard the shape: an error/rate-limit body ({error:...}) is truthy but
+        // lacks balance/civs — accepting it would crash on data.civs.length below.
+        if (d && typeof d.balance === "number" && Array.isArray(d.civs)) setData(d);
+        else setData(null);
+      })
       .catch(() => { if (!cancelled) setData(null); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };

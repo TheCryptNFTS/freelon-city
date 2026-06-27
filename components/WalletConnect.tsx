@@ -164,6 +164,11 @@ export function WalletConnect() {
     if (cookieAddr) {
       setAddr(cookieAddr);
       void checkHolder(cookieAddr);
+      // A cookie-rehydrated holder never re-fires wallet_connected (that only
+      // runs on an explicit connect() at mount-time below). Without this, every
+      // returning holder looks like connect drop-off in the funnel. Fire a
+      // distinct presence event so rehydrated sessions are counted separately.
+      trackEvent("wallet_present", { source: "rehydrate" });
     }
     if (typeof window === "undefined" || !window.ethereum) return;
     window.ethereum

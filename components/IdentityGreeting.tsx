@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useViewerAddr } from "@/lib/use-viewer";
-import { readBuyIntent, clearBuyIntent } from "@/lib/track";
+import { readBuyIntent, clearBuyIntent, trackEvent } from "@/lib/track";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { Pill } from "@/components/ui";
 
@@ -34,7 +34,14 @@ export function IdentityGreeting() {
   // Buy→awaken return loop (upgrade audit #4): if they clicked an OpenSea CTA
   // and came back, nudge them to /my-citizens (or /sync) to AWAKEN it.
   const [buyIntent, setBuyIntent] = useState(false);
-  useEffect(() => { setBuyIntent(readBuyIntent() != null); }, []);
+  useEffect(() => {
+    const returning = readBuyIntent() != null;
+    setBuyIntent(returning);
+    // The buy-intent breadcrumb was instrumented going OUT (opensea_click) but
+    // never coming back, so we couldn't measure how many post-buy visitors we
+    // recover into the AWAKEN path. Fire once when a pending intent is seen.
+    if (returning) trackEvent("buy_intent_return", { surface: "home_greeting" });
+  }, []);
   const dismissBuyIntent = () => { clearBuyIntent(); setBuyIntent(false); };
   const returnBanner = buyIntent ? (
     <div
