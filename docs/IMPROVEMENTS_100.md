@@ -98,13 +98,18 @@ Verify-first caught many false agent findings: buttons with visible text already
 
 ---
 
+## BATCH 11 — Guard-the-Pot leak hardening (L6 partial, was FLAGGED) — SHIPPED
+- [x] 64. **L6 (leak path) — separator/case-tolerant secret detection.** The win check `r.text.includes(secret)` and redaction `r.text.split(secret).join("█████")` only caught the EXACT contiguous `RELEASE-<18 hex>` token. A guard agent coaxed into spelling the token letter-by-letter ("R E L E A S E - A1…") or in a different case would BYPASS both the win condition AND the redaction, leaking the guarded token to the player and the public board. New `lib/guard-redact.ts` builds a global, case-insensitive regex allowing optional whitespace/separators (`[\s\-_.,;:|]*`) BETWEEN each non-space token character; `redactSecret(text, secret)` returns `{ redacted, leaked }`. Route now sets `won = leaked` and `safeReply = redacted…`. The high-entropy token tail (18 hex) keeps it from false-matching prose — the bare word "release" lacks the hex and won't match. `lib/guard-redact.test.ts` (7 cases) covers exact/spaced/hyphened/dotted/lowercase leaks + non-leak refusal + bare-word + empty-secret no-op. OWASP LLM01 (prompt-injection disclosure). Note: this hardens the *output* leak path only; the broader L6 "prompt hardening before GUARD_POT_LIVE flips" (system-prompt robustness, live LLM red-teaming) still needs Billy before the flag is enabled. lib/guard-redact.ts, app/api/play/guard/attempt/route.ts.
+
+---
+
 ## FLAGGED — needs Billy / counsel sign-off (NOT auto-implemented)
 - [FLAG] L1. Terms: "Awakening (paid activation)" section — final/non-refundable/AS-IS/not-a-security. terms/page.tsx. (lawyer review)
 - [FLAG] L2. Resolve "forever" durability claim vs Terms §4 removable-benefits. WorkspaceUnlock.tsx:150,164.
 - [FLAG] L3. Terms UGC license + non-copyright takedown clause. terms + dmca.
 - [FLAG] L4. Privacy: disclose inbound-email PII channel. privacy/page.tsx.
 - [FLAG] L5. Privacy-consent link at email capture. ClaimForm.tsx.
-- [FLAG] L6. Guard-the-Pot prompt hardening before GUARD_POT_LIVE flips. play/guard/attempt.
+- [~] L6. Leak path SHIPPED as item 64 (separator/case-tolerant redaction, Batch 11). Remaining: system-prompt robustness + live LLM red-team before GUARD_POT_LIVE flips. play/guard/attempt.
 - [x] E1. SHIPPED as item 63 — wallet-proof replay hardening (server-issued single-use nonce). See Batch 10.
 - [FLAG] E2. Per-wallet daily HEX hard cap circuit breaker. economy-constants + wallet-hex-store.
 - [FLAG] E3. X-gate snipe + sale-share faucets (sybil) — policy: blocks non-X holders.

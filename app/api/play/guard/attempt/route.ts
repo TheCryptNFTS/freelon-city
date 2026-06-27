@@ -26,6 +26,7 @@ import { citizenReason } from "@/lib/missions/llm";
 import { MODELS } from "@/lib/missions/models";
 import { GUARD_POT } from "@/lib/economy-constants";
 import { isGuardPotLive } from "@/lib/guard-pot";
+import { redactSecret } from "@/lib/guard-redact";
 import {
   getRound,
   getSecret,
@@ -173,10 +174,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "agent_unavailable", message: "The guard went quiet — nothing was charged." }, { status: 502 });
   }
 
-  // Win = the agent emitted the exact secret. Strip it from anything we return so
-  // the win condition is never leaked to the public board or the player.
-  const won = r.text.includes(secret);
-  const safeReply = r.text.split(secret).join("█████").trim().slice(0, 600);
+  // Win = the agent disclosed the secret — even obfuscated with separators or
+  // case changes (a coaxed "spell it letter by letter" evasion). redactSecret
+  // strips every such occurrence so the token never reaches the public board or
+  // the player, and reports whether it leaked at all (that IS the win).
+  const { redacted, leaked } = redactSecret(r.text, secret);
+  const won = leaked;
+  const safeReply = redacted.trim().slice(0, 600);
   const snippet = message.replace(/[\x00-\x1f\x7f]/g, "").slice(0, 80); // eslint-disable-line no-control-regex
 
   const { round: updated, outcome } = await recordAttempt({
