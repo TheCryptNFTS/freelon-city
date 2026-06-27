@@ -35,7 +35,9 @@ export function LiveHeatGrid() {
           for (const c of next) {
             const was = prev[c.slug];
             if (was && (c.sales > was.sales || c.signals > was.signals)) {
-              setPulses((p) => ({ ...p, [c.slug]: (p[c.slug] || 0) + 1 }));
+              // store the pulse TIMESTAMP, not a count — the render gate below
+              // compares it against Date.now() to keep the cell lit for ~1.5s.
+              setPulses((p) => ({ ...p, [c.slug]: Date.now() }));
             }
             updated[c.slug] = { sales: c.sales, signals: c.signals };
           }
@@ -86,13 +88,13 @@ export function LiveHeatGrid() {
       <div className="heat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gridAutoRows: "1fr", gap: 10 }}>
         {cells.map((c) => {
           const intensity = Math.min(1, (c.sales + c.signals) / 5);
-          const pulseKey = pulses[c.slug] || 0;
-          const isPulsing = pulseKey > 0 && Date.now() - (lastSeen[c.slug]?.sales || 0) < 1500;
+          const pulsedAt = pulses[c.slug] || 0;
+          const isPulsing = Date.now() - pulsedAt < 1500;
           return (
             <div
               key={c.slug}
               className={`heat-cell ${isPulsing ? "pulsing" : ""}`}
-              data-pulse={pulseKey}
+              data-pulse={pulsedAt}
               style={{
                 position: "relative",
                 padding: "12px",
