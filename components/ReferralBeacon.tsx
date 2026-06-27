@@ -13,7 +13,10 @@ import { trackEvent } from "@/lib/track";
 export function ReferralBeacon() {
   useEffect(() => {
     try {
-      const ref = new URLSearchParams(window.location.search).get("ref");
+      // Accept both the long `?ref=` and the hand-shortened `?r=` (used in DMs /
+      // Discord) so short links aren't silently attributed as ref:"none".
+      const q = new URLSearchParams(window.location.search);
+      const ref = q.get("ref") || q.get("r");
       const referrer = document.referrer;
       const external = !!referrer && !referrer.includes(window.location.host);
       if (!ref && !external) return;

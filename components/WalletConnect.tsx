@@ -190,6 +190,10 @@ export function WalletConnect() {
       const ua = navigator.userAgent || "";
       const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
       const inMM = /MetaMask/i.test(ua);
+      // Instrument the no-injected-wallet branch: this is the home→connect cliff
+      // for strangers (the acquisition ramp) and was previously unmeasured, so
+      // the drop-off here was invisible in the funnel.
+      trackEvent("wallet_unavailable", { mobile: isMobile, redirect: isMobile && !inMM });
       if (isMobile && !inMM) {
         const host = window.location.host + window.location.pathname;
         window.location.href = `https://metamask.app.link/dapp/${host}`;

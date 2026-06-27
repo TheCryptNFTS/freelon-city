@@ -103,6 +103,23 @@ Verify-first caught many false agent findings: buttons with visible text already
 
 ---
 
+## BATCH 12 — craft + conversion (5-specialist swarm, verify-first) — SHIPPED
+Beyond the defect well (a11y/CWV/OWASP/dead-code, exhausted): a 5-agent panel (teardown / growth-analytics / content-copy / design-art-director / product-lead) audited distinct surfaces. Every finding verified against real code before shipping; hero-copy rewrite + flagged-legal "forever" change deliberately HELD for Billy (see below).
+- [x] 65. **Referral `?r` short-link attribution.** `ReferralBeacon` only read `?ref=`, so hand-shortened `?r=` links (DMs/Discord) attributed as `ref:"none"` — off-site reach from short links was invisible. Now `q.get("ref") || q.get("r")`. components/ReferralBeacon.tsx.
+- [x] 66. **No-wallet funnel blind spot.** The `!window.ethereum` branch in `connect()` set an error / mobile-redirected with NO event — the home→connect cliff for strangers (the whole acquisition ramp) was unmeasured. Added `trackEvent("wallet_unavailable", { mobile, redirect })`. components/WalletConnect.tsx.
+- [x] 67. **MemoryProof payoff timing.** The "I remember you" recall (the literal product thesis) fired at 3300ms — most half-interested strangers bounce first, never seeing the wedge. Compressed the stage array to land recall at ~2050ms (still legible; reduced-motion path unchanged). components/MemoryProof.tsx.
+- [x] 68. **Hero overlay de-blue.** Hero scrim/vignette used `rgba(10,12,18,…)` (bluish — B=18) on the largest first-impression surface, contradicting the documented de-blue pass to brand `--bg #0B0B0D`. Repointed 3 stops (desktop overlay ×2 + mobile stamp) to `rgba(11,11,13,…)`. app/globals.css.
+- [x] 69. **Civ large-text contrast / on-brand.** `.civ-card .pop` (48px) + `.chant` filled raw `var(--civ)` → electric cyan (#00B8FF) / neon green (#4CFF7A) large text, off-brand + low-contrast on the dark surface. Mixed toward ink: `color-mix(in srgb, var(--civ) 72%, var(--ink))`. Edge/dot/border civ uses stay raw. app/globals.css.
+- [x] 70. **/my-citizens empty-state CTA.** Zero-state read "— none switched on yet" (a dead end). Now "— none awake yet. Awaken one to give it memory + jobs" — points to the next action + names the payoff. components/MyCitizens.tsx.
+
+### HELD for Billy (verified real, but judgment/owner calls — NOT auto-shipped)
+- **Hero subline rewrite** (app/page.tsx:131-135) — 3/5 specialists independently flagged it buries the "remembers you" wedge under provenance ("alive on-chain since 2023…"). Held because durable feedback = don't churn the hero without Billy. Proposed: lead with action+wedge, demote provenance to the close (where it already repeats).
+- **"forever" → "through any resale"** (components/AgentPowers.tsx:189) — this IS flagged item L2 (durability claim vs Terms §4); the safer phrasing is already used at page.tsx:199. Counsel/Billy call.
+- **Demo→OWN handoff + email-at-the-wall** (DemoChat.tsx demo_exhausted) — capture an engaged stranger's email (`reserve_submitted{from:"demo_wall"}`) before the one-way OpenSea exit. A conversion EXPERIMENT, not a defect.
+- **ActivationProof recency framing** (ActivationProof.tsx:41) — a bare count of 3 reads "dead" to a collector; lead with age/lineage + latest-awakening recency instead. Design decision.
+
+---
+
 ## FLAGGED — needs Billy / counsel sign-off (NOT auto-implemented)
 - [FLAG] L1. Terms: "Awakening (paid activation)" section — final/non-refundable/AS-IS/not-a-security. terms/page.tsx. (lawyer review)
 - [FLAG] L2. Resolve "forever" durability claim vs Terms §4 removable-benefits. WorkspaceUnlock.tsx:150,164.

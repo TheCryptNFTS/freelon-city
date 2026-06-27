@@ -723,8 +723,8 @@ a { color: inherit; text-decoration: none; }
 .hero-right .img-overlay {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 60% 40% at 50% 40%, transparent 30%, rgba(10,12,18,0.55) 80%),
-    linear-gradient(180deg, rgba(10,12,18,0.5) 0%, transparent 22%, transparent 78%, rgba(10,12,18,0.96) 100%);
+    radial-gradient(ellipse 60% 40% at 50% 40%, transparent 30%, rgba(11,11,13,0.55) 80%),
+    linear-gradient(180deg, rgba(11,11,13,0.5) 0%, transparent 22%, transparent 78%, rgba(11,11,13,0.96) 100%);
   pointer-events: none;
 }
 .hero-right .img-stamp {
@@ -757,7 +757,7 @@ a { color: inherit; text-decoration: none; }
   .hero-right .img-stamp {
     left: 16px; bottom: 16px; right: auto;
     max-width: 78%;
-    background: linear-gradient(180deg, transparent, rgba(10,12,18,0.5));
+    background: linear-gradient(180deg, transparent, rgba(11,11,13,0.5));
     padding: 16px 12px 0;
   }
   .hero-right .img-stamp h2 { font-size: 28px; }
@@ -2409,7 +2409,10 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .civ-card .pop {
   font-family: var(--display); font-weight: 400; font-size: 48px;
-  color: var(--civ); letter-spacing: -0.02em; line-height: 1;
+  /* Mix the civ accent toward ink for LARGE display fills: raw --civ (electric
+     cyan/neon green for the Synthesis/Growth civs) reads off-brand and low-
+     contrast at 48px on the dark surface. Edge/dot/border uses of --civ stay raw. */
+  color: color-mix(in srgb, var(--civ) 72%, var(--ink)); letter-spacing: -0.02em; line-height: 1;
 }
 .civ-card .role {
   font-family: var(--sans); font-size: 14px; color: var(--ink-2);
@@ -2422,7 +2425,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   text-transform: uppercase;
 }
 .civ-card .essence { color: var(--ink-dim); font-style: italic; letter-spacing: 0.12em; }
-.civ-card .chant { color: var(--civ); }
+.civ-card .chant { color: color-mix(in srgb, var(--civ) 72%, var(--ink)); }
 @media (max-width: 880px) { .civs-list { grid-template-columns: 1fr; } }
 
 /* ----- /citizens (index) ----- */

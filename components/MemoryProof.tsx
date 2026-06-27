@@ -89,7 +89,9 @@ export function MemoryProof() {
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const at = reduce
       ? [0, 0, 0, 0, 0]
-      : [700, 1500, 2400, 3300, 0]; // ack, chip, divider, recall
+      : [450, 1000, 1500, 2050, 0]; // ack, chip, divider, recall — compressed so
+    // the "I remember you" recall (the product thesis) lands in ~2s, before a
+    // half-interested stranger bounces; was 3.3s offscreen for most visits.
     const set = (p: Phase, ms: number) =>
       timers.current.push(setTimeout(() => setPhase(p), ms));
     set(2, at[0]);

@@ -100,7 +100,7 @@ export function MyCitizens() {
         ) : (
           <p>
             <strong>{total}</strong> held · <strong style={{ color: "var(--gold)" }}>{activatedCount}</strong> awakened
-            {activatedCount > 0 ? " (agents switched on)" : " — none switched on yet"}.
+            {activatedCount > 0 ? " (agents switched on)" : " — none awake yet. Awaken one to give it memory + jobs"}.
             {data?.truncated ? " Showing your first 200." : ""}
           </p>
         )}
