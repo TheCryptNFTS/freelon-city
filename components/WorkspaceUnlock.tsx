@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { trackEvent } from "@/lib/track";
 
 /**
  * In-workspace ETH unlock — the pay flow holders were missing.
@@ -40,6 +41,9 @@ export function WorkspaceUnlock({
   const [err, setErr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [noWallet, setNoWallet] = useState(false);
+  // Fire-once funnel guard: awaken_started is the missing denominator for
+  // activation_paid (tx-abandon rate). Fires on the AWAKEN intent, before pay.
+  const startedRef = useRef(false);
 
   function eth(): Eth | null {
     return typeof window !== "undefined" ? ((window as unknown as { ethereum?: Eth }).ethereum ?? null) : null;
@@ -54,6 +58,10 @@ export function WorkspaceUnlock({
   }
 
   async function getQuote() {
+    if (!startedRef.current) {
+      startedRef.current = true;
+      trackEvent("awaken_started", { source: "workspace", connected: !!address });
+    }
     if (!address) {
       // No injected wallet (iPhone Safari, X's in-app browser): the parent's
       // connect() falls back to alert(), which X's webview SUPPRESSES — the

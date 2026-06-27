@@ -35,7 +35,11 @@ export function MyInvites({ handle }: { handle: string }) {
     };
   }, [handle]);
 
-  const link = `freeloncity.com/sync?r=${handle}`;
+  // Invite links land newcomers on the free, no-wallet chat (the wedge), not the
+  // owner hub. `?r=` binds the referral (middleware → freelon_ref cookie, read by
+  // the X-OAuth callback); `?ref=inv-<handle>` tags the funnel so invites are no
+  // longer invisible in analytics (referral_landing fires via ReferralBeacon).
+  const link = `freeloncity.com/demo?r=${handle}&ref=inv-${handle}`;
   const fullLink = `https://${link}`;
 
   function onCopy() {

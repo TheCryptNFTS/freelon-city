@@ -122,7 +122,7 @@ export default async function Home() {
               polish swarm 2026-06-22). */}
           <div aria-hidden className="hero-anchor" />
           <h1 className="hero-landing__h1">
-            Where AI becomes a <strong>civilization</strong>.
+            An AI civilization that <strong>remembers you</strong>.
           </h1>
           <p className="hero-landing__tag">
             FREELON CITY — alive on-chain since 2023. Every face is a living AI

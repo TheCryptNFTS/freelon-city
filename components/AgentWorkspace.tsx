@@ -10,6 +10,7 @@ import { CitizenJobsBoard } from "./CitizenJobsBoard";
 import { LevelUpCelebration } from "./LevelUpCelebration";
 import { DispatchPanel } from "./DispatchPanel";
 import { cityNotice } from "@/lib/city-notice";
+import { trackEvent } from "@/lib/track";
 import { proveWallet } from "@/lib/wallet-proof";
 import { resolveCityDestinations, type CityLink } from "@/lib/city-destinations";
 import { ThinkingVerb } from "./ThinkingVerb";
@@ -168,6 +169,7 @@ export function AgentWorkspace(props: Props) {
 
   const [address, setAddress] = useState<string | null>(null);
   const [agent, setAgent] = useState<AgentData | null>(null);
+  const viewedRef = useRef(false);
   const [hex, setHex] = useState<number | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string>("");
@@ -339,6 +341,14 @@ export function AgentWorkspace(props: Props) {
     } catch {/* keep UI usable */}
   }, [agentUrl]);
   useEffect(() => { loadAgent(); }, [loadAgent]);
+  // citizen_viewed — fire-once when a citizen's workspace first loads, so we can
+  // see whether visitors actually reach a citizen (vs bounce at the hub) and the
+  // owned/awoken split. Coarse props only — never the token id / wallet / PII.
+  useEffect(() => {
+    if (!agent || viewedRef.current) return;
+    viewedRef.current = true;
+    trackEvent("citizen_viewed", { source: "workspace", owned: agent.unlock.unlocked });
+  }, [agent]);
 
   /* ── Recover a lost image render ─────────────────────────────────────────
    * deploy-citizen writes the image to history BEFORE it replies, so on a

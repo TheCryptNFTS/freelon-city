@@ -3,16 +3,18 @@ import { NextResponse, type NextRequest } from "next/server";
 /**
  * Referral capture.
  *
- * Invite links are `freeloncity.com/sync?r=<handle>` (see components/MyInvites).
- * The X OAuth callback reads a `freelon_ref` cookie to attribute the joiner to
- * their referrer. That cookie used to be written in /sync's Server Component
- * render via cookies().set() — but Next 15 only permits cookie mutation in a
- * Server Action / Route Handler / middleware; during page render it throws and
- * the surrounding try/catch swallowed it, so referral attribution silently
- * never persisted.
+ * Invite links are `freeloncity.com/demo?r=<handle>&ref=inv-<handle>` (see
+ * components/MyInvites) — newcomers land on the free chat, not the owner hub.
+ * Legacy `/sync?r=<handle>` links still work. The X OAuth callback reads a
+ * `freelon_ref` cookie to attribute the joiner to their referrer. That cookie
+ * used to be written in /sync's Server Component render via cookies().set() —
+ * but Next 15 only permits cookie mutation in a Server Action / Route Handler /
+ * middleware; during page render it throws and the surrounding try/catch
+ * swallowed it, so referral attribution silently never persisted.
  *
  * Middleware is the correct place: it can legitimately attach Set-Cookie to the
- * response. Runs only on /sync (matcher below), so it adds no latency elsewhere.
+ * response. Runs only on the referral landing routes (matcher below), so it adds
+ * no latency elsewhere.
  *
  * Edge runtime — everything here is inlined (no node:crypto, no citizens data).
  */
@@ -59,5 +61,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/sync"],
+  matcher: ["/sync", "/demo"],
 };
