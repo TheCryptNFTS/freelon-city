@@ -202,7 +202,7 @@ export function EvolvePanel({ citizenId }: Props) {
           <figure className="agentdash-image-out">
             <span className="agentdash-image-cap">ORIGINAL</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={originalUrl} alt={`Citizen #${citizenId.toString().padStart(4, "0")} original`} className="agentdash-image-img" />
+            <img src={originalUrl} alt={`Citizen #${citizenId.toString().padStart(4, "0")} original`} width={800} height={800} className="agentdash-image-img" />
           </figure>
           <button className="btn btn-primary agentdash-go" type="button" disabled={busy} onClick={doEvolve}>
             <span className="ttl">{busy ? "EVOLVING… (~20-40s)" : "⬡ EVOLVE ART →"}</span>
@@ -225,6 +225,8 @@ export function EvolvePanel({ citizenId }: Props) {
             <img
               src={shownUrl}
               alt={`Citizen #${citizenId.toString().padStart(4, "0")} ${view}`}
+              width={800}
+              height={800}
               className="agentdash-image-img"
             />
           </figure>

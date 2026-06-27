@@ -80,6 +80,19 @@ assets only, with attribution — never copyrighted material.
 - [ ] 51. DEFERRED to Billy — the unlock economy uses a runs/credits + HEX model governed by the LOCKED HEX-economy doc, so stating an "ETH → bonus-⬡" conversion is a new pricing claim (FLAGGED money-copy territory). A standalone /unlock/success page would also be dead surface — the in-workspace flow never redirects. The real fix (grant amount in the quote) touches the flagged economy; needs sign-off.
 - [x] 52. NOT actionable as written — deploy-video has NO front-end surface (videoEnabled/videoStyles/videoHexCost are returned by the agent API but consumed by no component), so there is no "point of use" in AgentWorkspace to attach its cost to. Per-ability and per-image ⬡ costs are ALREADY shown inline (ability chips, scene chips). Shipped the adjacent real gap instead: the image-mode "Generate" button + hint now restate the ⬡ cost at the moment of commitment (was only on the scene chip above it). AgentWorkspace.tsx.
 
+## BATCH 9 — accessible names + form labels (WCAG 3.3.2 / 4.1.2) — SHIPPED
+Verify-first caught many false agent findings: buttons with visible text already have accessible names (skipped CopyToClipboardButton/ShareButtons/MemoryProof — not defects); `.img-frame` containers already set `aspect-ratio:1` so the claimed CLS is absent (skipped TopAgents/one-card/etc); root layout already supplies openGraph+twitter defaults that ALL child routes inherit (the "missing OG" findings were false); `rel="noreferrer"` already implies noopener (no real reverse-tabnabbing gap). Only the genuine defects below were shipped.
+- [x] 53. FindCitizen token input had only a placeholder (placeholder ≠ label) — added `aria-label="Citizen token number (1–4040)"`. SC 3.3.2/4.1.2. FindCitizen.tsx:23.
+- [x] 54. CitizenNameEditor display-name input unlabeled — `aria-label="Display name for this citizen"`. CitizenNameEditor.tsx:120.
+- [x] 55. MyInvites read-only invite-link input unlabeled — `aria-label="Your invite link"`. MyInvites.tsx:79.
+- [x] 56. TransmissionCard boost-amount number input unlabeled — `aria-label="Boost amount in HEX"`. TransmissionCard.tsx:184.
+- [x] 57. ReplySubmit X-post URL input unlabeled — `aria-label="Link to your X post"`. ReplySubmit.tsx:109.
+- [x] 58. AdminConsole access-key password input unlabeled — `aria-label="Admin access key"`. AdminConsole.tsx:133.
+- [x] 59. CitizenRealignEditor civilization `<select>` unlabeled — `aria-label="Target civilization"`. CitizenRealignEditor.tsx:165.
+- [x] 60. SignalInventory NFT-artefact `<img alt="">` carried meaningful content with an empty alt — set `alt={it.name || \`${c.collection.name} #${it.identifier}\`}`. SC 1.1.1. SignalInventory.tsx:241.
+- [x] 61. EvolvePanel AI-art images had no reserved dimensions (`height:auto`, no aspect-ratio container) → layout shift on load. Added intrinsic `width/height={800}` (art is square) so the browser reserves the box. CWV CLS. EvolvePanel.tsx:205,225.
+- [x] 62. my-citizens is a personalized, wallet-gated roster (thin/duplicate for crawlers) — added `robots:{index:false,follow:true}`. Google thin/personalized-page guidance. app/my-citizens/page.tsx:6.
+
 ---
 
 ## FLAGGED — needs Billy / counsel sign-off (NOT auto-implemented)

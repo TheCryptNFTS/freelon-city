@@ -76,7 +76,7 @@ export function MyInvites({ handle }: { handle: string }) {
         </ul>
       )}
       <div className="invites-link">
-        <input type="text" value={link} readOnly onFocus={(ev) => ev.currentTarget.select()} />
+        <input type="text" aria-label="Your invite link" value={link} readOnly onFocus={(ev) => ev.currentTarget.select()} />
         <button type="button" onClick={onCopy}>
           {copied ? "COPIED" : "COPY"}
         </button>

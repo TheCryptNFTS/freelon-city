@@ -130,7 +130,7 @@ export function AdminConsole() {
         <h1 className="admin-h1">⬡ Restricted</h1>
         <p className="admin-lead">Enter access key.</p>
         <form onSubmit={(e) => { e.preventDefault(); submitKey(key); }} className="admin-keyform">
-          <input className="admin-input" type="password" placeholder="Access key…" value={key} onChange={(e) => setKey(e.target.value)} autoFocus />
+          <input className="admin-input" type="password" aria-label="Admin access key" placeholder="Access key…" value={key} onChange={(e) => setKey(e.target.value)} autoFocus />
           <button className="btn btn-primary" type="submit"><span className="ttl">Unlock →</span></button>
         </form>
       </div>

@@ -163,6 +163,7 @@ export function CitizenRealignEditor({ citizenId, tier, originalCiv, currentReal
       ) : (
         <form onSubmit={submit} autoComplete="off">
           <select
+            aria-label="Target civilization"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
             disabled={busy}

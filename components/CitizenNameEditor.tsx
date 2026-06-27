@@ -120,6 +120,7 @@ export function CitizenNameEditor({ citizenId, currentName }: Props) {
         <input
           type="text"
           maxLength={32}
+          aria-label="Display name for this citizen"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="display name"

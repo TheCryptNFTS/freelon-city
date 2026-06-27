@@ -183,6 +183,7 @@ export function TransmissionCard({ t: initialT, compact }: { t: Public; compact?
         <div style={{ display: "flex", alignItems: "center", gap: 4, flex: 1 }}>
           <input
             type="number"
+            aria-label="Boost amount in HEX"
             value={boostAmt}
             min={10}
             max={5000}

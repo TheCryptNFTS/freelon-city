@@ -238,7 +238,7 @@ export function SignalInventoryPanel() {
                       >
                         {it.imageUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={it.imageUrl} alt="" loading="lazy" className="sig-inv__artefactImg" />
+                          <img src={it.imageUrl} alt={it.name || `${c.collection.name} #${it.identifier}`} loading="lazy" className="sig-inv__artefactImg" />
                         ) : (
                           <span className="sig-inv__artefactPlaceholder" aria-hidden>⬡</span>
                         )}

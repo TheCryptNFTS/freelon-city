@@ -24,6 +24,7 @@ export function FindCitizen() {
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
+        aria-label="Citizen token number (1–4040)"
         placeholder="ENTER TOKEN #"
         value={val}
         onChange={(e) => { setVal(e.target.value); setErr(""); }}

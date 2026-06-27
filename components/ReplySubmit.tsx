@@ -108,6 +108,7 @@ export function ReplySubmit() {
         <form onSubmit={submit} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <input
             type="url"
+            aria-label="Link to your X post"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://x.com/yourhandle/status/1234567890"
