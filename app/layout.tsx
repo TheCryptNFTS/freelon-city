@@ -4,10 +4,8 @@ import type { Metadata, Viewport } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { Spotlight } from "@/components/Spotlight";
 import { Analytics } from "@/components/Analytics";
-import { EasterEggCode } from "@/components/EasterEggCode";
-import { Ghost404 } from "@/components/Ghost404";
+import { GlobalListeners } from "@/components/GlobalListeners";
 import { QuestToast } from "@/components/QuestToast";
 import { CityNotice } from "@/components/CityNotice";
 import { FourOFourEvent } from "@/components/FourOFourEvent";
@@ -183,7 +181,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BottomNav />
         </ChromeGate>
         <ScrollReveal />
-        <Spotlight />
         <Analytics />
         {/* T11 2026-06-11 — referral_landing beacon is now GLOBAL: ?ref= arrivals
             on / and /start (and every other route) were invisible while the
@@ -191,8 +188,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             per-page mounts were removed (double-fire). Fires once per hard load;
             layout persists across client navigations, so no re-fires. */}
         <ReferralBeacon />
-        <EasterEggCode />
-        <Ghost404 />
+        {/* #42 — Spotlight + EasterEggCode + Ghost404, deferred off the SSR/initial
+            hydration path (all render null at rest). See GlobalListeners. */}
+        <GlobalListeners />
         <QuestToast />
         <CityNotice />
         <ErrorReporter />

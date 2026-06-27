@@ -63,12 +63,12 @@ assets only, with attribution — never copyrighted material.
 - [x] 38. Proactive mobile in-app-browser hint on /sync connect — shown when mobile + no injected wallet, before the user taps and bounces. app/sync/SyncWalletAction.tsx.
 - [x] 39. ClaimForm done-state echoes the submitted email + "Not right? Fix it" reset, to catch typo'd addresses at capture instead of silently losing the lead. ClaimForm.tsx.
 
-## BATCH 7 — dead code & cleanup
-- [ ] 40. Delete orphaned CityFeedTicker (never rendered). components/CityFeedTicker.tsx.
-- [ ] 41. carrier-of-week cron: wire into vercel.json or delete. app/api/cron/carrier-of-week.
-- [ ] 42. Lazy-mount global listeners (EasterEggCode/Ghost404/Spotlight) per-page not all 54 routes.
-- [ ] 43. transmission-boost notify dedupe uses Date.now() eventKey → stable per-(id,booster). boost/route.ts:121.
-- [ ] 44. Shared `<CitizenImage>` wrapper over next/image; migrate citizen-grid `<img>` (removes ~62 lint disables, WebP for 4040 thumbs). citizens/page.tsx:164, CitizensBrowser.tsx:256, CollectionBrowser.tsx:189.
+## BATCH 7 — dead code & cleanup — SHIPPED (44 deferred, see note)
+- [x] 40. NOT dead — CityFeedTicker IS rendered on /dashboard (dashboard/page.tsx:64); the layout comment only records its removal from SITE-WIDE mounting. Kept. (Verify-first caught a false "never rendered" premise.) Instead cleaned the REAL orphans: deleted public/generated/terminal-bg-{1,2,3}.png (~5MB, 0 code refs — deferred from #23).
+- [x] 41. Deleted redundant /api/cron/carrier-of-week route — resolveCarrierOfWeek() already runs every 15min piggybacked on the sweep-bounty cron (deliberate Hobby cron-slot constraint; see sweep-bounty/route.ts:310), and the route was never in vercel.json. Work is covered; route was dead.
+- [x] 42. Spotlight/EasterEggCode/Ghost404 moved into a GlobalListeners client wrapper that dynamic-imports them with ssr:false — pulls their JS off the SSR + initial hydration path on all ~54 routes (all three render null at rest, so zero visual change). components/GlobalListeners.tsx, app/layout.tsx.
+- [x] 43. Already fixed — boost notify eventKey is `transmission-boost:${id}:${addr}` (stable per id+booster), not Date.now(). Doc audit was stale. boost/route.ts:124.
+- [ ] 44. DEFERRED (not shipped). Shared `<CitizenImage>` over next/image for the 4040-grid is a real WebP win BUT carries unverified production risk: no citizen IPFS thumb currently routes through Vercel's image optimizer anywhere, so migrating the highest-visibility grids would be the first at-scale on-demand optimization of slow pinata-gateway images (optimizer-timeout → broken thumbs + image-optimization quota exposure) plus layout-regression risk across 3 differently-styled grids. Needs browser QA + quota monitoring before shipping — flagged for Billy, not auto-implemented blind.
 
 ## BATCH 8 — deeper code-quality (verify-first)
 - [ ] 45. Wallet page can exceed Vercel 10s — add wall-clock budget + AbortController to fetchLongestHeld. wallet/[address]/page.tsx:98.
