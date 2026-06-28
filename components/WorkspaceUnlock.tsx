@@ -109,32 +109,46 @@ export function WorkspaceUnlock({
     } finally { setBusy(false); }
   }
 
-  async function claim(txHash: string) {
-    let creds: { address: string; signature: string } | null = null;
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const res = await fetch(`/api/citizens/${citizenId}/unlock`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(creds ? { action: "claim", kind: "activate", txHash, ...creds } : { action: "claim", kind: "activate", txHash }),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (res.status === 401 && d?.error === "auth_required" && !creds) { creds = await sign(); continue; }
-      if (res.status === 425) { setNote("Payment received — waiting for confirmations…"); await new Promise((r) => setTimeout(r, 5000)); continue; }
-      if (res.ok && d.ok) {
-        setNote(null);
-        // THE revenue event — was dark (only fired in the unmounted dashboard).
-        if (!paidRef.current) {
-          paidRef.current = true;
-          trackEvent("activation_paid", { source: "workspace", citizenId });
+  async function claim(txHash: string): Promise<boolean> {
+    // Lock the trigger + show progress for the WHOLE verify loop. The manual
+    // "I've paid" button calls claim() directly (pay() also pre-sets busy); without
+    // this the manual path stayed enabled through the up-to-10 confirmation polls
+    // (~50s) and could be double-submitted. finally restores busy on every exit,
+    // and the try/catch stops a network throw on the manual path stranding it.
+    setBusy(true); setErr(null);
+    try {
+      let creds: { address: string; signature: string } | null = null;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const res = await fetch(`/api/citizens/${citizenId}/unlock`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(creds ? { action: "claim", kind: "activate", txHash, ...creds } : { action: "claim", kind: "activate", txHash }),
+        });
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401 && d?.error === "auth_required" && !creds) { creds = await sign(); continue; }
+        if (res.status === 425) { setNote("Payment received — waiting for confirmations…"); await new Promise((r) => setTimeout(r, 5000)); continue; }
+        if (res.ok && d.ok) {
+          setNote(null);
+          // THE revenue event — was dark (only fired in the unmounted dashboard).
+          if (!paidRef.current) {
+            paidRef.current = true;
+            trackEvent("activation_paid", { source: "workspace", citizenId });
+          }
+          onUnlocked();
+          return true;
         }
-        onUnlocked();
-        return true;
+        setErr(d.message || d.error || "Couldn't confirm the unlock."); setStep("await");
+        trackEvent("unlock_blocked", { source: "workspace", reason: "claim_error" });
+        return false;
       }
-      setErr(d.message || d.error || "Couldn't confirm the unlock."); setStep("await"); setBusy(false);
+      setErr("Still confirming on-chain. Wait a minute, then press Verify again."); setStep("await"); return false;
+    } catch (e) {
+      setErr((e as Error).message || "Couldn't confirm the unlock."); setStep("await");
       trackEvent("unlock_blocked", { source: "workspace", reason: "claim_error" });
       return false;
+    } finally {
+      setBusy(false);
     }
-    setErr("Still confirming on-chain. Wait a minute, then press Verify again."); setStep("await"); setBusy(false); return false;
   }
 
   async function pay() {
@@ -246,9 +260,9 @@ export function WorkspaceUnlock({
           </p>
         </div>
       )}
-      {note && <p style={{ fontSize: 12, color: accent, marginTop: 10 }}>{note}</p>}
-      {err && <p style={{ fontSize: 12, color: "#e0a8a4", marginTop: 10 }}>{err}</p>}
-      <p style={{ fontSize: 10.5, color: "var(--ink-dim, #6a6a72)", marginTop: 12 }}>
+      {note && <p role="status" aria-live="polite" style={{ fontSize: 12, color: accent, marginTop: 10 }}>{note}</p>}
+      {err && <p role="alert" style={{ fontSize: 12, color: "#e0a8a4", marginTop: 10 }}>{err}</p>}
+      <p style={{ fontSize: 11.5, color: "var(--ink-2, #b8b8c0)", marginTop: 12 }}>
         On-chain &amp; non-refundable. Problem with a payment?{" "}
         <a href="https://x.com/4040hex" target="_blank" rel="noreferrer" style={{ color: "var(--ink-2, #b8b8c0)" }}>DM @4040hex</a>.
       </p>
