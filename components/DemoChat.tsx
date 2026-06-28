@@ -46,6 +46,12 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
   const [busy, setBusy] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [exhausted, setExhausted] = useState(false);
+  // Backend at capacity (429) or briefly down (503). Rather than dead-end the
+  // visitor on a retry loop that keeps failing (the demo's Redis dep can be
+  // over-quota), route them into the OWN wall — the same conversion surface as
+  // exhaustion, with outage-honest copy. Fires once per session.
+  const [demoDown, setDemoDown] = useState(false);
+  const downTrackedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   // Fire-once guards for funnel analytics (one per browser-session mount).
@@ -114,6 +120,16 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
       } else if (data.exhausted) {
         markExhausted(slug);
         setRemaining(0);
+      } else if (res.status === 429 || res.status === 503) {
+        // Demo backend at capacity / briefly down — don't loop a doomed retry.
+        // Give the turn back and route to the OWN wall instead of a dead end.
+        popMsg(slug);
+        setInput(q);
+        setDemoDown(true);
+        if (!downTrackedRef.current) {
+          downTrackedRef.current = true;
+          trackEvent("demo_unavailable", { slug, status: res.status });
+        }
       } else {
         setError(data.message || "Couldn't reach the signal — try again.");
         popMsg(slug); // give the user's turn back so they can retry
@@ -350,7 +366,7 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
             gap: 14,
           }}
         >
-          {msgs.length === 0 && !exhausted && (
+          {msgs.length === 0 && !exhausted && !demoDown && (
             <>
               {/* The agent speaks first — a typed-in in-character line so the box is
                   ALIVE before you type. Keyed by slug so it re-animates per agent.
@@ -439,17 +455,26 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
             </div>
           )}
 
-          {exhausted && (
+          {(exhausted || demoDown) && (
             <div style={{ margin: "auto", textAlign: "center", maxWidth: 420, padding: "24px 12px" }}>
               <div style={{ fontFamily: "var(--display)", fontSize: 22, color: "var(--ink)", lineHeight: 1.15, marginBottom: 10 }}>
-                This conversation is about to vanish.
+                {demoDown ? "The live demo is at capacity." : "This conversation is about to vanish."}
               </div>
-              <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 20 }}>
-                Unless you own it. Own a <strong style={{ color: "var(--ink)" }}>FREELON</strong> and it remembers{" "}
-                <strong style={{ color: "var(--ink)" }}>this exact conversation</strong> — and every one after it. It
-                levels up as you train it, builds a visible work record, and its memory and history travel with the
-                NFT, owner to owner. Want one? Leave your email and we&apos;ll get you set up.
-              </p>
+              {demoDown ? (
+                <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 20 }}>
+                  Too many people are meeting citizens right now. Own a{" "}
+                  <strong style={{ color: "var(--ink)" }}>FREELON</strong> and skip the line — yours is always awake,
+                  remembers every conversation, levels up as you train it, and its memory travels with the NFT, owner
+                  to owner. Want one? Leave your email and we&apos;ll get you set up.
+                </p>
+              ) : (
+                <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 20 }}>
+                  Unless you own it. Own a <strong style={{ color: "var(--ink)" }}>FREELON</strong> and it remembers{" "}
+                  <strong style={{ color: "var(--ink)" }}>this exact conversation</strong> — and every one after it. It
+                  levels up as you train it, builds a visible work record, and its memory and history travel with the
+                  NFT, owner to owner. Want one? Leave your email and we&apos;ll get you set up.
+                </p>
+              )}
               {/* ONE gold action on the wall (2026-06-10): the claim. The old gold
                   "Share what it said" button sat ON TOP of the form and cannibalized
                   the capture at the single most valuable moment; share is demoted to
@@ -528,7 +553,7 @@ export function DemoChat({ agents }: { agents: DemoAgent[] }) {
         </div>
 
         {/* Composer */}
-        {!exhausted && (
+        {!exhausted && !demoDown && (
           <div style={{ borderTop: "1px solid var(--line)", padding: "12px 14px", background: "var(--surface)" }}>
             {error && (
               <div style={{ fontFamily: "var(--mono2)", fontSize: 11.5, color: "#e0a8a4", marginBottom: 8 }}>{error}</div>
