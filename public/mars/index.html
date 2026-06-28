@@ -1537,7 +1537,8 @@ function pickFaction(i){
 { const fr=document.querySelector('#perksModal'); }   // perks rows reuse .frow CSS (faction modal)
 
 let S = { v:3, hex:500, xp:0, wins:0, claimsTotal:0, buildings:[], zonesClaimed:[], lastSeen:Date.now(),
-  rover:{x:14,z:8}, travel:0, scans:0, discovered:[], detected:[], cleared:[], scarBonus:false,
+  rover:{x:14,z:8}, travel:0, scans:0, discovered:[], detected:[], cleared:[], cityDisc:[], cityLog:{}, scarBonus:false,
+  garageFound:false, raceBest:0, garageUpgrades:{engine:0,plating:0,treads:0},
   cardLv:{}, zoneCol:{}, locks:{}, respawn:{}, redDust:{wins:0},
   streak:{lastDay:'', n:0, buffers:0}, today:freshToday(),
   weekly:{key:weekKey(), count:0}, goalIndex:0, archive:{owned:[], pity:0},
@@ -1693,6 +1694,12 @@ function load(){
       if(!Array.isArray(S.discovered)) S.discovered=[];
       if(!Array.isArray(S.detected)) S.detected=[];
       if(!Array.isArray(S.cleared)) S.cleared=[];
+      if(typeof S.garageFound!=='boolean') S.garageFound=false;
+      if(typeof S.raceBest!=='number') S.raceBest=0;
+      if(!S.garageUpgrades||typeof S.garageUpgrades!=='object') S.garageUpgrades={engine:0,plating:0,treads:0};
+      else { S.garageUpgrades.engine|=0; S.garageUpgrades.plating|=0; S.garageUpgrades.treads|=0; }
+      if(!Array.isArray(S.cityDisc)) S.cityDisc=[];
+      if(!S.cityLog || typeof S.cityLog!=='object') S.cityLog={};
       S.cardLv=S.cardLv||{}; S.zoneCol=S.zoneCol||{}; S.locks=S.locks||{};
       S.respawn=S.respawn||{}; S.redDust=S.redDust||{wins:0};
       S.tile=S.tile||HOME_TILE; S.tiles=S.tiles||{}; S.tileOrder=S.tileOrder||[];
@@ -3177,6 +3184,7 @@ function prepModel(root,k){
           const iconic = (k==='rover'||k==='rocket');
           if(!iconic && _h.l>.28) o.material.color.setHSL(.085, Math.min(_h.s,.22)+.05, .24);   // hard soot + faint gold cast
           else if(k==='rocket' && _h.l>.6) o.material.color.setHSL(_h.h, Math.min(_h.s,.2), .5);  // dim the white, keep the silhouette
+          else if(k==='rover' && _h.l>.32) o.material.color.setHSL(.075, Math.max(_h.s,.16), Math.min(_h.l,.64));  // warm sand-ivory body — stays light/readable, loses the sterile plastic white
         }
         o.material.roughness=Math.min(1,(o.material.roughness??.8)+.2);   // kill the plastic sheen
         if(o.material.metalness!=null) o.material.metalness=Math.min(o.material.metalness,.3);
@@ -3837,6 +3845,7 @@ const roverWheels=[];
     roverShell.add(wh); roverWheels.push(wh);   // roll = holder.rotation.x (axle stays on local x)
   }
   enableShadows(roverShell);
+try{ dressDustlark(); }catch(e){}
 }
 /* gold beacon survives the GLB swap — it marks the PLAYER unit */
 const roverBeacon=new THREE.Mesh(new THREE.OctahedronGeometry(.4), matGold(2.4));
@@ -4409,7 +4418,113 @@ for(let i=0;i<AI_N;i++){
   afterimage.push({sp,life:0,max:0.34});
 }
 let aiEmitAcc=0;
-function emileTrailColor(){ return (S.cosmetic&&S.cosmetic.trail)||0xe9c984; }   // a streak day-7 cosmetic can re-tint the trail
+/* ============================== FREELON HOLDER LIVERY (TASK #5) ==============================
+   Ties FREELON-holder status to the game as COSMETIC FLEX ONLY — a citizen livery accent on the
+   rover, a gold EMILE trail/name tint, a one-time welcome toast, and a persistent HUD badge.
+   NEVER touches ⬡, save state, or the economy: the NFT changes how you LOOK, not what you earn.
+   Holder status is read from the URL hash the site appends at launch (see contract at bottom),
+   degrades to full standalone play when absent, and is purely in-memory (never written to S).
+   Legal: ⬡ stays a non-cashable consumable; this grants no financial benefit of any kind. */
+let _holder = { owns:false };
+const HOLDER_GOLD = 0xd8b25c;                 // == GOLD; the citizen accent hue
+let _holderApplied = false, _holderBadgeEl = null;
+
+/* Parse the holder claim from the hash. #fl=<id>[&fa=<imageUrl>][&fn=<name>].
+   Fail-soft: anything malformed → standalone (owns:false). No network call, no errors. */
+function _readHolderHash(){
+  try{
+    const h = location.hash || '';
+    const mId = h.match(/[#&]fl=(\d{1,5})\b/i);            // FREELON token id, 1-5 digits
+    if(!mId) return { owns:false };
+    const id = parseInt(mId[1], 10);
+    if(!(id >= 0 && id <= 99999)) return { owns:false };
+    let imageUrl = null, name = null;
+    const mImg = h.match(/[#&]fa=([^&]+)/i);
+    if(mImg){ try{
+      const u = decodeURIComponent(mImg[1]);
+      if(/^https:\/\/[\w.-]*seadn\.io\//i.test(u) || /^https:\/\//i.test(u)) imageUrl = u;  // cosmetic only; only used as a <img> src
+    }catch(e){} }
+    const mNm = h.match(/[#&]fn=([^&]+)/i);
+    if(mNm){ try{ name = decodeURIComponent(mNm[1]).replace(/[<>]/g,'').slice(0,40); }catch(e){} }
+    return { owns:true, id, imageUrl, name };
+  }catch(e){ return { owns:false }; }
+}
+
+/* Public entry point — call once after the rover/EMILE/toast/HUD exist. Idempotent. */
+function marsHolderInit(){
+  try{
+    if(_holderApplied) return _holder;
+    const claim = _readHolderHash();
+    _setHolder(claim, /*fromInit*/true);
+  }catch(e){ /* never let a cosmetic break boot */ }
+  return _holder;
+}
+
+/* Apply (or re-apply) a holder claim. Shared by init + the MARS.holder() debug sim. */
+function _setHolder(claim, fromInit){
+  _holder = (claim && claim.owns) ? {
+    owns:true,
+    id: claim.id,
+    imageUrl: claim.imageUrl || null,
+    name: claim.name || ('FREELON #'+String(claim.id).padStart(4,'0'))
+  } : { owns:false };
+
+  // EMILE trail re-tint is automatic via emileTrailColor() (no state needed).
+  _applyHolderRoverLivery();
+  _applyHolderBadge();
+
+  // One-time welcome — only on a fresh recognition, only when actually owning.
+  if(_holder.owns && (!fromInit || !_holderApplied)){
+    try{ if(typeof toast==='function')
+      toast('◈ '+(_holder.name)+' RECOGNIZED — citizen livery online'); }catch(e){}
+  }
+  _holderApplied = true;
+  return _holder;
+}
+
+/* (a) Rover citizen accent — a gold pennant + accent ring on the DUSTLARK kit / roverShell.
+   Tagged '_flLivery' so it's idempotent and survives nothing it shouldn't. Removed if !owns. */
+function _applyHolderRoverLivery(){
+  try{
+    if(typeof roverShell==='undefined' || !roverShell) return;
+    const old = roverShell.getObjectByName('_flLivery');
+    if(old){ roverShell.remove(old); old.traverse(o=>{ if(o.isMesh){ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); } }); }
+    if(!_holder.owns) return;
+    const rig = new THREE.Group(); rig.name='_flLivery';
+    const accent = new THREE.MeshStandardMaterial({ color:0x4a3a1a, roughness:.3, metalness:.85, emissive:HOLDER_GOLD, emissiveIntensity:1.6 });
+    // a slim gold accent band across the hull
+    const band = new THREE.Mesh(new THREE.BoxGeometry(2.34,.12,.34), accent); band.position.set(0,1.62,.2); rig.add(band);
+    // a small citizen pennant on the rear — the visible flex
+    const whip = new THREE.Mesh(new THREE.CylinderGeometry(.02,.03,1.5,5),
+      new THREE.MeshStandardMaterial({color:0x2a2118,roughness:.7,metalness:.6})); whip.position.set(-.85,3.05,-1.6); rig.add(whip);
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(.55,.32), new THREE.MeshStandardMaterial({ color:HOLDER_GOLD, emissive:HOLDER_GOLD, emissiveIntensity:.7, roughness:.5, side:THREE.DoubleSide }));
+    flag.position.set(-1.05,3.75,-1.6); rig.add(flag);
+    if(typeof enableShadows==='function') enableShadows(rig);
+    roverShell.add(rig);
+  }catch(e){}
+}
+
+/* (d) Persistent HUD badge — tasteful gold pill, top-left, "◈ CITIZEN · #ID". */
+function _applyHolderBadge(){
+  try{
+    if(!_holder.owns){ if(_holderBadgeEl){ _holderBadgeEl.style.display='none'; } return; }
+    if(!_holderBadgeEl){
+      const d=document.createElement('div'); d.id='holderBadge';
+      d.style.cssText='position:fixed;top:12px;left:12px;z-index:31;padding:5px 11px;border-radius:999px;'
+        +'background:rgba(18,14,9,.78);border:1px solid rgba(216,178,92,.55);color:#ffd98a;'
+        +'font:700 11px/1 system-ui,sans-serif;letter-spacing:.07em;backdrop-filter:blur(6px);'
+        +'display:flex;align-items:center;gap:7px;pointer-events:none;user-select:none';
+      document.body.appendChild(d); _holderBadgeEl=d;
+    }
+    // optional tiny avatar crop if the site passed an image URL (cosmetic only)
+    const av = _holder.imageUrl
+      ? `<img src="${_holder.imageUrl}" alt="" style="width:16px;height:16px;border-radius:50%;`
+        +`object-fit:cover;border:1px solid rgba(216,178,92,.6)" onerror="this.remove()">` : '';
+    _holderBadgeEl.innerHTML = av + '<span>◈ CITIZEN · #'+String(_holder.id).padStart(4,'0')+'</span>';
+    _holderBadgeEl.style.display='flex';
+  }catch(e){}
+}
+function emileTrailColor(){ return (S.cosmetic&&S.cosmetic.trail) || (_holder&&_holder.owns?HOLDER_GOLD:0) || 0xe9c984; }   // earned streak prize wins; else holder gold; else default
 function emitAfterimage(x,y,z){
   let e=null; for(const a of afterimage){ if(!a.sp.visible){ e=a; break; } }
   if(!e){ e=afterimage[0]; for(const a of afterimage) if(a.life>e.life) e=a; }   // recycle the most-faded
@@ -4555,6 +4670,958 @@ function engineUpdate(r,dt){
   engFilt.frequency.value=140+260*r;
 }
 
+/* ============================ PLANETARY SCALE LAYER ============================
+   Mars at TRUE size. The world is an infinite procedural plane (1 unit = 1 metre); this
+   layer reads the rover's position out as real Mars latitude/longitude, names the region
+   it's crossing, and tracks a planetary odometer — so "drive the whole planet" reads as
+   genuine traversal across the 21,297 km equatorial circumference, not a boxed tile. */
+const MARS_R_KM=3389.5, MARS_CIRC_M=2*Math.PI*MARS_R_KM*1000;   // ≈21,296,856 m equator
+const MARS_M_PER_DEG=MARS_CIRC_M/360;                            // metres per degree latitude
+const BASE_LAT=18.4, BASE_LON=226.0;                             // landing site — foot of Olympus Mons (real ≈18.65°N 226.2°E)
+/* world +x = east, world -z = north */
+function worldToLatLon(x,z){
+  const lat=Math.max(-89.9,Math.min(89.9, BASE_LAT - z/MARS_M_PER_DEG));
+  const lon=((BASE_LON + x/(MARS_M_PER_DEG*Math.max(.05,Math.cos(lat*Math.PI/180))))%360+360)%360;
+  return {lat,lon};
+}
+/* recognisable Martian regions, picked by lat/lon band */
+const MARS_REGIONS=[
+  {name:'OLYMPUS MONS',      la:[10,28],  lo:[215,235]},
+  {name:'THARSIS MONTES',    la:[-14,12], lo:[235,262]},
+  {name:'AMAZONIS PLANITIA', la:[0,40],   lo:[160,215]},
+  {name:'ELYSIUM PLANITIA',  la:[-6,30],  lo:[130,170]},
+  {name:'VALLES MARINERIS',  la:[-18,2],  lo:[262,300]},
+  {name:'ARABIA TERRA',      la:[0,35],   lo:[300,350]},
+  {name:'HELLAS PLANITIA',   la:[-55,-28],lo:[55,110]},
+  {name:'ARCADIA PLANITIA',  la:[40,72],  lo:[150,220]},
+  {name:'ACIDALIA PLANITIA', la:[28,62],  lo:[300,352]},
+  {name:'TERRA CIMMERIA',    la:[-55,-18],lo:[170,260]},
+];
+function regionName(lat,lon){
+  for(const r of MARS_REGIONS){ if(lat>=r.la[0]&&lat<=r.la[1] && lon>=r.lo[0]&&lon<=r.lo[1]) return r.name; }
+  return lat>=0?'NORTHERN LOWLANDS':'SOUTHERN HIGHLANDS';
+}
+let _navEl=null, _navAcc=0;
+function navHudUpdate(dt){
+  if(mode!=='play'){ if(_navEl) _navEl.style.display='none'; return; }
+  if(!_navEl){
+    _navEl=document.createElement('div'); _navEl.id='navHud'; _navEl.className='hud';
+    _navEl.style.cssText='position:fixed;left:12px;bottom:12px;z-index:24;font:9px/1.55 ui-monospace,monospace;letter-spacing:.13em;color:#ffe9b0;background:rgba(8,6,4,.66);border:1px solid rgba(216,178,92,.5);border-radius:6px;padding:8px 12px;backdrop-filter:blur(7px);pointer-events:none;min-width:158px';
+    document.body.appendChild(_navEl);
+  }
+  _navEl.style.display='block';
+  _navAcc-=dt; if(_navAcc>0) return; _navAcc=0.1;
+  const p=rover.position, ll=worldToLatLon(p.x,p.z), reg=regionName(ll.lat,ll.lon);
+  const kmh=roverSpd*3.6, odo=S.travel/1000, pct=S.travel/MARS_CIRC_M*100;
+  const latS=Math.abs(ll.lat).toFixed(2)+'°'+(ll.lat>=0?'N':'S'), lonS=ll.lon.toFixed(2)+'°E';
+  const spd = warpActive ? `<span style="color:#9fd8ff">⮞ WARP ${kmh.toFixed(0)} KM/H</span>` : `${kmh.toFixed(0)} KM/H`;
+  let nc=null,nd=1e18; for(const g of _cities.values()){ if(!g)continue; const ddx=g.userData.cx-p.x, ddz=g.userData.cz-p.z, d2=ddx*ddx+ddz*ddz; if(d2<nd){nd=d2;nc=g;} }
+  let comp='';
+  if(nc){ const rel=Math.atan2(nc.userData.cx-p.x, nc.userData.cz-p.z)-roverHeading, deg=(rel*180/Math.PI).toFixed(0);
+    const km=Math.sqrt(nd)/1000, disc=S.cityDisc&&S.cityDisc.includes(nc.userData.key);
+    comp=`<div style="margin-top:4px;display:flex;align-items:center;gap:6px;color:${disc?'#ffd98a':'rgba(242,234,216,.7)'}"><span style="display:inline-block;transform:rotate(${deg}deg);font-size:12px;line-height:1">▲</span>${disc?nc.userData.name:'UNCHARTED'} · ${km.toFixed(km<10?2:1)}KM</div>`; }
+  const html=`<div style="color:#d8b25c;font-size:8px;letter-spacing:.2em;margin-bottom:3px">▦ ${reg}</div>`+
+    `<div>${latS} &nbsp; ${lonS}</div>`+
+    `<div style="margin-top:3px;color:#f2ead8">ODO ${odo.toFixed(odo<10?2:1)} KM <span style="color:rgba(216,178,92,.7)">· ${pct.toFixed(pct<1?3:2)}% OF MARS</span></div>`+
+    `<div style="margin-top:2px">${spd}</div>`+comp;
+  if(_navEl._html!==html){ _navEl._html=html; _navEl.innerHTML=html; }
+}
+/* ============================ HIGH-SPEED WARP TRAVEL ============================
+   Future-tech overland sprint. Press F to engage: target speed jumps to WARP_SPD (kept
+   well under the 100u/substep teleport-resync threshold), the chassis lifts onto a hover
+   cushion, and the existing speed-cam FOV/vignette sells the rush. Hold a heading to run. */
+let warpActive=false, warpLift=0;
+const WARP_SPD=900;          // m/s overland (~3,240 km/h); 900*(1/60)=15u/substep — safe under the resync wall
+function toggleWarp(){
+  if(playerMode==='emile'){ toast('WARP IS ROVER-ONLY — press C for the rover'); return; }
+  warpActive=!warpActive;
+  toast(warpActive?'⮞ WARP DRIVE ENGAGED — hold a heading':'WARP DISENGAGED');
+  if(warpActive){ try{sfxTick();}catch(e){} try{addTrauma(.55);}catch(e){} }   // launch punch
+}
+/* ============================ STREAMING CITIES ============================
+   Procedural FREELON settlements that materialise as the rover crosses the planet. Placed by
+   DETERMINISTIC coarse cell (the same patch of Mars always grows the same city), streamed in/out
+   around the rover like the rock-detail field. Soot-and-gold towers, lit windows, a central spire
+   + gold beacon — kept well clear of the home command seat. */
+const CITY_CELL=5200, CITY_VIEW=1;       // ~one candidate site per 5.2km cell; build within ±1 cell
+const _cityGeo=new THREE.BoxGeometry(1,1,1), _octGeo=new THREE.OctahedronGeometry(1);
+let _cityWinTex=null;
+function cityWindowTex(){
+  if(_cityWinTex) return _cityWinTex;
+  const cv=document.createElement('canvas'); cv.width=cv.height=64;
+  const cx=cv.getContext('2d'); cx.fillStyle='#0c0908'; cx.fillRect(0,0,64,64);
+  for(let y=4;y<64;y+=8) for(let x=4;x<64;x+=8){ if(Math.random()<0.5){ cx.fillStyle=Math.random()<0.3?'#ffd98a':'#caa24e'; cx.fillRect(x,y,4,5); } }
+  _cityWinTex=new THREE.CanvasTexture(cv); _cityWinTex.wrapS=_cityWinTex.wrapT=THREE.RepeatWrapping;
+  return _cityWinTex;
+}
+const _cities=new Map();                 // "cx,cz" -> THREE.Group | null (null = rolled empty, don't retry)
+function _cityName(rng){
+  const A=['NOX','VEL','KAR','ORD','THA','RHE','SYR','ZHA','MERI','AXO','LUN','PROM'];
+  const B=['SPIRE','REACH','HOLD','GATE','CROSS','STATION','BASTION','FORGE','HAVEN','MARCH'];
+  return A[(rng()*A.length)|0]+' '+B[(rng()*B.length)|0];
+}
+const _cityDummy=new THREE.Object3D();
+function buildCity(cx,cz){
+  const rng=mulberry32(_cellSeed(cx,cz)^0x5ec1a7);
+  if(rng()>0.5) return null;              // ~half of candidate cells hold a city
+  const ox=(cx+0.5)*CITY_CELL, oz=(cz+0.5)*CITY_CELL;
+  if(Math.hypot(ox,oz)<2600) return null; // keep the home seat + approach clear
+  const g=new THREE.Group(); g.userData.isCity=true;
+  const winMat=new THREE.MeshStandardMaterial({color:0x17120d,roughness:.5,metalness:.55,emissive:0xc28b2e,emissiveMap:cityWindowTex(),emissiveIntensity:.95});
+  const dark=new THREE.MeshStandardMaterial({color:0x14100c,roughness:.72,metalness:.55});
+  const gold=new THREE.MeshStandardMaterial({color:0x4a3a1a,roughness:.3,metalness:.85,emissive:GOLD,emissiveIntensity:1.9});
+  const R=440+rng()*640, N=Math.round(54+rng()*70);     // a real skyline — dozens of towers, instanced
+  const litN=Math.round(N*0.6), darkN=N-litN;
+  const litM=new THREE.InstancedMesh(_cityGeo,winMat,litN), darkM=new THREE.InstancedMesh(_cityGeo,dark,darkN);
+  litM.castShadow=darkM.castShadow=darkM.receiveShadow=litM.receiveShadow=true;
+  litM.frustumCulled=darkM.frustumCulled=false;          // instanced bounds are base-geo only → cover the whole footprint
+  const d=_cityDummy; let li=0,di=0; const crowns=[];
+  for(let i=0;i<N;i++){
+    const a=rng()*6.283, rr=Math.pow(rng(),0.6)*R;
+    const bx=ox+Math.cos(a)*rr, bz=oz+Math.sin(a)*rr;
+    const w=9+rng()*18, dep=9+rng()*18, core=1-rr/R;
+    const h=16+Math.pow(core,1.5)*230*(0.42+rng()*0.95); // taller toward the core → a domed skyline
+    const gy=terrainH(bx,bz);
+    d.position.set(bx,gy+h/2,bz); d.rotation.set(0,rng()*6.283,0); d.scale.set(w,h,dep); d.updateMatrix();
+    if((rng()<0.6 && li<litN) || di>=darkN){ if(li<litN) litM.setMatrixAt(li++,d.matrix); else darkM.setMatrixAt(di++,d.matrix); }
+    else darkM.setMatrixAt(di++,d.matrix);
+    if(core>0.42 && rng()<0.5) crowns.push([bx,gy+h+2,bz,Math.min(w,dep)*0.42]);
+  }
+  litM.count=li; darkM.count=di; litM.instanceMatrix.needsUpdate=darkM.instanceMatrix.needsUpdate=true;
+  g.add(litM); g.add(darkM);
+  if(crowns.length){                                     // gold crowns on the tall core towers
+    const cm=new THREE.InstancedMesh(_octGeo,gold,crowns.length); cm.frustumCulled=false;
+    crowns.forEach((c,i)=>{ d.position.set(c[0],c[1],c[2]); d.rotation.set(0,0,0); d.scale.setScalar(c[3]); d.updateMatrix(); cm.setMatrixAt(i,d.matrix); });
+    cm.instanceMatrix.needsUpdate=true; g.add(cm);
+  }
+  const RL=Math.round(30+rng()*18);                      // perimeter landing-strip beacons — reads as a lit settlement from afar
+  const pm=new THREE.InstancedMesh(_octGeo,gold,RL); pm.frustumCulled=false;
+  for(let i=0;i<RL;i++){ const a=i/RL*6.283, lx=ox+Math.cos(a)*(R*0.97), lz=oz+Math.sin(a)*(R*0.97); d.position.set(lx,terrainH(lx,lz)+2.4,lz); d.rotation.set(0,0,0); d.scale.setScalar(1.9); d.updateMatrix(); pm.setMatrixAt(i,d.matrix); }
+  pm.instanceMatrix.needsUpdate=true; g.add(pm);
+  const cgy=terrainH(ox,oz);                             // central spire with gold bands + crowning beacon
+  const spire=new THREE.Mesh(new THREE.CylinderGeometry(3,11,260,6), dark); spire.position.set(ox,cgy+130,oz); spire.castShadow=true; g.add(spire);
+  for(let b=0;b<4;b++){ const ry=46+b*56, rr2=9-b*1.6; const band=new THREE.Mesh(new THREE.CylinderGeometry(rr2,rr2+.4,1.4,6),gold); band.position.set(ox,cgy+ry,oz); g.add(band); }
+  const beacon=new THREE.Mesh(new THREE.OctahedronGeometry(11), gold); beacon.position.set(ox,cgy+272,oz); g.add(beacon);
+  const pa=rng()*6.283, px=ox+Math.cos(pa)*R*0.55, pz=oz+Math.sin(pa)*R*0.55, pgy=terrainH(px,pz);   // a landing pad off-center
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(26,28,1.6,20), dark); pad.position.set(px,pgy+0.9,pz); pad.receiveShadow=true; g.add(pad);
+  const padRing=new THREE.Mesh(new THREE.TorusGeometry(22,1.2,8,28), gold); padRing.rotation.x=Math.PI/2; padRing.position.set(px,pgy+1.8,pz); g.add(padRing);
+  g.userData.beacon=beacon; g.userData.name=_cityName(rng); g.userData.cx=ox; g.userData.cz=oz; g.userData.r=R;
+  g.userData.mats=[winMat,dark,gold];
+  // sky-traffic: hovercraft circling the towers, brighter at night — reads as an inhabited city
+  const TRA=Math.round(10+rng()*12);
+  const traMat=new THREE.MeshStandardMaterial({color:0x1a1410,roughness:.4,metalness:.6,emissive:0xffb84a,emissiveIntensity:1.2});
+  const traM=new THREE.InstancedMesh(_octGeo,traMat,TRA); traM.frustumCulled=false;
+  const traf=[];
+  for(let i=0;i<TRA;i++) traf.push({a:rng()*6.283, rad:R*(0.4+rng()*0.7), h:60+rng()*180, sp:(0.2+rng()*0.5)*(rng()<0.5?-1:1), sc:2+rng()*2.5});
+  g.userData.traffic={mesh:traM, list:traf, ox, oz};
+  g.userData.mats.push(traMat);
+  g.add(traM);
+  return g;
+}
+let cityOX=1e9, cityOZ=1e9;
+function cityFollow(wx,wz){
+  if(Math.abs(wx-cityOX)<CITY_CELL*0.5 && Math.abs(wz-cityOZ)<CITY_CELL*0.5) return;
+  cityOX=wx; cityOZ=wz;
+  const ccx=Math.round(wx/CITY_CELL), ccz=Math.round(wz/CITY_CELL), keep=new Set();
+  for(let dx=-CITY_VIEW;dx<=CITY_VIEW;dx++) for(let dz=-CITY_VIEW;dz<=CITY_VIEW;dz++){
+    const cx=ccx+dx, cz=ccz+dz, key=cx+','+cz; keep.add(key);
+    if(_cities.has(key)) continue;
+    const g=buildCity(cx,cz);
+    if(g) g.userData.key=key;
+    _cities.set(key,g);                   // store null too → don't re-roll empty cells
+    if(g) scene.add(g);
+  }
+  for(const [key,g] of _cities){ if(!keep.has(key)){ if(g){ scene.remove(g); disposeCity(g); } _cities.delete(key); } }
+}
+function disposeCity(g){
+  g.traverse(o=>{ if(o.geometry && o.geometry!==_cityGeo && o.geometry!==_octGeo) o.geometry.dispose(); });
+  if(g.userData.mats) for(const m of g.userData.mats) m.dispose();
+  if(g.userData.label){ g.userData.label.remove(); g.userData.label=null; }
+}
+/* floating world-space city markers + first-time DISCOVERY (gives the planet destinations) */
+function cityLabelUpdate(){
+  const px=rover.position.x, pz=rover.position.z;
+  for(const g of _cities.values()){
+    if(!g) continue;
+    const cx=g.userData.cx, cz=g.userData.cz, dd=Math.hypot(cx-px,cz-pz);
+    if(dd<820 && S.cityDisc && !S.cityDisc.includes(g.userData.key)){      // arrive → chart it
+      S.cityDisc.push(g.userData.key);
+      if(!S.cityLog) S.cityLog={}; S.cityLog[g.userData.key]={name:g.userData.name,x:Math.round(g.userData.cx),z:Math.round(g.userData.cz)};
+      toast('◈ SETTLEMENT CHARTED — '+g.userData.name); floater('+50 ⬡');
+      try{ S.hex=(S.hex||0)+50; if(typeof tickHex==='function')tickHex(S.hex); }catch(e){}
+      try{ sfxFanfare(); }catch(e){} try{ addTrauma(.35); }catch(e){} try{ save(); }catch(e){}
+    }
+    else if(S.cityDisc && S.cityDisc.includes(g.userData.key)){            // backfill skyway log for saves charted before cityLog existed
+      if(!S.cityLog) S.cityLog={};
+      if(!S.cityLog[g.userData.key]) S.cityLog[g.userData.key]={name:g.userData.name,x:Math.round(g.userData.cx),z:Math.round(g.userData.cz)};
+    }
+    let el=g.userData.label;
+    if(!el){ el=document.createElement('div'); el.className='zlabel'; document.getElementById('timers').appendChild(el); g.userData.label=el; }
+    if(dd>16000){ el.style.display='none'; continue; }                     // label cities within 16km
+    _lblV.set(cx, terrainH(cx,cz)+150, cz); _lblV.project(camera);
+    if(_lblV.z>1 || Math.abs(_lblV.x)>1.1 || Math.abs(_lblV.y)>1.1){ el.style.display='none'; continue; }
+    el.style.display='block';
+    el.style.left=((_lblV.x+1)/2*(innerWidth||1))+'px';
+    el.style.top=((-_lblV.y+1)/2*(innerHeight||1))+'px';
+    const disc=S.cityDisc&&S.cityDisc.includes(g.userData.key), km=(dd/1000).toFixed(dd<1000?2:1);
+    const html=`<span class="zdot" style="background:${disc?'#ffd98a':'#7a6a4a'}"></span>${disc?g.userData.name:'UNCHARTED SETTLEMENT'} · ${km}KM`;
+    if(el._html!==html){ el._html=html; el.innerHTML=html; }
+    el.style.opacity=Math.max(.32,1-dd/16000).toFixed(2);
+  }
+}
+/* warp speed-streak tunnel overlay — a radial hyperspace blur that ramps with warp lift × speed */
+let _warpFx=null;
+function warpFxEl(){
+  if(_warpFx) return _warpFx;
+  const st=document.createElement('style'); st.textContent='@keyframes warpspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';
+  document.head.appendChild(st);
+  const dv=document.createElement('div'); dv.id='warpFx';
+  dv.style.cssText='position:fixed;inset:-45%;z-index:18;pointer-events:none;display:none;opacity:0;background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(190,225,255,0) 0deg, rgba(190,225,255,0) 1.3deg, rgba(190,225,255,.5) 1.6deg, rgba(190,225,255,0) 1.9deg);-webkit-mask-image:radial-gradient(circle at 50% 50%, transparent 24%, #000 80%);mask-image:radial-gradient(circle at 50% 50%, transparent 24%, #000 80%);animation:warpspin 16s linear infinite;mix-blend-mode:screen';
+  document.body.appendChild(dv); _warpFx=dv; return dv;
+}
+
+/* ============================================================================
+   LIVING MARS — twin moons + aurora, alien fauna flocks, bioluminescent flora,
+   city sky-traffic, and the SKYWAY fast-travel network. Makes the planet feel
+   INHABITED + ALIVE. All additive; everything no-ops outside 'play'.
+   ============================================================================ */
+function _nightN(){ return Math.max(0, Math.min(1, (0.12 - SOL.sunY)/0.42)); }  // 0 = full day → 1 = deep night
+
+/* --- A. Living sky: Phobos + Deimos + aurora ribbons (camera-following dome) --- */
+let _skyExtra=null, _phobos=null, _deimos=null, _aurMat=null;
+function ensureSkyExtra(){
+  if(_skyExtra) return _skyExtra;
+  const grp=new THREE.Group(); grp.frustumCulled=false; grp.renderOrder=-2;
+  _phobos=new THREE.Mesh(new THREE.SphereGeometry(34,24,20),
+    new THREE.MeshStandardMaterial({color:0x9c8b78,roughness:1,metalness:0,emissive:0x2a1f17,emissiveIntensity:.4}));
+  _deimos=new THREE.Mesh(new THREE.SphereGeometry(17,18,14),
+    new THREE.MeshStandardMaterial({color:0x8a7d6e,roughness:1,metalness:0,emissive:0x241a13,emissiveIntensity:.35}));
+  grp.add(_phobos); grp.add(_deimos);
+  _aurMat=new THREE.ShaderMaterial({
+    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide, fog:false,
+    uniforms:{ uT:{value:0}, uN:{value:0} },
+    vertexShader:`varying vec2 vUv; uniform float uT;
+      void main(){ vUv=uv; vec3 p=position;
+        p.y += sin(uv.x*9.0+uT*0.6)*22.0 + sin(uv.x*3.0-uT*0.3)*40.0;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.); }`,
+    fragmentShader:`varying vec2 vUv; uniform float uT; uniform float uN;
+      void main(){
+        float band=smoothstep(0.0,0.35,vUv.y)*smoothstep(1.0,0.6,vUv.y);
+        float shimmer=0.55+0.45*sin(vUv.x*22.0+uT*1.3);
+        vec3 col=mix(vec3(0.10,0.85,0.55), vec3(0.35,0.55,0.95), vUv.x);
+        gl_FragColor=vec4(col, band*shimmer*uN*0.5); }`
+  });
+  for(let i=0;i<2;i++){
+    const rib=new THREE.Mesh(new THREE.PlaneGeometry(1700,260,64,1), _aurMat);
+    rib.position.set(0, 470+i*90, -560+i*120); rib.rotation.x=-0.5+i*0.12; rib.renderOrder=-2;
+    grp.add(rib);
+  }
+  scene.add(grp); _skyExtra=grp; return grp;
+}
+function skyExtraUpdate(dt,t){
+  const g=ensureSkyExtra();
+  g.position.copy(camera.position);                 // dome follows the camera (the origin sky stays put far out)
+  const n=_nightN(), pa=t*0.018, da=t*0.011+2.1;
+  _phobos.position.set(Math.cos(pa)*620, 360+Math.sin(pa)*120, Math.sin(pa)*620-200);
+  _deimos.position.set(Math.cos(da)*760+260, 300+Math.sin(da*0.7)*90, Math.sin(da)*760);
+  _phobos.material.emissiveIntensity=0.25+0.5*n;
+  _deimos.material.emissiveIntensity=0.2+0.45*n;
+  if(_aurMat){ _aurMat.uniforms.uT.value=t; _aurMat.uniforms.uN.value=n; }
+}
+
+/* --- C. Alien fauna: an instanced manta flock that leads the rover + scatters when buzzed --- */
+const FAUNA_N=28;
+let _fauna=null, _faunaData=null;
+const _flockC=new THREE.Vector3(120,60,120), _faunaDummy=new THREE.Object3D();
+function buildFauna(){
+  if(_fauna) return _fauna;
+  const geo=new THREE.OctahedronGeometry(1,0); geo.scale(2.6,0.5,1.5);   // flattened diamond → manta silhouette
+  const mat=new THREE.MeshStandardMaterial({color:0x140a18,roughness:.5,metalness:.3,emissive:0xc83cf0,emissiveIntensity:.9});
+  _fauna=new THREE.InstancedMesh(geo,mat,FAUNA_N); _fauna.frustumCulled=false; _fauna.castShadow=false;
+  _fauna.userData.mat=mat;
+  _faunaData=[];
+  for(let i=0;i<FAUNA_N;i++) _faunaData.push({
+    a:Math.random()*6.283, rad:30+Math.random()*120, h:24+Math.random()*70,
+    sp:0.25+Math.random()*0.5, ph:Math.random()*6.283, sc:3+Math.random()*4, scat:0 });
+  scene.add(_fauna); return _fauna;
+}
+function faunaFollow(wx,wz){ buildFauna(); _flockC.set(wx+Math.sin(roverHeading)*200, 60, wz+Math.cos(roverHeading)*200); }
+function faunaUpdate(dt,t){
+  if(!_fauna) buildFauna();
+  const tx=rover.position.x+Math.sin(roverHeading)*200, tz=rover.position.z+Math.cos(roverHeading)*200;
+  _flockC.x=damp(_flockC.x,tx,1.2,dt); _flockC.z=damp(_flockC.z,tz,1.2,dt);
+  const gy=terrainH(_flockC.x,_flockC.z), n=_nightN(), d=_faunaDummy, rx=rover.position.x, rz=rover.position.z;
+  for(let i=0;i<FAUNA_N;i++){
+    const f=_faunaData[i]; f.a+=f.sp*dt;
+    let cx=_flockC.x+Math.cos(f.a)*f.rad, cz=_flockC.z+Math.sin(f.a)*f.rad;
+    const cy=gy+f.h+Math.sin(t*1.4+f.ph)*6, ddx=cx-rx, ddz=cz-rz, near=ddx*ddx+ddz*ddz;
+    f.scat=damp(f.scat, near<140*140?1:0, 3, dt);
+    if(f.scat>0.01){ const m=1+f.scat*1.5; cx=rx+ddx*m; cz=rz+ddz*m; }
+    d.position.set(cx, cy+f.scat*40, cz);
+    d.rotation.set(Math.sin(t*2+f.ph)*0.3, f.a+Math.PI/2, Math.sin(t*1.7+f.ph)*0.25);
+    d.scale.setScalar(f.sc); d.updateMatrix(); _fauna.setMatrixAt(i,d.matrix);
+  }
+  _fauna.instanceMatrix.needsUpdate=true;
+  _fauna.userData.mat.emissiveIntensity=0.5+1.1*n;
+}
+
+/* --- E. Bioluminescent flora: an instanced crystal field that streams under the rover + glows at night --- */
+const FLORA_N=144, FLORA_SPAN=900;
+let _flora=null, _floraOX=1e9, _floraOZ=1e9;
+const _floraDummy=new THREE.Object3D();
+function buildFloraMesh(){
+  if(_flora) return _flora;
+  const geo=new THREE.ConeGeometry(1,4,5);
+  const mat=new THREE.MeshStandardMaterial({color:0x10243a,roughness:.4,metalness:.2,emissive:0x39d0ff,emissiveIntensity:.8});
+  _flora=new THREE.InstancedMesh(geo,mat,FLORA_N); _flora.frustumCulled=false; _flora.userData.mat=mat;
+  scene.add(_flora); return _flora;
+}
+function floraFollow(wx,wz){
+  buildFloraMesh();
+  const cx=Math.round(wx/FLORA_SPAN), cz=Math.round(wz/FLORA_SPAN);
+  if(cx===_floraOX && cz===_floraOZ) return;            // rebuild only on coarse-cell change
+  _floraOX=cx; _floraOZ=cz;
+  const per=Math.floor(FLORA_N/9), d=_floraDummy; let idx=0;
+  for(let gx=-1;gx<=1;gx++) for(let gz=-1;gz<=1;gz++){
+    const ccx=cx+gx, ccz=cz+gz, rng=mulberry32(_cellSeed(ccx,ccz)^0xf10a);
+    for(let k=0;k<per && idx<FLORA_N;k++,idx++){
+      const fx=(ccx+rng()-0.5)*FLORA_SPAN, fz=(ccz+rng()-0.5)*FLORA_SPAN;
+      const gy=terrainH(fx,fz), s=2+rng()*5;
+      d.position.set(fx,gy+s*2,fz); d.rotation.set(0,rng()*6.283,0); d.scale.set(s*0.5,s*2.2,s*0.5);
+      d.updateMatrix(); _flora.setMatrixAt(idx,d.matrix);
+    }
+  }
+  for(;idx<FLORA_N;idx++){ d.position.set(0,-9999,0); d.scale.setScalar(0.001); d.updateMatrix(); _flora.setMatrixAt(idx,d.matrix); }
+  _flora.instanceMatrix.needsUpdate=true;
+}
+function floraUpdate(dt,t){ if(_flora) _flora.userData.mat.emissiveIntensity=0.25+(0.6+0.4*Math.sin(t*1.5))*_nightN()*1.4; }
+
+/* --- D. City sky-traffic: hovercraft circling the charted settlements (animates g.userData.traffic) --- */
+function cityTrafficUpdate(dt,t){
+  if(!_cities||!_cities.size) return;
+  const n=_nightN(), d=_cityDummy;
+  for(const g of _cities.values()){
+    const tr=g&&g.userData.traffic; if(!tr) continue;
+    const baseY=terrainH(tr.ox,tr.oz);
+    for(let i=0;i<tr.list.length;i++){
+      const c=tr.list[i]; c.a+=c.sp*dt;
+      const x=tr.ox+Math.cos(c.a)*c.rad, z=tr.oz+Math.sin(c.a)*c.rad, y=baseY+c.h+Math.sin(t+c.a)*8;
+      d.position.set(x,y,z); d.rotation.set(0,-c.a,0); d.scale.set(c.sc*2.2,c.sc*0.5,c.sc); d.updateMatrix();
+      tr.mesh.setMatrixAt(i,d.matrix);
+    }
+    tr.mesh.instanceMatrix.needsUpdate=true;
+    tr.mesh.material.emissiveIntensity=0.6+1.4*n;
+  }
+}
+
+/* --- F. Skyway: fast-travel between charted settlements --- */
+let _skywayBtn=null, _skywayPanel=null;
+function ensureSkywayBtn(){
+  return;            // TASK#4: consolidated into action wheel
+  if(_skywayBtn) return;
+  const b=document.createElement('button'); b.id='skywayBtn'; b.textContent='⤴ SKYWAY';
+  b.style.cssText='position:fixed;right:14px;bottom:120px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(18,14,9,.82);color:#ffd98a;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
+  b.onclick=toggleSkyway; document.body.appendChild(b); _skywayBtn=b;
+}
+function toggleSkyway(){
+  if(_skywayPanel){ _skywayPanel.remove(); _skywayPanel=null; return; }
+  const log=S.cityLog||{}, rx=rover.position.x, rz=rover.position.z;
+  const rows=Object.keys(log).map(k=>{ const c=log[k]; return {c,d:Math.hypot(c.x-rx,c.z-rz)}; }).sort((a,b)=>a.d-b.d);
+  const p=document.createElement('div'); p.id='skywayPanel';
+  p.style.cssText='position:fixed;right:14px;bottom:158px;z-index:31;width:250px;max-height:46vh;overflow:auto;padding:12px;border-radius:13px;border:1px solid rgba(216,178,92,.4);background:rgba(14,11,7,.94);backdrop-filter:blur(9px);color:#f2ead8;font:13px/1.3 system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.5)';
+  let h='<div style="font:700 12px/1 system-ui;letter-spacing:.08em;color:#ffd98a;margin-bottom:9px">⤴ SKYWAY NETWORK</div>';
+  if(!rows.length) h+='<div style="opacity:.6;font-size:12px">No settlements charted yet. Drive out and discover cities to unlock fast-travel.</div>';
+  for(const r of rows) h+=`<button data-x="${r.c.x}" data-z="${r.c.z}" style="display:block;width:100%;text-align:left;margin:5px 0;padding:8px 10px;border-radius:9px;border:1px solid rgba(216,178,92,.25);background:rgba(216,178,92,.07);color:#f2ead8;cursor:pointer;font:13px system-ui"><span style="color:#ffd98a;font-weight:600">${r.c.name}</span><span style="float:right;opacity:.6;font-size:11px">${(r.d/1000).toFixed(r.d<10000?1:0)}KM</span></button>`;
+  p.innerHTML=h;
+  p.querySelectorAll('button[data-x]').forEach(btn=>btn.onclick=()=>skywayJumpTo(+btn.dataset.x,+btn.dataset.z));
+  document.body.appendChild(p); _skywayPanel=p;
+}
+function skywayJumpTo(x,z){
+  if(_skywayPanel){ _skywayPanel.remove(); _skywayPanel=null; }
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:40;pointer-events:none;background:radial-gradient(circle at 50% 50%, rgba(190,225,255,0) 0%, rgba(120,180,255,.85) 60%, rgba(10,8,16,1) 100%);opacity:0;transition:opacity .32s ease';
+  document.body.appendChild(ov); requestAnimationFrame(()=>ov.style.opacity='1');
+  setTimeout(()=>{
+    try{
+      rover.position.set(x,terrainH(x,z),z); roverSpd=0; if(S.rover){S.rover.x=x;S.rover.z=z;}
+      terrainFollow(x,z); detailFollow(x,z); cityFollow(x,z); faunaFollow(x,z); floraFollow(x,z);
+      if(_ip){ _ip.pos.set(x,rover.position.y,z); _ip.prev.copy(_ip.pos); _ip.accum=0; }
+      try{ addTrauma(.5); }catch(e){} try{ save(); }catch(e){}
+    }catch(e){}
+    ov.style.opacity='0'; setTimeout(()=>ov.remove(),360);
+  },330);
+}
+
+/* --- B. Weather: rolling dust-front events that sweep the planet --- */
+const WEATHER={ intensity:0, next:25+Math.random()*45, active:0 };
+let _dustEl=null;
+function ensureDustEl(){
+  if(_dustEl) return _dustEl;
+  const d=document.createElement('div'); d.id='dustFx';
+  d.style.cssText='position:fixed;inset:0;z-index:14;pointer-events:none;opacity:0;mix-blend-mode:multiply;background:radial-gradient(circle at 50% 42%, rgba(150,80,44,0) 18%, rgba(120,58,30,.55) 70%, rgba(80,38,20,.85) 100%);transition:opacity .4s linear';
+  document.body.appendChild(d); _dustEl=d; return d;
+}
+function weatherUpdate(dt,t){
+  WEATHER.next-=dt;
+  if(WEATHER.next<=0 && WEATHER.active<=0){ WEATHER.active=11+Math.random()*16; WEATHER.next=55+Math.random()*80; try{ toast('▒ DUST FRONT INCOMING'); }catch(e){} try{ addTrauma(.25); }catch(e){} }
+  if(WEATHER.active>0) WEATHER.active-=dt;
+  WEATHER.intensity=damp(WEATHER.intensity, WEATHER.active>0?1:0, 0.45, dt);
+  ensureDustEl().style.opacity=(WEATHER.intensity*0.34).toFixed(3);
+}
+
+/* ============================================================================
+   MAD MAX ON MARS — first vehicle-ecosystem slice. A shared faction palette,
+   THE LEVIATHAN landship silhouette prowling the far haze, and faction-coded
+   wreck fields streaming under the rover. Serves build-priority #4 (wrecks &
+   props), #5 (one faction visual identity), #7 (giant landship silhouette).
+   All additive; no-ops outside 'play'.
+   ============================================================================ */
+const FACTIONS={
+  reavers:{name:'ASH REAVERS', col:0xc24a22, hot:0xff7a2a},   // scavenger red, jagged
+  cogs:   {name:'IRON COGS',   col:0x6b5a3a, hot:0xffc24a},   // industrial brass
+  vigil:  {name:'THE VIGIL',   col:0x35506a, hot:0x6ad0ff},   // cold military blue
+  halo:   {name:'HALO LINE',   col:0xb59a55, hot:0xffe9b0}    // pale gold luxury
+};
+const _FKEYS=['reavers','cogs','vigil','halo'];
+
+/* --- THE LEVIATHAN: a city-sized tracked landship prowling the far horizon. The
+       marketing "what WAS that?" beat — a readable dark mass in the dust haze. --- */
+let _levi=null, _leviBearing=Math.random()*6.283, _leviSeen=false;
+const _leviV=new THREE.Vector3(), _leviFwd=new THREE.Vector3();
+function ensureLeviathan(){
+  if(_levi) return _levi;
+  const g=new THREE.Group(); g.frustumCulled=false;
+  const steel=new THREE.MeshStandardMaterial({color:0x3a3026,roughness:.85,metalness:.55});
+  const dark =new THREE.MeshStandardMaterial({color:0x1c1712,roughness:.95,metalness:.3});
+  const amber=new THREE.MeshStandardMaterial({color:0xffb24a,emissive:0xff8a1a,emissiveIntensity:1.4,roughness:.5});
+  const win  =new THREE.MeshStandardMaterial({color:0xffd98a,emissive:0xffc24a,emissiveIntensity:1.1,roughness:.4});
+  const hull=new THREE.Mesh(new THREE.BoxGeometry(1200,240,420),steel); hull.position.y=200; g.add(hull);
+  for(const sx of [-150,150]){ const tr=new THREE.Mesh(new THREE.BoxGeometry(1240,120,150),dark); tr.position.set(0,55,sx); g.add(tr); }   // track slabs
+  const plow=new THREE.Mesh(new THREE.BoxGeometry(120,260,460),dark); plow.position.set(640,150,0); plow.rotation.z=0.5; g.add(plow);      // angled prow
+  for(let i=0;i<4;i++){                                                                   // stepped superstructure + lit window bands
+    const w=760-i*170, b=new THREE.Mesh(new THREE.BoxGeometry(w,110,300-i*40),steel); b.position.set(-90+i*40,320+i*100,0); g.add(b);
+    const wb=new THREE.Mesh(new THREE.BoxGeometry(w*0.96,16,302-i*40),win); wb.position.set(-90+i*40,340+i*100,0); g.add(wb);
+  }
+  for(let i=0;i<3;i++){ const st=new THREE.Mesh(new THREE.CylinderGeometry(26,34,200,10),dark); st.position.set(-260+i*90,560,90); g.add(st); }  // stacks
+  for(const mx of [-380,260]){                                                            // masts + amber beacons
+    const mast=new THREE.Mesh(new THREE.CylinderGeometry(6,6,260,6),steel); mast.position.set(mx,760,-90); g.add(mast);
+    const bea=new THREE.Mesh(new THREE.SphereGeometry(16,12,10),amber); bea.position.set(mx,900,-90); g.add(bea);
+  }
+  g.userData={amber,win};
+  scene.add(g); _levi=g; return g;
+}
+function leviathanUpdate(dt,t){
+  const g=ensureLeviathan();
+  _leviBearing+=dt*0.006;                                       // slow prowl around the player
+  const D=1500, rx=rover.position.x, rz=rover.position.z;
+  const lx=rx+Math.cos(_leviBearing)*D, lz=rz+Math.sin(_leviBearing)*D;
+  g.position.set(lx, terrainH(lx,lz), lz);
+  g.rotation.y=-_leviBearing+Math.PI/2;                         // long side toward the player so the silhouette reads
+  const n=_nightN();
+  g.userData.amber.emissiveIntensity=1.1+0.6*Math.sin(t*3)+n*0.5;
+  g.userData.win.emissiveIntensity=0.7+0.7*n;
+  if(!_leviSeen){                                               // one-time beat when it slides into the forward view
+    _leviV.set(lx-rx,0,lz-rz).normalize();
+    camera.getWorldDirection(_leviFwd); _leviFwd.y=0; _leviFwd.normalize();
+    if(_leviV.dot(_leviFwd)>0.6){ _leviSeen=true; try{ toast('◣ SOMETHING VAST CROSSES THE HORIZON'); }catch(e){} try{ addTrauma(.2); }catch(e){} }
+  }
+}
+
+/* --- Faction WRECKS: a pooled, streaming junkyard read coloured by who died here --- */
+const WRECK_N=14, WRECK_SPAN=1100;
+let _wrecks=null, _wreckOX=1e9, _wreckOZ=1e9;
+function buildWreckPool(){
+  if(_wrecks) return _wrecks;
+  _wrecks=[];
+  for(let i=0;i<WRECK_N;i++){
+    const g=new THREE.Group(); g.visible=false; g.frustumCulled=false;
+    const mat=new THREE.MeshStandardMaterial({color:0x6b5a3a,roughness:.95,metalness:.45});
+    const body=new THREE.Mesh(_cityGeo,mat); body.scale.set(14,7,9); body.position.y=2; g.add(body);
+    const cab =new THREE.Mesh(_cityGeo,mat); cab.scale.set(6,6,8); cab.position.set(6,5,0); g.add(cab);
+    const rib =new THREE.Mesh(_octGeo,mat); rib.scale.set(5,9,5); rib.position.set(-6,3,0); g.add(rib);
+    g.userData.mat=mat; scene.add(g); _wrecks.push(g);
+  }
+  return _wrecks;
+}
+function wreckFollow(wx,wz){
+  buildWreckPool();
+  const cx=Math.round(wx/WRECK_SPAN), cz=Math.round(wz/WRECK_SPAN);
+  if(cx===_wreckOX && cz===_wreckOZ) return;                    // restream only on coarse-cell change
+  _wreckOX=cx; _wreckOZ=cz;
+  let idx=0;
+  for(let gx=-1;gx<=1 && idx<WRECK_N;gx++) for(let gz=-1;gz<=1 && idx<WRECK_N;gz++){
+    const ccx=cx+gx, ccz=cz+gz, rng=mulberry32(_cellSeed(ccx,ccz)^0x77ec);
+    if(rng()<0.5) continue;                                     // ~half the cells hold a wreck
+    const wpx=(ccx+rng()-0.5)*WRECK_SPAN, wpz=(ccz+rng()-0.5)*WRECK_SPAN;
+    const f=FACTIONS[_FKEYS[(rng()*4)|0]];
+    const g=_wrecks[idx++]; g.visible=true;
+    g.userData.mat.color.setHex(f.col);
+    const s=1+rng()*1.6;
+    g.position.set(wpx, terrainH(wpx,wpz)-1-rng()*2, wpz);      // half-buried in the regolith
+    g.rotation.set((rng()-0.5)*0.5, rng()*6.283, (rng()-0.5)*0.4);
+    g.scale.setScalar(s);
+  }
+  for(;idx<WRECK_N;idx++) _wrecks[idx].visible=false;
+}
+
+/* per-frame driver for all the living-Mars systems (called from animate) */
+function livingMarsTick(dt,t){
+  if(mode!=='play') return;
+  ensureSkywayBtn();
+  skyExtraUpdate(dt,t);
+  weatherUpdate(dt,t);
+  faunaUpdate(dt,t);
+  floraFollow(rover.position.x, rover.position.z);
+  floraUpdate(dt,t);
+  cityTrafficUpdate(dt,t);
+  leviathanUpdate(dt,t);
+  wreckFollow(rover.position.x, rover.position.z);
+  dressDustlark();
+  garageUpdate(dt,t);
+  minerUpdate(dt,t);
+  raceUpdate(dt,t);
+  stormRunUpdate(dt,t);
+  ensureActionWheel();   // TASK#4: single radial wheel replaces the 4 corner buttons
+}
+
+/* ============================================================================
+   MAD MAX ON MARS — vehicle-ecosystem build-out (swarm slice):
+   #1 DUSTLARK rover dressing · #3 garage outpost · #6 THE MAW miner ·
+   #8 garage upgrade menu · #9 race route · #10 storm-escape mission.
+   All additive, idempotent, no-ops outside 'play'. Rewards via addHex faucet.
+   ============================================================================ */
+
+/* --- #1 DUSTLARK: bolt a Reaver war-rig kit onto the rover shell --- */
+function dressDustlark(){
+  if(!roverShell || roverShell.getObjectByName('_dlRig')) return;
+  const rig=new THREE.Group(); rig.name='_dlRig';
+  const bar  =new THREE.MeshStandardMaterial({color:0x2a2118,roughness:.7,metalness:.6});
+  const red  =new THREE.MeshStandardMaterial({color:0xc24a22,roughness:.6,metalness:.3,side:THREE.DoubleSide});
+  const ember=new THREE.MeshStandardMaterial({color:0xff7a2a,emissive:0xff7a2a,emissiveIntensity:1.3,roughness:.5});
+  for(const sx of [-.8,.8]) for(const sz of [.2,1.6]){                                   // roll-cage uprights
+    const u=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.0,6),bar); u.position.set(sx,2.55,sz); rig.add(u);
+  }
+  for(const sz of [.2,1.6]){ const c=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.7,6),bar); c.rotation.z=Math.PI/2; c.position.set(0,3.05,sz); rig.add(c); }
+  for(const sx of [-.55,.55]){                                                            // twin exhaust stacks
+    const st=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,1.4,8),bar); st.position.set(sx,2.6,-1.1); rig.add(st);
+    const tip=new THREE.Mesh(new THREE.CylinderGeometry(.13,.1,.18,8),ember); tip.position.set(sx,3.35,-1.1); rig.add(tip);
+  }
+  const sp=new THREE.Mesh(new THREE.BoxGeometry(2.2,.12,.5),bar); sp.position.set(0,1.9,-2.05); rig.add(sp);   // rear spoiler
+  for(const sx of [-.9,.9]){ const f=new THREE.Mesh(new THREE.BoxGeometry(.12,.5,.5),bar); f.position.set(sx,1.65,-2.05); rig.add(f); }
+  const whip=new THREE.Mesh(new THREE.CylinderGeometry(.02,.03,2.2,5),bar); whip.position.set(.85,3.0,-1.6); rig.add(whip);   // whip + pennant
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(.5,.3),red); flag.position.set(1.05,3.9,-1.6); rig.add(flag);
+  const bash=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,2.2,8),bar); bash.rotation.z=Math.PI/2; bash.position.set(0,.8,2.15); rig.add(bash);   // bash bar
+  for(const sx of [-.7,.7]){ const br=new THREE.Mesh(new THREE.BoxGeometry(.12,.5,.4),bar); br.position.set(sx,1.0,2.0); rig.add(br); }
+  enableShadows(rig); roverShell.add(rig);
+}
+
+/* --- #3 GARAGE OUTPOST: a fixed Reaver depot to discover (one-time ⬡ reward) --- */
+const _GRG_X=4100, _GRG_Z=2550, _GRG_R=60, _GRG_REWARD=120;
+let _grg=null, _grgBeacon=null;
+function _grgEnsure(){
+  if(_grg) return _grg;
+  const g=new THREE.Group();
+  const steel=new THREE.MeshStandardMaterial({color:0x4a3d2c,roughness:.8,metalness:.5});
+  const dark =new THREE.MeshStandardMaterial({color:0x241c12,roughness:.9,metalness:.3});
+  const amber=new THREE.MeshStandardMaterial({color:0xffb24a,emissive:0xff8a1a,emissiveIntensity:1.5,roughness:.5});
+  const hangar=new THREE.Mesh(new THREE.BoxGeometry(34,14,24),steel); hangar.position.y=7; g.add(hangar);
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(13,13,34,12,1,false,0,Math.PI),dark); roof.rotation.z=Math.PI/2; roof.position.set(0,14,0); g.add(roof);
+  for(let i=0;i<3;i++){ const cyl=new THREE.Mesh(new THREE.CylinderGeometry(3,3,10,12),steel); cyl.position.set(24,5,-8+i*8); g.add(cyl); }   // fuel cylinders
+  for(const sx of [-22,22]){ const w=new THREE.Mesh(new THREE.BoxGeometry(3,6,28),dark); w.position.set(sx,3,0); g.add(w); }                 // blast walls
+  const mast=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,26,8),steel); mast.position.set(-18,13,-10); g.add(mast);
+  const bea=new THREE.Mesh(new THREE.SphereGeometry(1.6,12,10),amber); bea.position.set(-18,27,-10); g.add(bea); _grgBeacon=bea;
+  g.position.set(_GRG_X,terrainH(_GRG_X,_GRG_Z),_GRG_Z);
+  enableShadows(g); scene.add(g); _grg=g; return g;
+}
+function garageUpdate(dt,t){
+  _grgEnsure();
+  if(_grgBeacon) _grgBeacon.material.emissiveIntensity=1.0+0.8*(0.5+0.5*Math.sin(t*3));
+  const d=Math.hypot(rover.position.x-_GRG_X, rover.position.z-_GRG_Z);
+  if(d<_GRG_R && !S.garageFound){
+    S.garageFound=true;
+    if(typeof addHex==='function') addHex(_GRG_REWARD,{src:'garage'}); else { S.hex=(S.hex||0)+_GRG_REWARD; if(typeof save==='function') save(); }
+    if(typeof toast==='function') toast('⛭ OUTPOST FOUND · +'+_GRG_REWARD+' ⬡ · upgrades online');
+  }
+}
+
+/* --- #6 THE MAW: a wandering bucket-wheel strip miner that haunts the rover --- */
+let _maw=null, _mawDrum=null, _mawLights=[], _mawHeading=Math.random()*6.283, _mawTurn=0;
+function _mawBuild(){
+  if(_maw) return _maw;
+  const g=new THREE.Group();
+  const steel=new THREE.MeshStandardMaterial({color:0x5a4a30,roughness:.85,metalness:.5});
+  const dark =new THREE.MeshStandardMaterial({color:0x2a2014,roughness:.9,metalness:.4});
+  const amber=new THREE.MeshStandardMaterial({color:0xffc24a,emissive:0xffa12a,emissiveIntensity:1.2,roughness:.5});
+  for(const sx of [-5,5]){ const tr=new THREE.Mesh(new THREE.BoxGeometry(16,3,4),dark); tr.position.set(0,1.5,sx); g.add(tr); }   // tracks
+  const ch=new THREE.Mesh(new THREE.BoxGeometry(14,5,9),steel); ch.position.y=5.5; g.add(ch);                                      // chassis
+  const cab=new THREE.Mesh(new THREE.BoxGeometry(5,4,7),dark); cab.position.set(-4,9,0); g.add(cab);
+  const drum=new THREE.Group(); drum.position.set(9,4,0);                                                                          // bucket-wheel
+  const core=new THREE.Mesh(new THREE.CylinderGeometry(4,4,8,12),steel); core.rotation.x=Math.PI/2; drum.add(core);
+  for(let i=0;i<8;i++){ const a=i/8*Math.PI*2; const b=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,8.4),dark); b.position.set(Math.cos(a)*4,Math.sin(a)*4,0); drum.add(b); }
+  g.add(drum); _mawDrum=drum;
+  const hop=new THREE.Mesh(new THREE.CylinderGeometry(3.5,2.2,5,6),steel); hop.position.set(-2,9.5,0); g.add(hop);                  // ore hopper
+  _mawLights=[];
+  for(const px of [[6,8,3.5],[6,8,-3.5]]){ const L=new THREE.Mesh(new THREE.SphereGeometry(.6,8,6),amber); L.position.set(px[0],px[1],px[2]); g.add(L); _mawLights.push(L); }
+  enableShadows(g); scene.add(g); _maw=g;
+  const ang=Math.random()*6.283, dist=420, mx=rover.position.x+Math.cos(ang)*dist, mz=rover.position.z+Math.sin(ang)*dist;
+  g.position.set(mx,terrainH(mx,mz),mz);
+  return g;
+}
+function minerUpdate(dt,t){
+  _mawBuild();
+  if(_mawDrum) _mawDrum.rotation.z-=dt*2.4;
+  const dx=rover.position.x-_maw.position.x, dz=rover.position.z-_maw.position.z, d=Math.hypot(dx,dz)||1;
+  if(d>900) _mawHeading=Math.atan2(dz,dx);
+  else if(d<300) _mawHeading=Math.atan2(-dz,-dx);
+  else { _mawTurn+=dt; if(_mawTurn>3){ _mawTurn=0; _mawHeading+=(Math.random()-.5)*1.2; } }
+  const spd=8*dt;
+  _maw.position.x+=Math.cos(_mawHeading)*spd; _maw.position.z+=Math.sin(_mawHeading)*spd;
+  _maw.position.y=terrainH(_maw.position.x,_maw.position.z);
+  _maw.rotation.y=-_mawHeading;
+  const ng=(typeof _nightN==='function')?_nightN():0;
+  for(const L of _mawLights){ L.material.emissiveIntensity=0.6+ng*1.4; }
+}
+
+/* --- #9 RACE ROUTE: a ring of torus gates; pass all 6 for a timed ⬡ payout --- */
+const _RC_N=6, _RC_R=520, _RC_HIT=30, _RC_CX=2800, _RC_CZ=1400, _RC_REWARD=250;
+let _rcGates=null, _rcActive=false, _rcIdx=0, _rcT=0, _rcBtn=null, _rcHud=null;
+function _rcBuildGates(){
+  if(_rcGates) return _rcGates;
+  _rcGates=[]; const grp=new THREE.Group();
+  for(let i=0;i<_RC_N;i++){
+    const a=i/_RC_N*Math.PI*2, x=_RC_CX+Math.cos(a)*_RC_R, z=_RC_CZ+Math.sin(a)*_RC_R;
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(11,1.1,8,20), new THREE.MeshStandardMaterial({color:0xffb24a,emissive:0xff8a1a,emissiveIntensity:1.0,roughness:.5}));
+    ring.position.set(x,terrainH(x,z)+11,z); ring.rotation.x=Math.PI/2; ring.userData={x,z}; grp.add(ring); _rcGates.push(ring);
+  }
+  scene.add(grp); return _rcGates;
+}
+function _rcEnsureBtn(){
+  return;            // TASK#4: consolidated into action wheel
+  if(_rcBtn) return;
+  const b=document.createElement('button'); b.id='raceBtn'; b.textContent='⚑ RACE';
+  b.style.cssText='position:fixed;right:14px;bottom:166px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(18,14,9,.82);color:#ffd98a;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
+  b.onclick=()=>MARS.race(); document.body.appendChild(b); _rcBtn=b;
+}
+function _rcHudEl(){ if(_rcHud) return _rcHud; const d=document.createElement('div'); d.id='raceHud'; d.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:30;padding:7px 14px;border-radius:10px;background:rgba(14,11,7,.8);border:1px solid rgba(216,178,92,.4);color:#ffd98a;font:700 13px/1 system-ui;letter-spacing:.05em;display:none;backdrop-filter:blur(6px)'; document.body.appendChild(d); _rcHud=d; return d; }
+function _rcStart(){
+  _rcBuildGates(); _rcActive=true; _rcIdx=0; _rcT=0;
+  for(let i=0;i<_rcGates.length;i++) _rcGates[i].material.color.setHex(i===0?0x6ad0ff:0xffb24a);
+  _rcHudEl().style.display='block';
+  if(typeof toast==='function') toast('⚑ RACE · pass all '+_RC_N+' gates');
+}
+function _rcFinish(){
+  _rcActive=false; const tm=_rcT, best=S.raceBest||0;
+  if(best===0 || tm<best) S.raceBest=+tm.toFixed(1);
+  if(window.__marsLB) window.__marsLB.reportRace(tm);   // TASK#3 weekly leaderboard (fail-soft, no ⬡)
+  if(typeof addHex==='function') addHex(_RC_REWARD,{src:'race'}); else { S.hex=(S.hex||0)+_RC_REWARD; if(typeof save==='function') save(); }
+  _rcHudEl().style.display='none';
+  if(typeof toast==='function') toast('⚑ FINISH · '+tm.toFixed(1)+'s · +'+_RC_REWARD+' ⬡');
+  if(typeof promptRunShare==='function') promptRunShare('race',{time:+tm.toFixed(1),reward:_RC_REWARD,gates:_RC_N,sector:_runSectorName(_RC_CX,_RC_CZ),isBest:(best===0||tm<best)});   // TASK#1 share card
+}
+function raceUpdate(dt,t){
+  if(!_rcActive) return;
+  _rcT+=dt; const g=_rcGates[_rcIdx]; if(!g) return;
+  const d=Math.hypot(rover.position.x-g.userData.x, rover.position.z-g.userData.z);
+  _rcHudEl().textContent='⚑ GATE '+(_rcIdx+1)+'/'+_RC_N+' · '+_rcT.toFixed(1)+'s';
+  if(d<_RC_HIT){
+    g.material.color.setHex(0x3a6a2a); _rcIdx++;
+    if(_rcIdx>=_rcGates.length){ _rcFinish(); return; }
+    _rcGates[_rcIdx].material.color.setHex(0x6ad0ff);
+    if(typeof addTrauma==='function') addTrauma(.2);
+  }
+}
+
+/* --- #10 STORM ESCAPE: outrun a closing dust wall to a cyan haven --- */
+const _STORM={ WALL_START:520, WALL_MAX:900, HAVEN_DIST:1000, HAVEN_WIN:60, REWARD:120, active:false, wall:520, hx:0, hz:0, hav:null };
+let _stormBtn=null, _stormHud=null;
+function _stormEnsureBtn(){
+  return;            // TASK#4: consolidated into action wheel
+  if(_stormBtn) return;
+  const b=document.createElement('button'); b.id='stormBtn'; b.textContent='⛈ STORM RUN';
+  b.style.cssText='position:fixed;right:14px;bottom:212px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(106,208,255,.5);background:rgba(10,16,22,.82);color:#bfe6ff;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
+  b.onclick=()=>MARS.stormRun(); document.body.appendChild(b); _stormBtn=b;
+}
+function _stormHudEl(){ if(_stormHud) return _stormHud; const d=document.createElement('div'); d.id='stormHud'; d.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:30;padding:7px 14px;border-radius:10px;background:rgba(10,14,20,.82);border:1px solid rgba(106,208,255,.45);color:#bfe6ff;font:700 13px/1 system-ui;letter-spacing:.05em;display:none;backdrop-filter:blur(6px)'; document.body.appendChild(d); _stormHud=d; return d; }
+function _stormStart(){
+  const hd=roverHeading, hx=Math.sin(hd), hz=Math.cos(hd);
+  _STORM.hx=rover.position.x+hx*_STORM.HAVEN_DIST; _STORM.hz=rover.position.z+hz*_STORM.HAVEN_DIST;
+  if(!_STORM.hav){ const m=new THREE.Mesh(new THREE.CylinderGeometry(2,2,40,10), new THREE.MeshStandardMaterial({color:0x6ad0ff,emissive:0x6ad0ff,emissiveIntensity:1.4,roughness:.4})); scene.add(m); _STORM.hav=m; }
+  _STORM.hav.visible=true; _STORM.hav.position.set(_STORM.hx, terrainH(_STORM.hx,_STORM.hz)+20, _STORM.hz);
+  _STORM.active=true; _STORM.wall=_STORM.WALL_START;
+  WEATHER.active=1; WEATHER.intensity=Math.max(WEATHER.intensity,0.6);
+  _stormHudEl().style.display='block';
+  if(typeof toast==='function') toast('⛈ STORM RUN · reach the cyan haven before the wall');
+}
+function _stormEnd(win){
+  _STORM.active=false; WEATHER.active=0; if(_STORM.hav) _STORM.hav.visible=false;
+  _stormHudEl().style.display='none';
+  if(win){ if(typeof addHex==='function') addHex(_STORM.REWARD,{src:'storm'}); else { S.hex=(S.hex||0)+_STORM.REWARD; if(typeof save==='function') save(); }
+    if(typeof toast==='function') toast('⛈ HAVEN REACHED · +'+_STORM.REWARD+' ⬡');
+    if(window.__marsLB) window.__marsLB.reportStorm(true, _STORM.wall);   // TASK#3 weekly survival board
+    if(typeof promptRunShare==='function') promptRunShare('storm',{reward:_STORM.REWARD,sector:_runSectorName(rover.position.x,rover.position.z)}); }   // TASK#1 share card
+  else if(typeof toast==='function') toast('⛈ THE WALL TOOK YOU · try again');
+}
+/* ===== TASK #1 — SHAREABLE RUN CARDS (race + storm-escape) =====================
+   Reuses the existing brand/share rails: makeTrialCard layout, unfurlURL deep-link,
+   share() delivery, floatShareChip climax prompt. ⬡ is a non-cashable in-game glyph. */
+function _runSectorName(x,z){
+  try{ const ll=worldToLatLon(x,z); return regionName(ll.lat,ll.lon); }
+  catch(e){ return 'MARS'; }
+}
+/* dedicated 1200x630 gold-on-black card; hero = the result, mirrors makeTrialCard */
+function marsRunCard(kind, stats){
+  stats=stats||{};
+  const isStorm = kind==='storm';
+  const W=(typeof LOWPERF!=='undefined'&&LOWPERF)?600:1200, H=Math.round(W*0.525);
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d'); const Sc=W/1200;
+  x.fillStyle='#080604'; x.fillRect(0,0,W,H);
+  const gr=x.createRadialGradient(W*.5,H*.34,40*Sc,W*.5,H*.34,W*.72);
+  gr.addColorStop(0, isStorm?'rgba(106,208,255,.13)':'rgba(216,178,92,.13)');
+  gr.addColorStop(1,'rgba(8,6,4,0)'); x.fillStyle=gr; x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(216,178,92,.4)'; x.lineWidth=2*Sc; x.strokeRect(18*Sc,18*Sc,W-36*Sc,H-36*Sc);
+  x.textAlign='center'; x.textBaseline='middle';
+  /* kicker */
+  x.fillStyle='#d8b25c'; x.font='bold '+(22*Sc)+'px ui-monospace,monospace';
+  x.fillText(isStorm?'⛈  MARS COMMAND  ·  STORM ESCAPE':'⚑  MARS COMMAND  ·  GATE RACE', W*.5, H*.18);
+  /* hero line */
+  const hero = isStorm ? 'SURVIVED' : (stats.time||0).toFixed(1)+'s';
+  x.fillStyle = isStorm ? '#6ad0ff' : '#f0c75e';
+  x.font='bold '+((isStorm?108:150)*Sc)+'px ui-monospace,monospace';
+  x.fillText(hero, W*.5, H*.46);
+  /* sub stat line: sector + reward */
+  const sub = isStorm
+    ? 'OUTRAN THE DUST WALL · +'+(stats.reward|0)+' ⬡'
+    : (stats.gates||6)+' GATES · +'+(stats.reward|0)+' ⬡';
+  x.fillStyle='rgba(242,234,216,.62)'; x.font=(20*Sc)+'px ui-monospace,monospace';
+  x.fillText(sub, W*.5, H*.64);
+  /* sector / best ribbon */
+  let ribbon='SECTOR '+(stats.sector||'MARS');
+  if(stats.isBest && !isStorm) ribbon='★ NEW BEST · '+ribbon;
+  else if(isStorm && stats.time) ribbon='IN '+(stats.time).toFixed(1)+'s · '+ribbon;
+  x.fillStyle = stats.isBest ? '#7ad17a' : 'rgba(242,234,216,.5)';
+  x.font='bold '+(22*Sc)+'px ui-monospace,monospace'; x.fillText(ribbon, W*.5, H*.745);
+  /* footer CTA */
+  x.fillStyle='#f2ead8'; x.font='bold '+(26*Sc)+'px ui-monospace,monospace';
+  x.fillText((isStorm?'BEAT THE STORM ▸ ':'BEAT MY RUN ▸ ')+'freeloncity.com/mars', W*.5, H*.875);
+  return cv;
+}
+/* build line + deep-link + deliver via the canonical share() */
+function shareRun(kind, stats){
+  stats=stats||{};
+  const isStorm = kind==='storm';
+  const tag = stats.isBest ? 'NEW BEST' : (isStorm?'SURVIVED':'');
+  const heroLabel = isStorm ? 'STORM SURVIVED' : (stats.time||0).toFixed(1)+'s';
+  const seedHash='s='+(WORLD_SEED()).toString(36);
+  const url = unfurlURL(heroLabel, isStorm?'STORM ESCAPE':'GATE RACE', seedHash, tag);
+  const line = isStorm
+    ? ('I survived the dust storm on Mars'+(stats.time?(' in '+stats.time.toFixed(1)+'s'):'')
+        +' ⬡ — beat that 🔴 '+url+' @4040hex #FREELONCITY')
+    : ('I ran the MARS COMMAND gate race in '+(stats.time||0).toFixed(1)+'s'
+        +(stats.isBest?' (new best)':'')+' ⬡ — beat my time 🔴 '+url+' @4040hex #FREELONCITY');
+  share({
+    card: marsRunCard(kind, stats),
+    line, url,
+    fname: 'mars-'+(isStorm?'storm':'race')+'-'+(WORLD_SEED()).toString(36)+'.png'
+  });
+}
+/* the non-blocking climax chip — mirrors promptTrialShare / promptGauntletShare */
+function promptRunShare(kind, stats){
+  stats=stats||{};
+  if(typeof floatShareChip!=='function'){ shareRun(kind,stats); return; }
+  const label = (kind==='storm')
+    ? 'POST · STORM SURVIVED ▸'
+    : (stats.isBest?'★ NEW BEST ':'')+'POST '+((stats.time||0).toFixed(1))+'s ▸ RACE';
+  floatShareChip(label, ()=>shareRun(kind, stats));
+}
+/* ===== END TASK #1 ============================================================ */
+function stormRunUpdate(dt,t){
+  _stormEnsureBtn();
+  if(!_STORM.active) return;
+  const dh=Math.hypot(rover.position.x-_STORM.hx, rover.position.z-_STORM.hz);
+  const spd=(typeof roverSpd==='number')?roverSpd:0, mx=(typeof roverMaxSpd==='function')?roverMaxSpd():12;
+  _STORM.wall += dt*((spd/Math.max(1,mx))*40 - 26);                 // outrun → gap grows; idle → it closes
+  _STORM.wall=Math.min(_STORM.WALL_MAX,_STORM.wall);
+  WEATHER.intensity=Math.min(1, 0.4 + (1-_STORM.wall/_STORM.WALL_MAX)*0.6);
+  _stormHudEl().textContent='⛈ WALL '+Math.max(0,_STORM.wall|0)+'m · HAVEN '+(dh|0)+'m';
+  if(dh<_STORM.HAVEN_WIN){ _stormEnd(true); return; }
+  if(_STORM.wall<=0){ _stormEnd(false); return; }
+}
+
+/* --- #8 GARAGE UPGRADE MENU: spend ⬡ on ENGINE / PLATING / TREADS (3 tiers) --- */
+const _UP_MAX_TIER=3, _UP_BASE={engine:160,plating:200,treads:140};
+const _UP_LABEL={engine:'ENGINE',plating:'PLATING',treads:'TREADS'};
+const _UP_DESC ={engine:'top speed',plating:'damage resist',treads:'acceleration'};
+let _upBtn=null, _upPanel=null;
+function _upTier(k){ return (S.garageUpgrades&&(S.garageUpgrades[k]|0))||0; }
+function _upCost(k){ return _UP_BASE[k]*(_upTier(k)+1); }
+function _upSpeedMul(){ return 1+_upTier('engine')*0.12; }
+function _upAccelMul(){ return 1+_upTier('treads')*0.18; }
+function _upArmorMul(){ return 1/(1+_upTier('plating')*0.15); }
+function _upEnsureBtn(){
+  return;            // TASK#4: consolidated into action wheel
+  if(_upBtn) return;
+  const b=document.createElement('button'); b.id='upgradeBtn'; b.textContent='⛭ GARAGE';
+  b.style.cssText='position:fixed;right:14px;bottom:258px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(18,14,9,.82);color:#ffd98a;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
+  b.onclick=_upToggle; document.body.appendChild(b); _upBtn=b;
+}
+function _upToggle(){ if(_upPanel){ _upPanel.remove(); _upPanel=null; return; } _upRender(); }
+function _upRender(){
+  if(_upPanel) _upPanel.remove();
+  const p=document.createElement('div'); p.id='upgradePanel';
+  p.style.cssText='position:fixed;right:14px;bottom:300px;z-index:31;width:260px;padding:13px;border-radius:13px;border:1px solid rgba(216,178,92,.4);background:rgba(14,11,7,.95);backdrop-filter:blur(9px);color:#f2ead8;font:13px/1.3 system-ui;box-shadow:0 12px 40px rgba(0,0,0,.5)';
+  let h='<div style="font:700 12px/1 system-ui;letter-spacing:.08em;color:#ffd98a;margin-bottom:4px">⛭ GARAGE UPGRADES</div><div style="opacity:.6;font-size:11px;margin-bottom:9px">'+(S.hex|0)+' ⬡ available</div>';
+  for(const k of ['engine','plating','treads']){
+    const tier=_upTier(k), maxed=tier>=_UP_MAX_TIER, cost=_upCost(k), can=!maxed && (S.hex||0)>=cost;
+    h+='<div style="margin:7px 0;padding:8px 10px;border-radius:9px;border:1px solid rgba(216,178,92,.22);background:rgba(216,178,92,.06)">'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:#ffd98a;font-weight:600">'+_UP_LABEL[k]+'</span><span style="opacity:.7">T'+tier+'/'+_UP_MAX_TIER+'</span></div>'
+      +'<div style="opacity:.55;font-size:11px;margin:3px 0 6px">'+_UP_DESC[k]+'</div>'
+      +(maxed? '<div style="color:#6ad0ff;font-weight:600;font-size:12px">MAXED</div>'
+        : '<button data-k="'+k+'" '+(can?'':'disabled')+' style="width:100%;padding:7px;border-radius:8px;border:1px solid rgba(216,178,92,'+(can?'.5':'.2')+');background:rgba(216,178,92,'+(can?'.14':'.04')+');color:'+(can?'#ffd98a':'#7a6f55')+';font:600 12px system-ui;cursor:'+(can?'pointer':'default')+'">UPGRADE · '+cost+' ⬡</button>')
+      +'</div>';
+  }
+  p.innerHTML=h;
+  p.querySelectorAll('button[data-k]').forEach(b=>{ if(!b.disabled) b.onclick=()=>_upBuy(b.dataset.k); });
+  document.body.appendChild(p); _upPanel=p;
+}
+function _upBuy(k){
+  const tier=_upTier(k); if(tier>=_UP_MAX_TIER) return;
+  const cost=_upCost(k); if((S.hex||0)<cost){ if(typeof toast==='function') toast('Not enough ⬡'); return; }
+  S.hex-=cost; S.today.spent+=cost; if(typeof trackSpend==='function') trackSpend(cost,'garage'); shownHex=S.hex;
+  S.garageUpgrades[k]=tier+1;
+  if(typeof updateHUD==='function') updateHUD(); if(typeof save==='function') save();
+  if(typeof toast==='function') toast('⛭ '+_UP_LABEL[k]+' → T'+(tier+1));
+  _upRender();
+}
+
+/* ============================================================================
+   TASK #4 — RADIAL ACTION WHEEL  (consolidates SKYWAY / RACE / STORM / GARAGE)
+   One launcher button, bottom-right. Press-and-hold OR tap/click opens a radial
+   fan of registered actions. Selecting one fires onSelect() and closes.
+   Other features add entries via registerWheelAction({id,label,icon,onSelect}).
+   Console action wheel, not seven rectangles. Additive, idempotent, no-ops safe.
+   ============================================================================ */
+let _wheelActions=[];                 // registry — other agents push here
+let _wheelEl=null, _wheelFan=null, _wheelLauncher=null, _wheelOpen=false, _wheelHold=null;
+
+function registerWheelAction(a){
+  if(!a||!a.id||typeof a.onSelect!=='function') return false;
+  if(_wheelActions.some(x=>x.id===a.id)) return false;          // dedupe by id
+  _wheelActions.push({id:a.id,label:a.label||a.id,icon:a.icon||'◆',onSelect:a.onSelect});
+  if(_wheelFan) _wheelRenderFan();                              // live-add if open/built
+  return true;
+}
+
+function _wheelInjectCSS(){
+  if(document.getElementById('wheelCSS')) return;
+  const s=document.createElement('style'); s.id='wheelCSS';
+  s.textContent=`
+  #actionWheel{position:fixed;right:14px;bottom:120px;z-index:32;width:0;height:0;font-family:system-ui,sans-serif}
+  #actionWheel .awLaunch{position:absolute;right:0;bottom:0;width:54px;height:54px;border-radius:50%;
+    border:1px solid rgba(216,178,92,.55);background:radial-gradient(circle at 38% 32%,rgba(36,28,16,.94),rgba(14,11,7,.94));
+    color:#ffd98a;font:600 21px/1 system-ui;cursor:pointer;backdrop-filter:blur(8px);
+    box-shadow:0 8px 26px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,217,138,.08);
+    display:flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.2,.9,.3,1.3),border-color .2s,background .2s;
+    touch-action:none;-webkit-tap-highlight-color:transparent}
+  #actionWheel .awLaunch:hover{border-color:rgba(216,178,92,.9);background:radial-gradient(circle at 38% 32%,rgba(48,38,22,.96),rgba(18,14,9,.96))}
+  #actionWheel.open .awLaunch{transform:rotate(135deg);border-color:#ffd98a}
+  #actionWheel .awItem{position:absolute;right:7px;bottom:7px;width:46px;height:46px;border-radius:50%;
+    border:1px solid rgba(216,178,92,.45);background:rgba(18,14,9,.92);color:#ffd98a;
+    font:600 18px/1 system-ui;cursor:pointer;backdrop-filter:blur(7px);
+    display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;
+    transform:translate(0,0) scale(.4);transition:transform .32s cubic-bezier(.2,.9,.3,1.3),opacity .22s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.45)}
+  #actionWheel .awItem:hover,#actionWheel .awItem:focus{border-color:#ffd98a;background:rgba(40,32,18,.96);outline:none}
+  #actionWheel .awItem .awTip{position:absolute;right:54px;white-space:nowrap;padding:4px 9px;border-radius:8px;
+    background:rgba(14,11,7,.92);border:1px solid rgba(216,178,92,.35);color:#ffd98a;
+    font:600 11px/1 system-ui;letter-spacing:.05em;opacity:0;transform:translateX(6px);transition:opacity .18s,transform .18s;pointer-events:none}
+  #actionWheel .awItem:hover .awTip,#actionWheel .awItem:focus .awTip{opacity:1;transform:translateX(0)}
+  #actionWheel.open .awItem{opacity:1;pointer-events:auto}
+  @media (prefers-reduced-motion:reduce){#actionWheel .awLaunch,#actionWheel .awItem{transition:opacity .15s}}
+  body.fighting #actionWheel,body.immersive #actionWheel,body.mapping #actionWheel{display:none!important}`;
+  document.head.appendChild(s);
+}
+
+function _wheelRenderFan(){
+  if(!_wheelFan) return;
+  _wheelFan.innerHTML='';
+  const n=_wheelActions.length, R=104, span=Math.PI/2, base=Math.PI;  // fan up-and-left quarter
+  _wheelActions.forEach((a,i)=>{
+    const ang=n>1 ? base+(span*(i/(n-1))) : base+span/2;
+    const dx=Math.cos(ang)*R, dy=Math.sin(ang)*R;                     // dy negative = upward
+    const b=document.createElement('button');
+    b.className='awItem'; b.type='button';
+    b.setAttribute('aria-label',a.label); b.title=a.label;
+    b.innerHTML=`<span aria-hidden="true">${a.icon}</span><span class="awTip">${a.label}</span>`;
+    b.style.transitionDelay=(i*32)+'ms';
+    b.dataset.dx=dx.toFixed(1); b.dataset.dy=dy.toFixed(1);
+    b.onclick=(e)=>{ e.stopPropagation(); _wheelSelect(a); };
+    b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); _wheelSelect(a); } else _wheelArrow(e); };
+    _wheelFan.appendChild(b);
+  });
+  _wheelApplyPositions();
+}
+function _wheelApplyPositions(){
+  if(!_wheelFan) return;
+  _wheelFan.querySelectorAll('.awItem').forEach(b=>{
+    const dx=+b.dataset.dx, dy=+b.dataset.dy;
+    b.style.transform=_wheelOpen ? `translate(${dx}px,${dy}px) scale(1)` : 'translate(0,0) scale(.4)';
+  });
+}
+function _wheelArrow(e){
+  const items=[..._wheelFan.querySelectorAll('.awItem')]; if(!items.length) return;
+  const i=items.indexOf(document.activeElement);
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft'){ e.preventDefault(); items[(i-1+items.length)%items.length].focus(); }
+  else if(e.key==='ArrowDown'||e.key==='ArrowRight'){ e.preventDefault(); items[(i+1)%items.length].focus(); }
+  else if(e.key==='Escape'){ _wheelToggle(false); _wheelLauncher&&_wheelLauncher.focus(); }
+}
+function _wheelSelect(a){
+  _wheelToggle(false);
+  try{ a.onSelect(); }catch(err){ if(typeof toast==='function') toast('action failed'); }
+}
+function _wheelToggle(open){
+  _wheelOpen = (open==null) ? !_wheelOpen : !!open;
+  if(_wheelEl) _wheelEl.classList.toggle('open',_wheelOpen);
+  if(_wheelLauncher){ _wheelLauncher.setAttribute('aria-expanded',_wheelOpen?'true':'false'); _wheelLauncher.textContent=_wheelOpen?'×':'⛭'; }
+  _wheelApplyPositions();
+  if(_wheelOpen){ const first=_wheelFan&&_wheelFan.querySelector('.awItem'); if(first) setTimeout(()=>first.focus(),120); }
+}
+
+function ensureActionWheel(){
+  if(_wheelEl) return _wheelEl;
+  _wheelInjectCSS();
+  const wrap=document.createElement('div'); wrap.id='actionWheel';
+  const fan=document.createElement('div'); fan.style.cssText='position:absolute;right:0;bottom:0';
+  const L=document.createElement('button'); L.className='awLaunch'; L.type='button';
+  L.textContent='⛭'; L.setAttribute('aria-haspopup','true'); L.setAttribute('aria-expanded','false'); L.setAttribute('aria-label','Action wheel');
+  // press-and-hold (pointer) opens; quick tap also toggles; release outside an item closes
+  L.addEventListener('pointerdown',(e)=>{ e.preventDefault(); _wheelHold=setTimeout(()=>{ if(!_wheelOpen)_wheelToggle(true); _wheelHold=null; },140); });
+  L.addEventListener('pointerup',()=>{ if(_wheelHold){ clearTimeout(_wheelHold); _wheelHold=null; _wheelToggle(); } });   // short tap = toggle
+  L.addEventListener('pointercancel',()=>{ if(_wheelHold){ clearTimeout(_wheelHold); _wheelHold=null; } });
+  L.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); _wheelToggle(); } else if(e.key==='ArrowUp'){ e.preventDefault(); _wheelToggle(true); } });
+  wrap.appendChild(fan); wrap.appendChild(L);
+  document.body.appendChild(wrap);
+  _wheelEl=wrap; _wheelFan=fan; _wheelLauncher=L;
+  // close when tapping elsewhere
+  document.addEventListener('pointerdown',(e)=>{ if(_wheelOpen && _wheelEl && !_wheelEl.contains(e.target)) _wheelToggle(false); },true);
+  _wheelRenderFan();
+  return _wheelEl;
+}
+
+/* Pre-register the four game actions. Guarded so the functions exist at call time. */
+registerWheelAction({id:'skyway',label:'SKYWAY',icon:'⤴', onSelect:()=>toggleSkyway()});
+registerWheelAction({id:'race',  label:'RACE',  icon:'⚑', onSelect:()=>MARS.race()});
+registerWheelAction({id:'storm', label:'STORM RUN',icon:'⛈',onSelect:()=>MARS.stormRun()});
+registerWheelAction({id:'garage',label:'GARAGE',icon:'⚙', onSelect:()=>_upToggle()});
+/* TASK#1 + #2/3 wheel entries (integrator-merged): SHARE last race + LEADERBOARD panel */
+registerWheelAction({id:'share', label:'SHARE',  icon:'⤤', onSelect:()=>{
+  if(typeof shareRun!=='function'){ if(typeof toast==='function') toast('nothing to share yet'); return; }
+  shareRun('race',{time:S.raceBest||0,reward:_RC_REWARD,gates:_RC_N,sector:_runSectorName(_RC_CX,_RC_CZ),isBest:false});
+}});
+registerWheelAction({id:'leaderboard',label:'LEADERBOARD',icon:'☰', onSelect:()=>{
+  if(window.__marsLB) window.__marsLB.toggle(true); else if(typeof toast==='function') toast('board loading…');
+}});
+
 /* drive model: heavy spool-up, brakes into turns, sighs to a halt at the marker */
 const ROVER_BASE_SPD=48, ROVER_ARRIVE=4;   /* was 16 — far too slow, made the tile feel like a tiny boxed pen; 3x faster so Mars reads as open + edge-crossings happen briskly (the speed-cam/sand-surf feel scales up too) */
 const roverDest=new THREE.Vector3();
@@ -4583,6 +5650,7 @@ addEventListener('keydown',e=>{
   else if(k==='t' && !rtActive){ startTimeTrial(); e.preventDefault(); return; }  // T — start a TIME TRIAL
   else if(k==='p' && !rtActive){ startParkour(); e.preventDefault(); return; }    // P — start a PARKOUR TRIAL
   else if(k==='g' && !rtActive){ startGauntlet(); e.preventDefault(); return; }   // G — start the EMILE GAUNTLET
+  else if(k==='f' && !rtActive){ toggleWarp(); e.preventDefault(); return; }      // F — toggle WARP DRIVE (high-speed overland)
   else return;
   e.preventDefault(); hasDest=false;   // taking the wheel cancels the waypoint target
 });
@@ -4648,7 +5716,7 @@ function manualStep(dt,maxSpd){
 }
 const poiHits=[];                        // filled by the site module below
 let rutStampAcc=0;                       // +++ rover-feel: travel-paced rut stamping accumulator
-const roverMaxSpd=()=> ROVER_BASE_SPD*(1+.2*count('roverbay')+perkLvl('treads')*.12+.02*(level()-1))*archGrip(S.tile)*docMul('speed');   /* #16: terrain grip — dunes drag, glass seas run slick · MACHINE doctrine = tireless */
+const roverMaxSpd=()=> ROVER_BASE_SPD*(1+.2*count('roverbay')+perkLvl('treads')*.12+.02*(level()-1))*archGrip(S.tile)*docMul('speed')*_upSpeedMul();   /* #16: terrain grip — dunes drag, glass seas run slick · MACHINE doctrine = tireless */
 
 function driveTo(x,z){
   if(crossing) return;
@@ -4675,6 +5743,10 @@ function roverUpdate(dt,t){
   if(_emile && EMILE.spinT>0) EMILE.spinT=Math.max(0,EMILE.spinT-dt);   // double-jump spin POSE timer — decoupled from dash SPEED below
   let maxSpd=roverMaxSpd();
   if(_emile) maxSpd*=EMILE.SPD_MULT*(EMILE.dashT>0?EMILE.DASH_MULT:1);   // EMILE runs Sonic-fast; dash burst on top
+  if(warpActive){
+    if(_emile||rtActive) warpActive=false;                              // warp is rover-only + never mid-fight
+    else maxSpd=Math.max(maxSpd, WARP_SPD);                             // future-tech overland sprint
+  }
   let vT=0;
   if(hasDest){
     const dx=roverDest.x-p.x, dz=roverDest.z-p.z, d=Math.hypot(dx,dz);
@@ -4700,7 +5772,7 @@ function roverUpdate(dt,t){
   if(manualActive()){ _manual=true; vT=manualStep(dt,maxSpd); hasDest=false; }
   const prevSpd=roverSpd;
   const _emAcc=(playerMode==='emile');
-  roverSpd=damp(roverSpd, vT, _emAcc?(vT>roverSpd?14:18):(vT>roverSpd?1.7:3.4), dt);       // EMILE: snappy runner accel/brake; rover keeps heavy spool
+  roverSpd=damp(roverSpd, vT, (_emAcc?(vT>roverSpd?14:18):(vT>roverSpd?1.7:3.4))*(vT>roverSpd?_upAccelMul():1), dt);       // EMILE: snappy runner accel/brake; rover keeps heavy spool · TREADS upgrade quickens spool-up
   if(!hasDest && roverSpd<.02) roverSpd=0;
   roverSpdRatio=roverSpd/maxSpd;
   const step=roverSpd*dt, sH=Math.sin(roverHeading), cH=Math.cos(roverHeading);
@@ -4712,6 +5784,7 @@ function roverUpdate(dt,t){
     revealTick(p.x,p.z,95);          // wider cleared disc — the seamless world reads OPEN ahead, not a 55u keyhole
     terrainFollow(p.x,p.z);          // continuous world: meshes treadmill under the rover (no walls, no teleport)
     detailFollow(p.x,p.z);           // scattered rocks follow too — the world is never barren
+    cityFollow(p.x,p.z);             // procedural cities stream in/out by deterministic coarse cell
     if(typeof onLogicalTileCross==='function') onLogicalTileCross(p.x,p.z);
   }
   const gy=terrainH(p.x,p.z);
@@ -7110,7 +8183,7 @@ function rtUpdate(dt){
     if(d>12){ const spd=(5.5+f.pw*0.05)*dt; m.position.x+=dx/d*spd; m.position.z+=dz/d*spd;
       m.position.y=terrainH(m.position.x,m.position.z)+(m.userData.beast?1.6+Math.sin(rtClock*2.2+(m.userData.bob||0))*0.7:0); }   // hover bob
     else if(f.atkCd<=0){ f.atkCd=1.3+Math.random()*0.7;
-      rtInteg-=6+Math.round(f.pw*0.10)+(battlePoi?battlePoi.threat:0);
+      rtInteg-=(6+Math.round(f.pw*0.10)+(battlePoi?battlePoi.threat:0))*_upArmorMul();
       const x0=m.position.x, z0=m.position.z, lx=-dx/d*4, lz=-dz/d*4;
       if(!_reduceMotion) tw(220,EASE.outBack,k=>{ const p=Math.sin(k*Math.PI); m.position.x=x0+lx*p; m.position.z=z0+lz*p; });
       if(!_reduceMotion) combatFlash('168,52,31'); addTrauma(.3); sfxThunk(); haptic([0,140],.9);
@@ -7128,7 +8201,7 @@ function rtUpdate(dt){
   if(rtAimRing){ if(aim){ rtAimRing.visible=true; rtAimRing.position.set(aim.mesh.position.x, terrainH(aim.mesh.position.x,aim.mesh.position.z)+0.4, aim.mesh.position.z);
       rtAimRing.material.opacity=.55+.35*Math.sin(rtClock*8); } else rtAimRing.visible=false; }
   if(_coarse && aim && rtFireCd<=0) rtFire();   // TOUCH: auto-fire when a foe is in the cone — the player only steers + dodges
-  if(aliveN>0) rtInteg-=dt*2.2;               // ENGAGED BLEED — net trend is downward while the corruption lives, so passive kiting still loses (no infinite stall)
+  if(aliveN>0) rtInteg-=dt*2.2*_upArmorMul();               // ENGAGED BLEED — net trend is downward while the corruption lives, so passive kiting still loses (no infinite stall)
   rtInteg=Math.min(100, rtInteg + dt*1.6);   // partial regen still rewards dodging between volleys; it just can't fully stall the fight
   if(aliveN===0){ if(rtDefend){ if(defendWaveAdvance()) return; } endRTCombat(true); return; }   // #3: defend re-arms the next wave before counting a win
   if(rtInteg<=0){ endRTCombat(false); return; }
@@ -7505,6 +8578,7 @@ function startGame(){
   /* BOOT_AWAY: the save parked us off-home → re-enter that tile now that home + all fns exist
      (S.tile is HOME after the forced-home boot; packCurrentTile packs HOME cleanly) */
   if(BOOT_AWAY) enterTile(BOOT_AWAY,0,0); else { buildDetail(); try{ spawnGhostConvoy(); }catch(e){} }   // home start: enterTile won't fire — scatter rocks + ghosts now
+  try{ marsHolderInit(); }catch(e){}   // TASK#5: cosmetic FREELON-holder livery (reads #fl= hash; idempotent, never touches ⬡/S)
 }
 $('skipBtn').onclick=startGame;
 const _autoResume = !!(loaded && ((S.buildings&&S.buildings.length||0)+(S.xp||0)+(S.wins||0))>0);
@@ -7754,6 +8828,19 @@ function animate(){
     roverHeading=_ip.ph + wrapAng(_ip.h-_ip.ph)*alpha;
     rover.rotation.y=roverHeading;
   }
+  // planetary HUD + nav compass, warp hover-cushion lift + speed-streak tunnel (rover visual only)
+  navHudUpdate(dt);
+  if(playerMode!=='emile'){
+    warpLift=damp(warpLift, warpActive?1:0, 6, dt); roverShell.position.y=warpLift*1.4;
+    const wf=warpFxEl(), op=Math.min(.92, warpLift*Math.max(.28,roverSpdRatio));
+    wf.style.opacity=op.toFixed(3); wf.style.display=op>0.012?'block':'none';
+  } else if(_warpFx){ _warpFx.style.display='none'; }
+  // city beacons breathe; floating markers + first-time discovery give the planet destinations
+  if(mode==='play' && _cities.size){
+    for(const g of _cities.values()){ if(g&&g.userData.beacon) g.userData.beacon.material.emissiveIntensity=1.5+0.8*Math.sin(t*2.2+g.userData.cx*0.01); }
+    cityLabelUpdate();
+  }
+  livingMarsTick(dt,t);   // twin moons + aurora, alien fauna, bioluminescent flora, city sky-traffic, skyway button
   if(mode==='play' && playerMode==='emile') animateEmile(dt,t);   // EMILE pose ONCE per render frame (interpolated transform → smooth)
   if(rtActive && mode==='play') rtUpdate(dt);   // real-time combat: foe AI + integrity + win/lose, in-world (never advances outside play)
 
@@ -7784,13 +8871,15 @@ function animate(){
   // hex grid: only visible while placing (barren-world rule)
   hexGridMat.opacity=damp(hexGridMat.opacity,gridTarget,8,dt);
 
-  // dust storms: slow orbital drift + roll
+  // dust storms: orbit the ROVER (so the horizon band travels with you) + swell during dust-front weather
+  const _wx=rover.position.x, _wz=rover.position.z, _wI=(typeof WEATHER!=='undefined'?WEATHER.intensity:0);
   for(const s of storms){
     s.a+=s.w*dt;
-    s.m.position.x=Math.cos(s.a)*s.r;
-    s.m.position.z=Math.sin(s.a)*s.r;
+    s.m.position.x=_wx+Math.cos(s.a)*s.r;
+    s.m.position.z=_wz+Math.sin(s.a)*s.r;
     s.m.position.y=s.y0+6*Math.sin(t*.05+s.wob);
     s.m.material.rotation+=s.rs*dt;
+    s.m.material.opacity=0.2+0.5*_wI;                    // front rolls in → the band thickens
   }
 
   // site detection beacons: ⬡ pulse + projected labels (zone-label idiom, zero alloc)
@@ -7835,6 +8924,9 @@ console.log('%cFREELON CITY: MARS COMMAND — asset credits','color:#d8b25c',
   '\nGround PBR + sky: Poly Haven red_sand 4k / HDRIs (CC0)'+
   '\n3D models: Kenney, Kay Lousberg, Quaternius via poly.pizza (CC0)');
 window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:startGame, cine:()=>cinePhase, ff:s=>{cineT+=s},
+  warp:(on)=>{ warpActive=(on==null?!warpActive:!!on); return warpActive; },
+  nav:()=>{ const ll=worldToLatLon(rover.position.x,rover.position.z); let near=null,bd=1e18; for(const g of _cities.values()){ if(!g)continue; const d=(g.userData.cx-rover.position.x)**2+(g.userData.cz-rover.position.z)**2; if(d<bd){bd=d;near=g;} } return {lat:+ll.lat.toFixed(3),lon:+ll.lon.toFixed(3),region:regionName(ll.lat,ll.lon),km:+(S.travel/1000).toFixed(2),pct:+(S.travel/MARS_CIRC_M*100).toFixed(4),cities:_cities.size,nearCity:near?{name:near.userData.name,x:Math.round(near.userData.cx),z:Math.round(near.userData.cz),dist:Math.round(Math.sqrt(bd))}:null}; },
+  warpTo:(x,z)=>{ rover.position.set(x,terrainH(x,z),z); S.rover.x=x; S.rover.z=z; terrainFollow(x,z); detailFollow(x,z); cityFollow(x,z); faunaFollow(x,z); floraFollow(x,z); wreckFollow(x,z); return MARS.nav(); },
   daily:()=>{ try{ location.hash='daily'; }catch(e){} location.reload(); }, dailySeed,
   bloom:bloomPass, comp:composer, ren:renderer,
   sol:t=>{ if(typeof t==='number'){ SOL.t=((t%1)+1)%1; SOL.paused=true; if(typeof skyUpdate==='function') skyUpdate(0); } return {t:+SOL.t.toFixed(3),sunY:+SOL.sunY.toFixed(3),dusk:+(skyUniforms?skyUniforms.uDusk.value:0).toFixed(3),tier:SKY_TIER}; },
@@ -7985,6 +9077,272 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   terraform:(id,tier)=>terraform(id||S.tile,tier), terraStage:id=>terraStage(id||S.tile), repaintTerra:()=>repaintTerra(),
   share:o=>share(o||{}), seed:()=>WORLD_SEED(), shareURL:()=>shareURL(), ogCard:()=>makeOGCard().toDataURL('image/png'),
   reset:()=>{ resetting=true; lsDel(SAVE_KEY); location.reload(); } };
+
+/* --- MAD MAX ON MARS — swarm-slice debug/verification API (attached after MARS exists) --- */
+/* ====================== MARS LIVE-WORLD MODULE (#2 ghosts + #3 leaderboard) ======================
+   Self-contained. Extends the EXISTING ghost convoy + the EXISTING LEADERBOARD_ENDPOINT seam.
+   Closed bragging-rights board — never touches ⬡. Same-origin endpoint, fail-soft on every fetch.
+   Idempotent: re-running this block (or its init) is a no-op. Outside 'play' mode it stays quiet.
+   Inlined into the game module scope (not a separate <script>) so it can close over _gwTex,
+   GW_IVORY, ghostConvoy, ghostGroup, mulberry32, hashStr, clock, camera, mode, etc. */
+(function(){
+  if (window.__marsLiveWorld) return;            // idempotent guard
+  window.__marsLiveWorld = true;
+
+  /* Same-origin endpoint. Mars is served at freeloncity.com/mars so /api/* is same-origin;
+     connect-src 'self' (the scoped /mars CSP) allows it. Override-able for self-host/dev. */
+  const LB = (window.MARS_LB_ENDPOINT || '/api/mars/leaderboard');
+  const _lbCache = { race:null, storm:null, at:0 };
+  let _lbName = null;
+
+  function lbName(){
+    if (_lbName) return _lbName;
+    try { _lbName = (S && (S.callsign || S.pilotName)) || (localStorage.getItem('mars_callsign')||''); } catch(e){}
+    if (!_lbName){                                  // deterministic, stable per-save handle
+      const seed = (typeof WORLD_SEED==='function'?WORLD_SEED():0) ^ ((S&&S.travel)|0);
+      _lbName = 'ROVER-' + ((seed>>>0).toString(36).toUpperCase().slice(0,4));
+    }
+    return _lbName;
+  }
+
+  /* ---- POST a finished run (race time / storm survival). One call from each finish hook. ---- */
+  function lbPost(board, score, meta){
+    try {
+      if (!isFinite(score)) return;
+      fetch(LB, { method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ board, score:+score, name:lbName(), meta: meta||'' }) }).catch(()=>{});
+    } catch(e){}                                   // fail-soft: never block the game
+  }
+  /* Public finish hooks — the integrator drops ONE of these inside _rcFinish / _stormEnd. */
+  function lbReportRace(tm){ lbPost('race', +(+tm).toFixed(1),
+    'PLANET '+((typeof WORLD_SEED==='function'?WORLD_SEED():0)>>>0).toString(36).toUpperCase()); }
+  function lbReportStorm(win, wall){ if(!win) return;       // only log a survival (a haven reached)
+    lbPost('storm', Math.max(0, wall|0), 'HAVEN'); }
+
+  /* ---- GET this week's board + last week's winner (cached 60s, fail-soft to null). ---- */
+  function lbFetch(board){
+    return fetch(LB+'?board='+board+'&limit=10', {cache:'no-store'})
+      .then(r=>r.ok?r.json():null).catch(()=>null);
+  }
+  function lbRefresh(){
+    const now = performance.now();
+    if (now - _lbCache.at < 60000 && (_lbCache.race||_lbCache.storm)) return Promise.resolve(_lbCache);
+    return Promise.all([lbFetch('race'), lbFetch('storm')]).then(([race,storm])=>{
+      if (race) _lbCache.race = race; if (storm) _lbCache.storm = storm; _lbCache.at = now;
+      return _lbCache;
+    });
+  }
+
+  /* ---- Gold-on-black panel (reuses the raceHud/upgrade visual language). ---- */
+  let _lbPanel=null;
+  function _lbEnsurePanel(){
+    if (_lbPanel) return _lbPanel;
+    const d=document.createElement('div'); d.id='marsLbPanel';
+    d.style.cssText='position:fixed;left:14px;bottom:166px;z-index:30;width:236px;max-height:60vh;overflow:auto;'+
+      'padding:11px 13px;border-radius:12px;background:rgba(14,11,7,.86);border:1px solid rgba(216,178,92,.45);'+
+      'color:#ffd98a;font:600 11px/1.45 system-ui,sans-serif;letter-spacing:.04em;display:none;backdrop-filter:blur(7px);'+
+      'box-shadow:0 6px 26px rgba(0,0,0,.5)';
+    d.addEventListener('click',e=>{ if(e.target===d||e.target.dataset.close) _lbToggle(false); });
+    document.body.appendChild(d); _lbPanel=d; return d;
+  }
+  function _esc(s){ return String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+  function _lbRender(){
+    const p=_lbEnsurePanel();
+    const board = _lbBoard;
+    const data = _lbCache[board];
+    const lowerBetter = board==='race';
+    const unit = board==='race' ? 's' : 'm';
+    const rows = (data && data.top || []).slice(0,10).map((e,i)=>
+      `<div style="display:flex;justify-content:space-between;gap:8px;${i===0?'color:#fff3cf;':''}">
+         <span style="opacity:.9">${i+1}. ${_esc(e.name)}</span>
+         <span style="color:var(--gold-bright,#ffd98a)">${(+e.score).toFixed(lowerBetter?1:0)}${unit}</span>
+       </div>`).join('') || '<div style="opacity:.6">NO RUNS THIS WEEK — SET THE FIRST.</div>';
+    const lw = data && data.lastWeek && data.lastWeek.winner;
+    const crown = lw ? `<div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(216,178,92,.25);opacity:.92">
+        ◆ LAST WEEK: <b>${_esc(lw.name)}</b> · ${(+lw.score).toFixed(lowerBetter?1:0)}${unit}</div>` : '';
+    p.innerHTML =
+      `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+         <b style="letter-spacing:.08em">⚑ WEEKLY ${board.toUpperCase()}</b>
+         <span data-close="1" style="cursor:pointer;opacity:.7">✕</span></div>
+       <div style="display:flex;gap:6px;margin-bottom:8px">
+         <span data-board="race"  style="cursor:pointer;${board==='race' ?'color:#fff3cf':'opacity:.55'}">RACE</span>
+         <span data-board="storm" style="cursor:pointer;${board==='storm'?'color:#fff3cf':'opacity:.55'}">STORM</span></div>
+       ${rows}${crown}
+       <div style="margin-top:8px;opacity:.45;font-size:10px">${_esc((data&&data.week)||'')} · bragging rights only</div>`;
+    p.querySelectorAll('[data-board]').forEach(el=>el.onclick=()=>{ _lbBoard=el.dataset.board; _lbRender(); });
+  }
+  let _lbBoard='race';
+  function _lbToggle(force){
+    const p=_lbEnsurePanel();
+    const open = force!=null ? force : p.style.display==='none';
+    p.style.display = open ? 'block' : 'none';
+    if (open){ _lbRender(); lbRefresh().then(()=>{ if(p.style.display!=='none') _lbRender(); }); }
+  }
+
+  /* ================= #2 ASYNC GHOST PRESENCE — replay REAL runs as ghost rovers ================
+     We do NOT build a parallel system: we feed the EXISTING ghostConvoy[]. After the base
+     procedural convoy spawns for a tile, we splice in up to GHOST_LIVE_MAX extra ghosts whose
+     loops + names are seeded by real leaderboard entries (or city-claim names). Deterministic
+     per tile (mulberry32(tile)+entry index), perf-bounded, and they ride the SAME ghostUpdate
+     loop + despawn path. If no remote data → the base procedural convoy already covers it. */
+  const GHOST_LIVE_MAX = (typeof PERF_LOW!=='undefined' && PERF_LOW) ? 1 : 2;
+
+  // Build the name pool from real persisted runs (race+storm) + discovered city claimants.
+  function _ghostNamePool(){
+    const pool=[];
+    for (const b of ['race','storm']){
+      const d=_lbCache[b]; if(d&&d.top) for(const e of d.top) if(e&&e.name) pool.push(e.name);
+    }
+    return pool;
+  }
+
+  // Make a labelled ghost that rides the existing convoy loop, seeded by (tile, index, name).
+  function _spawnLiveGhost(name, idx){
+    if (typeof mulberry32!=='function' || typeof ghostConvoy==='undefined') return;
+    const rng = mulberry32((typeof hashStr==='function'?hashStr((S&&S.tile||'')+':live:'+idx+':'+name):idx*2654435761)>>>0);
+    // reuse the file's private spline shape via a local equivalent (same CatmullRom loop signature)
+    const pts=[], n=5+((rng()*3)|0), R=200+rng()*360, a0=rng()*Math.PI*2;
+    for(let i=0;i<n;i++){ const a=a0+i/n*Math.PI*2, rr=R*(.5+rng()*.7);
+      pts.push(new THREE.Vector3(Math.cos(a)*rr,0,Math.sin(a)*rr)); }
+    const curve=new THREE.CatmullRomCurve3(pts,true,'catmullrom',.5);
+    const wrap=new THREE.Group();
+    const body=new THREE.Sprite(new THREE.SpriteMaterial({map:_gwTex,color:GW_IVORY,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+    body.scale.setScalar(8); body.userData.noShadow=true; wrap.add(body);
+    const TN=(typeof PERF_LOW!=='undefined'&&PERF_LOW)?6:10, tg=new THREE.BufferGeometry();
+    tg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(TN*3),3));
+    const trail=new THREE.Line(tg,new THREE.LineBasicMaterial({color:GW_GOLD,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+    trail.frustumCulled=false; ghostGroup.add(trail); ghostGroup.add(wrap);
+    const g={curve,wrap,body,trail,tg,TN,u:rng(),spd:(typeof GHOST_SPD!=='undefined'?GHOST_SPD:9)*(.8+rng()*.5),
+      _len:Math.max(1,curve.getLength()), lastMark:clock.elapsedTime-rng()*20, hum:rng()<.5, humAt:0, _hist:[], _live:true, _name:name};
+    ghostConvoy.push(g);
+    // a faint "CLAIMED BY [name]" world label that tracks the ghost wrap
+    const el=document.createElement('div'); el.className='zlabel'; el.style.opacity='.0';
+    el.textContent='⬢ '+name; (document.getElementById('timers')||document.body).appendChild(el);
+    g._label=el;
+    return g;
+  }
+
+  // Augment the existing convoy with live ghosts for the current tile. Idempotent per tile.
+  function ghostAugmentLive(){
+    if (typeof ghostConvoy==='undefined') return;
+    const tile=(S&&S.tile)||'';
+    if (window.__ghostLiveTile===tile && ghostConvoy.some(g=>g._live)) return;  // already augmented this tile
+    // strip any stale live ghosts (tile changed → base despawn already cleared them; this is belt+braces)
+    for (let i=ghostConvoy.length-1;i>=0;i--){ const g=ghostConvoy[i];
+      if (g._live){ if(g._label) g._label.remove(); ghostGroup.remove(g.wrap); ghostGroup.remove(g.trail);
+        if(g.body.material)g.body.material.dispose(); if(g.tg)g.tg.dispose(); if(g.trail.material)g.trail.material.dispose();
+        ghostConvoy.splice(i,1); } }
+    window.__ghostLiveTile = tile;
+    const pool=_ghostNamePool();
+    const names = pool.length ? pool : ['VANGUARD','DUSTLARK','HOLLOWAY','MERIDIAN'];   // seeded fallback → never empty
+    const rng = mulberry32((typeof hashStr==='function'?hashStr(tile+':livepick'):0)>>>0);
+    const count = Math.min(GHOST_LIVE_MAX, names.length);
+    const used={};
+    for (let i=0;i<count;i++){ let k=(rng()*names.length)|0; let guard=0; while(used[k]&&guard++<8) k=(k+1)%names.length;
+      used[k]=1; _spawnLiveGhost(names[k], i); }
+  }
+
+  // "CLAIMED BY [name]" markers near discovered cities (deterministic per city key).
+  function ghostCityClaims(){
+    if (typeof ghostConvoy==='undefined' || !(S&&S.cityLog)) return;
+    const pool=_ghostNamePool(); if(!pool.length) return;
+    const log=S.cityLog;
+    for (const key in log){ const c=log[key]; if(!c) continue;
+      if (window.__cityClaimMarked && window.__cityClaimMarked[key]) continue;
+      const rng=mulberry32((typeof hashStr==='function'?hashStr('claim:'+key):0)>>>0);
+      const who=pool[(rng()*pool.length)|0];
+      (window.__cityClaimMarked = window.__cityClaimMarked||{})[key]=who;
+      // drop a labelled marker just off the settlement (reuses the existing marker drop)
+      if (typeof _dropGhostMarker==='function'){
+        const ox=c.x+Math.cos(rng()*6.28)*70, oz=c.z+Math.sin(rng()*6.28)*70;
+        try{ _dropGhostMarker(ox,oz); }catch(e){}
+      }
+    }
+  }
+
+  /* Per-frame label tracking for live ghosts (cheap; called from the live tick). */
+  const _lblTmp = new THREE.Vector3();
+  function ghostLiveTick(){
+    if (typeof ghostConvoy==='undefined') return;
+    for (const g of ghostConvoy){
+      if (!g._live || !g._label) continue;
+      _lblTmp.copy(g.wrap.position); _lblTmp.y+=14; _lblTmp.project(camera);
+      const off = _lblTmp.z>1 || Math.abs(_lblTmp.x)>1 || Math.abs(_lblTmp.y)>1;
+      const d = Math.hypot(g.wrap.position.x-camera.position.x, g.wrap.position.z-camera.position.z);
+      if (off || d>520){ g._label.style.display='none'; continue; }
+      g._label.style.display='block';
+      g._label.style.left=((_lblTmp.x+1)/2*(innerWidth||1))+'px';
+      g._label.style.top=((-_lblTmp.y+1)/2*(innerHeight||1))+'px';
+      g._label.style.opacity=Math.max(.18, .55-d/900).toFixed(2);
+    }
+  }
+
+  /* Drive the live layer on a slow interval (no per-frame cost on the hot path).
+     Quiet outside 'play'. Pulls the board once, then augments + claims. */
+  let _liveBooted=false;
+  function bootLive(){
+    if (_liveBooted) return; _liveBooted=true;
+    setInterval(()=>{
+      if (typeof mode!=='undefined' && mode!=='play') return;
+      lbRefresh().then(()=>{ try{ ghostAugmentLive(); ghostCityClaims(); }catch(e){} });
+    }, 8000);
+    // label tracker — piggyback rAF without touching the file's animate()
+    (function tick(){ requestAnimationFrame(tick); try{ if(typeof mode==='undefined'||mode==='play') ghostLiveTick(); }catch(e){} })();
+  }
+  // boot after the game settles
+  if (document.readyState==='complete') setTimeout(bootLive,1500);
+  else window.addEventListener('load',()=>setTimeout(bootLive,1500));
+
+  /* expose for the finish hooks + the MARS debug block */
+  window.__marsLB = { reportRace:lbReportRace, reportStorm:lbReportStorm, toggle:_lbToggle,
+    refresh:lbRefresh, cache:_lbCache, augment:ghostAugmentLive, claims:ghostCityClaims, boot:bootLive };
+})();
+
+Object.assign(window.MARS,{
+  dustlark:()=>{ dressDustlark(); return {rig:!!roverShell.getObjectByName('_dlRig')}; },
+  garage:()=>{ _grgEnsure(); return MARS.warpTo(_GRG_X,_GRG_Z); },
+  garageInfo:()=>({x:_GRG_X,z:_GRG_Z,r:_GRG_R,found:S.garageFound,dist:+Math.hypot(rover.position.x-_GRG_X,rover.position.z-_GRG_Z).toFixed(0)}),
+  garageMenu:()=>{ _upEnsureBtn(); _upToggle(); return {open:!!_upPanel,tiers:{engine:_upTier('engine'),plating:_upTier('plating'),treads:_upTier('treads')},hex:S.hex}; },
+  upBuy:(k)=>{ _upBuy(k); return {tier:_upTier(k),hex:S.hex,speedMul:+_upSpeedMul().toFixed(3),accelMul:+_upAccelMul().toFixed(3),armorMul:+_upArmorMul().toFixed(3)}; },
+  miner:()=>{ _mawBuild(); const hx=Math.sin(roverHeading),hz=Math.cos(roverHeading); _maw.position.set(rover.position.x+hx*120,0,rover.position.z+hz*120); _maw.position.y=terrainH(_maw.position.x,_maw.position.z); return {x:+_maw.position.x.toFixed(0),z:+_maw.position.z.toFixed(0)}; },
+  race:()=>{ _rcStart(); return {gates:_RC_N,best:S.raceBest,center:[_RC_CX,_RC_CZ]}; },
+  raceInfo:()=>({active:_rcActive,idx:_rcIdx,total:_RC_N,t:+_rcT.toFixed(1),best:S.raceBest,next:_rcGates&&_rcGates[_rcIdx]?[+_rcGates[_rcIdx].userData.x.toFixed(0),+_rcGates[_rcIdx].userData.z.toFixed(0)]:null}),
+  raceSim:()=>{ _rcStart(); for(const g of _rcGates){ rover.position.set(g.userData.x,terrainH(g.userData.x,g.userData.z),g.userData.z); raceUpdate(0.5,0); } return {best:S.raceBest,active:_rcActive}; },
+  stormRun:()=>{ _stormStart(); return {haven:[+_STORM.hx.toFixed(0),+_STORM.hz.toFixed(0)],wall:_STORM.wall}; },
+  stormInfo:()=>({active:_STORM.active,wall:+_STORM.wall.toFixed(0),haven:_STORM.active?+Math.hypot(rover.position.x-_STORM.hx,rover.position.z-_STORM.hz).toFixed(0):null}),
+  /* TASK#1 — render a share card headlessly (returns {kind,stats,png}) */
+  runCard:(kind,stats)=>{ const k=(kind==='storm')?'storm':'race';
+    const s=Object.assign(k==='storm'
+      ? {reward:_STORM.REWARD,sector:_runSectorName(rover.position.x,rover.position.z)}
+      : {time:(S.raceBest||41.3),reward:_RC_REWARD,gates:_RC_N,sector:_runSectorName(_RC_CX,_RC_CZ),isBest:true}, stats||{});
+    const cv=marsRunCard(k,s); return {kind:k,stats:s,png:cv.toDataURL('image/png')}; },
+  /* TASK#3 — open + read the weekly leaderboard (promise) */
+  leaderboard:(board)=>{ const m=window.__marsLB; if(!m) return {err:'live module not loaded'};
+    m.toggle(true); return m.refresh().then(c=>({ race:(c.race&&c.race.top)||[], storm:(c.storm&&c.storm.top)||[],
+      lastRace:c.race&&c.race.lastWeek&&c.race.lastWeek.winner||null,
+      lastStorm:c.storm&&c.storm.lastWeek&&c.storm.lastWeek.winner||null })); },
+  /* TASK#2 — force live ghost augmentation (promise) */
+  ghostsLive:(n)=>{ const m=window.__marsLB; if(!m) return {err:'live module not loaded'};
+    return m.refresh().then(()=>{ m.augment(); m.claims();
+      const live=(typeof ghostConvoy!=='undefined'?ghostConvoy.filter(g=>g._live):[]);
+      return { live:live.length, total:(typeof ghostConvoy!=='undefined'?ghostConvoy.length:0),
+        names:live.map(g=>g._name), claims:window.__cityClaimMarked||{} }; }); },
+  /* TASK#4 — radial action wheel */
+  wheel:(open)=>{ ensureActionWheel(); _wheelToggle(open); return {open:_wheelOpen, actions:_wheelActions.map(a=>({id:a.id,label:a.label,icon:a.icon}))}; },
+  wheelAdd:(o)=>registerWheelAction(o),
+  /* TASK#5 — simulate a FREELON holder locally (no wallet needed) for preview verification */
+  holder:(idOrUrl)=>{
+    if(idOrUrl==null){ _setHolder({owns:false}); return MARS.holderState(); }
+    let id=null, imageUrl=null;
+    if(typeof idOrUrl==='number'){ id=idOrUrl; }
+    else { const s=String(idOrUrl); const m=s.match(/(\d{1,5})/); id=m?parseInt(m[1],10):1234; if(/^https?:\/\//i.test(s)) imageUrl=s; }
+    _setHolder({owns:true, id:(id==null?1234:id), imageUrl, name:null});
+    return MARS.holderState();
+  },
+  holderState:()=>({..._holder, trail:'0x'+emileTrailColor().toString(16),
+    livery: !!(typeof roverShell!=='undefined'&&roverShell&&roverShell.getObjectByName('_flLivery')),
+    badge: !!(_holderBadgeEl&&_holderBadgeEl.style.display!=='none')})
+});
 </script>
 </body>
 </html>
