@@ -1951,7 +1951,7 @@ globeGroup.add(mapOverlay);
 /* ============================== surface scene ============================== */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b0a10);
-scene.fog = new THREE.FogExp2(0x4a2a1c, 0.0007);   // exponential atmosphere — distant mountains fade into haze (was hard Fog 140..900). bigger-world feel
+scene.fog = new THREE.FogExp2(0x996340, 0.0007);   // butterscotch boot value (skyUpdate re-drives it per-frame to match the horizon band). exponential atmosphere — distant mountains fade into haze
 /* curated HOME content lives under homeGroup (toggled, never destroyed); procedural away
    sites live under awayGroup (torn down on cross). Sky/terrain/storms/dust stay on scene. */
 const homeGroup=new THREE.Group();
@@ -2029,23 +2029,28 @@ let skyUniforms=null;
         float h=max(dir.y,0.);                                   // 0 horizon .. 1 zenith
         float s=max(dot(dir,normalize(uSun)),0.);               // sun proximity
         // brand butterscotch palette
-        vec3 HORIZON_DAY=vec3(.290,.165,.110);
+        vec3 HORIZON_DAY=vec3(.60,.39,.25);                     // bright butterscotch band (lifted out of muddy .29)
+        vec3 MID_DAY=vec3(.34,.225,.16);                        // terracotta mid-sky stop
         vec3 HORIZON_DUSK=vec3(.40,.12,.07);                    // dust-red a8341f family
-        vec3 ZENITH_DAY=vec3(.085,.070,.090);
+        vec3 ZENITH_DAY=vec3(.30,.205,.165);                    // warm dusty mauve-brown zenith — darker than the horizon band for depth, but never cold/grey/void
         vec3 SUN_GLOW=vec3(.753,.478,.259);                     // butterscotch forward scatter
         vec3 SUN_BLUE=vec3(.28,.42,.62);                        // the EARNED Mars-dusk blue
         float dayN=smoothstep(-0.12,0.18,uSunY);                // 0 night .. 1 day, soft terminator
         // --- TIER 2: cheap static-gradient fallback (no blue, no scatter falloff) ---
         if(uSkyLow==2){
           vec3 hz=mix(HORIZON_DAY,HORIZON_DUSK,uDusk);
-          vec3 c=mix(hz,ZENITH_DAY,smoothstep(0.,0.9,h));
-          c=c*(0.18+0.82*dayN)+SUN_GLOW*pow(s,6.)*0.55*dayN;
+          vec3 md=mix(MID_DAY,HORIZON_DUSK,uDusk);
+          vec3 c=mix(hz,md,smoothstep(0.,0.18,h));               // tight bright band -> terracotta mid
+          c=mix(c,ZENITH_DAY,smoothstep(0.12,0.9,h));            // -> dusty mauve zenith
+          c=c*(0.22+0.78*dayN)+SUN_GLOW*pow(s,6.)*0.55*dayN;
           gl_FragColor=vec4(c,1.); return;
         }
         // --- analytic single-scatter (tier 0/1) ---
         vec3 horizon=mix(HORIZON_DAY,HORIZON_DUSK,uDusk);        // dusk reddens the low band
-        vec3 col=mix(horizon,ZENITH_DAY,smoothstep(0.,0.9,h));
-        col*=(0.18+0.82*dayN);                                   // darken at night, never pure black
+        vec3 md=mix(MID_DAY,HORIZON_DUSK,uDusk);
+        vec3 col=mix(horizon,md,smoothstep(0.,0.18,h));          // tight bright band -> terracotta mid
+        col=mix(col,ZENITH_DAY,smoothstep(0.12,0.9,h));          // -> dusty mauve zenith
+        col*=(0.22+0.78*dayN);                                   // darken at night, never pure black
         // butterscotch forward glow, suppressed as dusk takes over
         col+=SUN_GLOW*pow(s,6.)*(1.0-0.82*uDusk)*dayN;                 // butterscotch glow, yields to blue at dusk
         if(uSkyLow==0) col+=vec3(.722,.714,.682)*pow(s,60.)*0.5*dayN*(1.0-0.7*uDusk); // ivory halo (fades at dusk)
@@ -2075,13 +2080,14 @@ function skyUpdate(dt){
   if(typeof gradePass!=='undefined' && gradePass) gradePass.material.uniforms.uDusk.value=dusk;   // grade relaxes its blue-guard at dusk so the earned blue sky survives
   // sun-light position swings with sunDir; recolor toward dust-red at dusk, dim at night
   const dayN=Math.max(0,Math.min(1,(SOL.sunY+0.12)/0.30));
+  if(starUniforms) starUniforms.uDay.value=Math.max(0,1-dayN*1.15);   // stars only at night/dusk — invisible at full day so the bright sky reads clean
   sunLight.intensity=0.6+2.25*dayN;   // brighter night floor (was 0.25) so Mars is never pitch-black
   // warm gold by day -> dust-red ember at dusk
   _skyTmp.setRGB(1.0, 0.85-0.35*dusk, 0.63-0.40*dusk);
   sunLight.color.copy(_skyTmp);
   followSun(_skyLastTx,_skyLastTz);
   // fog matches the horizon band: butterscotch -> dust-red at dusk, darkened at night
-  const fr=(0.290*(1-dusk)+0.40*dusk), fg=(0.165*(1-dusk)+0.12*dusk), fb=(0.110*(1-dusk)+0.07*dusk);
+  const fr=(0.60*(1-dusk)+0.40*dusk), fg=(0.39*(1-dusk)+0.12*dusk), fb=(0.25*(1-dusk)+0.07*dusk);   // matches the lifted butterscotch HORIZON_DAY band — distant terrain dissolves into the horizon, no seam
   const fm=0.30+0.70*dayN;
   if(scene.fog) scene.fog.color.setRGB(fr*fm,fg*fm,fb*fm);
   const _bgm=Math.max(fm,0.5);   // night-sky floor — dim warm-violet instead of crushing to black
@@ -2095,7 +2101,7 @@ let starUniforms=null;
   const N=1500, pos=[], aux=[], colA=[];
   while(pos.length<N*3){
     const v=new THREE.Vector3().randomDirection();
-    if(v.y<0.03) continue;
+    if(v.y<0.12) continue;                 // keep stars well above the horizon (no low specks sorting onto distant terrain)
     v.multiplyScalar(1100);
     pos.push(v.x,v.y,v.z);
     const gold=Math.random()<.15;
@@ -2111,13 +2117,13 @@ let starUniforms=null;
   g.setAttribute('aSize', new THREE.Float32BufferAttribute(size,1));
   g.setAttribute('aAlpha', new THREE.Float32BufferAttribute(alpha,1));
   const m=new THREE.ShaderMaterial({
-    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-    uniforms:{ uTime:{value:0}, uPR:{value:DPR} },
+    transparent:true, depthWrite:false, depthTest:false, blending:THREE.AdditiveBlending,   // depthTest off: additive specks can never depth-sort in FRONT of far mountains (the "stars on the ground" bug); uDay fades them out by day so daytime sky stays clean
+    uniforms:{ uTime:{value:0}, uPR:{value:DPR}, uDay:{value:0} },
     vertexShader:`attribute float aPhase; attribute float aSize; attribute float aAlpha;
-      attribute vec3 aCol; uniform float uTime; uniform float uPR;
+      attribute vec3 aCol; uniform float uTime; uniform float uPR; uniform float uDay;
       varying float vA; varying vec3 vC;
       void main(){
-        vA=aAlpha*(.85+.15*sin(uTime*1.7+aPhase)); vC=aCol;
+        vA=aAlpha*(.85+.15*sin(uTime*1.7+aPhase))*uDay; vC=aCol;
         gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
         gl_PointSize=aSize*1.6*uPR;
       }`,
@@ -2480,11 +2486,11 @@ function buildDetail(){
       // palette grade off the SAME fbm tint logic as the terrain (BASALT→OXIDE→IVORY family)
       const macro=fbm(x*.0012,z*.0012);
       const lit=fbm(x*.002+50,z*.002+50);
-      if(lit>.6)      col.setRGB(0.74,0.66,0.55);   // IVORY-dust crest
-      else if(macro>.6) col.setRGB(0.55,0.34,0.22); // OXIDE
-      else if(macro>.35)col.setRGB(0.46,0.30,0.24); // RUST
-      else            col.setRGB(0.30,0.24,0.20);   // BASALT/DARK
-      col.multiplyScalar(0.85+rng()*0.4);
+      if(lit>.6)      col.setRGB(0.76,0.62,0.46);   // IVORY-dust crest (warmer)
+      else if(macro>.6) col.setRGB(0.62,0.40,0.27); // OXIDE
+      else if(macro>.35)col.setRGB(0.54,0.36,0.27); // RUST
+      else            col.setRGB(0.44,0.31,0.25);   // BASALT/DARK — lifted out of near-black so rocks read as warm rock, not holes
+      col.multiplyScalar(0.92+rng()*0.34);          // tighter spread, higher floor
       mesh.setColorAt(placed,col);
       placed++;
     }
@@ -4964,7 +4970,7 @@ const composer = new EffectComposer(renderer);
 composer.setPixelRatio(DPR);
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth||1, innerHeight||1), .6, .4, .85);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth||1, innerHeight||1), .42, .4, .85);   // strength .6->.42: let bloom be a highlight (sun disc/gold glints at thresh .85), not a global haze
 bloomPass.enabled = PERF_FX>=1;          // tier 0 (phones): drop the fill-heavy bloom — biggest constant cost
 composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
@@ -4974,9 +4980,9 @@ let smaaPass=null;
 if(PERF_FX>=1){ smaaPass=new SMAAPass(innerWidth*DPR, innerHeight*DPR); composer.addPass(smaaPass); }
 else composer.addPass(fxaaPass);
 const vigPass = new ShaderPass(VignetteShader);
-vigPass.uniforms.offset.value = 1.0; vigPass.uniforms.darkness.value = .62;   // softer corners (was .95 — was crushing)
+vigPass.uniforms.offset.value = 1.1; vigPass.uniforms.darkness.value = .40;   // barely-there corners (was .62 — was eating the frame edges)
 composer.addPass(vigPass);
-if(PERF_FX>=1) composer.addPass(new FilmPass(0.15));   // tier 0: skip the grain pass
+if(PERF_FX>=1) composer.addPass(new FilmPass(0.06));   // grain .15->.06: a whisper of texture, not the muddy wash. tier 0: skip the grain pass
 /* ---- postfx subsystem: contact-AO + god-rays + filmic grade (slotted into the chain) ---- */
 let ssaoPass=null, godRayPass=null, gradePass=null;
 const _addEx=(make,onfail)=>{ try{ return make(); }catch(e){ console.warn('[postfx] skipped a pass:',e&&e.message); return onfail||null; } };
