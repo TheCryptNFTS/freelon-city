@@ -564,7 +564,6 @@
   body.dashing #dashfx{ opacity:1 }
   @media (prefers-reduced-motion: reduce){ #dashfx{ display:none } }
 </style>
-<!-- SELF-HOSTED build -->
 <script type="importmap">
 {"imports":{
   "three":"/mars/vendor/three/three.module.js",
@@ -1163,6 +1162,10 @@ function planetGenSites(tid){
       x:gp.x, z:gp.z, threat:6, hidden:false, doc:wonder.doc??9, guardian:true });
   }
   if(tid===anomalyTileId() && !anomalyClearedToday()) sites.push(anomalySite());   // #2: today's daily anomaly lives on this one sector
+  /* continuous world: lift the whole sector's layout from tile-local into ABSOLUTE world coords
+     so sites render in their true place as the rover drives in (no teleport/curtain needed). */
+  const wc=tileWorldCenter(tid);
+  for(const s of sites){ s.x=+(s.x+wc.wx).toFixed(1); s.z=+(s.z+wc.wz).toFixed(1); }
   return sites;
 }
 /* CLAIM ECONOMY — sink only */
@@ -1592,23 +1595,32 @@ function tileName(id){
 }
 function tileInfo(id){ const {r,c}=tileRC(id), ll=tileLatLon(id);
   return {id,r,c,lat:ll.lat,lon:ll.lon,home:id===HOME_TILE,name:tileName(id),region:regionOf(id)}; }
-/* per-tile seed offsets — HOME stays at 0,0 so curated POI y-values never shift */
-let tileOX=0, tileOZ=0;
-function computeTileOffsets(id){
-  if(id===HOME_TILE){ tileOX=0; tileOZ=0; return; }
-  const {r,c}=tileRC(id); tileOX=c*7777.7 + (S.seed&0xffff)*1.7; tileOZ=r*7777.7 + ((S.seed>>>16)&0xffff)*1.7;   /* SEED: per-planet terrain shape (home stays 0,0) */
+/* ===== CONTINUOUS WORLD =====
+   terrainH samples ONE global field in absolute world coords — no per-tile offset, so
+   neighbouring ground seams by construction. The near + far meshes "treadmill" under the
+   rover (recenter + recompute Y from world coords). The 64x128 tile grid survives as a
+   pure logical/metadata layer (claims, archetypes, regions) DERIVED from world position. */
+const TILE_W=1400, HOME_R=31, HOME_C=64;   // HOME_TILE '31x64' lives at world origin (0,0)
+function tileAtWorld(wx,wz){
+  const c=HOME_C+Math.floor((wx+TILE_W/2)/TILE_W);
+  let r=HOME_R+Math.floor((wz+TILE_W/2)/TILE_W);
+  r=Math.max(0,Math.min(ROWS-1,r));        // clamp to the poles (no row 64)
+  return tileId(r,c);                       // tileId wraps the column (cylinder) for free
 }
-/* boot ALWAYS builds HOME (curated y-values need the home seed); if the save parked us
-   off-home, stash it and re-enter via startGame's BOOT_AWAY once all fns + home exist */
+function tileWorldCenter(id){ const {r,c}=tileRC(id);
+  return { wx:(c-HOME_C)*TILE_W, wz:(r-HOME_R)*TILE_W }; }
+let terrainOX=0, terrainOZ=0;   // near-mesh treadmill origin (world)
+let farOX=0, farOZ=0;           // far-mesh treadmill origin (world)
+/* if the save parked us off-home, restore the rover to that sector's world centre in startGame */
 const BOOT_AWAY = (S.tile && S.tile!==HOME_TILE) ? S.tile : null;
 S.tile=HOME_TILE;
-computeTileOffsets(HOME_TILE);
 /* standalone fallback site generator (content layer overrides via contentSites.genTileSites) */
 const _POI_TYPES=['deposit','cache','ruin','wreck','ambush'];
 function genTileSites(id){
   if(id===HOME_TILE) return null;
   if(contentSites&&contentSites.genTileSites) return contentSites.genTileSites(id);
   const rng=mulberry32((hashStr(id)^(S.seed>>>0))>>>0);   /* SEED: per-planet procedural sites */
+  const wc=tileWorldCenter(id);                            // continuous world: place sites in ABSOLUTE world coords
   const out=[], n=5+Math.floor(rng()*4);                    // 5–8 procedural sites
   for(let i=0;i<n;i++){
     const a=rng()*Math.PI*2, d=150+rng()*470;
@@ -1616,7 +1628,7 @@ function genTileSites(id){
     const threat=1+Math.floor(rng()*5);
     const s={ id:id+':s'+i, type, name:regionOf(id)+' '+type.toUpperCase()+' '+(i+1),
       lore:'A SIGNAL ECHO FAR FROM THE CITY SEED.',
-      x:+(Math.cos(a)*d).toFixed(1), z:+(Math.sin(a)*d).toFixed(1),
+      x:+(wc.wx+Math.cos(a)*d).toFixed(1), z:+(wc.wz+Math.sin(a)*d).toFixed(1),
       threat, hidden:rng()<.5 };
     if(type==='ambush') s.doc=Math.floor(rng()*10);
     out.push(s);
@@ -1624,7 +1636,7 @@ function genTileSites(id){
   const ba=rng()*Math.PI*2, bd=90+rng()*60;                 // exactly ONE claim beacon per away tile
   out.push({ id:id+':beacon', type:'beacon', name:tileName(id)+' CLAIM BEACON',
     lore:'PLANT THE CITY FLAG. THIS SECTOR ANSWERS TO THE SEED.',
-    x:+(Math.cos(ba)*bd).toFixed(1), z:+(Math.sin(ba)*bd).toFixed(1), threat:0, hidden:false });
+    x:+(wc.wx+Math.cos(ba)*bd).toFixed(1), z:+(wc.wz+Math.sin(ba)*bd).toFixed(1), threat:0, hidden:false });
   return out;
 }
 const level    = ()=> Math.floor(S.xp/100)+1;
@@ -2190,7 +2202,7 @@ function marsLandmarks(sx,sz){
 }
 function terrainH(x,z){
   const d=Math.hypot(x,z);
-  const sx=x+tileOX, sz=z+tileOZ;                 // 0,0 on HOME → identical to today
+  const sx=x, sz=z;                               // x,z ARE world coords now (continuous field)
   const qx=sx*.004, qz=sz*.004;
   const wx=fbm(qx+13.7,qz+13.7), wz=fbm(qx+71.3,qz+71.3);
   let h=(fbm(qx+.8*wx, qz+.8*wz)-.5)*44;
@@ -2222,20 +2234,20 @@ function rebuildTerrain(){
      streaming path). The rover sits at the ANALYTIC terrainH the instant it lands, so collision is correct
      even while the visual mesh is still forming under the cross dust. */
   const gen=++_terrainGen, CHUNK=(PERF_FX>=1?16000:9000);
-  const _ox=tileOX, _oz=tileOZ, _cr=CRATERS;   // pin this tile's offsets/craters for the whole async fill
+  const _ox=terrainOX, _oz=terrainOZ, _cr=CRATERS;   // pin this mesh's WORLD origin for the whole async fill
   let i=0;
   function step(){
-    if(gen!==_terrainGen) return;              // a newer cross superseded this fill → abandon
+    if(gen!==_terrainGen) return;              // a newer recenter superseded this fill → abandon
     const end=Math.min(n, i+CHUNK);
     for(; i<end; i++){
-      const x=p.getX(i), z=p.getZ(i);
-      const h=terrainH(x,z); p.setY(i,h);
+      const x=p.getX(i)+_ox, z=p.getZ(i)+_oz;  // local vertex → absolute world sample point
+      const h=terrainH(x,z); p.setY(i,h);      // mesh sits at (_ox,0,_oz) so local Y = world height
       const e=1.5;
       const slope=Math.hypot(terrainH(x+e,z)-h, terrainH(x,z+e)-h)/e;
-      const macro=fbm((x+_ox)*.0012,(z+_oz)*.0012);
+      const macro=fbm(x*.0012,z*.0012);
       let c = macro>.7 && slope<.3 ? OXIDE : (macro>.35 ? RUST : BASALT);
       let col=[c[0],c[1],c[2]];
-      if(slope<.12 && fbm((x+_ox)*.002+50,(z+_oz)*.002+50)>.62)
+      if(slope<.12 && fbm(x*.002+50,z*.002+50)>.62)
         col=col.map((v,k)=>v*.4+IVORY[k]*.6);
       if(slope>.5) col=[DARK[0],DARK[1],DARK[2]];
       for(const cr of _cr){
@@ -2260,13 +2272,14 @@ function rebuildTerrain(){
   mat.customProgramCacheKey=()=>'mars_fog_v2_'+PERF_FX;   // merged key for fog + lidar + ruts + terraform injections (all tiers derive from PERF_FX)
   mat.onBeforeCompile=shader=>{
     shader.uniforms.uReveal=fogUniform;
+    shader.uniforms.uFogOrigin=uFogOrigin;   // continuous world: the reveal window follows the rover
     shader.uniforms.uTerra=(typeof uTerra!=='undefined')?uTerra:{value:null};
     shader.vertexShader=shader.vertexShader
       .replace('void main() {','varying vec2 vFogW;\nvoid main() {')
       .replace('#include <begin_vertex>','#include <begin_vertex>\n  vFogW=(modelMatrix*vec4(transformed,1.)).xz;');
     shader.fragmentShader=shader.fragmentShader
-      .replace('void main() {','varying vec2 vFogW;\nuniform sampler2D uReveal;\nuniform sampler2D uTerra;\nvoid main() {')
-      .replace('#include <color_fragment>','#include <color_fragment>\n  float fogReveal=texture2D(uReveal,clamp((vFogW+700.)/1400.,0.,1.)).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,clamp((vFogW+700.)/1400.,0.,1.));\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
+      .replace('void main() {','varying vec2 vFogW;\nuniform sampler2D uReveal;\nuniform sampler2D uTerra;\nuniform vec2 uFogOrigin;\nvoid main() {')
+      .replace('#include <color_fragment>','#include <color_fragment>\n  vec2 fogUV=clamp((vFogW-uFogOrigin+700.)/1400.,0.,1.);\n  float fogReveal=texture2D(uReveal,fogUV).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,fogUV);\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
     /* ---- SCAN-AS-LIDAR: gold wavefront on the ground (additive; safe-guarded) ---- */
     try{
       shader.uniforms.uLidar=uLidar;
@@ -2334,7 +2347,7 @@ function rebuildFarTerrain(){
   (function step(){
     if(gen!==_farGen) return;
     const end=Math.min(n,i+CHUNK);
-    for(;i<end;i++){ const x=p.getX(i), z=p.getZ(i); p.setY(i, terrainH(x,z)-5); }
+    for(;i<end;i++){ const x=p.getX(i)+farOX, z=p.getZ(i)+farOZ; p.setY(i, terrainH(x,z)-5); }
     p.needsUpdate=true;
     if(i<n){ requestAnimationFrame(step); return; }
     farTerrain.geometry.computeVertexNormals(); farTerrain.geometry.computeBoundingSphere();
@@ -2346,6 +2359,40 @@ function rebuildFarTerrain(){
   farTerrain=new THREE.Mesh(fgeo,fmat); farTerrain.renderOrder=-2; farTerrain.receiveShadow=false; farTerrain.frustumCulled=false;
   scene.add(farTerrain);
   rebuildFarTerrain();
+}
+/* TREADMILL: slide the near + far meshes under the rover and recompute Y from absolute world
+   coords. terrainH is deterministic, so the overlap region is bit-identical before/after a
+   recenter — nothing visibly shifts; only the strip beyond the fog/haze changes. We recenter
+   by STEP (not every frame) so the ~48k-vert rebuild fires every few seconds and amortises
+   across frames; collision uses analytic terrainH directly, so it's correct even mid-rebuild. */
+const NEAR_STEP=300, FAR_STEP=1200;
+function terrainFollow(wx,wz){
+  if(Math.hypot(wx-terrainOX,wz-terrainOZ)>NEAR_STEP){
+    terrainOX=wx; terrainOZ=wz; terrain.position.set(wx,0,wz); rebuildTerrain();
+  }
+  if(farTerrain && Math.hypot(wx-farOX,wz-farOZ)>FAR_STEP){
+    farOX=wx; farOZ=wz; farTerrain.position.set(wx,0,wz); rebuildFarTerrain();
+  }
+}
+/* logical-tile crossing in the continuous world: no teleport, no dust curtain — just update
+   which metadata sector we stand in (archetype tint / claims / region) and flag a subtle banner.
+   Later packets hook fog-recenter + site-swap into this same seam. */
+let _lastLogicalTile=HOME_TILE;
+function onLogicalTileCross(wx,wz){
+  const id=tileAtWorld(wx,wz);
+  if(id===_lastLogicalTile) return;
+  if(typeof packCurrentTile==='function') packCurrentTile();   // bank the sector we're leaving
+  _lastLogicalTile=id; S.tile=id;
+  if(typeof tendTile==='function') tendTile(id);
+  /* swap the live POI set to this sector's (sites are in WORLD coords, so they render in place as
+     we drive in — no teleport, no curtain). Mirrors enterTile minus the terrain/rover move. */
+  if(typeof buildTileSites==='function'){
+    teardownAwaySites(); loadTileState(id); buildTileSites();
+    mmDirty=true;
+    MM_SRC.pois=()=>SITES().map(p=>({x:p.x,z:p.z,found:poiDetected(p.id),cleared:S.cleared.includes(p.id)}));
+  }
+  if(typeof updateHUD==='function') updateHUD();   // archetype/sector readouts follow the crossing
+  if(typeof toast==='function') toast('ENTERING '+((typeof tileName==='function')?tileName(id):id));
 }
 
 /* ===================== GPU-instanced ground detail ===================== */
@@ -2385,6 +2432,8 @@ function disposeDetail(){
   detailMesh=null; // shared _detailGeo is reused across tiles, never disposed
 }
 let _detailGen=0;          // bumps on each build → an in-flight chunked fill from a stale cross self-cancels
+let detailOX=0, detailOZ=0; // world centre of the scattered detail field — trails the rover
+function _cellSeed(cx,cz){ let h=(Math.imul(cx,374761393)+Math.imul(cz,668265263))|0; h=Math.imul(h^(h>>>13),1274126177); return (h^(h>>>16))>>>0; }
 function buildDetail(){
   if(typeof THREE.InstancedMesh==='undefined') return;   // FALLBACK (a): no instancing → bare ground, as today
   disposeDetail();
@@ -2399,20 +2448,27 @@ function buildDetail(){
   scene.add(mesh);
   detailMesh=mesh;
   const gen=++_detailGen;
-  const rng=mulberry32((hashStr(S.tile)^0xD37A1|0)>>>0); // deterministic per tile (identical draw to the old synchronous build)
   const dummy=new THREE.Object3D();
   const col=new THREE.Color();
-  const SPAN=660;                     // keep just inside the 672 edge-cross wall
-  const _ox=(typeof tileOX==='number'?tileOX:0), _oz=(typeof tileOZ==='number'?tileOZ:0);
-  const CHUNK = PTIER==='hi'?700:450; // instances populated per frame — ~6 frames at most, no visible spike
+  const SPAN=660;                     // half-width of the scattered field around the rover
+  /* continuous world: rocks are scattered by DETERMINISTIC WORLD-CELL — the same patch of Mars
+     always grows the same rocks, so recentering the field on the rover never pops the overlap. */
+  const CELL=PTIER==='hi'?22:46;      // ~one rock per cell → matches the old density at each tier
+  const ox=detailOX, oz=detailOZ;     // pin this build's world centre
+  const c0=Math.floor((ox-SPAN)/CELL), c1=Math.floor((ox+SPAN)/CELL);
+  const r0=Math.floor((oz-SPAN)/CELL), r1=Math.floor((oz+SPAN)/CELL);
+  const W=c1-c0+1, total=W*(r1-r0+1);
+  const CHUNK = PTIER==='hi'?700:450; // cells visited per frame — streams in over a few frames
   let i=0, placed=0;
   function fillChunk(){
-    if(gen!==_detailGen || detailMesh!==mesh) return;   // a newer tile-cross superseded this build → abandon
-    const end=Math.min(ROCK_COUNT, i+CHUNK);
-    for(; i<end; i++){
-      const x=(rng()*2-1)*SPAN, z=(rng()*2-1)*SPAN;
-      const d=Math.hypot(x,z);
-      if(d<22 && rng()<0.85) continue;  // keep the immediate landing pad clear-ish (consumes rng identically to before)
+    if(gen!==_detailGen || detailMesh!==mesh) return;   // a newer build superseded this one → abandon
+    const end=Math.min(total, i+CHUNK);
+    for(; i<end && placed<ROCK_COUNT; i++){
+      const cx=c0+(i%W), cz=r0+((i/W)|0);
+      const rng=mulberry32(_cellSeed(cx,cz));
+      if(rng()<0.18) continue;          // ~18% of cells are bare ground (breaks the grid look)
+      const x=(cx+rng())*CELL, z=(cz+rng())*CELL;   // jittered world position inside the cell
+      if(Math.hypot(x,z)<22) continue;  // keep the HOME command-seat pad (world origin) clear
       const y=terrainH(x,z);
       const ripple=rng()<0.32;          // ~1/3 are flat dune-ripples, the rest pebbles
       const s=ripple ? (1.2+rng()*2.6) : (0.45+rng()*1.6);
@@ -2422,8 +2478,8 @@ function buildDetail(){
       dummy.updateMatrix();
       mesh.setMatrixAt(placed,dummy.matrix);
       // palette grade off the SAME fbm tint logic as the terrain (BASALT→OXIDE→IVORY family)
-      const macro=fbm((x+_ox)*.0012,(z+_oz)*.0012);
-      const lit=fbm((x+_ox)*.002+50,(z+_oz)*.002+50);
+      const macro=fbm(x*.0012,z*.0012);
+      const lit=fbm(x*.002+50,z*.002+50);
       if(lit>.6)      col.setRGB(0.74,0.66,0.55);   // IVORY-dust crest
       else if(macro>.6) col.setRGB(0.55,0.34,0.22); // OXIDE
       else if(macro>.35)col.setRGB(0.46,0.30,0.24); // RUST
@@ -2435,9 +2491,16 @@ function buildDetail(){
     mesh.count=placed;                  // tighten draw to actually-placed instances
     mesh.instanceMatrix.needsUpdate=true;
     if(mesh.instanceColor) mesh.instanceColor.needsUpdate=true;
-    if(i<ROCK_COUNT) requestAnimationFrame(fillChunk);
+    if(i<total && placed<ROCK_COUNT) requestAnimationFrame(fillChunk);
   }
   fillChunk();                          // first chunk now; the rest stream in over the next few frames
+}
+/* slide the detail field with the rover — rebuild when it drifts past ~half the span.
+   Deterministic cells mean the rocks that stay in view land identically (no pop); only the
+   freshly-entered strip is new (and that strip is out past the fog anyway). */
+function detailFollow(wx,wz){
+  if(Math.hypot(wx-detailOX,wz-detailOZ)<320) return;
+  detailOX=wx; detailOZ=wz; buildDetail();
 }
 /* buildDetail() is invoked from startGame (home start) + enterTile (per-tile cross) —
    NOT at module-eval (terrain/tile not settled yet, and the surface isn't rendered until play) */
@@ -2446,6 +2509,11 @@ function buildDetail(){
    sampled by the terrain shader and composited into the minimap. ≈2.7KB in S.reveal. */
 const FOG_GRID=128, FOG_HALF=700, FOG_WORLD=1400, FOG_CELL=FOG_WORLD/FOG_GRID, FOG_CV=256;
 const fogUniform={value:null};
+/* continuous world: the 1400² reveal window is centred on (fogOX,fogOZ), which trails the rover.
+   All reveal/minimap math takes WORLD coords and subtracts this origin to land in the window. */
+let fogOX=0, fogOZ=0;
+const uFogOrigin={value:new THREE.Vector2(0,0)};
+function setFogOrigin(wx,wz){ fogOX=wx; fogOZ=wz; uFogOrigin.value.set(wx,wz); }
 
 /* ===== SCAN-AS-LIDAR shared state + perf tier (additive; PTIER derived from canonical PERF_FX) ===== */
 const PTIER=(PERF_FX>=2)?'hi':'lo';
@@ -2478,6 +2546,7 @@ fogUniform.value=revealTex;
 let revealPackDirty=true, revealPackCache=null, mmDirty=true;
 
 function revealAt(x,z,r){
+  x-=fogOX; z-=fogOZ;   // world → reveal-window coords
   const s=FOG_CV/FOG_WORLD, px=(x+FOG_HALF)*s, pz=(z+FOG_HALF)*s, pr=Math.max(2.5,r*s);
   const g=rctx.createRadialGradient(px,pz,pr*.45,px,pz,pr);
   g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(1,'rgba(255,255,255,0)');
@@ -2502,10 +2571,35 @@ function revealTick(x,z,r){
   revealAt(x,z,r||55);
 }
 function isRevealed(x,z){
+  x-=fogOX; z-=fogOZ;   // world → reveal-window coords
   if(x<-FOG_HALF||x>FOG_HALF||z<-FOG_HALF||z>FOG_HALF) return false;
   let gx=(x+FOG_HALF)/FOG_CELL|0; if(gx>FOG_GRID-1) gx=FOG_GRID-1;
   let gz=(z+FOG_HALF)/FOG_CELL|0; if(gz>FOG_GRID-1) gz=FOG_GRID-1;
   return revealGrid[gz*FOG_GRID+gx]===1;
+}
+/* roaming reveal window: when the rover drifts from the window centre, slide the whole
+   window by a whole number of grid cells — shifting the bit-grid AND the soft canvas so the
+   already-explored trail is preserved (only the freshly-entered strip is dark). */
+const _fogTmp=document.createElement('canvas'); _fogTmp.width=_fogTmp.height=FOG_CV;
+const _fogTmpCtx=_fogTmp.getContext('2d');
+function fogFollow(wx,wz){
+  if(Math.hypot(wx-fogOX,wz-fogOZ)<=250) return;
+  const ncx=Math.round((wx-fogOX)/FOG_CELL), ncz=Math.round((wz-fogOZ)/FOG_CELL);
+  if(!ncx && !ncz) return;
+  const ng=new Uint8Array(FOG_GRID*FOG_GRID);
+  for(let gz=0;gz<FOG_GRID;gz++) for(let gx=0;gx<FOG_GRID;gx++){
+    const sgx=gx+ncx, sgz=gz+ncz;
+    if(sgx>=0&&sgx<FOG_GRID&&sgz>=0&&sgz<FOG_GRID && revealGrid[sgz*FOG_GRID+sgx]) ng[gz*FOG_GRID+gx]=1;
+  }
+  revealGrid.set(ng);
+  const ppc=FOG_CV/FOG_GRID, ppx=ncx*ppc, ppz=ncz*ppc;   // canvas pixels per grid cell
+  _fogTmpCtx.clearRect(0,0,FOG_CV,FOG_CV);
+  _fogTmpCtx.drawImage(revealCanvas,-ppx,-ppz);
+  rctx.clearRect(0,0,FOG_CV,FOG_CV);
+  rctx.drawImage(_fogTmp,0,0);
+  revealTex.needsUpdate=true;
+  setFogOrigin(fogOX+ncx*FOG_CELL, fogOZ+ncz*FOG_CELL);
+  revealPackDirty=true; mmDirty=true;
 }
 /* persistence: bit-pack → btoa, cached until a reveal dirties it */
 function packReveal(){
@@ -2555,6 +2649,8 @@ revealAt(0,0,130);
    gold POI dots, accent zone chips, gold base square, ivory rover triangle */
 const MM_SRC={ pois:null, rover:null };   /* injected by the POI + rover modules */
 const MM_DPR=2, MM_W=148, MM_R=70, MM_CX=74, MM_CY=74, W2M=MM_W/FOG_WORLD;
+/* continuous world: the radar is centred on the reveal window (which trails the rover) */
+const mmX=wx=>(wx-fogOX+FOG_HALF)*W2M, mmZ=wz=>(wz-fogOZ+FOG_HALF)*W2M;
 const mmCv=document.getElementById('minimap'), mctx=mmCv.getContext('2d');
 const mmTint=document.createElement('canvas'); mmTint.width=mmTint.height=MM_W;
 const tctx=mmTint.getContext('2d');
@@ -2576,7 +2672,7 @@ function drawMinimap(rv){
   c.strokeStyle='rgba(216,178,92,.10)'; c.lineWidth=1;
   for(const wr of [250,500]){ c.beginPath(); c.arc(MM_CX,MM_CY,wr*W2M,0,7); c.stroke(); }
   if(onHome()) for(let i=0;i<ZONES.length;i++){
-    const p=MM_ZXY[i], mx=(p.x+FOG_HALF)*W2M, mz=(p.z+FOG_HALF)*W2M;
+    const p=MM_ZXY[i], mx=mmX(p.x), mz=mmZ(p.z);
     if(zoneState(i)==='claimed'){ c.fillStyle=ZONE_ACCENTS[i]; c.fillRect(mx-1.5,mz-1.5,3,3); }
     else if(isRevealed(p.x,p.z)){ c.strokeStyle='rgba(216,178,92,.45)'; c.strokeRect(mx-1.5,mz-1.5,3,3); }
   }
@@ -2584,17 +2680,17 @@ function drawMinimap(rv){
     for(const p of MM_SRC.pois()){
       if(!p.found) continue;
       c.fillStyle=p.cleared?'rgba(216,178,92,.28)':'#d8b25c';
-      c.beginPath(); c.arc((p.x+FOG_HALF)*W2M,(p.z+FOG_HALF)*W2M,1.6,0,7); c.fill();
+      c.beginPath(); c.arc(mmX(p.x),mmZ(p.z),1.6,0,7); c.fill();
     }
   }
   /* active mini-game targets — bright dots so the player can find off-screen relics / the next gate */
   if(typeof RELIC!=='undefined' && RELIC.active){ c.fillStyle='#ffe9b0';
-    for(const m of RELIC.items){ c.beginPath(); c.arc((m.position.x+FOG_HALF)*W2M,(m.position.z+FOG_HALF)*W2M,2,0,7); c.fill(); } }
-  if(typeof TRIAL!=='undefined' && TRIAL.active){ const g=TRIAL.gates[TRIAL.idx]; if(g){ c.fillStyle='#ffe9b0'; c.beginPath(); c.arc((g.position.x+FOG_HALF)*W2M,(g.position.z+FOG_HALF)*W2M,2.4,0,7); c.fill(); } }
-  if(typeof PARK!=='undefined' && PARK.active){ const g=PARK.rings[PARK.idx]; if(g){ c.fillStyle='#ffe9b0'; c.beginPath(); c.arc((g.position.x+FOG_HALF)*W2M,(g.position.z+FOG_HALF)*W2M,2.4,0,7); c.fill(); } }
-  c.fillStyle='#d8b25c'; c.fillRect(MM_CX-2.5,MM_CY-2.5,5,5);
+    for(const m of RELIC.items){ c.beginPath(); c.arc(mmX(m.position.x),mmZ(m.position.z),2,0,7); c.fill(); } }
+  if(typeof TRIAL!=='undefined' && TRIAL.active){ const g=TRIAL.gates[TRIAL.idx]; if(g){ c.fillStyle='#ffe9b0'; c.beginPath(); c.arc(mmX(g.position.x),mmZ(g.position.z),2.4,0,7); c.fill(); } }
+  if(typeof PARK!=='undefined' && PARK.active){ const g=PARK.rings[PARK.idx]; if(g){ c.fillStyle='#ffe9b0'; c.beginPath(); c.arc(mmX(g.position.x),mmZ(g.position.z),2.4,0,7); c.fill(); } }
+  c.fillStyle='#d8b25c'; c.fillRect(mmX(0)-2.5,mmZ(0)-2.5,5,5);   // HOME base square sits at world origin
   if(rv){
-    const mx=(rv.x+FOG_HALF)*W2M, mz=(rv.z+FOG_HALF)*W2M;
+    const mx=mmX(rv.x), mz=mmZ(rv.z);
     c.save(); c.translate(mx,mz); c.rotate(Math.atan2(rv.hx,-rv.hz));
     c.fillStyle='#f2ead8';
     c.beginPath(); c.moveTo(0,-4.2); c.lineTo(3,3.2); c.lineTo(0,1.8); c.lineTo(-3,3.2); c.closePath(); c.fill();
@@ -4550,9 +4646,7 @@ const roverMaxSpd=()=> ROVER_BASE_SPD*(1+.2*count('roverbay')+perkLvl('treads')*
 
 function driveTo(x,z){
   if(crossing) return;
-  const r=Math.hypot(x,z);
-  if(r>690){ x*=690/r; z*=690/r; }       // edge-reachable; still caps runaway beyond the tile
-  pendingOpen=null;                      // a new order cancels any queued site-open
+  pendingOpen=null;                      // continuous world: no clamp — drive anywhere, forever
   roverDest.set(x,0,z); hasDest=true;
   pingRing(x,terrainH(x,z),z);
   sfxTick();
@@ -4608,8 +4702,11 @@ function roverUpdate(dt,t){
     p.x+=sH*step; p.z+=cH*step;
     S.travel+=step; S.today.travel+=step;
     S.rover.x=p.x; S.rover.z=p.z;
-    revealTick(p.x,p.z,55);
-    edgeCross();
+    fogFollow(p.x,p.z);              // slide the reveal window with the rover BEFORE revealing this frame
+    revealTick(p.x,p.z,95);          // wider cleared disc — the seamless world reads OPEN ahead, not a 55u keyhole
+    terrainFollow(p.x,p.z);          // continuous world: meshes treadmill under the rover (no walls, no teleport)
+    detailFollow(p.x,p.z);           // scattered rocks follow too — the world is never barren
+    if(typeof onLogicalTileCross==='function') onLogicalTileCross(p.x,p.z);
   }
   const gy=terrainH(p.x,p.z);
   if(_emile){
@@ -6289,9 +6386,16 @@ function enterTile(id,ex,ez){
   if(PARK.active){ endParkour(false,true); toast('PARKOUR ended — you crossed sectors'); }
   EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0; EMILE.spinT=0; EMILE._gx=EMILE._gz=undefined; EMILE.landT=0; EMILE.bufferT=0; clearAfterimage();   // don't carry airborne/dash/ground-cache state across the cross
   packCurrentTile();
-  S.tile=id;
+  S.tile=id; _lastLogicalTile=id;
   tendTile(id);   /* visiting a claimed sector tends it — keeps your frontier from re-corrupting */
-  computeTileOffsets(id); rollCraters(); rebuildTerrain(); rebuildFarTerrain(); buildDetail();
+  /* continuous world: FAST-TRAVEL teleports the rover to this sector's WORLD centre and recenters
+     the treadmill there (organic driving never calls this — it just flows tile to tile). */
+  const wc=tileWorldCenter(id), wx=wc.wx+(ex||0), wz=wc.wz+(ez||0);
+  terrainOX=wx; terrainOZ=wz; terrain.position.set(wx,0,wz);
+  farOX=wx; farOZ=wz; if(farTerrain) farTerrain.position.set(wx,0,wz);
+  setFogOrigin(wx,wz);             // recenter the reveal window on the destination sector
+  detailOX=wx; detailOZ=wz;        // scatter the detail field at the destination
+  rebuildTerrain(); rebuildFarTerrain(); buildDetail();
   revealGrid.fill(0);
   const rec=tileRec(id), blob = id===HOME_TILE ? S.reveal : rec.reveal;
   if(blob && unpackReveal(blob)) repaintReveal();
@@ -6303,15 +6407,14 @@ function enterTile(id,ex,ez){
   buildTileSites();
   mmDirty=true;
   MM_SRC.pois=()=>SITES().map(p=>({x:p.x,z:p.z,found:poiDetected(p.id),cleared:S.cleared.includes(p.id)}));
-  const px=ex||0, pz=ez||0;
-  rover.position.set(px, terrainH(px,pz), pz);
-  S.rover.x=px; S.rover.z=pz;
-  roverHeading=Math.atan2(px||1,pz||1); prevHeading=roverHeading; rover.rotation.y=roverHeading;
+  rover.position.set(wx, terrainH(wx,wz), wz);
+  S.rover.x=wx; S.rover.z=wz;
+  roverHeading=Math.atan2(-wx||1,-wz||1); prevHeading=roverHeading; rover.rotation.y=roverHeading;   // face back toward home
   hasDest=false; pendingOpen=null; destRing.material.opacity=0;
   fogLastX=1e9; fogLastZ=1e9;
-  revealAt(px,pz,90);
+  revealAt(wx,wz,90);
   try{ spawnGhostConvoy(); }catch(e){}   // ghost convoy re-rolls deterministically per sector
-  if(id!==HOME_TILE) landingSequence(px,pz);   // away arrival = a ship sets you down
+  if(id!==HOME_TILE) landingSequence(wx,wz);   // away arrival = a ship sets you down
   save();
 }
 /* dust-beat travel wrapper — the canonical DESCEND/travel entry */
