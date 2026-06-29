@@ -12,7 +12,6 @@ const TransformsWall = dynamic(() => import("@/components/TransformsWall"));
 import { ActivationProof } from "@/components/ActivationProof";
 import { CityWeekBand } from "@/components/CityWeekBand";
 import { CryptTcgBand } from "@/components/CryptTcgBand";
-import { CityPulse } from "@/components/CityPulse";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { ProductDoors } from "@/components/ProductDoors";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
@@ -135,34 +134,32 @@ export default async function Home() {
             A playable AI civilization. <strong>Enter Mars. Play the archive.
             Meet the citizens.</strong>
           </p>
-
-          {/* CITY PULSE (2026-06-11) — two honest clocks under the CTAs: Day N
-              since The Crypt's Oct-2023 creation tx (the city's Etherscan-
-              verifiable founding) + countdown to the real Sunday 18:00 UTC
-              Signal Report cron. Client-only, self-hiding; both numbers track
-              real events (see components/CityPulse.tsx). */}
-          <div style={{ marginTop: "var(--s-3)" }}>
-            <CityPulse />
-          </div>
-
-          {/* Activation proof — the see→own bridge. Real paid unlocks as social
-              proof; self-hides until at least one exists. 2026-06-07. */}
-          <div style={{ marginTop: "var(--s-3)" }}>
-            <ActivationProof />
-          </div>
-
-          {/* SURFACE-REDUCTION 2026-06-09: removed HeroMarketStat (floor/supply
-              pill) from above the fold — market data is not the front door. The
-              floor still lives on /dashboard. Lore badge sits below How-It-Works. */}
+          {/* 2026-06-29 premium launcher rebuild: the hero is now a tight
+              cinematic band — name + one product line — and NOTHING else
+              competes above the fold. The two lore clocks (CityPulse) and the
+              activation-proof strip were pulled OUT of the hero: clocks are
+              gone from the cold front door entirely; the proof strip moved
+              below the doors (still self-hiding social proof, no longer a
+              weak element fighting the three CTAs). The three product doors
+              now ARE the above-the-fold CTAs, sitting directly under this. */}
         </div>
       </section>
 
-      {/* ── PRODUCT DOORS — the three front-door actions, co-equal and directly
-          under the hero (2026-06-29 launcher pivot). Enter Mars (/mars-command),
+      {/* ── PRODUCT DOORS — the three front-door actions AND the page's three
+          primary CTAs, co-equal and directly under a deliberately short hero
+          (2026-06-29 premium launcher rebuild). Enter Mars (/mars-command),
           Play TCG (/crypt-tcg), AI Citizens (/demo). This is the page's primary
-          above-the-fold job; everything below (citizen mosaic, how-it-works,
-          city week, TCG deep-dive, buy CTA) is now depth, not the front door. */}
+          above-the-fold job; everything below (proof, citizen mosaic, how-it-
+          works, city week, TCG deep-dive, buy CTA) is now depth, not the front
+          door. */}
       <ProductDoors />
+
+      {/* Activation proof — the see→own bridge, relocated out of the hero so it
+          supports the doors instead of cluttering the first impression. Real
+          paid unlocks as social proof; self-hides until at least one exists. */}
+      <div className="home-proofstrip">
+        <ActivationProof />
+      </div>
 
       {/* 2026-06-17 (Algorithm review · "the homepage gets one job"): the on-page
           MemoryProof game was removed from the cold path — it's a demonstration for

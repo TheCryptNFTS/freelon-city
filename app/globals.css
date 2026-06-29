@@ -898,14 +898,15 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  /* 2026-06-29 launcher pivot: the hero no longer owns the full viewport — it's
-     shortened so the three product doors peek above the fold and read as the
-     page's primary action, instead of being buried a full screen down. */
-  min-height: clamp(480px, 72vh, 720px);
+  /* 2026-06-29 premium launcher rebuild: the hero is a compact cinematic band,
+     not a full-viewport splash — short enough that the three product doors land
+     ON the first screen as the page's three CTAs, instead of being buried a
+     full screen down. Tightened from 72vh → ~50vh. */
+  min-height: clamp(360px, 50vh, 540px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(56px, 8vh, 100px) var(--pad);
+  padding: clamp(48px, 7vh, 88px) var(--pad);
   border-bottom: 1px solid var(--line);
 }
 .hero--landing::before {
@@ -1015,7 +1016,17 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: var(--s-5);
+  /* 2026-06-29: hero trimmed to name + one line, so the gap tightens — the
+     two elements read as a single cinematic title block, not a spaced stack. */
+  gap: var(--s-3);
+}
+/* Social-proof strip under the doors (relocated out of the hero). */
+.home-proofstrip {
+  max-width: 1120px;
+  margin: var(--s-3) auto 0;
+  padding: 0 var(--s-4);
+  display: flex;
+  justify-content: center;
 }
 /* ── CITIZEN SHOWCASE ──────────────────────────────────────────────
    Auto-scrolling band of real citizen portraits under the hero. Shows the
