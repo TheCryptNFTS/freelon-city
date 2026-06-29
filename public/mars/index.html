@@ -207,6 +207,12 @@
   body.mapping #gauntletBtn, body.relicrun #gauntletBtn, body.trialrun #gauntletBtn, body.parkrun #gauntletBtn, body.gauntlet #gauntletBtn{display:none!important}
   body.gauntlet #relicBtn, body.gauntlet #trialBtn, body.gauntlet #parkBtn, body.gauntlet #emileBtn{display:none!important}
   @media (max-width:900px){ #gauntletBtn{left:14px;bottom:284px;transform:none} }
+  /* CLEAN DRIVING VIEW — the centre-bottom mode-launcher stack is menu chrome, not a driving action.
+     Fade it out of the world while cruising; it returns the instant you slow/stop (hysteretic
+     body.cruising toggle, set in the movement loop). Reversible, removes no access, can't strand the player. */
+  #gauntletBtn,#relicBtn,#trialBtn,#parkBtn,#emileBtn{transition:opacity .5s ease}
+  body.cruising #gauntletBtn, body.cruising #relicBtn, body.cruising #trialBtn,
+  body.cruising #parkBtn, body.cruising #emileBtn{opacity:0;pointer-events:none}
   #jumpBtn{position:fixed;bottom:130px;right:30px;z-index:23;width:74px;height:74px;border-radius:50%;
     background:rgba(216,178,92,.16);border:1.5px solid var(--gold);color:var(--gold-bright);font-family:inherit;
     font-size:10px;letter-spacing:.16em;cursor:pointer;display:none;backdrop-filter:blur(6px);
@@ -784,6 +790,52 @@ import {RGBELoader} from 'three/addons/loaders/RGBELoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';   // EMILE playable character (rigged FBX, procedurally animated)
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+
+/* ============================== AERIAL-PERSPECTIVE FOG ==============================
+   AAA depth upgrade: replace three.js' flat FogExp2 with a HEIGHT-GRADED aerial fog by
+   overriding the shared fog ShaderChunks ONCE, before any material compiles. Every fogged
+   material in the main scene inherits it (ground, far terrain, instanced rocks, POI, rover) —
+   no per-material surgery, no new uniforms, all perf tiers. The dust is DENSE in the low valleys
+   and THINS with altitude (exp falloff on world height), so the grand far mountains rise OUT of
+   the haze with a true vertical gradient instead of dissolving into a flat washed band. The fog
+   COLOUR is still driven warm per-frame by skyUpdate (FilmicGrade blue-guard stays happy). The
+   0.92 clamp keeps a faint silhouette of the farthest relief (aerial depth you can see THROUGH).
+   Sky dome / post passes use raw shaders (no #include) so they're untouched; spaceScene has no
+   fog so its chunk stays inert. Instancing-safe via the USE_INSTANCING branch. */
+THREE.ShaderChunk.fog_pars_vertex = `#ifdef USE_FOG
+	varying float vFogDepth;
+	varying float vFogHeight;
+#endif`;
+THREE.ShaderChunk.fog_vertex = `#ifdef USE_FOG
+	vFogDepth = - mvPosition.z;
+	#ifdef USE_INSTANCING
+		vFogHeight = ( modelMatrix * instanceMatrix * vec4( position, 1.0 ) ).y;
+	#else
+		vFogHeight = ( modelMatrix * vec4( position, 1.0 ) ).y;
+	#endif
+#endif`;
+THREE.ShaderChunk.fog_fragment = `#ifdef USE_FOG
+	float fogH = exp( - max( vFogHeight, 0.0 ) * 0.014 );
+	#ifdef FOG_EXP2
+		float fd = fogDensity * fogH;
+		float fogFactor = 1.0 - exp( - fd * fd * vFogDepth * vFogDepth );
+	#else
+		float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
+	#endif
+	fogFactor = clamp( fogFactor, 0.0, 0.92 );
+	gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+#endif`;
+THREE.ShaderChunk.fog_pars_fragment = `#ifdef USE_FOG
+	uniform vec3 fogColor;
+	varying float vFogDepth;
+	varying float vFogHeight;
+	#ifdef FOG_EXP2
+		uniform float fogDensity;
+	#else
+		uniform float fogNear;
+		uniform float fogFar;
+	#endif
+#endif`;
 
 /* ============================== state ============================== */
 /* planet grid: Mars = 64 rows × 128 cols of sectors; HOME hoisted (referenced in S literal + load) */
@@ -1800,7 +1852,7 @@ function setGlobeSol(az){ globeSunAz=az; globeSunDir.set(Math.cos(az)*0.96, 0.20
 renderer.setPixelRatio(DPR);
 renderer.setSize(innerWidth,innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;   // A/B'd vs AgX — ACES keeps the richer Mars-red here; AgX is warmer/softer. Toggle live via MARS.tone('agx',1.75)
-renderer.toneMappingExposure = 1.32;
+renderer.toneMappingExposure = 1.38;   // golden-hour exposure: lifts the low-sun scene out of murk without clipping (was 1.32)
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PERF_FX===0 ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;   // tier 0 (phones): cheap hard shadows
 const clock = new THREE.Clock();
@@ -1958,7 +2010,7 @@ globeGroup.add(mapOverlay);
 /* ============================== surface scene ============================== */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b0a10);
-scene.fog = new THREE.FogExp2(0x996340, 0.0007);   // butterscotch boot value (skyUpdate re-drives it per-frame to match the horizon band). exponential atmosphere — distant mountains fade into haze
+scene.fog = new THREE.FogExp2(0x996340, 0.00045);   // butterscotch boot value (skyUpdate re-drives the COLOR per-frame; density stays). thinned 0.0007->0.00045 so the grand far mountains read as a faint dust silhouette you can see THROUGH (aerial depth) instead of dissolving into a flat washed-out wall at the horizon
 /* curated HOME content lives under homeGroup (toggled, never destroyed); procedural away
    sites live under awayGroup (torn down on cross). Sky/terrain/storms/dust stay on scene. */
 const homeGroup=new THREE.Group();
@@ -1975,13 +2027,13 @@ const sunLight = new THREE.DirectionalLight(0xffd9a0, 2.6);
   sunLight.position.copy(sunDir).multiplyScalar(300);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.set(PERF_FX===0?1024:2048, PERF_FX===0?1024:2048);   // tier 0: half-res shadow map
-  sunLight.shadow.camera.left=-100; sunLight.shadow.camera.right=100;   // 70->100 (Reegs): wider frustum so the view edges / zoomed-out areas still cast shadows
-  sunLight.shadow.camera.top=100; sunLight.shadow.camera.bottom=-100;
+  sunLight.shadow.camera.left=-80; sunLight.shadow.camera.right=80;   // 100->80: ~1.5x texel density at 2048 (crisper near contact shadows under the grazing sun) while still covering the dist-50 chase view + a zoom margin
+  sunLight.shadow.camera.top=80; sunLight.shadow.camera.bottom=-80;
   sunLight.shadow.camera.near=50; sunLight.shadow.camera.far=600;
-  sunLight.shadow.bias=-0.0004; sunLight.shadow.normalBias=0.03;
+  sunLight.shadow.bias=-0.0004; sunLight.shadow.normalBias=0.018;   // tighter contact (was .03 — it was smearing the rock/rover ground shadows)
   scene.add(sunLight); scene.add(sunLight.target);
-  scene.add(new THREE.HemisphereLight(0x6a4a30, 0x241810, .8));   // warmer + brighter sky/ground fill (was 0x3a2418/0x150c08 @.45) — lifts shadows out of black
-  const rim = new THREE.DirectionalLight(0x6a5f50, .18);
+  scene.add(new THREE.HemisphereLight(0x5e4632, 0x241810, .55));   // dialled fill DOWN (was .8) so golden-hour shadows actually fall — the .8 flat fill was the main "mid-brown mush" cheap tell; black floor still held by the grade's deepest-black warm lift + night floor
+  const rim = new THREE.DirectionalLight(0x8a78a6, .58);   // dusty-mauve back-rim — complementary cool separation that SURVIVES the FilmicGrade blue-clamp (the old teal 0x4f86a0 got mudded by the palette guard); intensity .42->.58 to punch a clean silhouette edge on the rover/spires
   rim.position.set(-sunDir.x, .42, -sunDir.z).multiplyScalar(300);
   scene.add(rim);
 }
@@ -2004,7 +2056,7 @@ const SKY_TIER = (function(){
    .5=noon, .75=dusk. Drives sun elevation + the earned blue sunset.
    Starts at golden-hour day (matches the prior fixed lighting) and auto-advances
    slowly; MARS.sol(t) scrubs it. ---- */
-const SOL = { t:0.40, speed:1/480, paused:false, sunY:0, setSide:0 };   /* LIVE day/night in play: a full ~8-min cycle so the earned blue dusk actually happens (night stays navigable via the hemisphere light) */
+const SOL = { t:0.32, speed:1/480, paused:false, sunY:0, setSide:0 };   /* opens at low golden-hour morning (t .32) for a dramatic raking-light hero, then a full ~8-min cycle so the earned blue dusk actually happens (night stays navigable via the hemisphere light) */
 function solRecompute(){
   // sun elevation: sin curve, +.95 at noon, -.95 at midnight
   SOL.sunY = Math.sin((SOL.t-0.25)*6.2831853)*0.95;
@@ -2018,7 +2070,7 @@ function solRecompute(){
   sunDir.set(Math.cos(az)*horiz, Math.max(0.04,SOL.sunY), Math.sin(az)*horiz).normalize();
 }
 /* Mars dusk sky dome — analytic single-scatter (see SOL clock above) */
-let skyUniforms=null;
+let skyUniforms=null, skyMesh=null;
 {
   solRecompute();
   skyUniforms={ uSun:{value:sunDir}, uSunY:{value:SOL.sunY}, uDusk:{value:0}, uSkyLow:{value:SKY_TIER} };
@@ -2026,7 +2078,7 @@ let skyUniforms=null;
     side:THREE.BackSide, depthWrite:false, fog:false,
     uniforms:skyUniforms,
     vertexShader:`varying vec3 vW;
-      void main(){ vW=(modelMatrix*vec4(position,1.)).xyz;
+      void main(){ vW=position;   // object-space view dir: the dome is camera-centred every frame (see skyMesh follow below), so the unrotated local position IS the view direction no matter where the rover drives
         gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
     fragmentShader:`varying vec3 vW;
       uniform vec3 uSun; uniform float uSunY; uniform float uDusk; uniform int uSkyLow;
@@ -2070,7 +2122,9 @@ let skyUniforms=null;
         gl_FragColor=vec4(col,1.);
       }`
   });
-  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1150,32,24), skyMat));
+  skyMesh=new THREE.Mesh(new THREE.SphereGeometry(1150,32,24), skyMat);
+  skyMesh.frustumCulled=false;   // it's always wrapped around the camera now
+  scene.add(skyMesh);
 }
 
 /* per-frame sky driver: advance the sol, sync sun + fog + light tint to the horizon.
@@ -2081,6 +2135,7 @@ function skyUpdate(dt){
   if(skyUniforms===null) return;
   if(!SOL.paused){ SOL.t=(SOL.t+dt*SOL.speed)%1; }
   solRecompute();
+  if(skyMesh) skyMesh.position.copy(camera.position);   // FIX: dome MUST follow the camera — pinned at origin it became a finite purple ball on the horizon the moment the rover drove >1150u from spawn (far terrain already follows, so the two desynced)
   const dusk=SOL.setSide*(1.0-Math.min(1,Math.abs(SOL.sunY)/0.22))*Math.max(0,Math.min(1,(SOL.sunY+0.18)/0.16));
   skyUniforms.uSunY.value=SOL.sunY;
   skyUniforms.uDusk.value=dusk;
@@ -2088,7 +2143,7 @@ function skyUpdate(dt){
   // sun-light position swings with sunDir; recolor toward dust-red at dusk, dim at night
   const dayN=Math.max(0,Math.min(1,(SOL.sunY+0.12)/0.30));
   if(starUniforms) starUniforms.uDay.value=Math.max(0,1-dayN*1.15);   // stars only at night/dusk — invisible at full day so the bright sky reads clean
-  sunLight.intensity=0.6+2.25*dayN;   // brighter night floor (was 0.25) so Mars is never pitch-black
+  sunLight.intensity=0.6+2.7*dayN;   // key pushed up (2.25->2.7) to open the key/fill ratio now that the hemi fill dropped — sculpted golden-hour relief; 0.6 night floor kept so Mars is never pitch-black
   // warm gold by day -> dust-red ember at dusk
   _skyTmp.setRGB(1.0, 0.85-0.35*dusk, 0.63-0.40*dusk);
   sunLight.color.copy(_skyTmp);
@@ -2292,7 +2347,7 @@ function rebuildTerrain(){
       .replace('#include <begin_vertex>','#include <begin_vertex>\n  vFogW=(modelMatrix*vec4(transformed,1.)).xz;');
     shader.fragmentShader=shader.fragmentShader
       .replace('void main() {','varying vec2 vFogW;\nuniform sampler2D uReveal;\nuniform sampler2D uTerra;\nuniform vec2 uFogOrigin;\nvoid main() {')
-      .replace('#include <color_fragment>','#include <color_fragment>\n  vec2 fogUV=clamp((vFogW-uFogOrigin+700.)/1400.,0.,1.);\n  float fogReveal=texture2D(uReveal,fogUV).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,fogUV);\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
+      .replace('#include <color_fragment>','#include <color_fragment>\n  {\n    float mv1=sin(vFogW.x*0.013)*cos(vFogW.y*0.011)+0.5*sin(vFogW.x*0.041+vFogW.y*0.037);\n    diffuseColor.rgb*=(1.0+0.10*mv1);\n    float mw=0.5+0.5*sin(vFogW.x*0.006-vFogW.y*0.008);\n    diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(1.06,0.99,0.92), mw);\n  }\n  vec2 fogUV=clamp((vFogW-uFogOrigin+700.)/1400.,0.,1.);\n  float fogReveal=texture2D(uReveal,fogUV).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,fogUV);\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
     /* ---- SCAN-AS-LIDAR: gold wavefront on the ground (additive; safe-guarded) ---- */
     try{
       shader.uniforms.uLidar=uLidar;
@@ -2368,7 +2423,7 @@ function rebuildFarTerrain(){
 }
 {
   const fgeo=new THREE.PlaneGeometry(7000,7000,160,160); fgeo.rotateX(-Math.PI/2);
-  const fmat=new THREE.MeshStandardMaterial({color:0x35200f, roughness:1, metalness:0});   // dark so it recedes into the haze instead of popping as a bright band
+  const fmat=new THREE.MeshStandardMaterial({color:0x4a3320, roughness:.9, metalness:0, emissive:0x140a05, emissiveIntensity:.35});   // lifted 0x35200f->0x4a3320 for aerial-perspective distance; roughness 1->.9 + faint warm self-emit so the dusk sky catches the ridgelines as a thin warm halo instead of a flat cardboard cutout
   farTerrain=new THREE.Mesh(fgeo,fmat); farTerrain.renderOrder=-2; farTerrain.receiveShadow=false; farTerrain.frustumCulled=false;
   scene.add(farTerrain);
   rebuildFarTerrain();
@@ -2414,13 +2469,29 @@ function onLogicalTileCross(wx,wz){
    lidar-aware. Rebuilt on tile-cross, disposed on cross. ~1 draw call, frustum-culled. */
 let detailMesh=null;
 const _detailGeo=(()=>{
-  // cheap shared base: a squashed low-poly icosahedron (rock) — instances re-scale into ripples too
-  const g=new THREE.IcosahedronGeometry(0.5,0);
-  g.scale(1,0.55,1);
+  // shared base rock: subdivided icosahedron (detail 2 = 320 faces) then NOISE-DISPLACED per vertex
+  // so every facet is a different angle — reads as a weathered boulder, not the 20-face PS2 shard.
+  // Cost is ~zero: ONE geometry, GPU-instanced across all ROCK_COUNT rocks.
+  const g=new THREE.IcosahedronGeometry(0.5,2);
+  const pos=g.attributes.position;
+  const v=new THREE.Vector3();
+  for(let i=0;i<pos.count;i++){
+    v.fromBufferAttribute(pos,i);
+    const n=v.clone().normalize();
+    // deterministic 3-octave value-noise on the unit direction → lumpy, asymmetric rock
+    const d=0.5*Math.sin(n.x*4.1+n.y*7.3)+0.28*Math.sin(n.y*9.7+n.z*5.1)+0.16*Math.sin(n.z*15.3+n.x*11.1);
+    v.addScaledVector(n,d*0.18);
+    pos.setXYZ(i,v.x,v.y,v.z);
+  }
+  g.scale(1,0.62,1);
+  g.computeVertexNormals();   // smooth-shade the displaced surface so light rolls across it (no hard PS2 facets)
   return g;
 })();
 function _detailMat(){
   const m=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,metalness:0,color:0xffffff});
+  // NOTE: no normalMap on the instanced rocks — a tiled ground normal has no tangents on the
+  // noise-displaced + non-uniformly-instanced icosahedron, which corrupts the surface normals to
+  // pure black. The 3-octave vertex displacement (see _detailGeo) carries the surface detail instead.
   m.customProgramCacheKey=()=>'mars_detail_lidar_v1_'+PTIER;
   m.onBeforeCompile=shader=>{
     if(!LIDAR_OK) return;
@@ -2490,14 +2561,18 @@ function buildDetail(){
       if(ripple) dummy.scale.set(s*2.4,s*0.18,s*1.1); else dummy.scale.setScalar(s);
       dummy.updateMatrix();
       mesh.setMatrixAt(placed,dummy.matrix);
-      // palette grade off the SAME fbm tint logic as the terrain (BASALT→OXIDE→IVORY family)
+      // palette grade off the SAME fbm tint logic as the terrain (BASALT→OXIDE→IVORY family),
+      // plus an INDEPENDENT hue channel so the field isn't one monochrome brown (dust-red + grey boulders)
       const macro=fbm(x*.0012,z*.0012);
       const lit=fbm(x*.002+50,z*.002+50);
-      if(lit>.6)      col.setRGB(0.76,0.62,0.46);   // IVORY-dust crest (warmer)
-      else if(macro>.6) col.setRGB(0.62,0.40,0.27); // OXIDE
-      else if(macro>.35)col.setRGB(0.54,0.36,0.27); // RUST
-      else            col.setRGB(0.44,0.31,0.25);   // BASALT/DARK — lifted out of near-black so rocks read as warm rock, not holes
-      col.multiplyScalar(0.92+rng()*0.34);          // tighter spread, higher floor
+      const hue=fbm(x*.006-30,z*.006-30);
+      if(lit>.62)        col.setRGB(0.80,0.66,0.44);   // IVORY-dust crest (warmer)
+      else if(hue>.66)   col.setRGB(0.52,0.27,0.21);   // DUST-RED boulder (iron-rich)
+      else if(macro>.6)  col.setRGB(0.62,0.40,0.27);   // OXIDE
+      else if(macro>.35) col.setRGB(0.54,0.36,0.27);   // RUST
+      else if(hue<0.33)  col.setRGB(0.40,0.31,0.28);   // cool basalt-grey (warm-leaning, survives the palette guard)
+      else               col.setRGB(0.44,0.31,0.25);   // BASALT/DARK — lifted out of near-black so rocks read as rock, not holes
+      col.multiplyScalar(0.86+rng()*0.42);             // wider value spread for per-rock variation
       mesh.setColorAt(placed,col);
       placed++;
     }
@@ -3129,7 +3204,9 @@ function sfxScan(){
 /* materials helpers --------------------------------------------------------- */
 const GOLD=0xd8b25c;
 const matDark = ()=> new THREE.MeshStandardMaterial({color:0x14100c,roughness:.6,metalness:.7});
-const matGold = (i=1)=> new THREE.MeshStandardMaterial({color:0x4a3a1a,roughness:.3,metalness:.8,emissive:GOLD,emissiveIntensity:i*1.9});
+// soft-knee on emissive: linear to 2.8, then 45% slope — keeps the brightest beacons from blowing
+// out to a white bloom-core; bloom haloes the octahedron silhouette instead of a saturated blob.
+const matGold = (i=1)=>{ const e=i*1.9, ei = e<=2.8 ? e : 2.8+(e-2.8)*0.45; return new THREE.MeshStandardMaterial({color:0x4a3a1a,roughness:.3,metalness:.8,emissive:GOLD,emissiveIntensity:ei}); };
 function enableShadows(g){ g.traverse(o=>{ if(o.isMesh && !o.userData.noShadow){ o.castShadow=true; o.receiveShadow=true; } }); return g; }
 /* gold ground pad under structures — buildings feel PLACED, not floating */
 const padTex=(()=>{
@@ -3411,7 +3488,22 @@ function poiHitCyl(id){
   h.position.y=9; h.userData.poiId=id; h.userData.noShadow=true;
   return h;
 }
-const matBasalt=()=> new THREE.MeshStandardMaterial({color:0x16120e,roughness:.92,metalness:.12});
+const matBasalt=()=> new THREE.MeshStandardMaterial({color:0x7c6759,roughness:.88,metalness:.08,emissive:0x140a06,emissiveIntensity:.5});  // sRGB color reads as lit warm rock under the low sun; faint warm self-emit (mirrors distant-terrain fmat) lifts away-/down-facing facets off pure black — the displaced dodeca has facets pointing away from the low sun that the lone hemi fill (dark-brown ground term) would otherwise crush to black
+// weathered boulder geo: high-subdiv dodeca pushed by 3-octave noise so every facet is a unique angle (no 12-face PS2 shard)
+function _boulderGeo(r,rng){
+  const g=new THREE.DodecahedronGeometry(r,2);
+  const pos=g.attributes.position, v=new THREE.Vector3();
+  const ph=rng()*6.28, qh=rng()*6.28;
+  for(let i=0;i<pos.count;i++){
+    v.fromBufferAttribute(pos,i);
+    const n=v.clone().normalize();
+    const d=0.5*Math.sin(n.x*4.0+ph)+0.3*Math.sin(n.y*7.3+n.z*4.1+qh)+0.18*Math.sin(n.z*12.1+n.x*9.7);
+    v.addScaledVector(n,d*0.16*r);
+    pos.setXYZ(i,v.x,v.y,v.z);
+  }
+  g.computeVertexNormals();
+  return g;
+}
 
 function poiDeposit(rng){
   const g=new THREE.Group();
@@ -3419,7 +3511,7 @@ function poiDeposit(rng){
   const n=3+Math.floor(rng()*2);
   for(let i=0;i<n;i++){
     const r=1.6+rng()*2.1;
-    const m=new THREE.Mesh(new THREE.DodecahedronGeometry(r,0),rock);
+    const m=new THREE.Mesh(_boulderGeo(r,rng),rock);
     m.position.set((rng()-.5)*7,r*.5,(rng()-.5)*7);
     m.rotation.set(rng()*3,rng()*3,rng()*3); m.scale.y=.65+rng()*.3;
     g.add(m);
@@ -3835,7 +3927,7 @@ const roverWheels=[];
 {
   const chassis=new THREE.Mesh(new THREE.BoxGeometry(2.3,.9,4), matDark()); chassis.position.y=1.15; roverShell.add(chassis);
   const cab=new THREE.Mesh(new THREE.BoxGeometry(1.7,.8,1.6), matDark()); cab.position.set(0,1.95,.9); roverShell.add(cab);
-  const visor=new THREE.Mesh(new THREE.BoxGeometry(1.5,.3,.12), matGold(1.2)); visor.position.set(0,2.05,1.72); roverShell.add(visor);
+  const visor=new THREE.Mesh(new THREE.BoxGeometry(1.5,.3,.12), matGold(0.5)); visor.position.set(0,2.05,1.72); roverShell.add(visor);
   const mast=new THREE.Mesh(new THREE.CylinderGeometry(.07,.1,1.2,6), matDark()); mast.position.set(-.7,2.9,-1.3); roverShell.add(mast);
   for(const [wx,wz] of [[-1.25,1.45],[1.25,1.45],[-1.25,-1.45],[1.25,-1.45]]){
     const wh=new THREE.Group(); wh.position.set(wx,.55,wz);
@@ -3848,10 +3940,10 @@ const roverWheels=[];
 try{ dressDustlark(); }catch(e){}
 }
 /* gold beacon survives the GLB swap — it marks the PLAYER unit */
-const roverBeacon=new THREE.Mesh(new THREE.OctahedronGeometry(.4), matGold(2.4));
-roverBeacon.position.set(-.7,3.65,-1.3); roverBeacon.userData.pulse=true; pulsers.push(roverBeacon);
+const roverBeacon=new THREE.Mesh(new THREE.OctahedronGeometry(.32), matGold(1.0));
+roverBeacon.position.set(-.7,3.5,-1.3); roverBeacon.userData.pulse=true; roverBeacon.userData.idle='rover'; pulsers.push(roverBeacon);
 roverTilt.add(roverBeacon);
-{ const rl=new THREE.PointLight(GOLD,30,18); rl.position.set(0,3.2,0); roverTilt.add(rl); }
+const roverLamp=new THREE.PointLight(GOLD,30,18); roverLamp.position.set(0,3.2,0); roverTilt.add(roverLamp);
 let roverHeading=Math.atan2(S.rover.x||1,S.rover.z||1);
 rover.position.set(S.rover.x, terrainH(S.rover.x,S.rover.z), S.rover.z);
 rover.rotation.y=roverHeading;
@@ -3864,11 +3956,16 @@ const _ip={ accum:0, init:false, FIXED:1/60, pos:new THREE.Vector3(), prev:new T
 revealAt(S.rover.x,S.rover.z,80);   // a returning rover lights its own ground
 MM_SRC.rover=()=>({x:rover.position.x,z:rover.position.z,hx:Math.sin(roverHeading),hz:Math.cos(roverHeading)});
 
+let _roverGLBSwapped=false;   // once the GLB rover is in, the clean GLB IS the rover — dressDustlark must never re-bolt the procedural war-rig cage beside it
 function swapRoverModel(){
   if(!MODEL_CACHE.rover) return;
   roverShell.traverse(o=>{ if(o.isMesh){ o.geometry.dispose(); if(o.material&&o.material.dispose) o.material.dispose(); } });
   roverShell.clear(); roverWheels.length=0;
   roverShell.add(MODEL_CACHE.rover.clone(true));
+  _roverGLBSwapped=true;
+  // re-seat the player marker onto the GLB body (the y=3.5/-.7/-1.3 placement was tuned to the taller procedural shell)
+  if(roverBeacon) roverBeacon.position.set(0,2.4,0);
+  if(roverLamp) roverLamp.position.set(0,2.2,0);
 }
 
 /* ============================== EMILE — playable character ==============================
@@ -3891,6 +3988,10 @@ const _blobTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height
   x.fillStyle=g; x.fillRect(0,0,64,64); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; })();
 const emileBlob=new THREE.Mesh(new THREE.PlaneGeometry(7,7), new THREE.MeshBasicMaterial({map:_blobTex,transparent:true,depthWrite:false,opacity:.9}));
 emileBlob.rotation.x=-Math.PI/2; emileBlob.renderOrder=1; emileBlob.visible=false; emileBlob.frustumCulled=false; emileBlob.userData.noShadow=true; scene.add(emileBlob);
+// contact-shadow blob for the ROVER — grounds the vehicle so it never reads as floating over the terrain.
+// Elongated along its heading (an ovoid pool, not a disc) and parented to the scene so it stays flat on the ground.
+const roverBlob=new THREE.Mesh(new THREE.PlaneGeometry(9,12), new THREE.MeshBasicMaterial({map:_blobTex,transparent:true,depthWrite:false,opacity:.82}));
+roverBlob.rotation.x=-Math.PI/2; roverBlob.renderOrder=1; roverBlob.frustumCulled=false; roverBlob.userData.noShadow=true; scene.add(roverBlob);
 // procedural rig animator (axes calibrated against the live rig)
 const _eq=new THREE.Quaternion(), _eq2=new THREE.Quaternion(), _EX=new THREE.Vector3(1,0,0), _EY=new THREE.Vector3(0,1,0), _EZ=new THREE.Vector3(0,0,1);
 function _erot(n,ax,a){ const b=EMILE.bones[n]; if(!b)return; b.quaternion.copy(EMILE.rest[n]).multiply(_eq.setFromAxisAngle(ax,a)); }
@@ -4022,6 +4123,7 @@ function setPlayerMode(m){
   emileWrap.visible=onEmile && EMILE.ready;
   if(typeof emileBlob!=='undefined') emileBlob.visible=onEmile && EMILE.ready;
   roverShell.visible=!onEmile;
+  if(typeof roverBlob!=='undefined') roverBlob.visible=!onEmile;
   for(const w of roverWheels) w.visible=!onEmile;
   EMILE.vy=0; EMILE.grounded=true; EMILE.jumps=0; EMILE.dashT=0; EMILE.spinT=0; clearAfterimage();
   document.body.classList.toggle('emileon', onEmile);
@@ -4402,12 +4504,14 @@ const destRing=new THREE.Mesh(new THREE.RingGeometry(2.6,3,48),
 destRing.rotation.x=-Math.PI/2; destRing.userData.noShadow=true; scene.add(destRing);
 
 /* pooled dust trail — 24 recycled sprites, smokeTex tinted rust, zero per-frame allocs */
-const TRAIL_N=24, trail=[];
+const TRAIL_N=36, trail=[];
 for(let i=0;i<TRAIL_N;i++){
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,color:0x9a5a3a,transparent:true,opacity:0,depthWrite:false}));
   sp.visible=false; sp.userData.noShadow=true; scene.add(sp);
-  trail.push({sp,life:0,max:1});
+  trail.push({sp,life:0,max:1,base:1.4,rise:1.2,spin:0});
 }
+// sun-backscatter dust palette: kicked-up regolith reads warm/lit, then cools as it settles
+const _dustWarm=new THREE.Color(0xc89464), _dustCool=new THREE.Color(0x7a4a30), _dustTmp=new THREE.Color();
 let trailIdx=0, emitAcc=0;
 
 /* ===== EMILE DASH AFTERIMAGE — a gold ghost-silhouette smear behind the body during a dash (pure FX, no economy) ===== */
@@ -4635,10 +4739,16 @@ function fanUpdate(dt){
   }
 }
 function emitDust(x,y,z){
-  const e=trail[trailIdx]; trailIdx=(trailIdx+1)%TRAIL_N;
-  e.life=0; e.max=.7+Math.random()*.35; e.sp.visible=true;
-  e.sp.position.set(x+(Math.random()-.5)*1.4, y, z+(Math.random()-.5)*1.4);
-  e.sp.scale.setScalar(1.4);
+  // a 2-sprite cluster per kick: a low heavy puff + a lighter wisp that climbs faster — reads as volume
+  for(let n=0;n<2;n++){
+    const e=trail[trailIdx]; trailIdx=(trailIdx+1)%TRAIL_N;
+    const r=n?2.0:1.3;
+    e.life=0; e.max=.7+Math.random()*.4; e.sp.visible=true;
+    e.sp.position.set(x+(Math.random()-.5)*r, y+(n?.5:0)+Math.random()*.3, z+(Math.random()-.5)*r);
+    e.base=n?1.0:1.7; e.rise=n?1.9:1.05; e.spin=(Math.random()-.5)*0.9;
+    e.sp.material.rotation=Math.random()*6.28;
+    e.sp.scale.setScalar(e.base);
+  }
 }
 function trailUpdate(dt){
   for(const e of trail){
@@ -4646,9 +4756,101 @@ function trailUpdate(dt){
     e.life+=dt;
     const k=e.life/e.max;
     if(k>=1){ e.sp.visible=false; e.sp.material.opacity=0; continue; }
-    e.sp.position.y+=dt*1.2;
-    e.sp.scale.setScalar(1.4+k*4.6);
-    e.sp.material.opacity=.34*(1-k);
+    e.sp.position.y+=dt*e.rise;
+    e.sp.scale.setScalar(e.base+k*4.6);
+    // sun-backscatter tint: warm/lit when fresh, cooling to settled regolith over life
+    e.sp.material.color.copy(_dustTmp.copy(_dustWarm).lerp(_dustCool,k));
+    // quick bloom in the first fifth, then a long fade — a puff, not a flat dissolve
+    const op = k<0.2 ? (k/0.2) : (1-(k-0.2)/0.8);
+    e.sp.material.opacity=.42*op;
+    e.sp.material.rotation+=e.spin*dt;
+  }
+}
+
+/* ===== DUST DEVILS — roaming vortices that prowl the dunes (the skyline 'wow') =====
+   Each devil is a tapered column of stacked smokeTex billboards, swirled on a helix and
+   spun every frame so it reads as a turning vortex; it drifts on a slow wind vector with
+   its foot pinned to the terrain, then respawns at a fresh bearing around the rover when
+   it dies — so there's always ambient life stalking the mid-field against the haze. Warm
+   rust foot → pale ivory crown (FilmicGrade blue-guard safe). Pure sprites, no shadows. */
+// devils need a SOFTER texture than smokeTex (whose hard bright core reads as a solid disc) —
+// a low-contrast radial puff with no hot centre, so stacked sprites build a feathery, see-through column.
+const devilTex=(()=>{
+  const cv=document.createElement('canvas'); cv.width=cv.height=64;
+  const x=cv.getContext('2d'); const g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,'rgba(216,194,168,0.46)');
+  g.addColorStop(0.45,'rgba(206,182,154,0.20)');
+  g.addColorStop(1,'rgba(206,182,154,0)');
+  x.fillStyle=g; x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(cv);
+})();
+// DISABLED 2026-06-28: camera-facing sprite discs fight this exact pipeline — the FilmicGrade
+// butterscotch split-tone amplifies the warm rust dust into saturated orange and UnrealBloom
+// (thresh .80) blooms the stacked discs into floating orange blobs at golden hour. Many tuning
+// passes (distance/opacity/soft tex/desat/taper) never beat the structural problem. Left dormant;
+// a proper devil needs a screen-space or mesh-ribbon approach, not stacked sprites. Flip to 3 to revive.
+const DEVIL_N = 0;
+const DEVIL_STACK = 22;
+const devils = [];
+const _devFoot = new THREE.Color(0x9c7a58);    // desaturated dusty rust — near the haze, just denser
+const _devCrown = new THREE.Color(0xcaba9e);   // pale wind-blown dust at the crown
+const _devTmp = new THREE.Color();
+for(let i=0;i<DEVIL_N;i++){
+  const g = new THREE.Group(); g.userData.noShadow=true;
+  const puffs=[];
+  for(let s=0;s<DEVIL_STACK;s++){
+    const f = s/(DEVIL_STACK-1);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:devilTex, transparent:true, opacity:0, depthWrite:false,
+      color:_devTmp.copy(_devFoot).lerp(_devCrown,f).clone()
+    }));
+    sp.userData.noShadow=true; g.add(sp); puffs.push(sp);
+  }
+  g.visible=false; scene.add(g);
+  devils.push({ g, puffs, seeds:[], life:0, max:1, x:0, z:0, wx:0, wz:0, lx:0, lz:0, phase:Math.random()*6.28, height:48, radius:9 });
+}
+function spawnDevil(d){
+  const a=Math.random()*6.28, dist=220+Math.random()*260;   // pushed to the horizon — distant cinematic columns, never close enough to bloom
+  d.x = rover.position.x + Math.cos(a)*dist;
+  d.z = rover.position.z + Math.sin(a)*dist;
+  const wa=Math.random()*6.28, ws=4+Math.random()*7;        // slow wind vector
+  d.wx=Math.cos(wa)*ws; d.wz=Math.sin(wa)*ws;
+  d.lx=Math.cos(wa)*(7+Math.random()*8); d.lz=Math.sin(wa)*(7+Math.random()*8);   // whole column leans downwind with height
+  d.life=0; d.max=10+Math.random()*9;
+  d.height=42+Math.random()*42; d.radius=9+Math.random()*6; d.phase=Math.random()*6.28;   // taller + slimmer = a distant prowling spire
+  // ragged, organic swirl — each puff gets a fixed angular offset / radius / size / height jitter, re-rolled per spawn
+  for(let s=0;s<d.puffs.length;s++){
+    d.seeds[s]={ ao:Math.random()*6.28, rj:0.45+Math.random()*1.15, sj:0.7+Math.random()*0.9, yj:(Math.random()-0.5)*0.06 };
+  }
+  d.g.visible=true;
+}
+function devilUpdate(dt,t){
+  if(!DEVIL_N) return;
+  for(const d of devils){
+    if(!d.g.visible){ if(Math.random()<dt*0.16) spawnDevil(d); continue; }
+    d.life+=dt; const k=d.life/d.max;
+    if(k>=1){ d.g.visible=false; for(const sp of d.puffs) sp.material.opacity=0; continue; }
+    d.x+=d.wx*dt; d.z+=d.wz*dt;                              // drift downwind
+    const gy=terrainH(d.x,d.z);
+    const env=Math.min(k/0.12, Math.min(1,(1-k)/0.25), 1);   // fade in fast, taper out
+    // proximity fade — it's distant atmosphere; dissolve before you can drive into it so it never blooms into a solid blob
+    const cd=Math.hypot(d.x-rover.position.x, d.z-rover.position.z);
+    const vis=env*Math.min(1, Math.max(0,(cd-120)/80));
+    const spin=t*1.9 + d.phase, stack=d.puffs.length;
+    for(let s=0;s<stack;s++){
+      const f=s/(stack-1), sd=d.seeds[s];
+      const rad=d.radius*(0.5 + 0.85*f - 0.42*f*f)*sd.rj;     // tight dusty foot → gently frays and tapers at the crown (no wide flare)
+      const ang=spin*0.8 + f*5.0 + sd.ao;                     // swirl + helix + fixed offset = turbulent, not a clean cone
+      const sp=d.puffs[s];
+      sp.position.set(
+        d.x + Math.cos(ang)*rad + d.lx*f*f,                   // lean downwind, growing with height (f² = a curved column)
+        gy + 1.0 + f*d.height*(1+sd.yj),
+        d.z + Math.sin(ang)*rad + d.lz*f*f
+      );
+      sp.scale.setScalar((5 + f*6)*sd.sj);
+      sp.material.rotation += dt*(1.6 - f);
+      sp.material.opacity = vis * (0.16*(1-0.4*f));           // translucent — haze shows through, never a solid orange mass
+    }
   }
 }
 
@@ -4892,10 +5094,23 @@ let _skyExtra=null, _phobos=null, _deimos=null, _aurMat=null;
 function ensureSkyExtra(){
   if(_skyExtra) return _skyExtra;
   const grp=new THREE.Group(); grp.frustumCulled=false; grp.renderOrder=-2;
-  _phobos=new THREE.Mesh(new THREE.SphereGeometry(34,24,20),
-    new THREE.MeshStandardMaterial({color:0x9c8b78,roughness:1,metalness:0,emissive:0x2a1f17,emissiveIntensity:.4}));
-  _deimos=new THREE.Mesh(new THREE.SphereGeometry(17,18,14),
-    new THREE.MeshStandardMaterial({color:0x8a7d6e,roughness:1,metalness:0,emissive:0x241a13,emissiveIntensity:.35}));
+  const _lumpMoon=(r,seg,amp)=>{
+    const g=new THREE.SphereGeometry(r,seg,Math.round(seg*0.8));
+    const pos=g.attributes.position, v=new THREE.Vector3();
+    for(let i=0;i<pos.count;i++){
+      v.fromBufferAttribute(pos,i);
+      const n=v.clone().normalize();
+      const d=0.5*Math.sin(n.x*3.3+n.y*5.1)+0.3*Math.sin(n.y*7.7+n.z*4.3)+0.2*Math.sin(n.z*11.1+n.x*9.3)+0.12*Math.sin(n.x*17.0+n.z*13.0);
+      v.addScaledVector(n,d*amp*r);
+      pos.setXYZ(i,v.x,v.y,v.z);
+    }
+    g.computeVertexNormals();
+    return g;
+  };
+  _phobos=new THREE.Mesh(_lumpMoon(14,28,0.085),
+    new THREE.MeshStandardMaterial({color:0xb98a5e,roughness:1,metalness:0,emissive:0x3a2414,emissiveIntensity:.45,flatShading:true}));
+  _deimos=new THREE.Mesh(_lumpMoon(7,22,0.10),
+    new THREE.MeshStandardMaterial({color:0xa8764e,roughness:1,metalness:0,emissive:0x301c10,emissiveIntensity:.4,flatShading:true}));
   grp.add(_phobos); grp.add(_deimos);
   _aurMat=new THREE.ShaderMaterial({
     transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide, fog:false,
@@ -4908,7 +5123,7 @@ function ensureSkyExtra(){
       void main(){
         float band=smoothstep(0.0,0.35,vUv.y)*smoothstep(1.0,0.6,vUv.y);
         float shimmer=0.55+0.45*sin(vUv.x*22.0+uT*1.3);
-        vec3 col=mix(vec3(0.10,0.85,0.55), vec3(0.35,0.55,0.95), vUv.x);
+        vec3 col=mix(vec3(0.95,0.55,0.20), vec3(0.85,0.35,0.55), vUv.x);
         gl_FragColor=vec4(col, band*shimmer*uN*0.5); }`
   });
   for(let i=0;i<2;i++){
@@ -4935,13 +5150,13 @@ let _fauna=null, _faunaData=null;
 const _flockC=new THREE.Vector3(120,60,120), _faunaDummy=new THREE.Object3D();
 function buildFauna(){
   if(_fauna) return _fauna;
-  const geo=new THREE.OctahedronGeometry(1,0); geo.scale(2.6,0.5,1.5);   // flattened diamond → manta silhouette
-  const mat=new THREE.MeshStandardMaterial({color:0x140a18,roughness:.5,metalness:.3,emissive:0xc83cf0,emissiveIntensity:.9});
+  const geo=new THREE.OctahedronGeometry(1,2); geo.scale(3.4,0.24,1.4); geo.computeVertexNormals();   // broad + WAFER-thin swept silhouette → a gliding ray read from below, not a fat diamond that bloomed into a blob
+  const mat=new THREE.MeshStandardMaterial({color:0x0e0805,roughness:.7,metalness:0,emissive:0x3a1606,emissiveIntensity:.5});   // warm-dark belly: deep rust ember under the palette guard, validated palette-safe + UNDER the bloom threshold (was 0xff7a2c@.85 which the FilmicGrade+UnrealBloom amplified into floating orange blobs)
   _fauna=new THREE.InstancedMesh(geo,mat,FAUNA_N); _fauna.frustumCulled=false; _fauna.castShadow=false;
   _fauna.userData.mat=mat;
   _faunaData=[];
   for(let i=0;i<FAUNA_N;i++) _faunaData.push({
-    a:Math.random()*6.283, rad:30+Math.random()*120, h:24+Math.random()*70,
+    a:Math.random()*6.283, rad:30+Math.random()*120, h:46+Math.random()*72,
     sp:0.25+Math.random()*0.5, ph:Math.random()*6.283, sc:3+Math.random()*4, scat:0 });
   scene.add(_fauna); return _fauna;
 }
@@ -4958,11 +5173,11 @@ function faunaUpdate(dt,t){
     f.scat=damp(f.scat, near<140*140?1:0, 3, dt);
     if(f.scat>0.01){ const m=1+f.scat*1.5; cx=rx+ddx*m; cz=rz+ddz*m; }
     d.position.set(cx, cy+f.scat*40, cz);
-    d.rotation.set(Math.sin(t*2+f.ph)*0.3, f.a+Math.PI/2, Math.sin(t*1.7+f.ph)*0.25);
+    d.rotation.set(Math.sin(t*1.6+f.ph)*0.22, f.a+Math.PI/2, Math.sin(t*1.1+f.ph)*0.5);   // slow pitch bob + DEEP lazy roll → a soaring banked glide, not a twitchy hover
     d.scale.setScalar(f.sc); d.updateMatrix(); _fauna.setMatrixAt(i,d.matrix);
   }
   _fauna.instanceMatrix.needsUpdate=true;
-  _fauna.userData.mat.emissiveIntensity=0.5+1.1*n;
+  _fauna.userData.mat.emissiveIntensity=0.5+0.5*n;   // gentle night-glow only; capped at 1.0 so the bellies never cross the bloom threshold into blobs
 }
 
 /* --- E. Bioluminescent flora: an instanced crystal field that streams under the rover + glows at night --- */
@@ -4972,7 +5187,7 @@ const _floraDummy=new THREE.Object3D();
 function buildFloraMesh(){
   if(_flora) return _flora;
   const geo=new THREE.ConeGeometry(1,4,5);
-  const mat=new THREE.MeshStandardMaterial({color:0x10243a,roughness:.4,metalness:.2,emissive:0x39d0ff,emissiveIntensity:.8});
+  const mat=new THREE.MeshStandardMaterial({color:0x281405,roughness:.4,metalness:.2,emissive:0xff9a3c,emissiveIntensity:.8});  // warm amber-gold bioluminescence (was cyan 0x39d0ff — off-palette + the grade's blue-clamp turned it muddy green); on-brand gold reads clean through the palette guard
   _flora=new THREE.InstancedMesh(geo,mat,FLORA_N); _flora.frustumCulled=false; _flora.userData.mat=mat;
   scene.add(_flora); return _flora;
 }
@@ -5193,7 +5408,7 @@ function livingMarsTick(dt,t){
 
 /* --- #1 DUSTLARK: bolt a Reaver war-rig kit onto the rover shell --- */
 function dressDustlark(){
-  if(!roverShell || roverShell.getObjectByName('_dlRig')) return;
+  if(!roverShell || _roverGLBSwapped || roverShell.getObjectByName('_dlRig')) return;   // _roverGLBSwapped: GLB rover is in — never re-bolt the procedural cage. (cage still builds as the pre-load fallback before the GLB arrives)
   const rig=new THREE.Group(); rig.name='_dlRig';
   const bar  =new THREE.MeshStandardMaterial({color:0x2a2118,roughness:.7,metalness:.6});
   const red  =new THREE.MeshStandardMaterial({color:0xc24a22,roughness:.6,metalness:.3,side:THREE.DoubleSide});
@@ -5345,7 +5560,7 @@ function _stormHudEl(){ if(_stormHud) return _stormHud; const d=document.createE
 function _stormStart(){
   const hd=roverHeading, hx=Math.sin(hd), hz=Math.cos(hd);
   _STORM.hx=rover.position.x+hx*_STORM.HAVEN_DIST; _STORM.hz=rover.position.z+hz*_STORM.HAVEN_DIST;
-  if(!_STORM.hav){ const m=new THREE.Mesh(new THREE.CylinderGeometry(2,2,40,10), new THREE.MeshStandardMaterial({color:0x6ad0ff,emissive:0x6ad0ff,emissiveIntensity:1.4,roughness:.4})); scene.add(m); _STORM.hav=m; }
+  if(!_STORM.hav){ const m=new THREE.Mesh(new THREE.CylinderGeometry(2,2,40,10), new THREE.MeshStandardMaterial({color:0xffb24a,emissive:0xffb24a,emissiveIntensity:1.4,roughness:.4})); scene.add(m); _STORM.hav=m; }
   _STORM.hav.visible=true; _STORM.hav.position.set(_STORM.hx, terrainH(_STORM.hx,_STORM.hz)+20, _STORM.hz);
   _STORM.active=true; _STORM.wall=_STORM.WALL_START;
   WEATHER.active=1; WEATHER.intensity=Math.max(WEATHER.intensity,0.6);
@@ -5775,6 +5990,11 @@ function roverUpdate(dt,t){
   roverSpd=damp(roverSpd, vT, (_emAcc?(vT>roverSpd?14:18):(vT>roverSpd?1.7:3.4))*(vT>roverSpd?_upAccelMul():1), dt);       // EMILE: snappy runner accel/brake; rover keeps heavy spool · TREADS upgrade quickens spool-up
   if(!hasDest && roverSpd<.02) roverSpd=0;
   roverSpdRatio=roverSpd/maxSpd;
+  // CLEAN DRIVING VIEW: latch the centre-bottom launcher-fade once moving, release near stop.
+  // Hysteresis (0.30 on / 0.08 off) avoids flicker; classList only touched on the transition.
+  { const cz=document.body.classList;
+    if(roverSpdRatio>0.30){ if(!cz.contains('cruising')) cz.add('cruising'); }
+    else if(roverSpdRatio<0.08){ if(cz.contains('cruising')) cz.remove('cruising'); } }
   const step=roverSpd*dt, sH=Math.sin(roverHeading), cH=Math.cos(roverHeading);
   if(step>0){
     p.x+=sH*step; p.z+=cH*step;
@@ -5815,6 +6035,9 @@ function roverUpdate(dt,t){
     p.y=damp(p.y, gy, 14, dt);
   }
   rover.rotation.y=roverHeading;
+  // ground the rover with a soft contact-shadow pool that hugs the terrain and stretches along heading
+  roverBlob.position.set(p.x, terrainH(p.x,p.z)+0.06, p.z);
+  roverBlob.rotation.set(-Math.PI/2, 0, -roverHeading);
   // NOTE: animateEmile runs ONCE per render frame (in the main loop), not here inside the physics sub-step loop
   // Heading compass needle (holder feedback, Reegs): point it where the rover faces on
   // a north-up disc. Same heading the minimap uses, so the two agree.
@@ -5853,7 +6076,7 @@ function roverUpdate(dt,t){
     }
   }
   fanUpdate(dt); rutDecay(dt);
-  trailUpdate(dt);
+  trailUpdate(dt); devilUpdate(dt,t);
   /* destination marker */
   if(hasDest){
     destRing.position.set(roverDest.x, terrainH(roverDest.x,roverDest.z)+.3, roverDest.z);
@@ -5971,8 +6194,8 @@ const FX_GOLD_RAY = new THREE.Color(0xf0c75e);
 // uActive=0 → passthrough (sun off-screen / behind cam / low tier) so it costs ~nothing when unseen.
 const GodRaysShader = {
   uniforms:{ tDiffuse:{value:null}, uLightScreen:{value:new THREE.Vector2(.5,.78)},
-    uActive:{value:0}, uExposure:{value:.32}, uDecay:{value:.94}, uDensity:{value:.82},
-    uWeight:{value:.45}, uSamples:{value:48.}, uTint:{value:FX_GOLD_RAY}, uPR:{value:DPR} },
+    uActive:{value:0}, uExposure:{value:.32}, uDecay:{value:.94}, uDensity:{value:.90},
+    uWeight:{value:.62}, uSamples:{value:48.}, uTint:{value:FX_GOLD_RAY}, uPR:{value:DPR} },   // beefier shafts: density .82->.90, weight .45->.62 for visible volumetric god-rays at the low sun
   vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader:[
     'varying vec2 vUv;',
@@ -6006,7 +6229,7 @@ const GodRaysShader = {
 // survives. uGradeMix eases the whole thing toward neutral (1=full grade). Disco/dusk blue passes through:
 // we only REFUSE to push warm pixels cold; we never rotate cold pixels warm, so the physical blue sunset stays.
 const FilmicGradeShader = {
-  uniforms:{ tDiffuse:{value:null}, uGradeMix:{value:.85}, uVibr:{value:.10}, uDusk:{value:0} },
+  uniforms:{ tDiffuse:{value:null}, uGradeMix:{value:.85}, uVibr:{value:.18}, uDusk:{value:0} },   // vibrance .10->.18: richer gold/dust-red separation (uGradeMix stays .85 — full 1.0 over-cooks)
   vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader:[
     'varying vec2 vUv; uniform sampler2D tDiffuse; uniform float uGradeMix,uVibr,uDusk;',
@@ -6043,7 +6266,7 @@ const composer = new EffectComposer(renderer);
 composer.setPixelRatio(DPR);
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth||1, innerHeight||1), .42, .4, .85);   // strength .6->.42: let bloom be a highlight (sun disc/gold glints at thresh .85), not a global haze
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth||1, innerHeight||1), .58, .5, .80);   // cinematic bloom: strength .58/radius .5/thresh .80 — gold glints + sun disc bloom into a warm halo (was .42/.4/.85, too timid); validated no blowout at noon
 bloomPass.enabled = PERF_FX>=1;          // tier 0 (phones): drop the fill-heavy bloom — biggest constant cost
 composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
@@ -6068,8 +6291,8 @@ const _addEx=(make,onfail)=>{ try{ return make(); }catch(e){ console.warn('[post
       const s=new THREE.Vector2(innerWidth||1, innerHeight||1);
       if(PERF_FX===1){ s.multiplyScalar(.5); }                 // mid: half internal res
       const p=new SSAOPass(scene, camera, s.x, s.y);
-      p.kernelRadius = 8;                                       // world ~ contact scale; rocks/rover ground in
-      p.minDistance  = 0.0008; p.maxDistance = 0.06;
+      p.kernelRadius = 12;                                      // wider AO gather: deeper contact shadows under rocks/rover/spires (was 8)
+      p.minDistance  = 0.0008; p.maxDistance = 0.10;
       p.output = SSAOPass.OUTPUT.Default;                       // AO multiplied into beauty, not debug
       composer.insertPass(p, 1);                                // right after RenderPass
       return p;
@@ -6109,7 +6332,7 @@ function renderFrame(activeScene){
 }
 
 const camTarget = new THREE.Vector3(0,7,0);
-let yaw=.6, pitch=.42, dist=110, distK=1;   // distK: speed-feel pullback, damped in updateCamera
+let yaw=.6, pitch=.18, dist=50, distK=1;   // CINEMATIC CHASE default (was .42/110 top-down, then .26): grazing low angle so the rover is hero-framed and the dune horizon/aerial perspective reads. distK: speed-feel pullback, damped in updateCamera
 function applyOrbit(){
   const D=dist*distK;
   camera.position.set(
@@ -7070,11 +7293,17 @@ function renderBuildMenu(){
     box.appendChild(b);
   }
 }
-/* CONSTRUCTION header collapses the menu — let the planet breathe */
-document.querySelector('#buildMenu .panelTitle').onclick=()=>{
+/* CONSTRUCTION header collapses the menu — let the planet breathe.
+   Starts COLLAPSED so the surface fills the screen on load; the NEXT banner
+   guides the player and the chevron invites the build menu open. */
+(()=>{
+  const title=document.querySelector('#buildMenu .panelTitle');
   const b=$('buildBtns');
-  b.style.display=b.style.display==='none'?'block':'none';
-};
+  const sync=open=>{ b.style.display=open?'block':'none'; title.innerHTML='CONSTRUCTION <span style="float:right;opacity:.65;font-weight:400">'+(open?'\u25be':'\u25b8')+'</span>'; };
+  sync(false);
+  title.style.cursor='pointer';
+  title.onclick=()=>sync(b.style.display==='none');
+})();
 function renderMissions(){
   const box=$('missionBody');
   /* the panel itself hides until a tower exists — less cockpit, more planet */
@@ -8036,7 +8265,7 @@ function resolveBattle(squad,enemy){
       toast('SECTOR SECURED');
     }
     sfxSting(); addTrauma(.5); hitstop(60);
-    tw(360, EASE.outCubic, k=>{ renderer.toneMappingExposure=1.32+.18*Math.sin(k*Math.PI); });   // pulse from + back to the 1.32 base (was 1.15 → left the scene a notch dark forever after a win)
+    tw(360, EASE.outCubic, k=>{ renderer.toneMappingExposure=1.38+.18*Math.sin(k*Math.PI); });   // pulse from + back to the 1.38 base (was 1.15 → left the scene a notch dark forever after a win)
   }else{
     const firstLoss = (S.wins||0)===0 && !(S.hardened && S.hardened[battleKey]);
     if(firstLoss){
@@ -8570,7 +8799,7 @@ function startGame(){
   wakeSpire(true);   /* no-op if the terminal already woke it; SKIP + returning saves land lit */
   camera.fov=40; camera.updateProjectionMatrix();
   camTarget.set(rover.position.x, rover.position.y+6, rover.position.z);
-  yaw=.6; pitch=.42; dist=110; distK=1; applyOrbit();
+  yaw=.6; pitch=.18; dist=50; distK=1; applyOrbit();   // CINEMATIC CHASE (was .42/110, then .26)
   syncCitizens(); updateHUD(); renderBuildMenu(); renderMissions();
   renderNext(); renderDailies(); updateScanBtn();
   bootCeremony(); checkGoals();
@@ -8751,8 +8980,10 @@ function animate(){
     if(kind==='warroom'){ const c=t%3.2; m.material.emissiveIntensity=(c<.1||(c>.25&&c<.35))?2.6:.25; }
     else if(kind==='foundry'){ m.material.emissiveIntensity=2.0+Math.sin(t*.9)*.5; }
     else if(kind==='corrupt'){ const c=(t+m.id)%2.8; m.material.emissiveIntensity=(c<.09||(c>.22&&c<.3))?3.0:.7+.3*Math.sin(t*1.3+m.id); }
+    else if(kind==='rover'){ m.material.emissiveIntensity=.5+.28*Math.sin(t*2.2); }   // player marker: glint gold, never bloom to a white blob
     else m.material.emissiveIntensity=2.2+Math.sin(t*2.4+m.id)*1.3;
   }
+  if(roverLamp){ const n=_nightN(); roverLamp.intensity=(3+n*27)*(1+Math.sin(t*2.2)*.06); }   // dim the gold lamp in daylight so it doesn't wash/bloom the rover
   baseGroup.children.forEach(o=>{ if(o.userData.pulse){o.rotation.y+=dt*.6; if(spireAwake) o.material.emissiveIntensity=2.8+Math.sin(t*2.4)*1.1;} });
   skyUpdate(dt); skySetFocus(camTarget.x,camTarget.z);   // SKY: advance sol-clock + sync sun/fog (see sky_atmosphere_analytic)
   if(mode==='map'&&mapPhase==='orbit') setGlobeSol(globeSunAz+dt*0.22);   // GLOBE: sweep the dark-side terminator (Black Marble city-lights)
