@@ -2032,7 +2032,7 @@ const sunLight = new THREE.DirectionalLight(0xffd9a0, 2.6);
   sunLight.shadow.camera.near=50; sunLight.shadow.camera.far=600;
   sunLight.shadow.bias=-0.0004; sunLight.shadow.normalBias=0.018;   // tighter contact (was .03 — it was smearing the rock/rover ground shadows)
   scene.add(sunLight); scene.add(sunLight.target);
-  scene.add(new THREE.HemisphereLight(0x5e4632, 0x241810, .55));   // dialled fill DOWN (was .8) so golden-hour shadows actually fall — the .8 flat fill was the main "mid-brown mush" cheap tell; black floor still held by the grade's deepest-black warm lift + night floor
+  scene.add(new THREE.HemisphereLight(0x5e4632, 0x3c2a1a, .55));   // dialled fill DOWN (was .8) so golden-hour shadows actually fall — the .8 flat fill was the main "mid-brown mush" cheap tell; black floor still held by the grade's deepest-black warm lift + night floor. Ground term lifted off near-black (0x241810→0x3c2a1a warm rust) so down/away-facing boulder facets pick up bounce instead of crushing to pure black.
   const rim = new THREE.DirectionalLight(0x8a78a6, .58);   // dusty-mauve back-rim — complementary cool separation that SURVIVES the FilmicGrade blue-clamp (the old teal 0x4f86a0 got mudded by the palette guard); intensity .42->.58 to punch a clean silhouette edge on the rover/spires
   rim.position.set(-sunDir.x, .42, -sunDir.z).multiplyScalar(300);
   scene.add(rim);
@@ -3489,7 +3489,7 @@ function poiHitCyl(id){
   h.position.y=9; h.userData.poiId=id; h.userData.noShadow=true;
   return h;
 }
-const matBasalt=()=> new THREE.MeshStandardMaterial({color:0x7c6759,roughness:.88,metalness:.08,emissive:0x140a06,emissiveIntensity:.5});  // sRGB color reads as lit warm rock under the low sun; faint warm self-emit (mirrors distant-terrain fmat) lifts away-/down-facing facets off pure black — the displaced dodeca has facets pointing away from the low sun that the lone hemi fill (dark-brown ground term) would otherwise crush to black
+const matBasalt=()=> new THREE.MeshStandardMaterial({color:0xa07a55,roughness:.9,metalness:.05,emissive:0x1c1008,emissiveIntensity:.55});  // warm rust-rock albedo (was 0x7c6759 ≈0.15 linear → read CHARCOAL/black against the rust sand under the low sun); lifted to a Mars-rust mid so boulders read as lit rock that belongs in the scene. faint warm self-emit lifts away-/down-facing facets off pure black (the displaced dodeca + lone dark hemi fill would otherwise crush them)
 // weathered boulder geo: high-subdiv dodeca pushed by 3-octave noise so every facet is a unique angle (no 12-face PS2 shard)
 function _boulderGeo(r,rng){
   const g=new THREE.DodecahedronGeometry(r,2);
