@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { preload } from "react-dom";
-import reveals from "@/components/HomeReveals.module.css";
 import { HeroVideo } from "@/components/HeroVideo";
-// Below-fold + self-hides until its feed loads, so it's never part of the LCP or
-// the initial paint. Code-split it out of the homepage bundle to cut initial JS /
-// TBT (Core Web Vitals). SSR stays on (default) — it renders null until data.
-const TransformsWall = dynamic(() => import("@/components/TransformsWall"));
 import { ActivationProof } from "@/components/ActivationProof";
-import { CityWeekBand } from "@/components/CityWeekBand";
+import { MarsBand } from "@/components/MarsBand";
 import { CryptTcgBand } from "@/components/CryptTcgBand";
+import { CitizensBand } from "@/components/CitizensBand";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { ProductDoors } from "@/components/ProductDoors";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
@@ -161,74 +155,20 @@ export default async function Home() {
         <ActivationProof />
       </div>
 
-      {/* 2026-06-17 (Algorithm review · "the homepage gets one job"): the on-page
-          MemoryProof game was removed from the cold path — it's a demonstration for
-          people who haven't decided to engage. The live proof now lives entirely at
-          /demo (the no-wallet agent), which the hero's primary CTA opens. */}
-
-      {/* THE ABUNDANCE BAND — real citizens at real size (cheap-fix #3). */}
-      <CitizenMosaic />
-
-      {/* "Why own a FREELON?" section removed 2026-06-07 (founder: "too complex")
-          — it restated the hero tag AND "How it works" below as a third copy of
-          the same value prop. The hero says it once; How It Works shows the loop. */}
-
-      {/* ── HOW IT WORKS — the loop in three steps. Compressed 6→4 (2026-06-08)
-          then 4→3 (2026-06-17, Algorithm review): "history travels with the NFT"
-          folded into Train, and the obvious "keep it or sell it" step dropped, so
-          the loop reads in one glance. */}
-      <section className={`how-it-works reveal ${reveals.rv}`}>
-        <span className="kicker">⬡ HOW IT WORKS</span>
-        {/* Punch-list HIGH-IMPACT (2026-06-11): real <h2> under the kicker;
-            the four steps child-stagger 70ms apart off the section's reveal. */}
-        <h2 className={reveals.sectionH2}>
-          One character. <em>Three steps.</em>
-        </h2>
-        <ol className={`how-steps ${reveals.stagger}`}>
-          {[
-            "Own a FREELON — it's your character",
-            "Awaken it — a one-time ETH payment switches it on, and it stays awake through resale",
-            "Train it — give it jobs; it earns XP, remembers you, and builds a public record that travels with the NFT through any resale",
-          ].map((s, i) => (
-            <li key={i} style={{ "--i": i } as CSSProperties}><span className="how-n">{String(i + 1).padStart(2, "0")}</span>{s}</li>
-          ))}
-        </ol>
-        {/* V1 SIGNAL OS (2026-06-10): one live-status line. Holders told us they
-            can't tell what's live vs roadmap — this is the cheapest trust win.
-            Factual: all four steps run on the site today. No promises made. */}
-        <p style={{ marginTop: "var(--s-3)", fontFamily: "var(--mono2)", fontSize: 12, letterSpacing: "0.08em", color: "var(--ink-dim)", textAlign: "center" }}>
-          <span style={{ color: "var(--gold)" }}>●</span> All three steps are live on the site today — this is not a roadmap.
-        </p>
-        {/* SURFACE-REDUCTION 2026-06-09: removed the "ROLES IT CAN GROW INTO"
-            list (Writer/Strategist/Sales Agent/Researcher/Designer/Red Team) —
-            it read like generic ChatGPT-with-NFTs and weakened the pitch. */}
-      </section>
-
-      {/* Lore flavour — relocated here 2026-06-08 from the hero. Lore is a
-          depth reward, not a first-impression element; it sits AFTER the loop
-          is understood. Same markup, just moved. */}
-      <span className="term-badge term-badge--static" style={{ display: "block", textAlign: "center", margin: "var(--s-5) auto" }}><span className="dot" />THE HEX VANISHED · CYCLE 0404</span>
-
-      {/* SURFACE-REDUCTION 2026-06-09: collapsed two stacked citizen bands
-          (CitizenShowcase + TransformsWall) into ONE preview. Kept TransformsWall
-          — "see what citizens actually MAKE" is the stronger proof for the
-          create-loop story and self-hides when empty. The portrait showcase
-          lives on /citizens (the chooser). */}
-      <TransformsWall />
-
-      {/* ── THIS WEEK IN THE CITY — the public-life proof beat (2026-06-10).
-          Wires the Signal Report keystone into the front door: winner civ + the
-          most storied citizens, directly above the buy moment. Reuses /report's
-          hardened read-only queries; self-hides while the stadium is empty. */}
-      <CityWeekBand />
-
-      {/* ── CRYPT LEGENDS TCG — the live card-game mode, surfaced on the front
-          door (2026-06-29). The game shipped to play.freeloncity.com but was
-          stripped from the homepage in the 06-04 "agents only" pass, leaving it
-          with no discoverable entry. This band sells it as a real, clickable
-          game mode (heading + pitch + features + commander art + PLAY CTA),
-          above the closing buy beat — not buried in the footer. */}
+      {/* ── THE THREE PRODUCT FEATURE BANDS — one controlled path, each product
+          sold at the CryptTcgBand quality bar (2026-06-29 site-design rebuild):
+          one product, one strong visual, one message, two CTAs, breathing room.
+          Mars → TCG → AI Citizens, in launcher priority order. The weak homepage
+          sections that used to sit here (How It Works NFT-instruction, the lore
+          term-badge, TransformsWall, CityWeekBand) were demoted off the cold path
+          — each still lives at its own route. */}
+      <MarsBand />
       <CryptTcgBand />
+      <CitizensBand />
+
+      {/* THE ABUNDANCE BAND — real citizens at real size, as collection proof
+          directly under the AI-citizens pitch and above the buy beat. */}
+      <CitizenMosaic />
 
       {/* ── CLOSING CTA — one clean ending, agents only. 2026-06-04 newcomer-path
           simplification (founder: "agents are the main thing"): the homepage was

@@ -8976,3 +8976,182 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
   padding: 10px 12px;
   border-radius: var(--r-3);
 }
+
+/* ============================================================
+   FEATURE BAND — TCG-quality 2-col product section.
+   Shared by MarsBand + CitizensBand. Mirrors CryptTcgBand's
+   premium frame: dark-gold gradient, strong visual, edited copy.
+   Site-design rebuild 2026-06-29.
+   ============================================================ */
+.feature-band__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: var(--s-5);
+  align-items: center;
+  padding: var(--s-5);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--gold) 28%, transparent);
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--gold) 12%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, color-mix(in srgb, var(--gold) 6%, var(--bg-2)) 0%, var(--bg) 100%);
+  box-shadow: 0 24px 60px -30px rgba(0,0,0,0.8), inset 0 1px 0 color-mix(in srgb, var(--gold) 14%, transparent);
+}
+/* Mars: image on the left, copy on the right. */
+.feature-band__inner--mars .feature-band__media { order: 0; }
+.feature-band__inner--mars .feature-band__copy  { order: 1; }
+/* Citizens: copy on the left, portrait/profile on the right. */
+.feature-band__inner--citizens .feature-band__copy  { order: 0; }
+.feature-band__inner--citizens .feature-band__media { order: 1; }
+
+.feature-band__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 11;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gold) 22%, transparent);
+  background: var(--bg-2);
+  text-decoration: none;
+}
+.feature-band__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .5s var(--ease-out-quint, ease);
+}
+.feature-band__media:hover img { transform: scale(1.04); }
+.feature-band__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--bg) 72%, transparent) 100%);
+  pointer-events: none;
+}
+.feature-band__hud {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 1;
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, transparent);
+  padding: 5px 10px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.feature-band__copy { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-3); }
+.feature-band__h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 4.2vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--ink);
+}
+.feature-band__h2 em { font-style: normal; color: var(--gold-bright); }
+.feature-band__pitch {
+  font-family: var(--mono2);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-2, var(--ink-dim));
+  margin: 0;
+  max-width: 46ch;
+}
+.feature-band__pills {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.feature-band__pills li {
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--gold-bright);
+  border: 1px solid color-mix(in srgb, var(--gold) 26%, transparent);
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
+  padding: 6px 11px;
+  border-radius: 999px;
+}
+.feature-band__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 2px; }
+.feature-band__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono2);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+.feature-band__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--state-active);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--state-active) 60%, transparent);
+  animation: feature-band-pulse 2.2s ease-out infinite;
+}
+@keyframes feature-band-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--state-active) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* ---- Citizens profile panel (CSS art, not a generated fake-UI image) ---- */
+.citizen-profile {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  background:
+    radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 60%),
+    var(--bg-2);
+}
+.citizen-profile__portrait { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+.citizen-profile__portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center 28%; display: block; }
+.citizen-profile__id {
+  position: absolute; left: 12px; top: 12px;
+  font-family: var(--mono2); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gold-bright);
+  background: color-mix(in srgb, var(--bg) 68%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+  padding: 4px 9px; border-radius: 999px; backdrop-filter: blur(4px);
+}
+.citizen-profile__body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.citizen-profile__row { display: flex; flex-direction: column; gap: 6px; }
+.citizen-profile__label {
+  font-family: var(--mono2); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim);
+}
+.citizen-profile__bar { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }
+.citizen-profile__bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold-deep, var(--gold)), var(--gold-bright)); }
+.citizen-profile__memory {
+  font-family: var(--mono2); font-size: 11px; line-height: 1.5; color: var(--ink-2, var(--ink-dim));
+  border-left: 2px solid color-mix(in srgb, var(--gold) 40%, transparent); padding-left: 10px;
+}
+.citizen-profile__memory b { color: var(--gold-bright); font-weight: 600; }
+
+@media (max-width: 860px) {
+  .feature-band__inner { grid-template-columns: 1fr; gap: var(--s-4); padding: var(--s-4); }
+  .feature-band__inner--mars .feature-band__media,
+  .feature-band__inner--citizens .feature-band__media { order: 0; }
+  .feature-band__inner--mars .feature-band__copy,
+  .feature-band__inner--citizens .feature-band__copy { order: 1; }
+  .feature-band__media { aspect-ratio: 16 / 10; }
+  .feature-band__ctas { width: 100%; }
+  .feature-band__ctas .btn { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-band__media img { transition: none; }
+  .feature-band__dot { animation: none; }
+}

@@ -2,18 +2,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useHolder } from "@/lib/useHolder";
-
-// Returning-holder tools — only shown in the sheet once a holding wallet is
-// connected, mirroring the wallet-aware desktop nav. Keeps the newcomer sheet
-// condensed while giving holders their map (roster / games / pulse) back.
-const HOLDER_GROUP: NavGroup = {
-  heading: "YOUR TOOLS",
-  links: [
-    { href: "/my-citizens", label: "My Citizens", gold: true },
-    { href: "/dashboard", label: "Dashboard" },
-  ],
-};
 
 // Route compression 2026-05-25 — mobile nav reduced from 33 links to
 // 11. 2026-05-26 community feedback (Nonz): "easier to see everything
@@ -48,10 +36,12 @@ type NavGroup = { heading: string | null; links: NavLink[] };
 // two heading-less groups. Rebuilt per Reegs: categorized, no word twice,
 // buttons not text rows ("menu leads to everything categorized · no slippage
 // between categories · people don't want to see things twice").
-// 2026-06-29 LAUNCHER NAV: the sheet now leads with the three co-equal product
-// doors (mirroring the desktop launcher nav + the homepage cards), then Own,
-// then the deeper city + account links. Same routes, re-ordered so a newcomer's
-// first three taps are the three things to actually DO.
+// 2026-06-29 SITE-DESIGN REBUILD: the sheet is now the four canonical groups,
+// matching the rebuilt footer and the product hierarchy exactly — Play / City /
+// Own / Support. The three free product doors lead (mirroring the desktop
+// launcher nav + homepage cards); City is the directory; Own is the buy +
+// account links; Support is help + policies + community. One source of truth
+// with the footer — edit both files together when the IA changes.
 const GROUPS: NavGroup[] = [
   {
     heading: "PLAY · FREE",
@@ -59,32 +49,43 @@ const GROUPS: NavGroup[] = [
       { href: "/mars-command", label: "Enter Mars", gold: true },
       { href: "/crypt-tcg", label: "Play the TCG", gold: true },
       { href: "/demo", label: "Meet an AI citizen", gold: true },
+      { href: "/play", label: "All games" },
     ],
   },
   {
-    heading: "THE CITY",
+    heading: "CITY",
     links: [
-      { href: "/play", label: "All games" },
       { href: "/citizens", label: "Browse the 4,040" },
       { href: "/collections", label: "The six collections" },
-      { href: "/help", label: "New here? Start at Help" },
+      { href: "/civilizations", label: "Ten civilizations" },
+      { href: "/archive", label: "The Archive" },
     ],
   },
   {
-    heading: "YOURS",
+    heading: "OWN",
     links: [
       { href: "https://opensea.io/collection/freelons", label: "Own a FREELON ↗" },
+      { href: "/my-citizens", label: "My Citizens" },
+      { href: "/dashboard", label: "Dashboard" },
       // 2026-06-11 Discord (Damien hunted 20+ min for "where to link my X"):
       // the most-asked account action keeps a permanent door. /sync hosts the
       // full wallet+X flow on every viewport.
       { href: "/sync", label: "Connect wallet + X" },
     ],
   },
+  {
+    heading: "SUPPORT",
+    links: [
+      { href: "/help", label: "New here? Start at Help" },
+      { href: "/legal/terms", label: "Terms" },
+      { href: "/legal/privacy", label: "Privacy" },
+      { href: "https://discord.gg/xcK3E8nCB8", label: "Discord ↗" },
+    ],
+  },
 ];
 
 export function MobileNav() {
-  const h = useHolder();
-  const groups = h.address && h.isHolder ? [...GROUPS, HOLDER_GROUP] : GROUPS;
+  const groups = GROUPS;
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);

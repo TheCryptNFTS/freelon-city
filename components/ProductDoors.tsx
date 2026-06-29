@@ -19,7 +19,7 @@ const DOORS = [
   {
     href: "/mars-command",
     event: "mars_enter_click",
-    img: "/lore/city.webp",
+    img: "/og/art/mars-rover.webp",
     kicker: "FREE · NO WALLET",
     title: "Enter Mars",
     blurb:

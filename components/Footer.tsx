@@ -1,114 +1,60 @@
 import Link from "next/link";
-import { METADATA_CID, OPENSEA_BASE, ETHERSCAN_BASE } from "@/lib/constants";
-import { isGuardPotLive } from "@/lib/guard-pot";
+import { OPENSEA_BASE, ETHERSCAN_BASE } from "@/lib/constants";
 
 /**
- * Footer directory (2026-06-14). The top nav is deliberately condensed to the
- * spine, which left ~30 real pages reachable only by typing the URL — holders
- * were guessing /shop, /earn, etc. to find them (Billy, Discord). This brings
- * back a grouped "fat footer" so every public page is one click away WITHOUT
- * bloating the primary nav. Dynamic pages (/citizens/[id], /agent/[id], …),
- * /admin, and the hidden /the-fifth-bracket (renders a 404) are intentionally
- * omitted; deep legal sub-pages live under their own features.
+ * Footer directory — rebuilt 6 cols → 4 (2026-06-29 site-design rebuild).
+ * The "fat footer" had grown to ~30 routes across six columns and read as a
+ * sitemap dump. It's now four focused groups matching the product hierarchy and
+ * the mobile menu: Play / City / Own / Support. Demoted (not deleted) routes —
+ * /earn, /shop, /canon, /transmissions, /press, /developers, the per-game
+ * /play/* pages — still live at their own URLs and remain reachable from /play
+ * and their feature surfaces; they just no longer clutter the front door.
  */
 export function Footer() {
   return (
     <footer className="site-footer">
       <div className="site-footer__cols">
         <div className="site-footer__col">
-          <h2 className="site-footer__heading">The City</h2>
-          <ul>
-            <li><Link href="/live">Live · happening now</Link></li>
-            <li><Link href="/citizens">The 4,040 FREELONS</Link></li>
-            <li><Link href="/collections">The Six Collections</Link></li>
-            <li><Link href="/civilizations">Ten Civilizations</Link></li>
-            <li><Link href="/dashboard">Dashboard</Link></li>
-            <li><Link href="/my-citizens">My Citizens</Link></li>
-          </ul>
-        </div>
-
-        <div className="site-footer__col">
           <h2 className="site-footer__heading">Play</h2>
           <ul>
-            <li><Link href="/play">All Games</Link></li>
-            <li><Link href="/mars-command">Mars Command</Link></li>
+            <li><Link href="/mars-command">Enter Mars</Link></li>
             <li><Link href="/crypt-tcg">Crypt TCG</Link></li>
-            <li><Link href="/play/hex-match">Hex Match</Link></li>
-            <li><Link href="/play/restore">Restore the Signal</Link></li>
-            {/* Guard the Pot 404s until GUARD_POT_LIVE (draft sweepstakes rules,
-                pending counsel) — gate the footer link on the same flag as the
-                /play card + the route, so nothing links to a dead page. */}
-            {isGuardPotLive() && <li><Link href="/play/guard">Guard the Pot</Link></li>}
-            <li><Link href="/play/reckoning">The Reckoning</Link></li>
-            <li><Link href="/play/sweep">Sweep Run</Link></li>
-            <li><Link href="/play/cipher">The Cipher</Link></li>
-          </ul>
-        </div>
-
-        <div className="site-footer__col">
-          <h2 className="site-footer__heading">Start here</h2>
-          <ul>
             <li><Link href="/demo">Meet a Citizen</Link></li>
-            <li><Link href="/sync">Connect wallet + X</Link></li>
-            <li><Link href="/earn">Earn HEX</Link></li>
-            <li><Link href="/shop">Shop</Link></li>
-            <li><Link href="/help">Help</Link></li>
-            <li><a href="https://discord.gg/xcK3E8nCB8" target="_blank" rel="noreferrer">Join Discord ↗</a></li>
+            <li><Link href="/play">All Games</Link></li>
           </ul>
         </div>
 
         <div className="site-footer__col">
-          <h2 className="site-footer__heading">Signal &amp; lore</h2>
+          <h2 className="site-footer__heading">City</h2>
           <ul>
-            <li><Link href="/report">The Signal Report</Link></li>
-            <li><Link href="/canon">Canon</Link></li>
+            <li><Link href="/citizens">The 4,040</Link></li>
+            <li><Link href="/collections">The Six Collections</Link></li>
+            <li><Link href="/civilizations">Ten Civilizations</Link></li>
             <li><Link href="/archive">The Archive</Link></li>
-            <li><Link href="/transmissions">Transmissions</Link></li>
-            <li><Link href="/carrier-of-the-week">Carrier of the Week</Link></li>
-            <li><Link href="/press">Press</Link></li>
-            <li><Link href="/developers">Developers</Link></li>
+            <li><Link href="/report">The Signal Report</Link></li>
           </ul>
         </div>
 
         <div className="site-footer__col">
-          <h2 className="site-footer__heading">On-chain</h2>
+          <h2 className="site-footer__heading">Own</h2>
           <ul>
-            <li>
-              <a href={ETHERSCAN_BASE} target="_blank" rel="noreferrer">
-                Contract ↗
-              </a>
-            </li>
-            <li>
-              <a href={`https://ipfs.io/ipfs/${METADATA_CID}`} target="_blank" rel="noreferrer">
-                IPFS ↗
-              </a>
-            </li>
-            <li>
-              <a href={OPENSEA_BASE} target="_blank" rel="noreferrer">
-                OpenSea ↗
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/4040hex" target="_blank" rel="noreferrer">
-                X ↗
-              </a>
-            </li>
-            <li>
-              <a href="https://discord.gg/xcK3E8nCB8" target="_blank" rel="noreferrer">
-                Discord ↗
-              </a>
-            </li>
+            <li><a href={OPENSEA_BASE} target="_blank" rel="noreferrer">Own a FREELON ↗</a></li>
+            <li><Link href="/my-citizens">My Citizens</Link></li>
+            <li><Link href="/dashboard">Dashboard</Link></li>
+            <li><Link href="/sync">Connect wallet + X</Link></li>
+            <li><a href={ETHERSCAN_BASE} target="_blank" rel="noreferrer">Contract ↗</a></li>
           </ul>
         </div>
 
         <div className="site-footer__col">
-          <h2 className="site-footer__heading">Legal</h2>
+          <h2 className="site-footer__heading">Support</h2>
           <ul>
+            <li><Link href="/help">Help · Start here</Link></li>
             <li><Link href="/legal/terms">Terms</Link></li>
             <li><Link href="/legal/privacy">Privacy</Link></li>
-            <li><Link href="/legal/honorary-notice">Honorary Notice</Link></li>
-            <li><Link href="/legal/dmca">DMCA</Link></li>
             <li><Link href="/legal">All policies</Link></li>
+            <li><a href="https://discord.gg/xcK3E8nCB8" target="_blank" rel="noreferrer">Discord ↗</a></li>
+            <li><a href="https://x.com/4040hex" target="_blank" rel="noreferrer">X ↗</a></li>
           </ul>
         </div>
       </div>
