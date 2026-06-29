@@ -2501,7 +2501,7 @@ const _detailGeo=(()=>{
   return g;
 })();
 function _detailMat(){
-  const m=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,metalness:0,color:0xffffff});
+  const m=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,metalness:0,color:0xffffff,emissive:0x3a2412,emissiveIntensity:1.25});   // anti-black lift: the scattered field had NO emissive, so every facet facing away from the low golden-hour sun crushed to pure black against the rust sand — the "field of black blobs". matBasalt's .55 lift is too weak here (darker vertex-color albedo than the placed boulders), so this uses a brighter warm-rust self-emit floor (0x3a2412 @1.25) to read the dark facets as lit rust rock, not holes
   // NOTE: no normalMap on the instanced rocks — a tiled ground normal has no tangents on the
   // noise-displaced + non-uniformly-instanced icosahedron, which corrupts the surface normals to
   // pure black. The 3-octave vertex displacement (see _detailGeo) carries the surface detail instead.
