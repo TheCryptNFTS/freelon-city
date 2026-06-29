@@ -8682,9 +8682,115 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
       0 24px 60px -18px rgba(0,0,0,0.8),
       0 0 70px -20px rgba(233,201,132,0.35);
   }
-  /* keep the text column clear of the anchor: shift the whole column left
-     instead of squeezing individual elements into ragged towers. */
-  .hero-landing__inner { position: relative; padding-right: clamp(300px, 27vw, 410px); }
+}
+
+/* ─── PRODUCT DOORS (2026-06-29) ───────────────────────────────────────────
+   Three co-equal front-door cards directly under the hero — Mars / TCG /
+   Citizens. The launcher layout: a stranger sees all three actions above the
+   fold and can answer "what can I do here?" in three seconds. */
+.product-doors {
+  max-width: 1120px;
+  margin: var(--s-4) auto 0;
+  padding: 0 var(--s-4);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+}
+.door-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  min-height: 320px;
+  transition: transform .2s var(--ease-out-quint, ease), border-color .2s ease, box-shadow .2s ease;
+}
+.door-card:hover,
+.door-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--line));
+  box-shadow:
+    0 22px 50px -18px rgba(0,0,0,0.7),
+    0 0 54px -22px rgba(233,201,132,0.42);
+}
+.door-card__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+.door-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(1.02) contrast(1.02);
+  transition: transform .35s ease;
+}
+.door-card:hover .door-card__media img,
+.door-card:focus-visible .door-card__media img { transform: scale(1.04); }
+.door-card__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 32%, rgba(11,11,13,0.55) 70%, rgba(11,11,13,0.92) 100%);
+}
+.door-card__head {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 14px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.door-card__kicker {
+  font-family: var(--mono2);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.door-card__title {
+  font-family: var(--display);
+  font-size: clamp(24px, 3vw, 30px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-shadow: 0 2px 14px rgba(0,0,0,0.7);
+}
+.door-card__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  padding: 16px 20px 20px;
+}
+.door-card__blurb {
+  font-family: var(--mono2);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.door-card__cta {
+  margin-top: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-bright, var(--gold));
+}
+@media (prefers-reduced-motion: reduce) {
+  .door-card,
+  .door-card .door-card__media img { transition: none; }
+}
+@media (max-width: 860px) {
+  .product-doors { grid-template-columns: 1fr; }
 }
 
 /* #6 CARD DEPTH — one premium-card recipe on the workhorse surfaces.

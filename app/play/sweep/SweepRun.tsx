@@ -466,7 +466,7 @@ export function SweepRun() {
   return (
     <div className="manifesto" style={{ ["--sweep-accent" as string]: themeAccent }}>
       <section className="manifesto-hero">
-        <span className="kicker">⬡ FREELON CITY · ARCADE · PROTOTYPE</span>
+        <span className="kicker">⬡ FREELON CITY · ARCADE</span>
         <h1>
           Sweep <em>Run</em>.
         </h1>
@@ -746,7 +746,7 @@ export function SweepRun() {
       </div>
 
       <p className="sweep-foot">
-        PROTOTYPE · SCORE SAVED LOCALLY · NO WALLET · NOT ON-CHAIN
+SCORE SAVED LOCALLY · NO WALLET · NOT ON-CHAIN
       </p>
 
       <style>{`

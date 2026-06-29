@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Arcade",
   description:
-    "Ways into the signal. Match the hex, restore the dark city, crack the daily frequency. Prototype arcade for FREELON CITY.",
+    "Ways into the signal. Match the hex, restore the dark city, crack the daily frequency. Live browser games for FREELON CITY.",
   openGraph: {
     title: "FREELON CITY ARCADE",
     description:
@@ -136,7 +136,7 @@ export default function PlayHub() {
           Ways into <em>the signal</em>.
         </h1>
         <p className="lead">
-          Free mini-games — the free hook, the holder loop, the daily ritual. Pick a door.
+          Free browser games — the free hook, the holder loop, the daily ritual. Pick a door.
         </p>
         <p
           className="lead"

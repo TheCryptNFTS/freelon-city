@@ -315,7 +315,7 @@ export function Reckoning() {
   return (
     <div className="manifesto">
       <section className="manifesto-hero">
-        <span className="kicker">⬡ FREELON CITY · ARCADE · PROTOTYPE</span>
+        <span className="kicker">⬡ FREELON CITY · ARCADE</span>
         <h1>
           The <em>Reckoning</em>.
         </h1>
@@ -603,7 +603,7 @@ export function Reckoning() {
       </div>
 
       <p className="reck-foot">
-        PROTOTYPE · TRIBUTES BURN REAL HEX (A SINK · NEVER MINTED) · WINNER CROWNED WEEKLY · GLORY ONLY FOR NOW
+TRIBUTES BURN REAL HEX (A SINK · NEVER MINTED) · WINNER CROWNED WEEKLY · GLORY ONLY FOR NOW
       </p>
 
       {burst && (

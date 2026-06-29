@@ -14,6 +14,7 @@ import { CityWeekBand } from "@/components/CityWeekBand";
 import { CryptTcgBand } from "@/components/CryptTcgBand";
 import { CityPulse } from "@/components/CityPulse";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
+import { ProductDoors } from "@/components/ProductDoors";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 import { TrackedLink } from "@/components/TrackedLink";
 import { PageBeacon } from "@/components/PageBeacon";
@@ -121,33 +122,19 @@ export default async function Home() {
               The old locked hero ("Where memory becomes character") predated the
               pivot — superseded. Same beloved "Where X becomes Y" shape, new
               thesis; subline = the civilization in plain words + provenance. */}
-          {/* HERO ANCHOR (cheap-fix #10): one large framed citizen grounds the
-              composition at desktop widths. Decorative CSS background, gated to
-              >=1100px in globals.css so phones never download the art (perf P0,
-              polish swarm 2026-06-22). */}
-          <div aria-hidden className="hero-anchor" />
-          <h1 className="hero-landing__h1">
-            An AI civilization that <strong>remembers you</strong>.
-          </h1>
+          {/* 2026-06-29 LAUNCHER PIVOT (founder: "launcher first, lore archive
+              second"): the homepage led almost entirely with AI citizens, burying
+              Mars + the TCG below the fold. The hero is now the city NAME + a
+              one-line "here's what this is", and the three real products are
+              co-equal doors immediately below (ProductDoors) — a stranger answers
+              "what can I do here?" in three seconds: Enter Mars / Play TCG / Meet
+              the citizens. The citizen-only hero anchor + MEET/OWN button row were
+              removed (OWN still closes the page at the buy moment). */}
+          <h1 className="hero-landing__h1">FREELON CITY</h1>
           <p className="hero-landing__tag">
-            Every face here is a live AI citizen you can talk to — free. Own one
-            and it learns your jobs, keeps a work history that travels with the
-            NFT, and never forgets you.
+            A playable AI civilization. <strong>Enter Mars, play the Crypt TCG,
+            and meet the AI citizens.</strong>
           </p>
-          {/* ONE primary (MEET A CITIZEN — experience it first), OWN secondary.
-              EARN HEX lives in the header; the closing CTA repeats OWN at the buy
-              moment. Deduped 2026-06-06 (each action appears once per surface).
-              "Citizen", never "agent", on cold surfaces — AWAKEN canon; the label
-              also matches the /demo headline so the scent trail holds. */}
-          <div className="hero-landing__cta hero-cta-row">
-            <TrackedLink className="btn btn-primary btn-lg" href={seeAgentHref} event="meet_citizen_click" from="home_hero">
-              <span className="ttl">MEET A CITIZEN · FREE →</span>
-            </TrackedLink>
-            {/* T11 2026-06-11 — opensea_click {from} funnel event on the buy CTA. */}
-            <TrackedOpenSeaLink className="btn btn-secondary btn-lg" href="https://opensea.io/collection/freelons" from="home_hero">
-              <span className="ttl">OWN A FREELON <span className="ar">→</span></span>
-            </TrackedOpenSeaLink>
-          </div>
 
           {/* CITY PULSE (2026-06-11) — two honest clocks under the CTAs: Day N
               since The Crypt's Oct-2023 creation tx (the city's Etherscan-
@@ -169,6 +156,13 @@ export default async function Home() {
               floor still lives on /dashboard. Lore badge sits below How-It-Works. */}
         </div>
       </section>
+
+      {/* ── PRODUCT DOORS — the three front-door actions, co-equal and directly
+          under the hero (2026-06-29 launcher pivot). Enter Mars (/mars-command),
+          Play TCG (/crypt-tcg), AI Citizens (/demo). This is the page's primary
+          above-the-fold job; everything below (citizen mosaic, how-it-works,
+          city week, TCG deep-dive, buy CTA) is now depth, not the front door. */}
+      <ProductDoors />
 
       {/* 2026-06-17 (Algorithm review · "the homepage gets one job"): the on-page
           MemoryProof game was removed from the cold path — it's a demonstration for
