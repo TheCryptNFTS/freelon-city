@@ -5758,6 +5758,14 @@ a.alert-pill:hover { border-color: var(--gold); background: rgba(200,170,100,0.0
   .carrier-dash > .holder-flex { order: -2; }
 }
 
+/* CRYPT LEGENDS TCG homepage band (components/CryptTcgBand.tsx) — stack the
+   two columns on phones and put the card fan UNDER the copy at a safe height so
+   nothing overflows or overlaps the CTAs. */
+@media (max-width: 760px) {
+  .crypt-band { grid-template-columns: 1fr !important; }
+  .crypt-band__fan { height: 240px !important; order: 2; }
+}
+
 /* =================================================================
    PHASE 1 PRIMITIVES — visual-language layer.
    Components in components/ui/ render these class names. Everything

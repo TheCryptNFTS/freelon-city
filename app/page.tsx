@@ -11,6 +11,7 @@ import { HeroVideo } from "@/components/HeroVideo";
 const TransformsWall = dynamic(() => import("@/components/TransformsWall"));
 import { ActivationProof } from "@/components/ActivationProof";
 import { CityWeekBand } from "@/components/CityWeekBand";
+import { CryptTcgBand } from "@/components/CryptTcgBand";
 import { CityPulse } from "@/components/CityPulse";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
@@ -229,6 +230,14 @@ export default async function Home() {
           most storied citizens, directly above the buy moment. Reuses /report's
           hardened read-only queries; self-hides while the stadium is empty. */}
       <CityWeekBand />
+
+      {/* ── CRYPT LEGENDS TCG — the live card-game mode, surfaced on the front
+          door (2026-06-29). The game shipped to play.freeloncity.com but was
+          stripped from the homepage in the 06-04 "agents only" pass, leaving it
+          with no discoverable entry. This band sells it as a real, clickable
+          game mode (heading + pitch + features + commander art + PLAY CTA),
+          above the closing buy beat — not buried in the footer. */}
+      <CryptTcgBand />
 
       {/* ── CLOSING CTA — one clean ending, agents only. 2026-06-04 newcomer-path
           simplification (founder: "agents are the main thing"): the homepage was
