@@ -177,42 +177,52 @@
   #emileBtn:hover{border-color:var(--gold)}
   #emileBtn.on{color:var(--gold-bright);border-color:var(--gold-bright);box-shadow:0 0 14px rgba(216,178,92,.3)}
   body.mapping #emileBtn{display:none!important}
-  #relicBtn{position:fixed;bottom:92px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+  /* ▸ ARCADE launcher — collapses the four arcade modes behind one tap so the default
+     driving view isn't a wall of buttons. The four reveal only when body.modesOpen. */
+  #modesBtn{position:fixed;bottom:92px;left:calc(50% - 150px);transform:translateX(-50%);z-index:22;
     background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
     font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
-  body.playing #relicBtn{display:block}
+  body.playing #modesBtn{display:block}
+  #modesBtn:hover{background:rgba(216,178,92,.18)}
+  body.modesOpen #modesBtn{color:var(--gold-bright);border-color:var(--gold-bright);box-shadow:0 0 14px rgba(216,178,92,.3)}
+  body.mapping #modesBtn, body.relicrun #modesBtn, body.trialrun #modesBtn, body.parkrun #modesBtn, body.gauntlet #modesBtn{display:none!important}
+  @media (max-width:900px){ #modesBtn{left:14px;bottom:140px;transform:none} }
+  #relicBtn{position:fixed;bottom:140px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+    background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
+    font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
+  body.playing.modesOpen #relicBtn{display:block}
   #relicBtn:hover{background:rgba(216,178,92,.18)}
   body.mapping #relicBtn, body.relicrun #relicBtn, body.trialrun #relicBtn{display:none!important}
-  @media (max-width:900px){ #relicBtn{left:14px;bottom:140px;transform:none} }
-  #trialBtn{position:fixed;bottom:140px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+  @media (max-width:900px){ #relicBtn{left:14px;bottom:188px;transform:none} }
+  #trialBtn{position:fixed;bottom:188px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
     background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
     font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
-  body.playing #trialBtn{display:block}
+  body.playing.modesOpen #trialBtn{display:block}
   #trialBtn:hover{background:rgba(216,178,92,.18)}
   body.mapping #trialBtn, body.relicrun #trialBtn, body.trialrun #trialBtn, body.parkrun #trialBtn{display:none!important}
-  @media (max-width:900px){ #trialBtn{left:14px;bottom:188px;transform:none} }
-  #parkBtn{position:fixed;bottom:188px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+  @media (max-width:900px){ #trialBtn{left:14px;bottom:236px;transform:none} }
+  #parkBtn{position:fixed;bottom:236px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
     background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
     font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
-  body.playing #parkBtn{display:block}
+  body.playing.modesOpen #parkBtn{display:block}
   #parkBtn:hover{background:rgba(216,178,92,.18)}
   body.mapping #parkBtn, body.relicrun #parkBtn, body.trialrun #parkBtn, body.parkrun #parkBtn{display:none!important}
   body.relicrun #relicBtn, body.trialrun #trialBtn{display:none!important}
   body.parkrun #relicBtn, body.parkrun #emileBtn{display:none!important}
-  @media (max-width:900px){ #parkBtn{left:14px;bottom:236px;transform:none} }
-  #gauntletBtn{position:fixed;bottom:236px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
+  @media (max-width:900px){ #parkBtn{left:14px;bottom:284px;transform:none} }
+  #gauntletBtn{position:fixed;bottom:284px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
     background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
     font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
-  body.playing #gauntletBtn{display:block}
+  body.playing.modesOpen #gauntletBtn{display:block}
   #gauntletBtn:hover{background:rgba(216,178,92,.18)}
   body.mapping #gauntletBtn, body.relicrun #gauntletBtn, body.trialrun #gauntletBtn, body.parkrun #gauntletBtn, body.gauntlet #gauntletBtn{display:none!important}
   body.gauntlet #relicBtn, body.gauntlet #trialBtn, body.gauntlet #parkBtn, body.gauntlet #emileBtn{display:none!important}
-  @media (max-width:900px){ #gauntletBtn{left:14px;bottom:284px;transform:none} }
+  @media (max-width:900px){ #gauntletBtn{left:14px;bottom:332px;transform:none} }
   /* CLEAN DRIVING VIEW — the centre-bottom mode-launcher stack is menu chrome, not a driving action.
      Fade it out of the world while cruising; it returns the instant you slow/stop (hysteretic
      body.cruising toggle, set in the movement loop). Reversible, removes no access, can't strand the player. */
-  #gauntletBtn,#relicBtn,#trialBtn,#parkBtn,#emileBtn{transition:opacity .5s ease}
-  body.cruising #gauntletBtn, body.cruising #relicBtn, body.cruising #trialBtn,
+  #modesBtn,#gauntletBtn,#relicBtn,#trialBtn,#parkBtn,#emileBtn{transition:opacity .5s ease}
+  body.cruising #modesBtn, body.cruising #gauntletBtn, body.cruising #relicBtn, body.cruising #trialBtn,
   body.cruising #parkBtn, body.cruising #emileBtn{opacity:0;pointer-events:none}
   #jumpBtn{position:fixed;bottom:130px;right:30px;z-index:23;width:74px;height:74px;border-radius:50%;
     background:rgba(216,178,92,.16);border:1.5px solid var(--gold);color:var(--gold-bright);font-family:inherit;
@@ -242,9 +252,10 @@
     #scanBtn{bottom:calc(38vh + 16px);font-size:10px;letter-spacing:.3em;padding:11px 22px}
     #crewsBtn{bottom:calc(38vh + 16px);left:auto;right:8px;transform:none}
     #emileBtn{bottom:calc(38vh + 60px);left:8px;transform:none}
-    #relicBtn{bottom:calc(38vh + 104px);left:8px;right:auto;transform:none;z-index:23}
-    #trialBtn{bottom:calc(38vh + 148px);left:8px;right:auto;transform:none;z-index:23}
-    #parkBtn{bottom:calc(38vh + 192px);left:8px;right:auto;transform:none;z-index:23}
+    #modesBtn{bottom:calc(38vh + 104px);left:8px;right:auto;transform:none;z-index:23}
+    #relicBtn{bottom:calc(38vh + 148px);left:8px;right:auto;transform:none;z-index:23}
+    #trialBtn{bottom:calc(38vh + 192px);left:8px;right:auto;transform:none;z-index:23}
+    #parkBtn{bottom:calc(38vh + 236px);left:8px;right:auto;transform:none;z-index:23}
     #jumpBtn{bottom:calc(38vh + 92px);right:10px;width:64px;height:64px}
     #returnBtn{bottom:calc(38vh + 60px)}
     #ownCta{top:auto;bottom:calc(38vh + 60px);left:8px;right:auto;width:max-content;max-width:58vw;font-size:9px;letter-spacing:.14em;padding:9px 12px}
@@ -728,6 +739,7 @@ setTimeout(function(){
 <button id="scanBtn">SIGNAL SCAN</button>
 <button id="crewsBtn">CREWS ▸</button>
 <button id="emileBtn">▸ PLAY AS EMILE</button>
+<button id="modesBtn" aria-label="Arcade modes">▸ ARCADE</button>
 <button id="relicBtn">⬡ RELIC RUN</button>
 <button id="trialBtn">▸ TIME TRIAL</button>
 <button id="parkBtn">▸ PARKOUR</button>
@@ -4150,10 +4162,12 @@ function emileDash(){ if(playerMode!=='emile'||EMILE.dashCd>0) return; EMILE.das
 { const eb=document.getElementById('emileBtn'); if(eb) eb.onclick=togglePlayer;
   const jb=document.getElementById('jumpBtn'); if(jb){ jb.addEventListener('pointerdown',e=>{ e.preventDefault(); emileJump(); }); jb.addEventListener('pointerup',e=>{ e.preventDefault(); emileJumpRelease(); }); }
   const db=document.getElementById('dashBtn'); if(db){ db.addEventListener('pointerdown',e=>{ e.preventDefault(); emileDash(); }); }
-  const rb=document.getElementById('relicBtn'); if(rb) rb.onclick=()=>startRelicRun();
-  const tb=document.getElementById('trialBtn'); if(tb) tb.onclick=()=>startTimeTrial();
-  const pb=document.getElementById('parkBtn'); if(pb) pb.onclick=()=>startParkour();
-  const gb=document.getElementById('gauntletBtn'); if(gb) gb.onclick=()=>startGauntlet(); }
+  const mb=document.getElementById('modesBtn'); if(mb) mb.onclick=()=>document.body.classList.toggle('modesOpen');
+  const closeModes=()=>document.body.classList.remove('modesOpen');
+  const rb=document.getElementById('relicBtn'); if(rb) rb.onclick=()=>{ closeModes(); startRelicRun(); };
+  const tb=document.getElementById('trialBtn'); if(tb) tb.onclick=()=>{ closeModes(); startTimeTrial(); };
+  const pb=document.getElementById('parkBtn'); if(pb) pb.onclick=()=>{ closeModes(); startParkour(); };
+  const gb=document.getElementById('gauntletBtn'); if(gb) gb.onclick=()=>{ closeModes(); startGauntlet(); }; }
 
 /* ============================== RELIC RUN — first in-world game ==============================
    A Sonic-style time-trial: grab all the floating ⬡ relics before the clock runs out.
@@ -4929,6 +4943,48 @@ function navHudUpdate(dt){
     `<div style="margin-top:3px;color:#f2ead8">ODO ${odo.toFixed(odo<10?2:1)} KM <span style="color:rgba(216,178,92,.7)">· ${pct.toFixed(pct<1?3:2)}% OF MARS</span></div>`+
     `<div style="margin-top:2px">${spd}</div>`+comp;
   if(_navEl._html!==html){ _navEl._html=html; _navEl.innerHTML=html; }
+}
+/* ============================ OBJECTIVE MARKER ============================
+   The single thing that answers "what do I do?": a top-centre banner with a chevron
+   that points (relative to the rover's heading) at the NEAREST unsurveyed site, plus its
+   distance. Drive toward the arrow → roll up → the site auto-detects and surveys. It
+   retargets to the next nearest site automatically, and hides once everything near is done.
+   Pure HUD — no new 3D objects, no save writes, can't strand the player. */
+let _objEl=null, _objAcc=0;
+function nearestUnsurveyed(px,pz){
+  let best=null, bd=Infinity;
+  const set=(typeof SITES==='function')?SITES():POIS;
+  for(const s of set){
+    if(!s || s.type==='beacon' || S.discovered.includes(s.id)) continue;
+    const d=Math.hypot(s.x-px, s.z-pz);
+    if(d<bd){ bd=d; best=s; }
+  }
+  return best?{site:best,dist:bd}:null;
+}
+function objHudUpdate(dt){
+  if(mode!=='play' || playerMode==='emile'){ if(_objEl) _objEl.style.display='none'; return; }
+  if(!_objEl){
+    _objEl=document.createElement('div'); _objEl.id='objHud'; _objEl.className='hud';
+    _objEl.style.cssText='position:fixed;left:50%;top:166px;transform:translateX(-50%);z-index:23;'
+      +'font:10px/1.4 ui-monospace,monospace;letter-spacing:.22em;color:#ffe9b0;text-align:center;'
+      +'background:rgba(8,6,4,.62);border:1px solid rgba(216,178,92,.55);border-radius:7px;'
+      +'padding:7px 16px;backdrop-filter:blur(7px);pointer-events:none;'
+      +'box-shadow:0 0 22px rgba(216,178,92,.16);white-space:nowrap';
+    document.body.appendChild(_objEl);
+  }
+  _objAcc-=dt; if(_objAcc>0) return; _objAcc=0.12;
+  const p=rover.position, tgt=nearestUnsurveyed(p.x,p.z);
+  if(!tgt){ _objEl.style.display='none'; return; }
+  _objEl.style.display='block';
+  const s=tgt.site, d=tgt.dist;
+  const rel=Math.atan2(s.x-p.x, s.z-p.z)-roverHeading, deg=(rel*180/Math.PI).toFixed(0);
+  const named=(typeof poiDetected==='function')&&poiDetected(s.id);
+  const label=named ? s.name : 'UNCHARTED SIGNAL';
+  const distS = d<1000 ? d.toFixed(0)+'M' : (d/1000).toFixed(1)+'KM';
+  const html=`<span style="color:#d8b25c">◎ OBJECTIVE</span> &nbsp; `
+    +`<span style="display:inline-block;transform:rotate(${deg}deg);color:var(--gold-bright);font-size:13px;line-height:1;vertical-align:-1px">▲</span> `
+    +`<b style="color:#f2ead8">${label}</b> &nbsp;<span style="color:rgba(216,178,92,.85)">${distS}</span>`;
+  if(_objEl._html!==html){ _objEl._html=html; _objEl.innerHTML=html; }
 }
 /* ============================ HIGH-SPEED WARP TRAVEL ============================
    Future-tech overland sprint. Press F to engage: target speed jumps to WARP_SPD (kept
@@ -9083,6 +9139,7 @@ function animate(){
   }
   // planetary HUD + nav compass, warp hover-cushion lift + speed-streak tunnel (rover visual only)
   navHudUpdate(dt);
+  objHudUpdate(dt);
   if(playerMode!=='emile'){
     warpLift=damp(warpLift, warpActive?1:0, 6, dt); roverShell.position.y=warpLift*1.4;
     const wf=warpFxEl(), op=Math.min(.92, warpLift*Math.max(.28,roverSpdRatio));
