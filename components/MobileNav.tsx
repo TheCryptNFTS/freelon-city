@@ -48,17 +48,23 @@ type NavGroup = { heading: string | null; links: NavLink[] };
 // two heading-less groups. Rebuilt per Reegs: categorized, no word twice,
 // buttons not text rows ("menu leads to everything categorized · no slippage
 // between categories · people don't want to see things twice").
+// 2026-06-29 LAUNCHER NAV: the sheet now leads with the three co-equal product
+// doors (mirroring the desktop launcher nav + the homepage cards), then Own,
+// then the deeper city + account links. Same routes, re-ordered so a newcomer's
+// first three taps are the three things to actually DO.
 const GROUPS: NavGroup[] = [
   {
-    heading: "ENTER · FREE",
+    heading: "PLAY · FREE",
     links: [
-      { href: "/demo", label: "Meet a citizen", gold: true },
-      { href: "/play", label: "Play the games" },
+      { href: "/mars-command", label: "Enter Mars", gold: true },
+      { href: "/crypt-tcg", label: "Play the TCG", gold: true },
+      { href: "/demo", label: "Meet an AI citizen", gold: true },
     ],
   },
   {
     heading: "THE CITY",
     links: [
+      { href: "/play", label: "All games" },
       { href: "/citizens", label: "Browse the 4,040" },
       { href: "/collections", label: "The six collections" },
       { href: "/help", label: "New here? Start at Help" },

@@ -898,11 +898,14 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: calc(100vh - 72px);
+  /* 2026-06-29 launcher pivot: the hero no longer owns the full viewport — it's
+     shortened so the three product doors peek above the fold and read as the
+     page's primary action, instead of being buried a full screen down. */
+  min-height: clamp(480px, 72vh, 720px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(72px, 11vh, 132px) var(--pad);
+  padding: clamp(56px, 8vh, 100px) var(--pad);
   border-bottom: 1px solid var(--line);
 }
 .hero--landing::before {

@@ -132,8 +132,8 @@ export default async function Home() {
               removed (OWN still closes the page at the buy moment). */}
           <h1 className="hero-landing__h1">FREELON CITY</h1>
           <p className="hero-landing__tag">
-            A playable AI civilization. <strong>Enter Mars, play the Crypt TCG,
-            and meet the AI citizens.</strong>
+            A playable AI civilization. <strong>Enter Mars. Play the archive.
+            Meet the citizens.</strong>
           </p>
 
           {/* CITY PULSE (2026-06-11) — two honest clocks under the CTAs: Day N

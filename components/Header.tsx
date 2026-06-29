@@ -3,13 +3,14 @@ import Image from "next/image";
 import { MobileNav } from "@/components/MobileNav";
 import { WalletConnect } from "@/components/WalletConnect";
 import { HeaderHexPill } from "@/components/HeaderHexPill";
-import { HeaderSeeAgent } from "@/components/HeaderSeeAgent";
 import { HeaderHolderLinks } from "@/components/HeaderHolderLinks";
+import { OPENSEA_BASE } from "@/lib/constants";
 
 /**
- * Site header. Primary nav trimmed to 4 items (Start / Citizens / The
- * Numbers / Shop) + Archives dropdown + EARN HEX + Sync + hex pill +
- * wallet. All chrome is class-based — local styles live in the
+ * Site header. Primary nav is the launcher spine — the three co-equal
+ * product doors (Enter Mars / Play TCG / AI Citizens) + Own — followed by
+ * holder tools, the hex pill, and the wallet. Everything else is demoted to
+ * the fat Footer. All chrome is class-based — local styles live in the
  * <style> block at the bottom of this file, which itself reads from
  * Phase 1 tokens.
  */
@@ -23,34 +24,20 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          {/* 2026-06-08 RADICAL CONDENSE (founder: "drop the 45 pages, keep it
-              really simple"). Nav cut to the spine: the product (FREELONS), the
-              collections-as-roles, and the free hook (See an Agent). Earn HEX +
-              the Explore ▾ dropdown (Play / Shop / Community / Lore / Dashboard)
-              were removed from the front door — those pages still exist by URL but
-              are off the newcomer's critical path. The whole site is now:
-              own → see an agent → chat. */}
-          {/* PERF 2026-06-11: prefetch={false} on the always-visible nav spine.
-              These four links auto-prefetched their full RSC payloads on EVERY
-              page load (~240KB — /citizens alone is ~107KB, its 4040-row
-              browse dataset). Navigation now fetches on click (~100-300ms),
-              first-load bandwidth goes to the page being viewed. */}
-          <Link href="/citizens" prefetch={false} className="nav-link nav-start">FREELONS</Link>
-          <Link href="/collections" prefetch={false} className="nav-link">Collections</Link>
-          {/* V1 SIGNAL OS (2026-06-10): Start restored to the desktop spine — the
-              mobile sheet already carries "New here? Start" but desktop newcomers
-              had no explainer path except the small hero text link. Keeps the
-              06-08 radical condense intact (still no Explore ▾ / Earn / Play). */}
-          <Link href="/help" prefetch={false} className="nav-link">Start</Link>
-          {/* 2026-06-10 Discord feedback ("are the games still there? I am
-              lost"): Play restored for EVERYONE — hex-match + proof are free,
-              no-wallet hooks, and hiding them read as "the games are gone".
-              Softens the 06-08 condense by exactly one link. */}
-          <Link href="/play" prefetch={false} className="nav-link">Play</Link>
+          {/* 2026-06-29 LAUNCHER NAV (founder: full premium product rebuild —
+              "only the three product actions should fight for top-level
+              attention"). Top nav is now the three co-equal product doors +
+              Own; every secondary route (lore / civilizations / archive /
+              collections / help / status) is demoted to the fat Footer, which
+              is the desktop "menu". prefetch={false} keeps first-load bandwidth
+              on the page being viewed, not the nav targets. */}
+          <Link href="/mars-command" prefetch={false} className="nav-link nav-start">Enter Mars</Link>
+          <Link href="/crypt-tcg" prefetch={false} className="nav-link">Play TCG</Link>
+          <Link href="/demo" prefetch={false} className="nav-link">AI Citizens</Link>
+          <a href={OPENSEA_BASE} target="_blank" rel="noreferrer" className="nav-link">Own ↗</a>
           {/* Returning-holder tools — only render once a holding wallet is
               connected, so the newcomer front door stays condensed. */}
           <HeaderHolderLinks />
-          <HeaderSeeAgent />
           <HeaderHexPill />
           <span className="wallet-slot"><WalletConnect /></span>
         </nav>
