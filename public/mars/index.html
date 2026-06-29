@@ -3248,6 +3248,7 @@ function prepModel(root,k){
   root.scale.setScalar((MODEL_SCALE[k]||8)/Math.max(size.x,size.z,.001));
   box.setFromObject(root);
   root.position.y=-box.min.y;
+  if(k==='rover'){ const c=box.getCenter(new THREE.Vector3()); root.position.x-=c.x; root.position.z-=c.z; }   // center the vehicle on its transform origin: the GLB mesh origin isn't at its footprint centre, so it rendered offset "beside" the rover (next to the beacon/physics point)
   root.traverse(o=>{
     if(o.isMesh){
       o.castShadow=true; o.receiveShadow=true;
@@ -5145,7 +5146,7 @@ function skyExtraUpdate(dt,t){
 }
 
 /* --- C. Alien fauna: an instanced manta flock that leads the rover + scatters when buzzed --- */
-const FAUNA_N=28;
+const FAUNA_N=14;
 let _fauna=null, _faunaData=null;
 const _flockC=new THREE.Vector3(120,60,120), _faunaDummy=new THREE.Object3D();
 function buildFauna(){
@@ -5156,8 +5157,8 @@ function buildFauna(){
   _fauna.userData.mat=mat;
   _faunaData=[];
   for(let i=0;i<FAUNA_N;i++) _faunaData.push({
-    a:Math.random()*6.283, rad:30+Math.random()*120, h:46+Math.random()*72,
-    sp:0.25+Math.random()*0.5, ph:Math.random()*6.283, sc:3+Math.random()*4, scat:0 });
+    a:Math.random()*6.283, rad:80+Math.random()*160, h:95+Math.random()*95,
+    sp:0.25+Math.random()*0.5, ph:Math.random()*6.283, sc:1.1+Math.random()*1.3, scat:0 });
   scene.add(_fauna); return _fauna;
 }
 function faunaFollow(wx,wz){ buildFauna(); _flockC.set(wx+Math.sin(roverHeading)*200, 60, wz+Math.cos(roverHeading)*200); }
