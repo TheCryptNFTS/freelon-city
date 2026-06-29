@@ -156,9 +156,9 @@
     font-size:10px;letter-spacing:.34em;padding:9px 22px;cursor:pointer;backdrop-filter:blur(6px);
     transition:border-color .2s,background .2s;display:none}
   #returnBtn:hover{border-color:var(--gold);background:rgba(216,178,92,.12)}
-  #scanBtn{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);z-index:21;
+  #scanBtn{position:fixed;bottom:20px;right:18px;left:auto;transform:none;z-index:21;
     background:var(--panel);border:1px solid var(--gold);color:var(--gold-bright);font-family:inherit;
-    font-size:11px;letter-spacing:.4em;padding:12px 30px;cursor:pointer;backdrop-filter:blur(6px);
+    font-size:10px;letter-spacing:.34em;padding:10px 20px;cursor:pointer;backdrop-filter:blur(6px);
     transition:all .2s;display:none}
   body.playing #scanBtn{display:block}
   #scanBtn:hover:not(.off){background:rgba(216,178,92,.18)}
@@ -561,6 +561,52 @@
   #immBtn:hover,#fsBtn:hover{ color:var(--gold) }
   body.immersive #immBtn, body.immersive #fsBtn{ opacity:.5!important; pointer-events:auto!important; animation:none!important; }
   body.immersive #immBtn:hover, body.immersive #fsBtn:hover{ opacity:1!important; color:var(--gold) }
+  /* ============== MINIMAL HUD — the DEFAULT gameplay chrome (2026-06-29) ==============
+     The dashboard is GONE by default. body.minhud is added the instant play starts and stays
+     on; what survives is exactly the second-to-second set: the nav/speed/compass cluster
+     (#navHud, bottom-left), the objective banner (#objHud, top-centre), a dimmed minimap, the
+     contextual interact prompt (#scanBtn), and the two view glyphs. Everything else — stat
+     boxes, daily directive, missions, build sheet, archive/banner chips, command buttons,
+     own-a-freelon — is hidden. TAB reveals the full panel set on demand (body gains 'panels'),
+     TAB again hides it. This is the gameplay-HUD vs menu-UI split: a clean cinematic frame by
+     default, full controls one keypress away. */
+  body.minhud:not(.panels) #stats, body.minhud:not(.panels) #dailyPanel,
+  body.minhud:not(.panels) #nextChip, body.minhud:not(.panels) #challengeChip,
+  body.minhud:not(.panels) #missions, body.minhud:not(.panels) #buildMenu,
+  body.minhud:not(.panels) #hint, body.minhud:not(.panels) #ownCta,
+  body.minhud:not(.panels) #crewsBtn, body.minhud:not(.panels) #exportBtn,
+  body.minhud:not(.panels) #importBtn, body.minhud:not(.panels) #resetBtn,
+  body.minhud:not(.panels) #techBtn, body.minhud:not(.panels) #recordsBtn,
+  body.minhud:not(.panels) #soundBtn, body.minhud:not(.panels) #mapBtn,
+  body.minhud:not(.panels) #anomChip, body.minhud:not(.panels) #emileBtn,
+  body.minhud:not(.panels) #modesBtn, body.minhud:not(.panels) #relicBtn,
+  body.minhud:not(.panels) #trialBtn, body.minhud:not(.panels) #parkBtn,
+  body.minhud:not(.panels) #gauntletBtn, body.minhud:not(.panels) #returnBtn,
+  body.minhud:not(.panels) .awLaunch, body.minhud:not(.panels) #dailyRows{
+    opacity:0!important; pointer-events:none!important; animation:none!important; transition:opacity .4s ease!important;
+  }
+  body.minhud:not(.panels) #brand{ opacity:.16!important; animation:none!important; transition:opacity .4s ease!important; }
+  body.minhud:not(.panels) #minimapWrap{ opacity:.7!important; transform:scale(.84); transform-origin:top right; animation:none!important; transition:opacity .4s ease, transform .4s ease!important; }
+  /* the panels-revealed hint glyph (bottom-centre), only while minimal */
+  #panelsTip{ position:fixed; left:50%; bottom:6px; transform:translateX(-50%); z-index:22; display:none;
+    font:8px/1 ui-monospace,monospace; letter-spacing:.3em; color:rgba(242,234,216,.34);
+    pointer-events:none; transition:opacity .3s; }
+  body.playing.minhud:not(.panels):not(.immersive):not(.driving) #panelsTip{ display:block }
+  /* ============== DRIVING auto-fade — cinematic default while the rover is MOVING ==============
+     Stops the screen reading like a debug dashboard. While actually driving, dissolve every
+     non-essential panel; what survives is the world + the objective banner (#objHud), the
+     minimap, the speed read, the interact (scan) prompt, and the brand mark (ghosted). The
+     instant you stop or open a menu the rover speed drops and the full HUD snaps back. */
+  body.driving #stats, body.driving #dailyPanel, body.driving #nextChip,
+  body.driving #challengeChip, body.driving #missions, body.driving #buildMenu,
+  body.driving #hint, body.driving #ownCta, body.driving #crewsBtn,
+  body.driving #exportBtn, body.driving #importBtn, body.driving #resetBtn,
+  body.driving #techBtn, body.driving #recordsBtn, body.driving #soundBtn,
+  body.driving #mapBtn{
+    opacity:0!important; pointer-events:none!important; animation:none!important; transition:opacity .6s ease!important;
+  }
+  body.driving #brand{ opacity:.2!important; animation:none!important; transition:opacity .6s ease!important; }
+  body.driving #minimapWrap{ opacity:.78!important; animation:none!important; transition:opacity .6s ease!important; }
   /* tablet + phone: two compact tap glyphs in the TOP-RIGHT, clear of the build sheet + bottom bar */
   @media (max-width:900px){
     /* right-edge rail at mid-height — clear of the top stat cluster and the bottom controls/sheet */
@@ -1602,7 +1648,7 @@ function pickFaction(i){
 { const fr=document.querySelector('#perksModal'); }   // perks rows reuse .frow CSS (faction modal)
 
 let S = { v:3, hex:500, xp:0, wins:0, claimsTotal:0, buildings:[], zonesClaimed:[], lastSeen:Date.now(),
-  rover:{x:14,z:8}, travel:0, scans:0, discovered:[], detected:[], cleared:[], cityDisc:[], cityLog:{}, scarBonus:false,
+  rover:{x:74,z:46}, travel:0, scans:0, discovered:[], detected:[], cleared:[], cityDisc:[], cityLog:{}, scarBonus:false,
   garageFound:false, raceBest:0, garageUpgrades:{engine:0,plating:0,treads:0},
   cardLv:{}, zoneCol:{}, locks:{}, respawn:{}, redDust:{wins:0},
   streak:{lastDay:'', n:0, buffers:0}, today:freshToday(),
@@ -1753,7 +1799,7 @@ function load(){
       S.today=Object.assign(freshToday(), d.today);
       S.weekly=Object.assign({key:weekKey(),count:0}, d.weekly);
       S.archive=Object.assign({owned:[],pity:0}, d.archive);
-      if(!S.rover || typeof S.rover.x!=='number') S.rover={x:14,z:8};
+      if(!S.rover || typeof S.rover.x!=='number') S.rover={x:74,z:46};
       if(typeof S.travel!=='number') S.travel=0;
       S.scans=S.scans||0; S.scarBonus=!!S.scarBonus;
       if(!Array.isArray(S.discovered)) S.discovered=[];
@@ -2360,7 +2406,7 @@ function rebuildTerrain(){
       .replace('#include <begin_vertex>','#include <begin_vertex>\n  vFogW=(modelMatrix*vec4(transformed,1.)).xz;');
     shader.fragmentShader=shader.fragmentShader
       .replace('void main() {','varying vec2 vFogW;\nuniform sampler2D uReveal;\nuniform sampler2D uTerra;\nuniform vec2 uFogOrigin;\nvoid main() {')
-      .replace('#include <color_fragment>','#include <color_fragment>\n  {\n    float mv1=sin(vFogW.x*0.013)*cos(vFogW.y*0.011)+0.5*sin(vFogW.x*0.041+vFogW.y*0.037);\n    diffuseColor.rgb*=(1.0+0.10*mv1);\n    float mw=0.5+0.5*sin(vFogW.x*0.006-vFogW.y*0.008);\n    diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(1.06,0.99,0.92), mw);\n  }\n  vec2 fogUV=clamp((vFogW-uFogOrigin+700.)/1400.,0.,1.);\n  float fogReveal=texture2D(uReveal,fogUV).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,fogUV);\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
+      .replace('#include <color_fragment>','#include <color_fragment>\n  {\n    float mv1=sin(vFogW.x*0.013)*cos(vFogW.y*0.011)+0.5*sin(vFogW.x*0.041+vFogW.y*0.037);\n    diffuseColor.rgb*=(1.0+0.10*mv1);\n    float mw=0.5+0.5*sin(vFogW.x*0.006-vFogW.y*0.008);\n    diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(1.06,0.99,0.92), mw);\n    float _gd=length(vFogW-uFogOrigin);\n    float _gn=1.0-smoothstep(18.0,150.0,_gd);\n    if(_gn>0.002){\n      float _rip=sin(vFogW.x*0.85+vFogW.y*0.33+sin(vFogW.y*0.11)*2.6);\n      float _grain=sin(vFogW.x*2.3-vFogW.y*1.7)*sin(vFogW.x*1.9+vFogW.y*2.7);\n      diffuseColor.rgb*=(1.0+(0.075*_rip+0.05*_grain)*_gn);\n    }\n  }\n  vec2 fogUV=clamp((vFogW-uFogOrigin+700.)/1400.,0.,1.);\n  float fogReveal=texture2D(uReveal,fogUV).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,fogUV);\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
     /* ---- SCAN-AS-LIDAR: gold wavefront on the ground (additive; safe-guarded) ---- */
     try{
       shader.uniforms.uLidar=uLidar;
@@ -2386,7 +2432,7 @@ function rebuildTerrain(){
       shader.fragmentShader=shader.fragmentShader
         .replace('uniform sampler2D uReveal;','uniform sampler2D uReveal;\nuniform sampler2D uRut;\nuniform vec2 uRutCenter;\nuniform float uRutWorld;')
         .replace('diffuseColor.rgb*=(.34+.66*fogReveal);',
-                 'diffuseColor.rgb*=(.34+.66*fogReveal);\n  {\n    vec2 ruv=(vFogW-uRutCenter)/uRutWorld+0.5;\n    if(ruv.x>0.&&ruv.x<1.&&ruv.y>0.&&ruv.y<1.){ float rd=texture2D(uRut,ruv).r; diffuseColor.rgb*=(1.0-0.6*rd); }\n  }');
+                 'diffuseColor.rgb*=(.34+.66*fogReveal);\n  {\n    vec2 ruv=(vFogW-uRutCenter)/uRutWorld+0.5;\n    if(ruv.x>0.&&ruv.x<1.&&ruv.y>0.&&ruv.y<1.){ float rd=clamp(texture2D(uRut,ruv).r,0.,1.); diffuseColor.rgb*=(1.0-0.86*rd); diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(.82,.74,.66), rd); }\n  }');
     }
   };
   terrain=new THREE.Mesh(geo,mat);
@@ -2550,7 +2596,7 @@ function buildDetail(){
   const SPAN=660;                     // half-width of the scattered field around the rover
   /* continuous world: rocks are scattered by DETERMINISTIC WORLD-CELL — the same patch of Mars
      always grows the same rocks, so recentering the field on the rover never pops the overlap. */
-  const CELL=PTIER==='hi'?22:46;      // ~one rock per cell → matches the old density at each tier
+  const CELL=PTIER==='hi'?20:46;      // ~one rock per cell (hi tightened 22→20 for a denser, less-empty foreground; stays under ROCK_COUNT so the field still rings the rover, no corner-bias)
   const ox=detailOX, oz=detailOZ;     // pin this build's world centre
   const c0=Math.floor((ox-SPAN)/CELL), c1=Math.floor((ox+SPAN)/CELL);
   const r0=Math.floor((oz-SPAN)/CELL), r1=Math.floor((oz+SPAN)/CELL);
@@ -2570,7 +2616,9 @@ function buildDetail(){
       const ripple=rng()<0.32;          // ~1/3 are flat dune-ripples, the rest pebbles
       const s=ripple ? (1.2+rng()*2.6) : (0.45+rng()*1.6);
       dummy.position.set(x,y+(ripple?0.04:s*0.18),z);
-      dummy.rotation.set(ripple?-Math.PI/2*0.9:rng()*0.5, rng()*6.283, ripple?rng()*6.283:rng()*0.5);
+      // ripples must LIE FLAT on the sand (thin Y axis points up): a near-zero X/Z tilt + random yaw.
+      // (the old -81° X-tilt stood the flat disc UP into a thin vertical blade — that was the "vertical shard" scatter.)
+      dummy.rotation.set(ripple?(rng()-0.5)*0.28:rng()*0.5, rng()*6.283, ripple?(rng()-0.5)*0.28:rng()*0.5);
       if(ripple) dummy.scale.set(s*2.4,s*0.18,s*1.1); else dummy.scale.setScalar(s);
       dummy.updateMatrix();
       mesh.setMatrixAt(placed,dummy.matrix);
@@ -3241,20 +3289,20 @@ const MODEL_CACHE={};
    coherent skyline instead of a 3-author kit-bash. Mirror: trebeljahr/quaternius-showcase */
 const QSP='/mars/assets/';
 const MODEL_URLS={
-  habitat: QSP+'House_Cylinder-transformed.glb',
+  habitat: '/mars/assets/hab_module.glb',   // original Blender-built habitat module (see ASSET_CREDITS.md); replaces the featureless Quaternius cylinder
   tower:   QSP+'Roof_Radar-transformed.glb',
   warroom: QSP+'Building_L-transformed.glb',
   foundry: QSP+'Base_Large-transformed.glb',
   roverbay:QSP+'House_Long-transformed.glb',
   vault:   QSP+'GeodesicDome-transformed.glb',
   lander:'/mars/assets/pp_lander.glb',
-  rover:'/mars/assets/pp_rover.glb',
-  crate:'/mars/assets/pp_crate.glb',
+  rover:'/mars/assets/pp_rover_mk2.glb',   // original Blender-built six-wheel rover (see ASSET_CREDITS.md). pp_rover.glb (CC0 toy) retired
+  crate:'/mars/assets/pp_crate_mk2.glb',   // original Blender-built latched equipment case (see ASSET_CREDITS.md)
   rocket:'/mars/assets/pp_rocket.glb',     // Saturn V (CC-BY, Mr. Peel)
   launchpad:'/mars/assets/pp_launchpad.glb',  // KayKit landing pad (CC0)
   descentship:'/mars/assets/pp_descentship.glb',// Quaternius spaceship (CC0)
 };
-const MODEL_SCALE={habitat:14,tower:11,warroom:13,foundry:15,roverbay:14,vault:12,lander:13,rover:4.5,crate:2.4,rocket:6,launchpad:16,descentship:7};
+const MODEL_SCALE={habitat:19,tower:11,warroom:13,foundry:15,roverbay:14,vault:12,lander:13,rover:4.5,crate:2.4,rocket:6,launchpad:16,descentship:7};
 function prepModel(root,k){
   const box=new THREE.Box3().setFromObject(root);
   const size=box.getSize(new THREE.Vector3());
@@ -3317,20 +3365,47 @@ function pingRing(x,y,z){
     ()=>{ scene.remove(r); r.material.dispose(); });
 }
 
-/* base spire (always present) ------------------------------------------------ */
+/* COMMAND RELAY TOWER (always present) ----------------------------------------
+   Reads as an engineered comms mast — landing pad, splayed tripod legs, a slim
+   panelled mast, an angled microwave dish, a whip antenna and a blinking red
+   aviation-style nav beacon — instead of the old featureless black cone. Gold
+   accents kept DIM (under the bloom threshold) so they look like metal trim, not
+   glowing tape. Collision/camera radius reduced to match the slimmer silhouette. */
 const baseGroup=new THREE.Group();
 {
-  const spire=new THREE.Mesh(new THREE.CylinderGeometry(2.2,4.6,20,6), matDark());
-  spire.position.y=10; baseGroup.add(spire);
-  for(const y of [5,10,15]){
-    const r=4.6-.12*y+.3;   // sit just proud of the spire's taper
-    const band=new THREE.Mesh(new THREE.CylinderGeometry(r,r+.2,.6,6), matGold(1.4));
-    band.position.y=y; baseGroup.add(band);
+  // low hex landing / comms pad the tower stands on
+  const pad=new THREE.Mesh(new THREE.CylinderGeometry(8.4,9.4,.7,6), matDark()); pad.position.y=.35; baseGroup.add(pad);
+  const padRim=new THREE.Mesh(new THREE.CylinderGeometry(8.5,8.5,.24,6,1,true), matGold(0.4)); padRim.position.y=.7; baseGroup.add(padRim);
+  // three splayed legs → engineered tripod stance
+  for(let i=0;i<3;i++){
+    const a=i/3*Math.PI*2+.5;
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.26,.4,9.5,5), matDark());
+    leg.position.set(Math.cos(a)*2.7, 4.6, Math.sin(a)*2.7);
+    leg.rotation.z=-Math.cos(a)*.27; leg.rotation.x=Math.sin(a)*.27;
+    baseGroup.add(leg);
   }
-  const crown=new THREE.Mesh(new THREE.OctahedronGeometry(1.8), matGold(2)); crown.position.y=22;
-  crown.userData.pulse=true; baseGroup.add(crown);
-  const pad=new THREE.Mesh(new THREE.CylinderGeometry(9,10,.8,6), matDark()); pad.position.y=.3; baseGroup.add(pad);
-  const l=new THREE.PointLight(GOLD,160,70); l.position.y=14; baseGroup.add(l);
+  // slim central mast (no more fat cone)
+  const mast=new THREE.Mesh(new THREE.CylinderGeometry(.85,1.35,16.5,8), matDark());
+  mast.position.y=9.2; baseGroup.add(mast);
+  // structural collars — dim gold metal trim
+  for(const y of [6.5,12]){
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(1.18,1.18,.55,8), matGold(0.4));
+    c.position.y=y; baseGroup.add(c);
+  }
+  // angled microwave dish + feed horn
+  const dish=new THREE.Mesh(new THREE.SphereGeometry(2.5,18,9,0,Math.PI*2,0,Math.PI*.5), matDark());
+  dish.scale.y=.48; dish.position.set(2.6,12.6,0); dish.rotation.x=Math.PI; dish.rotation.z=-0.55; baseGroup.add(dish);
+  const feed=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.7,5), matGold(0.4));
+  feed.position.set(3.4,13.4,0); feed.rotation.z=-0.55; baseGroup.add(feed);
+  // cross spar + whip antenna
+  const spar=new THREE.Mesh(new THREE.BoxGeometry(5.4,.16,.16), matDark()); spar.position.y=15.4; baseGroup.add(spar);
+  const whip=new THREE.Mesh(new THREE.CylinderGeometry(.05,.09,5,4), matDark()); whip.position.y=18.6; baseGroup.add(whip);
+  // blinking red aviation-style nav beacon at the apex
+  const beacon=new THREE.Mesh(new THREE.SphereGeometry(.34,12,12),
+    new THREE.MeshStandardMaterial({color:0x2a0805,emissive:0xff3a1c,emissiveIntensity:2.4}));
+  beacon.position.y=21.2; beacon.userData.navBlink=true; baseGroup.add(beacon);
+  // warm interior light spill
+  const l=new THREE.PointLight(GOLD,40,60); l.position.y=12; baseGroup.add(l);
 }
 enableShadows(baseGroup);
 baseGroup.add(groundPad(12));
@@ -3361,8 +3436,10 @@ function syncHomeCity(){
   while(homeCity.length<want){
     const i=homeCity.length, a=(i/16)*Math.PI*2+.3, r=34+(i%3)*9;
     const x=Math.cos(a)*r, z=Math.sin(a)*r;
-    const sp=factionSpire(.85+(i%3)*.12, S.faction);
+    const _fs=.85+(i%3)*.12;
+    const sp=factionSpire(_fs, S.faction);
     sp.position.set(x, terrainH(x,z), z); sp.rotation.y=a;
+    sp.userData.colR=3.0*_fs; sp.userData.colTop=14*_fs;   // body bottom-radius × final scale
     homeGroup.add(sp); homeCity.push(sp);
     sp.scale.setScalar(.01);
     tw(700, EASE.outBack, k=>sp.scale.setScalar(Math.max(.01,k)));   // grow-in from the ground
@@ -3502,7 +3579,7 @@ function poiHitCyl(id){
   h.position.y=9; h.userData.poiId=id; h.userData.noShadow=true;
   return h;
 }
-const matBasalt=()=> new THREE.MeshStandardMaterial({color:0xa07a55,roughness:.9,metalness:.05,emissive:0x1c1008,emissiveIntensity:.55});  // warm rust-rock albedo (was 0x7c6759 ≈0.15 linear → read CHARCOAL/black against the rust sand under the low sun); lifted to a Mars-rust mid so boulders read as lit rock that belongs in the scene. faint warm self-emit lifts away-/down-facing facets off pure black (the displaced dodeca + lone dark hemi fill would otherwise crush them)
+const matBasalt=()=> new THREE.MeshStandardMaterial({color:0x6f4a2e,roughness:.95,metalness:.04,emissive:0x140a05,emissiveIntensity:.18});  // deep warm rust-stone (was 0xa07a55@.55 emissive → flat ORANGE-CARDBOARD: bright uniform albedo + heavy self-emit lifted the shadow faces so the monoliths had no form). darker albedo + roughness .95 + emissive cut to .18 lets unlit facets fall into real shadow → the shards SCULPT as basalt; still warm/well above the old 0x7c6759 charcoal that crushed to black against the sand
 // weathered boulder geo: high-subdiv dodeca pushed by 3-octave noise so every facet is a unique angle (no 12-face PS2 shard)
 function _boulderGeo(r,rng){
   const g=new THREE.DodecahedronGeometry(r,2);
@@ -3602,9 +3679,9 @@ function poiAmbush(rng){
   a.position.y=3.2; a.rotation.set(0,.5,.1); g.add(a);
   const b=new THREE.Mesh(new THREE.BoxGeometry(1.7,5.5,1.7),shard);
   b.position.set(.9,7.4,-.4); b.rotation.set(.16,1.2,-.2); g.add(b);
-  const crack=new THREE.Mesh(new THREE.BoxGeometry(.22,8.5,.26),
-    new THREE.MeshStandardMaterial({color:0x2a0d08,roughness:.4,metalness:.5,emissive:0xa8341f,emissiveIntensity:1.8}));
-  crack.position.set(1.18,4.6,.6); crack.rotation.set(.06,.5,.12);
+  const crack=new THREE.Mesh(new THREE.BoxGeometry(.22,5.4,.26),
+    new THREE.MeshStandardMaterial({color:0x2a0d08,roughness:.4,metalness:.5,emissive:0xa8341f,emissiveIntensity:1.3}));
+  crack.position.set(.35,3.8,.75); crack.rotation.set(0,.5,.1);   // a glowing fracture DOWN the shard face — sits within the monolith silhouette, never a floating rod
   crack.userData.pulse=true; crack.userData.idle='corrupt'; crack.userData.noShadow=true;
   pulsers.push(crack); g.add(crack);
   g.userData.crack=crack;
@@ -3810,17 +3887,25 @@ const storms=[];
 
 /* citizens -------------------------------------------------------------------- */
 const citizenUnits=[]; const citizenMixers=[];
-/* walking colonists: a rigged Quaternius astronaut (CC0, same kit author as the skyline → one visual language),
-   regraded into the soot/gold register. DRACO-compressed, so this loader gets its own decoder. */
+/* walking colonists: an ORIGINAL CC0 EVA astronaut (assets_src/build_colonist.py — suited
+   figure, helmet+visor, PLSS backpack, rigid-skinned segments + looping "Walk" clip),
+   regraded into the soot/gold register. Replaces the off-tone bee-headed Barbara astronaut.
+   Loader keeps its DRACO decoder (harmless for the un-compressed GLB). */
 let colonistRig=null, colonistWalk=null;
 const _colDraco=new DRACOLoader();
 _colDraco.setDecoderPath('/mars/vendor/three/addons/libs/draco/');
 const _colLoader=new GLTFLoader(); _colLoader.setDRACOLoader(_colDraco);
-_colLoader.load(QSP+'Astronaut_BarbaraTheBee-transformed.glb',
+_colLoader.load(QSP+'colonist_mk2.glb',
   g=>{ const root=g.scene;
-    const box=new THREE.Box3().setFromObject(root), h=box.getSize(new THREE.Vector3()).y;
-    root.scale.setScalar(3.2/Math.max(h,.001));
-    const fb=new THREE.Box3().setFromObject(root); root.position.y=-fb.min.y;   // feet to local 0 (survives clone as a child offset)
+    // robust height from a geometry-bbox UNION (THREE.Box3.setFromObject mis-measures
+    // skinned meshes — it reported 0.72 for this 1.91-tall rig → a 4.4x oversize +
+    // floating feet). union each child geometry box in root-local space instead.
+    root.updateMatrixWorld(true);
+    const _ub=new THREE.Box3(), _tb=new THREE.Box3();
+    root.traverse(o=>{ if(o.geometry){ o.geometry.computeBoundingBox(); _tb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); _ub.union(_tb); } });
+    const h=Math.max(_ub.max.y-_ub.min.y,.001), sc=3.2/h;
+    root.scale.setScalar(sc);
+    root.position.y=-_ub.min.y*sc;   // feet to local 0 (survives clone as a child offset)
     root.traverse(o=>{ if(o.isMesh){ o.castShadow=true;
       if(o.material){ o.material=o.material.clone();
         if(o.material.color){ const _h={}; o.material.color.getHSL(_h); o.material.color.setHSL(.09,Math.min(_h.s,.35),.32+_h.l*.18); }
@@ -3870,6 +3955,16 @@ function syncCitizens(){
 }
 
 /* placed buildings ------------------------------------------------------------- */
+/* collision footprint: cache an XZ radius + top height on the object so the rover
+   can be pushed out of it (circle-vs-circle) without a physics engine. 0.82 lets the
+   player nose right up to a structure before it blocks. */
+const _colBox=new THREE.Box3();
+function _colExtent(obj){
+  _colBox.setFromObject(obj);
+  const rx=(_colBox.max.x-_colBox.min.x)/2, rz=(_colBox.max.z-_colBox.min.z)/2;
+  obj.userData.colR=Math.max(rx,rz)*0.82;
+  obj.userData.colTop=_colBox.max.y;
+}
 const buildingMeshes=[];
 const timerEls=[];
 function placeBuilding(t,x,z,silent){
@@ -3877,6 +3972,7 @@ function placeBuilding(t,x,z,silent){
   const m=buildMesh(t);
   m.position.set(x, terrainH(x,z), z);
   m.rotation.y=Math.random()*Math.PI*2;
+  _colExtent(m);   // collision footprint (before the badge inflates the bbox)
   if(PROD[t]){ const badge=makeBadge(t); m.add(badge); m.userData.badge=badge; }
   homeGroup.add(m); buildingMeshes.push(m);
   if(!silent){
@@ -3951,17 +4047,72 @@ const roverWheels=[];
     roverShell.add(wh); roverWheels.push(wh);   // roll = holder.rotation.x (axle stays on local x)
   }
   enableShadows(roverShell);
+  /* ---- HERO KIT: persistent rover detailing parented to roverTilt → SURVIVES the GLB shell swap.
+     Headlights + throw, tail-lights, and a roof cargo rack with a strapped canister so the rover
+     reads as a purposeful expedition vehicle, not a box on wheels. Tuned to the ~5.5×3.9 shell. ---- */
+  const roverKit=new THREE.Group(); roverTilt.add(roverKit);
+  const _kitDark=new THREE.MeshStandardMaterial({color:0x161310,roughness:.7,metalness:.45});
+  const _headMat=new THREE.MeshStandardMaterial({color:0xeadbb8,roughness:.35,metalness:.1,emissive:0xffe7b0,emissiveIntensity:.12});
+  const _tailMat=new THREE.MeshStandardMaterial({color:0x3a0c08,roughness:.4,metalness:.1,emissive:0xff3318,emissiveIntensity:.5});
+  rover.userData.headMat=_headMat;   // emissive ramps with night in animate (no day-time bloom blobs)
+  for(const hx of [-1.35,1.35]){
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.22,12), _kitDark); hub.rotation.x=Math.PI/2; hub.position.set(hx,1.0,2.3); roverKit.add(hub);
+    const lens=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.08,12), _headMat); lens.rotation.x=Math.PI/2; lens.position.set(hx,1.0,2.41); roverKit.add(lens);
+  }
+  for(const tx of [-1.3,1.3]){
+    const tl=new THREE.Mesh(new THREE.BoxGeometry(.42,.2,.1), _tailMat); tl.position.set(tx,1.2,-2.3); roverKit.add(tl);
+  }
+  // one forward spotlight so the headlights actually throw a beam at night (intensity ramps with night in animate)
+  const headLight=new THREE.SpotLight(0xfff0cf, 0, 64, Math.PI/5, .55, 1.1); headLight.position.set(0,1.5,2.1);
+  headLight.target.position.set(0,-2,34); roverKit.add(headLight); roverKit.add(headLight.target);
+  rover.userData.headLight=headLight;
+  // roof cargo rack: a low tube frame + one strapped canister
+  const rack=new THREE.Group(); rack.position.set(0,3.4,-.2); roverKit.add(rack);
+  for(const rz2 of [-1.0,1.0]){ const rail=new THREE.Mesh(new THREE.BoxGeometry(2.4,.09,.09),_kitDark); rail.position.set(0,0,rz2); rack.add(rail); }
+  for(const rx2 of [-1.1,1.1]){ const cross=new THREE.Mesh(new THREE.BoxGeometry(.09,.09,2.1),_kitDark); cross.position.set(rx2,0,0); rack.add(cross); }
+  const can=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,1.5,12), new THREE.MeshStandardMaterial({color:0x6b5a36,roughness:.85,metalness:.2})); can.rotation.z=Math.PI/2; can.position.set(0,.33,.45); rack.add(can);
+  const strap=new THREE.Mesh(new THREE.BoxGeometry(1.6,.05,.16), new THREE.MeshStandardMaterial({color:0x20180e,roughness:.9})); strap.position.set(0,.46,.45); rack.add(strap);
+  enableShadows(roverKit);
 try{ dressDustlark(); }catch(e){}
 }
-/* gold beacon survives the GLB swap — it marks the PLAYER unit */
-const roverBeacon=new THREE.Mesh(new THREE.OctahedronGeometry(.32), matGold(1.0));
-roverBeacon.position.set(-.7,3.5,-1.3); roverBeacon.userData.pulse=true; roverBeacon.userData.idle='rover'; pulsers.push(roverBeacon);
+/* diegetic player marker: a slim rear antenna mast with a small blinking LED at the tip.
+   (was a fat gold octahedron floating over the roof — it read as a cheap UI gem stuck to the car.)
+   Both are parented to roverTilt so they SURVIVE the GLB shell swap. */
+const roverAntenna=new THREE.Mesh(new THREE.CylinderGeometry(.03,.06,1.5,6),
+  new THREE.MeshStandardMaterial({color:0x141009,roughness:.65,metalness:.55}));
+roverAntenna.position.set(.55,2.15,-1.5); roverTilt.add(roverAntenna);
+const roverBeacon=new THREE.Mesh(new THREE.SphereGeometry(.1,10,10), matGold(1.0));
+roverBeacon.position.set(.55,2.95,-1.5); roverBeacon.userData.pulse=true; roverBeacon.userData.idle='rover'; pulsers.push(roverBeacon);
 roverTilt.add(roverBeacon);
 const roverLamp=new THREE.PointLight(GOLD,30,18); roverLamp.position.set(0,3.2,0); roverTilt.add(roverLamp);
 let roverHeading=Math.atan2(S.rover.x||1,S.rover.z||1);
 rover.position.set(S.rover.x, terrainH(S.rover.x,S.rover.z), S.rover.z);
 rover.rotation.y=roverHeading;
 scene.add(rover);
+/* ---- rover collision: push the player out of solid structures (no physics engine) ----
+   Circle-vs-circle against the handful of home-base solids near the rover. A driving rover
+   can never pass through the spire / a building / a crate / a crewmate; a PARKED rover is
+   left alone (resolve only runs while moving) so wandering NPCs don't nudge it. The colTop
+   height-gate lets EMILE jump cleanly OVER short props instead of hitting an invisible wall. */
+const crateObjs=[];           // supply crates (added to homeGroup, ref otherwise dropped)
+const ROVER_COL_R=2.0;        // rover half-footprint as a collision circle
+function clampRover(p){
+  if(homeGroup.visible===false) return;   // base solids only exist on the home tile
+  const py=p.y;
+  const test=(ox,oz,r,top)=>{
+    if(top!=null && py>top+1.2) return;   // player is airborne above this prop — no invisible wall
+    let dx=p.x-ox, dz=p.z-oz; const min=r+ROVER_COL_R, d2=dx*dx+dz*dz;
+    if(d2>=min*min) return;
+    let d=Math.sqrt(d2);
+    if(d<1e-4){ dx=1; dz=0; d=1; }        // dead-centre overlap → shove along +x
+    const push=(min-d)/d; p.x+=dx*push; p.z+=dz*push;
+  };
+  test(0,0,3.4,20);                                                                   // base relay tower (slim mast)
+  for(const s of homeCity)       test(s.position.x,s.position.z, s.userData.colR||3.2, s.userData.colTop||14);
+  for(const m of buildingMeshes) test(m.position.x,m.position.z, m.userData.colR||5,   m.userData.colTop||8);
+  for(const c of crateObjs)      test(c.position.x,c.position.z, c.userData.colR||1.4, c.userData.colTop||2.6);
+  for(const u of citizenUnits)   test(u.position.x,u.position.z, 1.0, 2.4);            // crew (soft, small)
+}
 /* RENDER INTERPOLATION — decouples the fixed-timestep sim from the variable-framerate render.
    The sim advances in fixed 1/60 chunks (leaving a remainder in _ip.accum); the VISUAL transform is
    lerped between the previous and current sim state by alpha = accum/FIXED. Kills the per-frame jitter
@@ -3977,9 +4128,10 @@ function swapRoverModel(){
   roverShell.clear(); roverWheels.length=0;
   roverShell.add(MODEL_CACHE.rover.clone(true));
   _roverGLBSwapped=true;
-  // re-seat the player marker onto the GLB body (the y=3.5/-.7/-1.3 placement was tuned to the taller procedural shell)
-  if(roverBeacon) roverBeacon.position.set(0,2.4,0);
-  if(roverLamp) roverLamp.position.set(0,2.2,0);
+  // re-seat the player marker onto the GLB body: slim rear antenna + a small LED at the tip (no roof gem)
+  if(roverAntenna) roverAntenna.position.set(.5,1.55,-1.55);
+  if(roverBeacon) roverBeacon.position.set(.5,2.5,-1.55);
+  if(roverLamp) roverLamp.position.set(0,2.0,0);
 }
 
 /* ============================== EMILE — playable character ==============================
@@ -4004,7 +4156,7 @@ const emileBlob=new THREE.Mesh(new THREE.PlaneGeometry(7,7), new THREE.MeshBasic
 emileBlob.rotation.x=-Math.PI/2; emileBlob.renderOrder=1; emileBlob.visible=false; emileBlob.frustumCulled=false; emileBlob.userData.noShadow=true; scene.add(emileBlob);
 // contact-shadow blob for the ROVER — grounds the vehicle so it never reads as floating over the terrain.
 // Elongated along its heading (an ovoid pool, not a disc) and parented to the scene so it stays flat on the ground.
-const roverBlob=new THREE.Mesh(new THREE.PlaneGeometry(9,12), new THREE.MeshBasicMaterial({map:_blobTex,transparent:true,depthWrite:false,opacity:.82}));
+const roverBlob=new THREE.Mesh(new THREE.PlaneGeometry(10.5,13.5), new THREE.MeshBasicMaterial({map:_blobTex,transparent:true,depthWrite:false,opacity:.9}));
 roverBlob.rotation.x=-Math.PI/2; roverBlob.renderOrder=1; roverBlob.frustumCulled=false; roverBlob.userData.noShadow=true; scene.add(roverBlob);
 // procedural rig animator (axes calibrated against the live rig)
 const _eq=new THREE.Quaternion(), _eq2=new THREE.Quaternion(), _EX=new THREE.Vector3(1,0,0), _EY=new THREE.Vector3(0,1,0), _EZ=new THREE.Vector3(0,0,1);
@@ -4686,9 +4838,9 @@ function rutPx(wx,wz){
 /* stamp one soft wheel mark (called per wheel under load) */
 function stampRut(wx,wz,rad){
   const c=rutPx(wx,wz); if(!c) return;
-  const pr=Math.max(2.2, rad*RUT_RES/RUT_WORLD);
-  const g=rctxR.createRadialGradient(c[0],c[1],pr*.25,c[0],c[1],pr);
-  g.addColorStop(0,'rgba(255,255,255,.72)'); g.addColorStop(1,'rgba(255,255,255,0)');
+  const pr=Math.max(2.6, rad*RUT_RES/RUT_WORLD);
+  const g=rctxR.createRadialGradient(c[0],c[1],pr*.35,c[0],c[1],pr);
+  g.addColorStop(0,'rgba(255,255,255,.95)'); g.addColorStop(.6,'rgba(255,255,255,.6)'); g.addColorStop(1,'rgba(255,255,255,0)');
   rctxR.globalCompositeOperation='lighter';
   rctxR.fillStyle=g; rctxR.beginPath(); rctxR.arc(c[0],c[1],pr,0,7); rctxR.fill();
   rctxR.globalCompositeOperation='source-over';
@@ -4729,6 +4881,26 @@ function dropRutDecal(wx,wz,head){
   sp.scale.set(1.7, 4.0, 1);    // long dark streak along travel
   sp.material.rotation=-head;
 }
+/* SPAWN TRAIL: stamp a receding pair of wheel tracks BEHIND the parked rover so the very first
+   frame reads as "the rover just drove in" — gives an instant route + proves the rover marks the
+   world, instead of a toy parked on pristine sand. Runs once (one-shot from updateRover). */
+function seedSpawnTracks(px,pz,head){
+  const sH=Math.sin(head), cH=Math.cos(head);
+  if(PERF==='low'){
+    for(let i=2;i<22;i+=2){ const d=i*2.2, bx=px-sH*d, bz=pz-cH*d; dropRutDecal(bx,bz,head); }
+    return;
+  }
+  rutRecenter(px,pz);                          // snap the deformation window onto the spawn rover first
+  const ax=cH*1.15, az=-sH*1.15;               // wheel half-track across heading
+  for(let i=2;i<32;i++){
+    const d=i*1.4, wob=Math.sin(i*0.5)*0.55;   // slight wander so it isn't dead-straight
+    const bx=px - sH*d, bz=pz - cH*d;
+    stampRut(bx+ax+cH*wob, bz+az-sH*wob, 2.4);
+    stampRut(bx-ax+cH*wob, bz-az-sH*wob, 2.4);
+  }
+}
+let _tracksSeeded=false;
+let _rutStopArm=false;   // set true while cruising; on settle-to-rest re-seeds an arrival trail
 /* ===== SAND-SURF FAN — wide silk gold dust on steep dune faces (high tier) ===== */
 const FAN_N = PERF==='low'?0:6, fan=[]; let fanIdx=0;
 for(let i=0;i<FAN_N;i++){
@@ -4951,6 +5123,38 @@ function navHudUpdate(dt){
    retargets to the next nearest site automatically, and hides once everything near is done.
    Pure HUD — no new 3D objects, no save writes, can't strand the player. */
 let _objEl=null, _objAcc=0;
+/* PASS 5 — destination beacon: a single reusable light-column the objective HUD repositions onto
+   the current nearest unsurveyed site. fog:false so the gold shaft punches THROUGH the dust haze
+   and reads as a "drive here" landmark from across the basin — the spawn now has a focal point +
+   a visible route, not just a HUD chevron pointing at empty sand. One object, no save writes. */
+let _objBeacon=null;
+function ensureObjBeacon(){
+  if(_objBeacon) return _objBeacon;
+  const g=new THREE.Group(); g.visible=false; g.userData.noShadow=true;
+  // slender opaque obelisk — a SILHOUETTE that reads against any sky (the additive shaft alone
+  // washes to white in daylight); dark warm stone with a faintly emissive gold cap.
+  const obel=new THREE.Mesh(new THREE.CylinderGeometry(.5,1.5,30,7),
+    new THREE.MeshStandardMaterial({color:0x2a1d12,roughness:.9,metalness:.2,emissive:0x6b4a1c,emissiveIntensity:.35}));
+  obel.position.y=15; obel.castShadow=false; g.add(obel);
+  const cap=new THREE.Mesh(new THREE.OctahedronGeometry(1.7),
+    new THREE.MeshStandardMaterial({color:0xffd98a,emissive:0xffb24a,emissiveIntensity:1.6,roughness:.4}));
+  cap.position.y=31; cap.castShadow=false; g.add(cap);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(1.9,3.8,150,18,1,true),
+    new THREE.MeshBasicMaterial({color:GOLD,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,
+      depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  beam.position.y=80; beam.castShadow=false; beam.frustumCulled=false; g.add(beam);
+  const core=new THREE.Mesh(new THREE.CylinderGeometry(.42,.9,150,10,1,true),
+    new THREE.MeshBasicMaterial({color:0xf6cf86,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,
+      depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  core.position.y=80; core.castShadow=false; core.frustumCulled=false; g.add(core);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(4.2,5.6,48),
+    new THREE.MeshBasicMaterial({color:GOLD,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,
+      depthWrite:false,side:THREE.DoubleSide,fog:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=.6; ring.castShadow=false; g.add(ring);
+  g.userData.beam=beam; g.userData.core=core; g.userData.ring=ring;
+  scene.add(g); _objBeacon=g; return g;
+}
+function hideObjBeacon(){ if(_objBeacon) _objBeacon.visible=false; }
 function nearestUnsurveyed(px,pz){
   let best=null, bd=Infinity;
   const set=(typeof SITES==='function')?SITES():POIS;
@@ -4962,7 +5166,7 @@ function nearestUnsurveyed(px,pz){
   return best?{site:best,dist:bd}:null;
 }
 function objHudUpdate(dt){
-  if(mode!=='play' || playerMode==='emile'){ if(_objEl) _objEl.style.display='none'; return; }
+  if(mode!=='play' || playerMode==='emile'){ if(_objEl) _objEl.style.display='none'; hideObjBeacon(); return; }
   if(!_objEl){
     _objEl=document.createElement('div'); _objEl.id='objHud'; _objEl.className='hud';
     _objEl.style.cssText='position:fixed;left:50%;top:166px;transform:translateX(-50%);z-index:23;'
@@ -4974,9 +5178,20 @@ function objHudUpdate(dt){
   }
   _objAcc-=dt; if(_objAcc>0) return; _objAcc=0.12;
   const p=rover.position, tgt=nearestUnsurveyed(p.x,p.z);
-  if(!tgt){ _objEl.style.display='none'; return; }
+  if(!tgt){ _objEl.style.display='none'; hideObjBeacon(); return; }
   _objEl.style.display='block';
   const s=tgt.site, d=tgt.dist;
+  /* plant / move the destination light-column. Hidden once you're basically on top of it
+     (it auto-detects at 35u and grows its own badge), so the shaft never towers in your face. */
+  if(d>30){
+    const b=ensureObjBeacon(); b.visible=true;
+    b.position.set(s.x, terrainH(s.x,s.z), s.z);
+    const pl=0.5+0.5*Math.sin(performance.now()*0.0026);
+    b.userData.beam.material.opacity=.13+.11*pl;
+    b.userData.core.material.opacity=.34+.26*pl;
+    b.userData.ring.material.opacity=.40+.30*pl;
+    b.userData.ring.rotation.z+=0.04;
+  } else hideObjBeacon();
   const rel=Math.atan2(s.x-p.x, s.z-p.z)-roverHeading, deg=(rel*180/Math.PI).toFixed(0);
   const named=(typeof poiDetected==='function')&&poiDetected(s.id);
   const label=named ? s.name : 'UNCHARTED SIGNAL';
@@ -5257,17 +5472,25 @@ function floraFollow(wx,wz){
   const per=Math.floor(FLORA_N/9), d=_floraDummy; let idx=0;
   for(let gx=-1;gx<=1;gx++) for(let gz=-1;gz<=1;gz++){
     const ccx=cx+gx, ccz=cz+gz, rng=mulberry32(_cellSeed(ccx,ccz)^0xf10a);
+    // crystal CLUSTERS, not evenly-spread needles: a few seed points per cell, each grows a
+    // tight knot of short tilted shards. Height multiplier 0.9 (was 2.2) so they read as
+    // knee/shoulder-high bioluminescent crystal, never horizon-spamming traffic-cone spikes.
+    const nClu=4+Math.floor(rng()*3), clu=[];
+    for(let c=0;c<nClu;c++) clu.push({x:(ccx+rng()-0.5)*FLORA_SPAN, z:(ccz+rng()-0.5)*FLORA_SPAN, s:1.3+rng()*2.4});
     for(let k=0;k<per && idx<FLORA_N;k++,idx++){
-      const fx=(ccx+rng()-0.5)*FLORA_SPAN, fz=(ccz+rng()-0.5)*FLORA_SPAN;
-      const gy=terrainH(fx,fz), s=2+rng()*5;
-      d.position.set(fx,gy+s*2,fz); d.rotation.set(0,rng()*6.283,0); d.scale.set(s*0.5,s*2.2,s*0.5);
+      const C=clu[k%nClu];
+      const fx=C.x+(rng()-0.5)*C.s*2.4, fz=C.z+(rng()-0.5)*C.s*2.4;
+      const s=C.s*(0.55+rng()*0.8), hY=s*0.9, gy=terrainH(fx,fz);
+      d.position.set(fx, gy+2*hY*0.94, fz);                            // base ~on ground (cone half-height = 2*scaleY)
+      d.rotation.set((rng()-0.5)*0.5, rng()*6.283, (rng()-0.5)*0.5);   // slight crystalline lean
+      d.scale.set(s*0.5, hY, s*0.5);
       d.updateMatrix(); _flora.setMatrixAt(idx,d.matrix);
     }
   }
   for(;idx<FLORA_N;idx++){ d.position.set(0,-9999,0); d.scale.setScalar(0.001); d.updateMatrix(); _flora.setMatrixAt(idx,d.matrix); }
   _flora.instanceMatrix.needsUpdate=true;
 }
-function floraUpdate(dt,t){ if(_flora) _flora.userData.mat.emissiveIntensity=0.25+(0.6+0.4*Math.sin(t*1.5))*_nightN()*1.4; }
+function floraUpdate(dt,t){ if(_flora) _flora.userData.mat.emissiveIntensity=0.14+(0.6+0.4*Math.sin(t*1.5))*_nightN()*1.6; }   // subtle by day, blooms at night
 
 /* --- D. City sky-traffic: hovercraft circling the charted settlements (animates g.userData.traffic) --- */
 function cityTrafficUpdate(dt,t){
@@ -6056,6 +6279,7 @@ function roverUpdate(dt,t){
   const step=roverSpd*dt, sH=Math.sin(roverHeading), cH=Math.cos(roverHeading);
   if(step>0){
     p.x+=sH*step; p.z+=cH*step;
+    clampRover(p);                   // push out of solid structures before anything reads the new position
     S.travel+=step; S.today.travel+=step;
     S.rover.x=p.x; S.rover.z=p.z;
     fogFollow(p.x,p.z);              // slide the reveal window with the rover BEFORE revealing this frame
@@ -6123,6 +6347,14 @@ function roverUpdate(dt,t){
     if(_surf){ const sp=2.6+roverSpdRatio*2.2; emitFan(p.x-sH*1.6, gy+.7, p.z-cH*1.6, sH, cH, sp); emitFan(p.x-sH*1.6, gy+.7, p.z-cH*1.6, sH, cH, sp); }
   }
   /* persistent ruts: keep the window centered, stamp under both rear wheels while loaded */
+  if(!_tracksSeeded && !_emile){ _tracksSeeded=true; seedSpawnTracks(p.x,p.z,roverHeading); }   // one-shot: lay an arrival trail behind the spawn rover
+  /* stop-rearm: once the rover has been cruising, the moment it settles to rest re-lay a fresh
+     arrival trail behind it — so a PARKED rover always shows where it just drove in from, even
+     after it outran its own 360u rut window at speed (the live stamps scroll out). */
+  if(!_emile){
+    if(roverSpd>6) _rutStopArm=true;
+    else if(_rutStopArm && roverSpd<0.5){ _rutStopArm=false; seedSpawnTracks(p.x,p.z,roverHeading); }
+  }
   rutRecenter(p.x,p.z);
   if(!_emile && roverSpd>1.6){
     rutStampAcc+=step;
@@ -6163,6 +6395,7 @@ function swapInModel(t){
     const badge=old.userData.badge;
     if(badge){ fresh.add(badge); fresh.userData.badge=badge; }
     homeGroup.remove(old); pruneFx(old); homeGroup.add(fresh);
+    fresh.userData.colR=old.userData.colR; fresh.userData.colTop=old.userData.colTop;   // keep collision footprint across the GLB swap
     buildingMeshes[i]=fresh;
   }
 }
@@ -6195,6 +6428,7 @@ function spawnProps(k){
       c.position.set(Math.cos(a)*r, terrainH(Math.cos(a)*r, Math.sin(a)*r), Math.sin(a)*r);
       c.rotation.y=rng()*Math.PI*2;
       homeGroup.add(c);
+      _colExtent(c); crateObjs.push(c);   // crates are solid to the rover
     }
   }
 }
@@ -6436,12 +6670,47 @@ function pollGamepad(dt){
 let nx=0, ny=0;
 const par={x:0,y:0};
 const _camR=new THREE.Vector3(), _camU=new THREE.Vector3();
+/* CAMERA PUSH-IN — when a tall base structure (central spire / faction spire / building)
+   sits between the lens and the rover, pull the camera IN to just in front of it so it
+   never clips through or hides the hero. Reuses the same collision cylinders as clampRover.
+   Does nothing over open desert, when the lens already clears the obstacle top, or when the
+   obstacle is hugging the subject (let those frame naturally). Snaps IN to kill the clip,
+   eases back OUT to avoid a pop when the obstacle clears. */
+let _camPushS=1;
+let _driveFade=0;   // cinematic HUD auto-fade: >0 while the rover is moving, decays when stopped
+function updateDrivingHud(dt){
+  _driveFade = (typeof roverSpdRatio==='number' && roverSpdRatio>0.05) ? 0.85 : Math.max(0, _driveFade - dt);
+  const want = _driveFade>0 && mode==='play' && playerMode!=='emile' && !document.body.classList.contains('immersive');
+  if(want !== document.body.classList.contains('driving')) document.body.classList.toggle('driving', want);
+}
+function clampCamera(dt){
+  if(homeGroup.visible===false){ _camPushS=1; return; }
+  const ax=camTarget.x, ay=camTarget.y, az=camTarget.z;
+  const ex=camera.position.x-ax, ey=camera.position.y-ay, ez=camera.position.z-az;
+  const segA=ex*ex+ez*ez; if(segA<1){ _camPushS=1; return; }
+  const camY=camera.position.y;
+  let bestS=1; const pad=1.6;
+  const consider=(cx,cz,R,top)=>{
+    if(top==null || camY>top+2) return;                  // lens already looks over it
+    const tdx=ax-cx, tdz=az-cz, tD2=tdx*tdx+tdz*tdz;
+    if(tD2 < (R+9)*(R+9)) return;                          // obstacle hugs the subject → frame naturally
+    const r=R+pad, b=2*(tdx*ex+tdz*ez), c=tD2-r*r, disc=b*b-4*segA*c;
+    if(disc<=0) return;
+    const s=(-b-Math.sqrt(disc))/(2*segA);                // near entry along target→camera
+    if(s>0.02 && s<bestS) bestS=s;
+  };
+  consider(0,0,3.4,21);
+  for(const sp of homeCity)       consider(sp.position.x,sp.position.z, sp.userData.colR||3.2, sp.userData.colTop||14);
+  for(const m of buildingMeshes)  consider(m.position.x,m.position.z, m.userData.colR||5,   m.userData.colTop||8);
+  _camPushS = bestS < _camPushS ? bestS : damp(_camPushS, bestS, 5, dt);
+  if(_camPushS < 0.999){ camera.position.set(ax+ex*_camPushS, ay+ey*_camPushS, az+ez*_camPushS); }
+}
 function updateCamera(dt,t){
   const _em=(playerMode==='emile');
   const _fol=_em?11:2.5;                        // EMILE moves fast — the camera must keep up or he runs off-frame
   camTarget.x=damp(camTarget.x, rover.position.x, _fol, dt);
   camTarget.z=damp(camTarget.z, rover.position.z, _fol, dt);
-  camTarget.y=damp(camTarget.y, rover.position.y+(_em?7:6), _fol, dt);   // EMILE: look-at lifted onto the chest swirl (was hip-level / bottom-heavy)
+  camTarget.y=damp(camTarget.y, rover.position.y+(_em?7:4), _fol, dt);   // rover: look-at near roof height (was +6 → looked DOWN at a toy; +4 lifts the rover up the frame as the hero). EMILE: lifted onto the chest swirl
   if(_em && EMILE.landT>0) camTarget.y -= Math.min(4,(EMILE.landV||0)*0.12)*(EMILE.landT/0.22);   // camera dip on landing impact
   distK=damp(distK, 1+(_em?.34:.1)*roverSpdRatio + ((_em&&EMILE.dashT>0)?.18:0), 2.2, dt);   // tighter follow + real dash pull-back keeps the burst in frame
   /* +++ rover-feel: SPEED CAMERA (Forza) — FOV breathes wider with speed, dust-streak vignette tightens. */
@@ -6463,6 +6732,8 @@ function updateCamera(dt,t){
       camera.position.y+=(Math.random()*2-1)*m; }
     trauma=Math.max(0,trauma-2.8*dt);
   }
+  clampCamera(dt);
+  updateDrivingHud(dt);
   camera.lookAt(camTarget);
   if(trauma>0 && !_reduceMotion) camera.rotation.z+=(Math.random()*2-1)*.02*trauma*trauma;
 }
@@ -6940,7 +7211,7 @@ function newPlanet(){   // NG+: a fresh planet, keep the archive/tech you earned
   S.seed=ns>>>0; S.tiles={}; S.tileOrder=[]; S.reveal=''; S.cleared=[]; S.discovered=[]; S.detected=[];
   S.zonesClaimed=[]; S.uplink=[]; S.terra={}; S.scarBonus=false; S.won=0; S.challenge=null;
   S.warlord=null; S.warlordAt=0;   // #4: a fresh planet starts uncrowned
-  S.tile=HOME_TILE; S.rover={x:14,z:8};
+  S.tile=HOME_TILE; S.rover={x:74,z:46};
   try{ location.hash=''; writeHashSeed(S.seed); }catch(e){}   /* clear ALL hash params first → a stale c= challenge can't survive NG+ and re-bind on the fresh planet */
   save(); location.reload();   /* reload re-evals the module → archetype cache + all per-tile state start fresh on the new seed */
 }
@@ -7356,9 +7627,17 @@ function toggleFS(){
     const k=(e.key||'').toLowerCase();
     if(k==='h'){ e.preventDefault(); setImmersive(!document.body.classList.contains('immersive')); }
     else if(k==='f'){ e.preventDefault(); if(fsSupported()) toggleFS(); }
+    else if(k==='tab'){ e.preventDefault(); document.body.classList.toggle('panels'); }   // reveal/hide the full dashboard
   });
+  // bottom-centre hint + tappable toggle for the hidden panels (mobile has no Tab)
+  { const pt=document.createElement('div'); pt.id='panelsTip'; pt.textContent='TAB · PANELS';
+    document.body.appendChild(pt);
+    document.addEventListener('pointerdown', ev=>{
+      if(mode!=='play') return;
+      const t=ev.target; if(t && t.id==='brand'){ document.body.classList.toggle('panels'); }
+    }); }
   // one-time teaching nudge
-  if(!lsGet('mc_seenImmTip')){ setTimeout(()=>{ try{ toast('PRESS H · CLEAN VIEW OF MARS'); }catch(e){} lsSet('mc_seenImmTip','1'); }, 9000); }
+  if(!lsGet('mc_seenImmTip')){ setTimeout(()=>{ try{ toast('TAB · PANELS  ·  H · CLEAN VIEW'); }catch(e){} lsSet('mc_seenImmTip','1'); }, 9000); }
 }
 function renderBuildMenu(){
   const box=$('buildBtns'); box.innerHTML='';
@@ -8871,13 +9150,14 @@ function startGame(){
   blackout.style.opacity=0; dust.style.opacity=0; cine.style.display='none';
   term.style.opacity=0; $('skipBtn').style.display='none';
   document.body.classList.add('playing');
+  document.body.classList.add('minhud');   // dashboard hidden by default — TAB reveals the full panel set
   requestWake();
   try{ track('boot',{tier:PERF_FX}); }catch(e){}
   hexGridMat.opacity=0; gridTarget=0;
   wakeSpire(true);   /* no-op if the terminal already woke it; SKIP + returning saves land lit */
   camera.fov=40; camera.updateProjectionMatrix();
-  camTarget.set(rover.position.x, rover.position.y+6, rover.position.z);
-  yaw=.6; pitch=.18; dist=50; distK=1; applyOrbit();   // CINEMATIC CHASE (was .42/110, then .26)
+  camTarget.set(rover.position.x, rover.position.y+2.6, rover.position.z);
+  yaw=4.18; pitch=.12; dist=19; distK=1; applyOrbit();   // CINEMATIC HERO SPAWN — rover fills lower-third foreground, ruin cluster pushed to frame edge/behind; base+ring+crew behind camera (was 3.9/.13/33 → rover read tiny against a milky horizon)
   syncCitizens(); updateHUD(); renderBuildMenu(); renderMissions();
   renderNext(); renderDailies(); updateScanBtn();
   bootCeremony(); checkGoals();
@@ -9062,7 +9342,11 @@ function animate(){
     else m.material.emissiveIntensity=2.2+Math.sin(t*2.4+m.id)*1.3;
   }
   if(roverLamp){ const n=_nightN(); roverLamp.intensity=(3+n*27)*(1+Math.sin(t*2.2)*.06); }   // dim the gold lamp in daylight so it doesn't wash/bloom the rover
-  baseGroup.children.forEach(o=>{ if(o.userData.pulse){o.rotation.y+=dt*.6; if(spireAwake) o.material.emissiveIntensity=2.8+Math.sin(t*2.4)*1.1;} });
+  if(rover.userData.headLight){ const nn=_nightN(); rover.userData.headLight.intensity=nn*200; if(rover.userData.headMat) rover.userData.headMat.emissiveIntensity=.1+nn*1.9; }   // headlights throw + glow only as dusk falls (no daytime bloom blobs)
+  baseGroup.children.forEach(o=>{
+    if(o.userData.navBlink){ o.material.emissiveIntensity=((t%1.6)<0.13)?3.0:0.12; }   // aviation-style red blink
+    if(o.userData.pulse){ o.rotation.y+=dt*.6; if(spireAwake) o.material.emissiveIntensity=1.2+Math.sin(t*2.4)*0.5; }
+  });
   skyUpdate(dt); skySetFocus(camTarget.x,camTarget.z);   // SKY: advance sol-clock + sync sun/fog (see sky_atmosphere_analytic)
   if(mode==='map'&&mapPhase==='orbit') setGlobeSol(globeSunAz+dt*0.22);   // GLOBE: sweep the dark-side terminator (Black Marble city-lights)
   if(starUniforms) starUniforms.uTime.value=t;
@@ -9193,15 +9477,45 @@ function animate(){
   }
 
   // site detection beacons: ⬡ pulse + projected labels (zone-label idiom, zero alloc)
-  for(const b of poiBeacons){
+  const _mmR = (mode==='play') ? ($('minimapWrap')&&$('minimapWrap').getBoundingClientRect()) : null;
+  // place nearest labels first so a far ruin yields to a near one instead of stacking
+  const _plist = (mode==='play')
+    ? poiBeacons.slice().sort((A,B)=>A.g.position.distanceToSquared(camera.position)-B.g.position.distanceToSquared(camera.position))
+    : poiBeacons;
+  // PASS-7 LABEL DISCIPLINE: distant POIs read as a subtle gold ⬡ icon ONLY (no floating
+  // text across the horizon). The text label appears only for the nearest few sites, only
+  // when the rover is parked — it fades out the moment you start driving.
+  const _driving = document.body.classList.contains('driving');
+  const _LBL_NEAR = 150;          // metres: beyond this a POI is icon-only, never text
+  const _LBL_FADE = 90;           // metres: text starts dimming past here
+  const _LBL_BUDGET = 3;          // never more than N text labels on screen at once
+  let _lblShown=0;
+  const _placed=[];
+  for(const b of _plist){
     if(b.g.parent && !b.g.parent.visible){ b.el.style.display='none'; continue; }   // hidden tile group
-    b.sprite.scale.setScalar(4.6*(1+.16*Math.sin(t*2.6+b.phase)));
-    b.sprite.material.opacity=.7+.3*Math.sin(t*2.6+b.phase);
+    // ICON: a small gold sprite that shrinks with distance (perspective) — this is the
+    // "subtle marker" the brief asks for; it stays even when the text is suppressed.
+    const _wd = b.g.position.distanceTo(rover.position);
+    const _iconK = _wd>520 ? 0 : 1;
+    b.sprite.scale.setScalar(3.6*(1+.16*Math.sin(t*2.6+b.phase))*_iconK);
+    b.sprite.material.opacity=(_wd>320?.34:.7)+ .26*Math.sin(t*2.6+b.phase);
+    // TEXT label suppressed while driving, beyond _LBL_NEAR, or once the budget is spent
+    if(_driving || _wd>_LBL_NEAR || _lblShown>=_LBL_BUDGET){ b.el.style.display='none'; continue; }
     _poiV.copy(b.g.position); _poiV.y+=20; _poiV.project(camera);
-    if(mode!=='play'||_poiV.z>1||Math.abs(_poiV.x)>1.05||Math.abs(_poiV.y)>1.05){ b.el.style.display='none'; continue; }
+    // cull behind camera / past the screen edge (tight margin: a centered label whose anchor sits at the edge would clip)
+    if(mode!=='play'||_poiV.z>1||Math.abs(_poiV.x)>0.94||Math.abs(_poiV.y)>0.94){ b.el.style.display='none'; continue; }
+    const _sx=(_poiV.x+1)/2*(innerWidth||1), _sy=(-_poiV.y+1)/2*(innerHeight||1);
+    // don't draw a label where the opaque orbital-map panel would chop it
+    if(_mmR && _sx>_mmR.left-78 && _sx<_mmR.right+78 && _sy>_mmR.top-14 && _sy<_mmR.bottom+14){ b.el.style.display='none'; continue; }   // ±78 ≈ half a centered label, so the panel never chops the text
+    // de-overlap: skip a label that would stack on an already-placed (nearer) one
+    let _ov=false;
+    for(const p of _placed){ if(Math.abs(p.y-_sy)<13 && Math.abs(p.x-_sx)<78){ _ov=true; break; } }
+    if(_ov){ b.el.style.display='none'; continue; }
+    _placed.push({x:_sx,y:_sy}); _lblShown++;
     b.el.style.display='block';
-    b.el.style.left=((_poiV.x+1)/2*(innerWidth||1))+'px';
-    b.el.style.top=((-_poiV.y+1)/2*(innerHeight||1))+'px';
+    b.el.style.opacity = _wd>_LBL_FADE ? (1-(_wd-_LBL_FADE)/(_LBL_NEAR-_LBL_FADE)).toFixed(2) : 1;
+    b.el.style.left=_sx+'px';
+    b.el.style.top=_sy+'px';
   }
 
   // selection ring follows the placement ghost
