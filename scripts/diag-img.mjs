@@ -1,0 +1,15 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const ctx = await b.newContext({ width: 1440, height: 900 });
+const p = await ctx.newPage();
+const fails = [];
+p.on("requestfailed", r => { if (/\.(jpg|png|webp)/.test(r.url())) fails.push(r.url()+" :: "+r.failure()?.errorText); });
+const responses = [];
+p.on("response", r => { const u=r.url(); if (/0001\.jpg|0002\.jpg/.test(u)) responses.push(r.status()+" "+u); });
+await p.goto("https://www.freeloncity.com/citizens", { waitUntil: "load", timeout: 45000 });
+await p.waitForTimeout(3000);
+const firstSrc = await p.evaluate(() => { const i=[...document.querySelectorAll("img")].find(x=>/000\d/.test(x.src||x.currentSrc)); return i? (i.currentSrc||i.src):"none"; });
+console.log("FIRST CITIZEN IMG SRC:\n"+firstSrc);
+console.log("\nRESPONSES:\n"+responses.slice(0,4).join("\n"));
+console.log("\nFAILS:\n"+fails.slice(0,4).join("\n"));
+await b.close();
