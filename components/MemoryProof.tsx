@@ -238,29 +238,42 @@ export function MemoryProof() {
             That memory is saved to this citizen — and when one is yours, every job it does
             lands on a public record that travels with the NFT.
           </p>
-          {/* Share FIRST (2026-06-26 punchlist #3): the wow ("it remembered ME")
-              was dead-ending into two buy buttons with zero way to spread it. The
-              shared card carries the visitor's OWN typed fact — it's about them,
-              not us — which is the whole virality wedge of the memory thesis. */}
+          {/* OWN LEADS (2026-06-30): the wow ("it remembered ME") is the money
+              bridge — "I want one that's mine" — so OWN is the single gold action
+              at the payoff. Until today share was the gold primary here, which
+              sent the peak emotional moment to Twitter instead of to ownership.
+              Share is kept (the 06-26 virality point stands) but demoted to a
+              secondary below; the shared card still carries the visitor's OWN fact.
+              `opensea_click {from:memory_proof}` event preserved for the funnel. */}
           <a
             className="btn btn-primary btn-sm mproof__share"
-            href={tweetIntent(tweetMemoryProof({ fact }))}
+            href={OPENSEA}
             target="_blank"
             rel="noreferrer"
-            onClick={() => trackEvent("memory_proof_share")}
+            onClick={() => trackEvent("opensea_click", { from: "memory_proof" })}
           >
-            <span className="ttl">⬡ It remembered me — share it →</span>
+            <span className="ttl">Own a FREELON — make one yours →</span>
           </a>
+          {/* Wallet/no-wallet disambiguation at the exact decision point — the
+              single clearest place to kill the "do I need crypto to try this?"
+              confusion (the demo is free + wallet-free; ownership is where a
+              wallet enters). */}
+          <p style={{ margin: "0 0 14px", fontFamily: "var(--mono2)", fontSize: 11, letterSpacing: "0.02em", color: "var(--ink-dim)" }}>
+            Free to try. A crypto wallet is only needed to <strong style={{ color: "var(--ink-2)" }}>own</strong>.
+          </p>
           <div className="mproof__cta">
+            <a
+              className="btn btn-secondary btn-sm"
+              href={tweetIntent(tweetMemoryProof({ fact }))}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => trackEvent("memory_proof_share")}
+            >
+              <span className="ttl">⬡ It remembered me — share it →</span>
+            </a>
             <Link className="btn btn-secondary btn-sm" href="/demo" onClick={() => trackEvent("memory_proof_to_demo")}>
               <span className="ttl">Talk to a live one — free →</span>
             </Link>
-            {/* T11 2026-06-11 — folded `memory_proof_to_opensea` into the canonical
-                opensea_click {from} funnel event so all buy-intent clicks share
-                one event name in the Vercel dashboard. */}
-            <a className="btn btn-secondary btn-sm" href={OPENSEA} target="_blank" rel="noreferrer" onClick={() => trackEvent("opensea_click", { from: "memory_proof" })}>
-              <span className="ttl">Own a FREELON →</span>
-            </a>
           </div>
           <p style={{ margin: "10px 0 0", fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)" }}>
             This was a guided preview — the live citizen below is the real thing.{" "}

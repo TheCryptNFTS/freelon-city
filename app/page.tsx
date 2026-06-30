@@ -204,13 +204,22 @@ export default async function Home() {
             <span className="ttl">MEET A CITIZEN · FREE →</span>
           </TrackedLink>
         </div>
-        {/* 2026-06-30 REDUCTION PASS: the close was five stacked paragraphs (eco
-            explainer + buy note + Discord/X invite) fighting at the buy moment —
-            the panel's "the close is louder than the hero" flag. Collapsed to one
-            quiet expectation line. The six-collections explainer and the
-            community invite were NOT lost: both already live in the footer (City
-            column links /collections; Support column links Discord + X). A premium
-            close is one decision, one line — not a second sitemap. */}
+        {/* WORLD BRIDGE (2026-06-30): the 06-30 reduction collapsed the close to
+            buy + wallet note, which dropped the ONE beat that tells a stranger
+            this is a world, not a single drop — they left not knowing six
+            collections exist or why FREELON is the one being pushed. This is the
+            single ecosystem line the locked ecosystem map (§5) says belongs on the
+            homepage: not the grid/tree the reduction rightly cut (that was a
+            second sitemap), just the "the city is bigger" bridge to /collections.
+            Reuses the purpose-built .home-close__eco hook orphaned by the
+            reduction. Sits BELOW the buy CTA so it never interrupts the purchase
+            beat (the 06-10 rule). Copy stays descriptive — no value/return or
+            on-chain-durability claims (COPY_LEGAL_CHECKLIST). */}
+        <p className="home-close__eco">
+          <strong>FREELON</strong> is the flagship citizen you own and train — but it lives in a
+          whole city: <strong>six collections</strong>, one signal. The wild, the dead, the
+          emotional, the lost, and the ones you keep. <Link href="/collections">See all six →</Link>
+        </p>
         <p className="home-close__note">
           Opens OpenSea · secured on Ethereum · a crypto wallet is needed to collect.
           After you collect, come back to <Link href="/my-citizens">awaken it</Link>.{" "}
