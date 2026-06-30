@@ -36,7 +36,9 @@
   /* ---------- boot shield ---------- */
   #boot{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;
         justify-content:center;flex-direction:column}
-  .bootTxt{font-family:'Clash Display',monospace;font-size:11px;letter-spacing:.5em;color:var(--gold);animation:bootPulse 1.6s ease infinite}
+  .bootBrand{font-family:'Clash Display',monospace;font-size:34px;font-weight:600;letter-spacing:.14em;color:var(--gold);text-shadow:0 0 28px rgba(255,200,90,.25)}
+  .bootHook{font-family:'Clash Display',monospace;font-size:12px;letter-spacing:.22em;color:rgba(255,255,255,.62);margin-top:12px;text-transform:uppercase}
+  .bootTxt{font-family:'Clash Display',monospace;font-size:11px;letter-spacing:.5em;color:var(--gold);animation:bootPulse 1.6s ease infinite;margin-top:26px;opacity:.6}
   @keyframes bootPulse{50%{opacity:.3}}
   #bootErr{margin-top:18px;font-size:10px;letter-spacing:.18em;color:var(--red);
            max-width:480px;text-align:center;line-height:2}
@@ -509,7 +511,8 @@
   @media (max-width:900px){ #mapBtn{top:132px} }
   body.mapping #buildMenu,body.mapping #missions,body.mapping #dailyPanel,body.mapping #minimapWrap,
   body.mapping #nextChip,body.mapping #hint,body.mapping #scanBtn,body.mapping #returnBtn,
-  body.mapping #timers,body.mapping #nextSignal,body.mapping #floaters{display:none!important}
+  body.mapping #timers,body.mapping #nextSignal,body.mapping #floaters,
+  body.mapping #jumpBtn,body.mapping #dashBtn{display:none!important}
   body.mapping #c{cursor:crosshair}
   #mapLegend{position:fixed;bottom:26px;left:26px;z-index:20;display:none;background:var(--panel);
     border:1px solid var(--line);padding:12px 16px;backdrop-filter:blur(6px)}
@@ -654,6 +657,8 @@
 <div id="dashfx" aria-hidden="true"></div>
 <!-- boot shield: visible while the module fetches; module hides it on first frame -->
 <div id="boot">
+  <div class="bootBrand">MARS&nbsp;COMMAND</div>
+  <div class="bootHook">Drive. Scan. Hold the planet.</div>
   <div class="bootTxt">ESTABLISHING UPLINK</div>
   <div id="bootErr"></div>
 </div>
@@ -2490,7 +2495,7 @@ function rebuildTerrain(){
   rebuildTerrain();
   /* swap in the photo-scanned Mars regolith (Poly Haven red_sand, CC0) */
   const _maxAniso=renderer.capabilities.getMaxAnisotropy?Math.min(8,renderer.capabilities.getMaxAnisotropy()):1;
-  const prep=t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(44,44); t.anisotropy=_maxAniso; return t; };   // anisotropy = kills ground moiré/mush at the grazing 3rd-person angle
+  const prep=t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(80,80); t.anisotropy=_maxAniso; return t; };   // anisotropy = kills ground moiré/mush at the grazing 3rd-person angle
   texLoader.load(STEAL.groundDiff, t=>{
     t.colorSpace=THREE.SRGBColorSpace; prep(t);
     mat.map=t; mat.color.set(0xffffff); mat.needsUpdate=true;
@@ -5164,7 +5169,9 @@ function navHudUpdate(dt){
   const p=rover.position, ll=worldToLatLon(p.x,p.z), reg=regionName(ll.lat,ll.lon);
   const kmh=roverSpd*3.6, odo=S.travel/1000, pct=S.travel/MARS_CIRC_M*100;
   const latS=Math.abs(ll.lat).toFixed(2)+'°'+(ll.lat>=0?'N':'S'), lonS=ll.lon.toFixed(2)+'°E';
-  const spd = warpActive ? `<span style="color:#9fd8ff">⮞ WARP ${kmh.toFixed(0)} KM/H</span>` : `${kmh.toFixed(0)} KM/H`;
+  const spd = (playerMode==='emile')
+    ? `<span style="color:#ffd98a">${roverSpd.toFixed(1)} M/S ON FOOT</span>`
+    : (warpActive ? `<span style="color:#9fd8ff">⮞ WARP ${kmh.toFixed(0)} KM/H</span>` : `${kmh.toFixed(0)} KM/H`);
   let nc=null,nd=1e18; for(const g of _cities.values()){ if(!g)continue; const ddx=g.userData.cx-p.x, ddz=g.userData.cz-p.z, d2=ddx*ddx+ddz*ddz; if(d2<nd){nd=d2;nc=g;} }
   let comp='';
   if(nc){ const rel=Math.atan2(nc.userData.cx-p.x, nc.userData.cz-p.z)-roverHeading, deg=(rel*180/Math.PI).toFixed(0);
@@ -6812,9 +6819,9 @@ function updateCamera(dt,t){
   const _ltz = rover.position.z + Math.cos(roverHeading)*_lead;
   camTarget.x=damp(camTarget.x, _ltx, _fol, dt);
   camTarget.z=damp(camTarget.z, _ltz, _fol, dt);
-  camTarget.y=damp(camTarget.y, rover.position.y+(_em?7:2.4), _fol, dt);   // rover: look-at at the chassis/hub line (was +6→looked DOWN at a toy, +4 still saw its back; +2.4 + the higher base pitch drops the rover into the lower-center as the hero, body forward). EMILE: lifted onto the chest swirl
+  camTarget.y=damp(camTarget.y, rover.position.y+(_em?10:2.4), _fol, dt);   // rover: look-at at the chassis/hub line (was +6→looked DOWN at a toy, +4 still saw its back; +2.4 + the higher base pitch drops the rover into the lower-center as the hero, body forward). EMILE: lifted onto the chest swirl
   if(_em && EMILE.landT>0) camTarget.y -= Math.min(4,(EMILE.landV||0)*0.12)*(EMILE.landT/0.22);   // camera dip on landing impact
-  distK=damp(distK, 1+(_em?.34:.16)*roverSpdRatio + ((_em&&EMILE.dashT>0)?.18:0), 2.2, dt);   // tighter follow + real dash pull-back keeps the burst in frame; rover pull-back .16 = Forza speed-dolly
+  distK=damp(distK, (_em?1.7:1)+(_em?.34:.16)*roverSpdRatio + ((_em&&EMILE.dashT>0)?.18:0), 2.2, dt);   // tighter follow + real dash pull-back keeps the burst in frame; rover pull-back .16 = Forza speed-dolly
   /* 2026-06-30 DYNAMIC PITCH: graze lower with speed (more ground-rush = more velocity), lift on a crest to reveal the vista. _crestSig fed from the slope signal in the physics step. */
   const _pitchSpd = _em ? 0 : -0.07*roverSpdRatio;
   _pitchDyn = damp(_pitchDyn, _pitchSpd + (_em?0:0.10*_crestSig), 2.0, dt);
