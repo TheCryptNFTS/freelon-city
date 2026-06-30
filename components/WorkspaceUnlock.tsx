@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { trackEvent } from "@/lib/track";
+import { unlockProofMessage } from "@/lib/wallet-proof";
 
 /**
  * In-workspace ETH unlock — the pay flow holders were missing.
@@ -55,7 +56,17 @@ export function WorkspaceUnlock({
   async function sign(): Promise<{ address: string; signature: string }> {
     const e = eth();
     if (!e || !address) throw new Error("Open this page in your wallet's browser to pay.");
-    const message = `I am unlocking FREELON CITY agent #${citizenId}.`;
+    // Fetch a fresh, server-issued single-use challenge first, then sign the
+    // canonical nonce-bound message. The static "I am unlocking …" message was
+    // replayable forever; the nonce ties the signature to a live challenge.
+    const nr = await fetch(`/api/citizens/${citizenId}/unlock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "nonce", address }),
+    });
+    const nd = await nr.json().catch(() => ({}));
+    if (!nr.ok || !nd?.nonce) throw new Error("Couldn't start a secure unlock. Try again in a moment.");
+    const message = unlockProofMessage(citizenId, nd.nonce);
     const signature = (await e.request({ method: "personal_sign", params: [message, address] })) as string;
     return { address, signature };
   }

@@ -62,3 +62,30 @@ export async function consumeNonce(addr: string, scope = "v1"): Promise<string |
     return null;
   }
 }
+
+/**
+ * Read the nonce for `addr` WITHOUT deleting it (returns null if none/expired).
+ *
+ * Unlike `consumeNonce`, this is NOT single-use — it exists for the ETH-unlock
+ * flow, where the SAME signed proof is legitimately re-submitted across the
+ * up-to-10 on-chain confirmation polls (a single-use consume would 401 the
+ * second poll and strand a paid awaken). The nonce's 5-minute TTL + the
+ * citizen-id baked into the signed message + the on-chain ownership re-check
+ * still bound replay to a 5-minute window against a citizen the wallet owns —
+ * a value-less, time-boxed replay vs. the previous static-forever signature.
+ */
+export async function peekNonce(addr: string, scope = "v1"): Promise<string | null> {
+  const a = addr.toLowerCase();
+  if (!hasUpstash) {
+    const rec = memory.get(KEY(a, scope));
+    if (!rec) return null;
+    if (rec.expiresAt < Date.now()) { memory.delete(KEY(a, scope)); return null; }
+    return rec.nonce;
+  }
+  try {
+    const raw = (await upstash(["GET", KEY(a, scope)])) as string | null;
+    return raw ?? null;
+  } catch {
+    return null;
+  }
+}

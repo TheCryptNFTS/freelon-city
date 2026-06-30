@@ -3,6 +3,8 @@ import { verifyMessage } from "viem";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
 import { getCitizen } from "@/lib/citizens";
 import { verifyOwnership } from "@/lib/owner-of";
+import { issueNonce, peekNonce } from "@/lib/auth-nonce-store";
+import { unlockProofMessage } from "@/lib/wallet-proof";
 import { createUnlockQuote, verifyUnlockPayment, type UnlockKind } from "@/lib/payments/unlock-orders";
 import { activate, recharge, getUnlock, unlockStatus } from "@/lib/missions/unlock-store";
 import { PAYMENTS_LIVE } from "@/lib/missions/pricing";
@@ -49,7 +51,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!PAYMENTS_LIVE) return NextResponse.json({ error: "payments_not_live" }, { status: 409 });
 
   const body = (await req.json().catch(() => ({}))) as {
-    action?: "quote" | "claim";
+    action?: "quote" | "claim" | "nonce";
     kind?: UnlockKind; // "activate" (default) | "recharge"
     address?: string;
     signature?: string;
@@ -57,7 +59,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   };
   const kind: UnlockKind = body.kind === "recharge" ? "recharge" : "activate";
 
-  // Auth: bound session OR wallet signature (same pattern as the mission rail).
+  // action:"nonce" — issue a fresh, time-boxed challenge for the signature-auth
+  // path (holders without a bound session). It carries NO ledger authority; it's
+  // already gated by same-origin + payments-live + rate-limit above.
+  if (body.action === "nonce") {
+    const address = (body.address || "").toLowerCase();
+    if (!/^0x[a-f0-9]{40}$/.test(address)) return NextResponse.json({ error: "invalid address" }, { status: 400 });
+    const nonce = await issueNonce(address, "unlock");
+    return NextResponse.json({ ok: true, nonce });
+  }
+
+  // Auth: bound session OR a nonce-bound wallet signature.
   let wallet: string | null = null;
   const session = getSessionFromRequest(req);
   if (session && /^0x[a-f0-9]{40}$/.test((session.bind || "").toLowerCase())) {
@@ -65,7 +77,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } else if (body.address && body.signature) {
     const address = body.address.toLowerCase();
     if (!/^0x[a-f0-9]{40}$/.test(address)) return NextResponse.json({ error: "invalid address" }, { status: 400 });
-    const message = `I am unlocking FREELON CITY agent #${cid}.`;
+    // Rebuild the signed message from the SERVER-held nonce (not the client's),
+    // so a signature is only valid against a live, server-issued challenge for
+    // THIS wallet — replaces the old static "I am unlocking …" message that was
+    // replayable forever. peek (not consume) keeps the proof valid across the
+    // claim's confirmation polls; the nonce's 5-min TTL bounds the replay window.
+    const nonce = await peekNonce(address, "unlock");
+    if (!nonce) return NextResponse.json({ error: "stale_nonce" }, { status: 401 });
+    const message = unlockProofMessage(cid, nonce);
     let ok = false;
     try { ok = await verifyMessage({ address: address as `0x${string}`, message, signature: body.signature as `0x${string}` }); } catch { ok = false; }
     if (!ok) return NextResponse.json({ error: "signature verification failed" }, { status: 401 });

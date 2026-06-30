@@ -197,9 +197,9 @@ export default function SyncPage() {
           <p style={{ color: "var(--ink-2)", margin: "var(--s-2) 0 var(--s-3)" }}>
             Carrying isn&rsquo;t the only path. Burn ⬡ for a permanent name on a citizen.
           </p>
-          <a className="btn btn-secondary" href="/tribute#patrons">
+          <Link className="btn btn-secondary" href="/tribute#patrons">
             <span className="ttl">BURN HEX FOR YOUR NAME →</span>
-          </a>
+          </Link>
         </div>
       </section>
 

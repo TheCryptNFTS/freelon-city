@@ -1191,6 +1191,44 @@ a { color: inherit; text-decoration: none; }
 .hero-landing__h1 strong { color: var(--gold); font-weight: 800; }
 /* The new tag has no inner-strong margin hack; keep its inline strong inline. */
 .hero-landing__tag { margin-top: 0; }
+
+/* ─── COLLECTIBLE-FIRST HERO (2026-06-30) ───────────────────────────────
+   The hero leads with one citizen portrait (the thing you own) + the
+   "remembers you" thesis + the see→own button row. Replaces the 06-29
+   launcher hero that led with the city name + three co-equal game doors and
+   buried the ownable product. Portrait is a round gold-ringed medallion so a
+   stranger sees a CHARACTER, eyes-on, in the first frame. */
+.hero-landing__inner--citizen { gap: var(--s-2); }
+.hero-eyebrow {
+  margin: 0;
+  font-family: var(--mono2);
+  font-size: var(--t-mono-xs, 12px);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-shadow: 0 1px 18px rgba(0,0,0,0.7);
+}
+.hero-portrait {
+  width: clamp(150px, 21vw, 224px);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  padding: 4px;
+  margin: var(--s-2) 0 var(--s-1);
+  background: linear-gradient(160deg, var(--gold-bright, #E9C984), rgba(200,167,93,0.22));
+  box-shadow: 0 18px 60px rgba(0,0,0,0.62), 0 0 0 1px rgba(233,201,132,0.32);
+}
+.hero-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 24%;
+  border-radius: 50%;
+  display: block;
+  border: 2px solid rgba(11,11,13,0.88);
+  background: var(--bg);
+}
+.hero-landing__h1--citizen { max-width: 18ch; margin-bottom: var(--s-2); }
+.hero-landing__h1--citizen strong { color: var(--gold); font-weight: 800; }
 .hero-landing__rhythm {
   margin: var(--s-3) 0 0;
   font-family: var(--mono2);

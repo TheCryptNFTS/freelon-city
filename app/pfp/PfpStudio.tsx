@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useHolder } from "@/lib/useHolder";
 
 // ── canvas geometry ─────────────────────────────────────────────────
@@ -334,7 +335,7 @@ export function PfpStudio() {
           )}
           {!holder.isHolder && !holder.loading && (
             <p className="frame-note">
-              GOLD · CIV · VOID frames are holder-only. <a href="/citizens" style={{ color: "var(--gold)" }}>Own a citizen →</a>
+              GOLD · CIV · VOID frames are holder-only. <Link href="/citizens" style={{ color: "var(--gold)" }}>Own a citizen →</Link>
             </p>
           )}
         </div>

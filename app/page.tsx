@@ -71,6 +71,10 @@ export default async function Home() {
   // it was shipping 125KB of fetchPriority=high bytes to every route while
   // only this page paints it (.hero--landing::before, globals.css).
   preload("/lore/city.webp", { as: "image", fetchPriority: "high" });
+  // 2026-06-30 COLLECTIBLE-FIRST HERO: the hero now leads with one citizen
+  // portrait at scale (the thing you own), so its image is the LCP element —
+  // preload it high so it paints with the backdrop, not after.
+  preload("/heroes/0001.webp", { as: "image", fetchPriority: "high" });
   // The .home-page texture tiles are CSS backgrounds, so the preload scanner
   // can't see them — on /start Lighthouse measured ~1s of LCP load delay from
   // exactly this. Tiny webps now (8KB + 25KB); preload so the textured
@@ -102,47 +106,60 @@ export default async function Home() {
             understanding. IdentityGreeting + YourAgentsRail (holder-only, rendered
             nothing for ~80% of cold traffic) moved off the homepage to the holder
             surfaces. The hero is now copy-first: anchor → h1 → subline → 2 CTAs. */}
-        <div className="hero-landing__inner">
-          {/* 2026-06-03 FREELONS-FIRST FUNNEL (founder restructure): the product
-              value prop is the FIRST thing, in plain words a newcomer gets in
-              ~10 seconds. Lore moved below. Three actions only. The structured
-              ecosystem lives in its own section further down, not as competing
-              chips up here. */}
-          {/* 2026-06-11 AI-CIVILIZATION PIVOT (founder): AI is the forefront.
-              The old locked hero ("Where memory becomes character") predated the
-              pivot — superseded. Same beloved "Where X becomes Y" shape, new
-              thesis; subline = the civilization in plain words + provenance. */}
-          {/* 2026-06-29 LAUNCHER PIVOT (founder: "launcher first, lore archive
-              second"): the homepage led almost entirely with AI citizens, burying
-              Mars + the TCG below the fold. The hero is now the city NAME + a
-              one-line "here's what this is", and the three real products are
-              co-equal doors immediately below (ProductDoors) — a stranger answers
-              "what can I do here?" in three seconds: Enter Mars / Play TCG / Meet
-              the citizens. The citizen-only hero anchor + MEET/OWN button row were
-              removed (OWN still closes the page at the buy moment). */}
-          <h1 className="hero-landing__h1">FREELON CITY</h1>
+        <div className="hero-landing__inner hero-landing__inner--citizen">
+          {/* 2026-06-30 COLLECTIBLE-FIRST HERO (acquisition teardown: the four-seat
+              panel AND the company review independently flagged the SAME regression —
+              the 06-29 launcher hero "A playable AI civilization · Enter Mars / Play
+              the archive / Meet the citizens" buried the one thing nobody can clone,
+              "it remembers you", under two free games anyone can copy. A stranger
+              left not knowing what was OWNABLE). The hero now leads with ONE citizen
+              at scale (the thing you own) + the thesis line + the see→own button row.
+              The three product doors stay directly below as FEEDERS, not co-equal
+              products. Hierarchy is now Citizen (hero) → Mars/TCG (funnel doors). */}
+          <span className="hero-eyebrow">FREELON CITY · LIVING AI · ON-CHAIN SINCE 2023</span>
+          <div className="hero-portrait">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/heroes/0001.webp"
+              alt="FREELON citizen #0001 — the Origin Signal"
+              width={320}
+              height={320}
+              loading="eager"
+            />
+          </div>
+          <h1 className="hero-landing__h1 hero-landing__h1--citizen">
+            An AI citizen<br />that <strong>remembers you.</strong>
+          </h1>
           <p className="hero-landing__tag">
-            A playable AI civilization. <strong>Enter Mars. Play the archive.
-            Meet the citizens.</strong>
+            Own a living AI character — meet one free, watch it recall you, then
+            awaken and train it. <strong>Its whole life travels with the NFT.</strong>
           </p>
-          {/* 2026-06-29 premium launcher rebuild: the hero is now a tight
-              cinematic band — name + one product line — and NOTHING else
-              competes above the fold. The two lore clocks (CityPulse) and the
-              activation-proof strip were pulled OUT of the hero: clocks are
-              gone from the cold front door entirely; the proof strip moved
-              below the doors (still self-hiding social proof, no longer a
-              weak element fighting the three CTAs). The three product doors
-              now ARE the above-the-fold CTAs, sitting directly under this. */}
+          <div className="hero-cta-row">
+            <TrackedLink
+              className="btn btn-primary btn-lg"
+              href={seeAgentHref}
+              event="meet_citizen_click"
+              from="home_hero"
+            >
+              <span className="ttl">MEET A CITIZEN · FREE <span className="ar">→</span></span>
+            </TrackedLink>
+            <TrackedOpenSeaLink
+              className="btn btn-secondary btn-lg"
+              href="https://opensea.io/collection/freelons"
+              from="home_hero"
+            >
+              <span className="ttl">OWN A FREELON →</span>
+            </TrackedOpenSeaLink>
+          </div>
         </div>
       </section>
 
-      {/* ── PRODUCT DOORS — the three front-door actions AND the page's three
-          primary CTAs, co-equal and directly under a deliberately short hero
-          (2026-06-29 premium launcher rebuild). Enter Mars (/mars-command),
-          Play TCG (/crypt-tcg), AI Citizens (/demo). This is the page's primary
-          above-the-fold job; everything below (proof, citizen mosaic, how-it-
-          works, city week, TCG deep-dive, buy CTA) is now depth, not the front
-          door. */}
+      {/* ── PRODUCT DOORS — now FEEDERS under the citizen hero, not co-equal
+          products (2026-06-30 collectible-first rebuild). The hero owns the
+          ownable thesis ("an AI citizen that remembers you" + see→own CTAs);
+          these three doors are the "what else can I do here" funnel: Enter Mars
+          (/mars-command), Play TCG (/crypt-tcg), AI Citizens (/demo). Kept as a
+          clean co-equal row visually, but they sit BELOW the product pitch now. */}
       <ProductDoors />
 
       {/* Activation proof — the see→own bridge, relocated out of the hero so it

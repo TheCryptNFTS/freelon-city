@@ -19,6 +19,22 @@ export function walletProofMessage(address: string, nonce: string): string {
   ].join("\n");
 }
 
+/**
+ * Canonical message a wallet signs to authorize unlocking/recharging a citizen
+ * it owns. Carries the citizen id (so a signature can't be replayed against a
+ * DIFFERENT citizen) and a server-issued, time-boxed `nonce` (so a captured
+ * signature can't be replayed forever — the old message was static). Must be
+ * byte-identical where it's signed (WorkspaceUnlock client) and verified
+ * (app/api/citizens/[id]/unlock).
+ */
+export function unlockProofMessage(citizenId: number, nonce: string): string {
+  return [
+    `FREELON CITY — unlock agent #${citizenId}`,
+    "This authorizes unlocking or recharging a FREELON you own. It is NOT the payment — payment is a separate on-chain transaction you confirm in your wallet.",
+    `Nonce: ${nonce}`,
+  ].join("\n");
+}
+
 type ProveResult = { ok: boolean; reason?: "no_wallet" | "rejected" | "failed" };
 
 /**
