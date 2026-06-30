@@ -625,6 +625,18 @@
   }
   body.driving #brand{ opacity:.2!important; animation:none!important; transition:opacity .6s ease!important; }
   body.driving #minimapWrap{ opacity:.78!important; animation:none!important; transition:opacity .6s ease!important; }
+  /* ============== FIRST-RUN onboarding override (2026-06-30) ==============
+     A brand-new player (goalIndex<5: drive → scan → survey → clear → first contact) must always
+     see WHAT to do and HOW to move. The minhud + driving fades above hide #nextChip (the live
+     objective) and #hint (the control-teaching line), and goals 0–1 have no map beacon (#objHud
+     absent) — so without this the first 60s show no instruction at all. Keep both pinned through
+     the opening, then the class is dropped (renderNext) and the cinematic clean HUD takes over.
+     Extra .firstrun raises specificity above the minhud/driving rules. #hint stays display:none on
+     phones (handled in the mobile media query) — opacity can't un-hide it, so mobile stays clean. */
+  body.firstrun.minhud:not(.panels) #nextChip,
+  body.firstrun.driving #nextChip{ opacity:1!important; pointer-events:auto!important; animation:none!important; transition:opacity .4s ease!important; }
+  body.firstrun.minhud:not(.panels) #hint,
+  body.firstrun.driving #hint{ opacity:.62!important; pointer-events:none!important; animation:none!important; transition:opacity .4s ease!important; }
   /* tablet + phone: two compact tap glyphs in the TOP-RIGHT, clear of the build sheet + bottom bar */
   @media (max-width:900px){
     /* right-edge rail at mid-height — clear of the top stat cluster and the bottom controls/sheet */
@@ -7388,6 +7400,9 @@ const GOALS=[
 ];
 function renderNext(){
   const g=GOALS[S.goalIndex];
+  /* first-run pin: keep the objective + control hint visible through the opening goals (drive →
+     scan → survey → clear → first contact). Dropped once the player is established (goalIndex>=5). */
+  document.body.classList.toggle('firstrun', (S.goalIndex||0) < 5);
   let h=g?`▸ NEXT&nbsp;&nbsp;&nbsp;${g.text}`:'▸ ALL OBJECTIVES COMPLETE';
   if(g&&g.prog){ const [c,t]=g.prog(); h+=` · ${Math.min(c,t)}/${t}`; }
   if(renderNext._h!==h){ renderNext._h=h; $('nextChip').innerHTML=h; }
