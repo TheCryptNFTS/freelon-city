@@ -71,7 +71,7 @@ const FRAGMENTS: Fragment[] = [
   {
     glyph: "◇",
     label: "BATTLE SIMULATIONS",
-    copy: "Reconstructed engagements between civilizations. The earliest recordings are still corrupted past use.",
+    copy: "Reconstructed engagements between civilizations — corrupted in the archive, but playable now as solo battles in the terminal.",
     status: "CORRUPTED",
     color: "var(--state-surge)",
   },

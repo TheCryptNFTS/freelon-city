@@ -170,6 +170,7 @@ export function AgentWorkspace(props: Props) {
   const [address, setAddress] = useState<string | null>(null);
   const [agent, setAgent] = useState<AgentData | null>(null);
   const viewedRef = useRef(false);
+  const awakenUnavailRef = useRef(false);
   const [hex, setHex] = useState<number | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeId, setActiveId] = useState<string>("");
@@ -773,6 +774,20 @@ export function AgentWorkspace(props: Props) {
   // surface the ETH unlock in the CENTER of the workspace (the pay flow that was
   // orphaned when the old dashboard was unmounted). Sisters have no unlock yet.
   const showUnlock = !slug && !!agent?.paymentsLive && !agent?.unlock?.unlocked;
+  // Payments-off awaken state: a FREELON owner reaching their workspace while
+  // PAYMENTS_LIVE is false used to see only the create/chat lobby with no word
+  // about awakening — reading as broken/unfinished. Surface an explicit
+  // "opens soon" notice so it reads as intentionally-not-live, not missing.
+  const awakenComingSoon =
+    !slug && !!landing?.isOwner && !agent?.paymentsLive && !agent?.unlock?.unlocked;
+  // Fire-once when an owner lands on a workspace where awakening is intentionally
+  // off — so we can tell "owners hit a not-live awaken wall" apart from "nobody
+  // reaches the workspace" (the awaken funnel's missing denominator).
+  useEffect(() => {
+    if (!awakenComingSoon || awakenUnavailRef.current) return;
+    awakenUnavailRef.current = true;
+    trackEvent("awaken_unavailable", { from: "workspace", paymentsLive: false });
+  }, [awakenComingSoon]);
   const flavour = createFlavour(slug);
 
   return (
@@ -985,6 +1000,30 @@ export function AgentWorkspace(props: Props) {
                 </>
               ) : (
                 <>
+                  {/* Payments-off awaken state (2026-06-30): an owner whose
+                      awakening isn't live yet gets an explicit "opens soon"
+                      notice so the workspace reads as intentionally-not-live,
+                      not broken. No wallet/payment is requested here. */}
+                  {awakenComingSoon && (
+                    <div
+                      style={{
+                        border: `1px solid color-mix(in srgb, ${color} 35%, transparent)`,
+                        background: `color-mix(in srgb, ${color} 7%, transparent)`,
+                        borderRadius: 12,
+                        padding: "14px 16px",
+                        marginBottom: 16,
+                      }}
+                    >
+                      <div style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color, fontWeight: 700, marginBottom: 6 }}>
+                        ⬡ AWAKENING · OPENS SOON
+                      </div>
+                      <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6, margin: 0 }}>
+                        Awakening isn&apos;t live yet. You can view {name} and
+                        create with it now — awakening and training open soon, and
+                        a wallet is only needed once they do.
+                      </p>
+                    </div>
+                  )}
                   {/* SURFACE-REDUCTION 2026-06-09: CREATE is the hero action now —
                       it leads the lobby (was buried below intro/grounding/recall/
                       jobs). Neutral "CREATE WITH THIS CHARACTER" + per-collection

@@ -19,8 +19,18 @@ export function Header() {
     <header className="site-header">
       <div className="bar">
         <Link href="/" className="brand">
-          <Image src="/logo.png" alt="FREELON CITY" width={36} height={36} priority className="brand-logo" />
-          <span className="brand-text">404 · FREELON CITY</span>
+          <Image src="/logo.png" alt="" width={36} height={36} priority className="brand-logo" />
+          {/* 2026-06-30 cold-visitor fix: the wordmark used to read "404 ·
+              FREELON CITY" as one string, so a first-time visitor's eye caught
+              "404" first and read the whole site as a broken/not-found page. The
+              #404HEXNOTFOUND motif STAYS — but as a small gold badge BEFORE the
+              brand, so "FREELON CITY" is the primary readable mark and 404 reads
+              as intentional identity, not an error. Link text resolves to
+              "404 FREELON CITY" for screen readers, preserving the lore. */}
+          <span className="brand-mark">
+            <span className="brand-badge">404</span>
+            <span className="brand-text">FREELON CITY</span>
+          </span>
         </Link>
 
         <nav className="desktop-nav">
@@ -71,6 +81,21 @@ export function Header() {
         }
         .brand { display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0; }
         .brand-logo { display: block; }
+        .brand-mark { display: inline-flex; align-items: center; gap: 8px; }
+        /* "404" reduced to a small gold badge so the brand resolves as
+           FREELON CITY first (cold-visitor de-confusion); 404 lore preserved. */
+        .brand-badge {
+          font-family: var(--mono2);
+          font-size: 9px;
+          line-height: 1;
+          letter-spacing: 0.14em;
+          color: var(--gold);
+          border: 1px solid color-mix(in srgb, var(--gold) 38%, transparent);
+          background: color-mix(in srgb, var(--gold) 8%, transparent);
+          border-radius: 4px;
+          padding: 3px 5px;
+          flex-shrink: 0;
+        }
         .brand-text {
           font-family: var(--mono2);
           font-size: 12px;
@@ -135,12 +160,12 @@ export function Header() {
         }
         .mobile-signin:active { background: color-mix(in srgb, var(--gold) 16%, transparent); }
         @media (max-width: 980px) { .desktop-nav { display: none !important; } .mobile-signin { display: inline-flex; } }
-        /* 2026-06-30 mobile journey QA: at ≤400px the long "404 · FREELON CITY"
-           wordmark (flex-shrink:0) squeezed the SIGN IN pill until its text
-           wrapped to two lines. Tighten the wordmark + pill so the header holds
-           one clean row. */
+        /* 2026-06-30 mobile journey QA: at ≤400px the wordmark (flex-shrink:0)
+           squeezed the SIGN IN pill until its text wrapped to two lines. Tighten
+           the wordmark + pill so the header holds one clean row. */
         @media (max-width: 400px) {
           .brand-text { letter-spacing: 0.12em; }
+          .brand-mark { gap: 6px; }
           .mobile-signin { padding: 8px 12px; margin-right: 6px; }
         }
         @media (min-width: 981px) { .mobile-trigger, .mobile-sheet { display: none !important; } }
