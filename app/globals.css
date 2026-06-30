@@ -3541,9 +3541,13 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .verse { grid-template-columns: 1fr; gap: var(--s-2); padding: var(--s-5) 0; }
   .verse .n { font-size: 32px; }
 
-  /* Mobile sheet — readable size */
-  .mobile-sheet nav { padding: 24px 24px 32px; gap: 16px; }
-  .mobile-sheet a { font-size: 22px; padding: 14px 0; }
+  /* Mobile sheet — readable size. NOTE: do NOT re-add an `.mobile-sheet a`
+     font-size/padding override here. The old 22px / `padding: 14px 0` rule
+     (a leftover from the pre-Reegs big-text list) fought the app-shell button
+     styling at .mobile-sheet a (padding: 14px 16px), zeroing the horizontal
+     padding so labels read oversized and crammed to the edge. Removed
+     2026-06-30. The base button rule already carries the right size. */
+  .mobile-sheet nav { padding: 24px 20px 32px; gap: 16px; }
 
   /* Inline-sync (homepage band) */
   .inline-sync { grid-template-columns: 1fr; gap: var(--s-3); padding: var(--s-5) 16px; }

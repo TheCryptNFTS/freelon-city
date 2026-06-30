@@ -47,6 +47,14 @@ export const metadata: Metadata = {
 // daily ritual. The other prototypes (sweep / reckoning / cipher) still work by
 // direct URL but are no longer listed here so the arcade reads as one clear
 // door with a few games, not a wall of six near-identical prototypes.
+// 2026-06-30 HIERARCHY PASS (acquisition teardown: "arcade mini-games sit
+// co-equal with Mars; the flagships should dominate, the rest should be clearly
+// lower-status"). The top grid is now the ONE flagship browser game (Mars); the
+// card game (Crypt TCG) sits as the second flagship directly below it, and the
+// arcade prototypes (Hex Match / Restore / Proof / Sweep / Reckoning / Cipher)
+// all drop to the compact "MORE WAYS TO PLAY" row so they read as experiments,
+// not as products competing with Mars + TCG. Genre lines also de-"Like X"-ed —
+// naming a competitor's game made ours read derivative (copy pass, same date).
 const GAMES = [
   {
     href: "/mars-command",
@@ -55,30 +63,6 @@ const GAMES = [
     genre: "Mars exploration + real-time combat",
     blurb:
       "Drive a rover across a living Mars, scan for buried sites, claim sectors for a sworn doctrine, and fight the Chorus in real time. A full game — free, no wallet, in the browser.",
-    accent: "var(--gold-bright)",  },
-  {
-    href: "/play/hex-match",
-    kicker: "ARCADE · NO WALLET",
-    title: "Hex Match",
-    genre: "Like Bejeweled / Candy Crush",
-    blurb:
-      "Swap glowing hex-eyes, line up three or more, chain combos. Hit the target score before your moves run out. A 60-second skill hit — anyone can play.",
-    accent: "var(--neon-cyan)",  },
-  {
-    href: "/play/restore",
-    kicker: "IDLE · FREE TO PLAY",
-    title: "Restore the Signal",
-    genre: "Like Cookie Clicker (idle game)",
-    blurb:
-      "The city went dark at 404. Bring nodes online, generate signal, watch the ten civilizations light back up. Holders build faster.",
-    accent: "var(--neon-magenta)",  },
-  {
-    href: "/play/proof",
-    kicker: "DAILY · NO WALLET",
-    title: "Proof of Signal",
-    genre: "Like Wordle (daily deduction)",
-    blurb:
-      "One hidden code a day. Guess it; the dots tell you how close you are. Crack it within your tries. No clues to unlock — pure deduction, same puzzle for everyone, shareable on X.",
     accent: "var(--gold-bright)",  },
 ];
 
@@ -91,7 +75,7 @@ const GUARD_CARD = {
   href: "/play/guard",
   kicker: "EVENT · LIVE NOW",
   title: "Guard the Pot",
-  genre: "Like Freysa (beat the AI)",
+  genre: "Talk past the AI · crack the vault",
   blurb:
     "One FREELON guards a sealed vault. Pay an escalating ⬡ fee to send it a message and try to convince it to release the prize. One winner cracks the vault.",
   accent: "var(--gold-bright)",
@@ -106,8 +90,26 @@ const VISIBLE_GAMES = isGuardPotLive() ? [GUARD_CARD, ...GAMES] : GAMES;
 // incl. The Reckoning's real ⬡ burn so no holder spends by surprise.
 const MORE_GAMES = [
   {
+    href: "/play/hex-match",
+    kicker: "MATCH-THREE · NO WALLET",
+    title: "Hex Match",
+    blurb: "Swap glowing hex-eyes, line up three or more, chain combos to the target score. A 60-second skill hit.",
+  },
+  {
+    href: "/play/proof",
+    kicker: "DAILY DEDUCTION · NO WALLET",
+    title: "Proof of Signal",
+    blurb: "One hidden code a day. The dots tell you how close you are — pure deduction, same puzzle for everyone, shareable on X.",
+  },
+  {
+    href: "/play/restore",
+    kicker: "IDLE BUILDER · FREE",
+    title: "Restore the Signal",
+    blurb: "The city went dark at 404. Bring nodes online, generate signal, watch the ten civilizations light back up.",
+  },
+  {
     href: "/play/sweep",
-    kicker: "ARCADE · NO WALLET",
+    kicker: "REFLEX · NO WALLET",
     title: "Sweep Run",
     blurb: "Sweep the dead signals before they take the grid — but spare the living. A 30-second reflex hit.",
   },
@@ -136,7 +138,7 @@ export default function PlayHub() {
           Ways into <em>the signal</em>.
         </h1>
         <p className="lead">
-          Free browser games — the free hook, the holder loop, the daily ritual. Pick a door.
+          Two full games — explore Mars, command the Crypt deck — plus a rack of quick arcade experiments. Free, in the browser.
         </p>
         <p
           className="lead"
@@ -275,7 +277,7 @@ export default function PlayHub() {
             Crypt TCG
           </div>
           <div style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--ink-2)", marginBottom: 12 }}>
-            Like Hearthstone / Marvel Snap
+            Solo deck-builder · battle the AI
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--ink-dim)", margin: "0 0 18px", maxWidth: 720 }}>
             Ten commanders, one for each civilization. Build a deck and battle the AI now — and field your own Crypt cards if you hold them. Ranked play coming.

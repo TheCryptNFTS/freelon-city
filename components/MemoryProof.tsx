@@ -144,7 +144,7 @@ export function MemoryProof() {
             whiteSpace: "nowrap",
           }}
         >
-          STAGED PREVIEW
+          GUIDED PREVIEW
         </span>
         {phase > 0 && (
           <button type="button" className="mproof__reset" onClick={reset}>↺ again</button>
@@ -263,7 +263,7 @@ export function MemoryProof() {
             </a>
           </div>
           <p style={{ margin: "10px 0 0", fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)" }}>
-            This was a staged taste.{" "}
+            This was a guided preview — the live citizen below is the real thing.{" "}
             <Link href="/report" style={{ color: "var(--ink-2)", textDecoration: "underline" }} onClick={() => trackEvent("memory_proof_to_report")}>
               See real citizens&apos; public records →
             </Link>
