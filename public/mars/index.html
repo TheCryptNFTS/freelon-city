@@ -1468,14 +1468,27 @@ function defendWaveAdvance(){
   if(S.defend.wave > S.defend.waves) return false;   // all waves cleared → win
   buildFoes(true); rtFoes=[];
   const n=foeStage?foeStage.children.length:0;
+  const esc=1+0.15*(S.defend.wave-1);   // each wave hits harder + tankier so the threat visibly escalates
   for(let i=0;i<n;i++){ const m=foeStage.children[i], f=battleFoes[i];
     const a=(i/Math.max(1,n))*Math.PI*2 + 0.5, R=44+Math.random()*14, px=rtArena.x+Math.cos(a)*R, pz=rtArena.z+Math.sin(a)*R;
     m.position.set(px, terrainH(px,pz), pz);
-    rtFoes.push({mesh:m, hp:Math.max(16,Math.round(f.pw)), pw:f.pw, alive:true, atkCd:1.2+Math.random()*1.0}); }
+    rtFoes.push({mesh:m, hp:Math.max(16,Math.round(f.pw*esc)), pw:f.pw*esc, alive:true, atkCd:1.2+Math.random()*1.0}); }
   rtInteg=Math.min(100, rtInteg+25);   // a short breather between waves
   const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent='⚔ DEFEND — WAVE '+S.defend.wave+' / '+S.defend.waves;
-  rtRenderHud(); toast('⚔ WAVE '+S.defend.wave+' / '+S.defend.waves+' INBOUND'); sfxThunk(); addTrauma(.3);
+  rtRenderHud(); toast('⚔ WAVE '+S.defend.wave+' / '+S.defend.waves+' INBOUND — HEAVIER'); sfxThunk(); addTrauma(.4); combatFlash('168,52,31');
   return true;
+}
+function showDefendResult(won,detail){   // big unmissable win/loss verdict so the defense outcome reads instantly
+  const old=document.getElementById('defendResult'); if(old) old.remove();
+  const d=document.createElement('div'); d.id='defendResult';
+  const col=won?'240,199,94':'168,52,31', head=won?'▲ SECTOR HELD':'✖ SECTOR LOST';
+  d.style.cssText='position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);z-index:64;pointer-events:none;text-align:center;opacity:0;transition:opacity .18s ease,transform .18s ease';
+  d.innerHTML='<div style="font:900 38px ui-monospace,monospace;letter-spacing:.04em;color:rgb('+col+');text-shadow:0 2px 18px rgba('+col+',.7),0 0 2px #000">'+head+'</div>'+
+    '<div style="margin-top:8px;font:bold 14px ui-monospace,monospace;letter-spacing:.12em;color:#f4ead2;text-shadow:0 1px 6px #000">'+(detail||'')+'</div>';
+  document.body.appendChild(d);
+  combatFlash(col); addTrauma(won?.3:.5); haptic(won?[0,60,40,90]:[0,180],won?.6:.95);
+  requestAnimationFrame(()=>{ d.style.opacity='1'; d.style.transform='translate(-50%,-50%) scale(1)'; });
+  setTimeout(()=>{ d.style.opacity='0'; d.style.transform='translate(-50%,-50%) scale(1.05)'; setTimeout(()=>d.remove(),360); }, 1700);
 }
 function winDefend(){
   const tid=S.defend?S.defend.tile:null;
@@ -1483,10 +1496,12 @@ function winDefend(){
     const prof=(typeof archProfile==='function')?archProfile(tid):{h:0.5};
     const inf=Math.round(DEFEND_INF*(0.85+0.3*(prof.h||0.5)));
     S.influence=(S.influence||0)+inf;
+    showDefendResult(true, planetTileName(tid)+' · +'+inf+' INFLUENCE');
     toast('▲ '+planetTileName(tid)+' HELD — THE ASSAULT BREAKS · +'+inf+' INFLUENCE'); floater('+'+inf+' INFLUENCE'); sfxSting(); }
   S.defend=null; rtDefend=false; removeDefendBeacon(); mmDirty=true; save(); updateHUD();
 }
 function failDefend(reason){
+  if(S.defend && reason==='repelled') showDefendResult(false, planetTileName(S.defend.tile)+' · OVERRUN — STILL EXPOSED');   // only the in-combat loss gets the verdict banner; timeout/overrun are off-screen lapses
   if(S.defend && reason!=='overrun') toast('⚔ DEFENSE ENDED — '+planetTileName(S.defend.tile)+' still exposed');
   S.defend=null; rtDefend=false; removeDefendBeacon();
   if(rtActive){   // defense in depth: if a defend is force-failed mid-combat, tear the fight down too (never strand a live RT fight as a normal HEX-paying one)
@@ -8866,6 +8881,17 @@ function rtStrikeFx(tx,ty,tz, killed){          // muzzle at the rover → trace
   if(typeof burst==='function') burst(tx,ty,tz);
   if(killed && typeof pingRing==='function') pingRing(tx,ty-2,tz);
 }
+function rtFlarePop(x,y,z,col,intensity){   // transient light flash at a world point — used to mark the attacker as it strikes
+  if(_reduceMotion) return;
+  const l=new THREE.PointLight(col,intensity,52); l.position.set(x,y,z); scene.add(l);
+  tw(220,EASE.outExpo,k=>{ l.intensity=intensity*(1-k); },()=>scene.remove(l));
+}
+function rtFoePunch(f){                      // hit-confirm flinch on a struck foe (scale punch). _punching latch stops overlapping tweens from corrupting base scale
+  if(_reduceMotion||!f||!f.mesh) return;
+  const m=f.mesh; if(m.userData._punching) return; m.userData._punching=1;
+  const s0=m.scale.x;
+  tw(150,EASE.outBack,k=>{ m.scale.setScalar(s0*(1+0.16*Math.sin(k*Math.PI))); },()=>{ m.scale.setScalar(s0); m.userData._punching=0; });
+}
 function rtKillFoe(f){
   const m=f.mesh, x0=m.position.x, y0=m.position.y, z0=m.position.z;
   const dx=x0-rover.position.x, dz=z0-rover.position.z, d=Math.hypot(dx,dz)||1, kx=dx/d*15, kz=dz/d*15;
@@ -8888,7 +8914,7 @@ function rtFire(){
     const killed=best.hp<=0;
     rtStrikeFx(best.mesh.position.x,best.mesh.position.y+6,best.mesh.position.z, killed);
     hitstop(killed?40:24); addTrauma(killed?.18:.1); sfxImpact(killed); haptic(killed?[0,40,25,55]:[0,22], killed?.55:.35);
-    if(killed){ best.alive=false; rtKillFoe(best); }
+    if(killed){ best.alive=false; rtKillFoe(best); } else { rtFoePunch(best); }   // hit-confirm flinch on a survivor
   } else {
     rtStrikeFx(sx+hx*120, rover.position.y+4, sz+hz*120, false);   // dry shot into the dust
     addTrauma(.05); sfxImpact(false); haptic([0,16],.25);
@@ -8909,10 +8935,13 @@ function rtUpdate(dt){
     if(d>12){ const spd=(5.5+f.pw*0.05)*dt; m.position.x+=dx/d*spd; m.position.z+=dz/d*spd;
       m.position.y=terrainH(m.position.x,m.position.z)+(m.userData.beast?1.6+Math.sin(rtClock*2.2+(m.userData.bob||0))*0.7:0); }   // hover bob
     else if(f.atkCd<=0){ f.atkCd=1.3+Math.random()*0.7;
-      rtInteg-=(6+Math.round(f.pw*0.10)+(battlePoi?battlePoi.threat:0))*_upArmorMul();
+      const raw=Math.max(1,Math.round((6+Math.round(f.pw*0.10)+(battlePoi?battlePoi.threat:0))*_upArmorMul()));
+      rtInteg-=raw;
       const x0=m.position.x, z0=m.position.z, lx=-dx/d*4, lz=-dz/d*4;
       if(!_reduceMotion) tw(220,EASE.outBack,k=>{ const p=Math.sin(k*Math.PI); m.position.x=x0+lx*p; m.position.z=z0+lz*p; });
+      rtFlarePop(m.position.x, m.position.y+5, m.position.z, 0xff4a24, 200);   // mark WHICH foe just struck
       if(!_reduceMotion) combatFlash('168,52,31'); addTrauma(.3); sfxThunk(); haptic([0,140],.9);
+      floater('−'+raw+' INTEGRITY');                                          // name the damage so the hit reads
       rtRenderHud();
     }
   }
