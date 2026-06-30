@@ -5,7 +5,7 @@ import { useHolder } from "@/lib/useHolder";
 import { useOwnsCitizen } from "@/lib/useOwnsCitizen";
 import { useViewerAddr } from "@/lib/use-viewer";
 import { CIVILIZATIONS } from "@/lib/constants";
-import { heroImageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 import { markChannel } from "@/lib/secrets-store";
 import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
 
@@ -43,7 +43,7 @@ export function ChannelClient({ citizenId, honoree, handle, civSlug }:
       <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "1fr 2fr", gap: 24, alignItems: "start" }}>
         <div style={{ aspectRatio: "1/1", overflow: "hidden", border: `1px solid ${civ?.color || "var(--line)"}` }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={heroImageUrl(citizenId)} alt={honoree} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={gridImageUrl(citizenId, 640)} alt={honoree} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <div>
           {loading && (

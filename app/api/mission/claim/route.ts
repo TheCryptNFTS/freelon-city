@@ -56,14 +56,22 @@ async function claimOnce(storageKey: string): Promise<boolean> {
   if (hasUpstash) {
     try {
       const res = await upstash(["SET", storageKey, "1", "NX", "EX", String(TTL_SECONDS)]);
-      return res === "OK"; // null when the key already existed
+      // "OK" only when WE set the key (first claim wins). null = key existed
+      // (already claimed); undefined = DB returned a 200 error body (rate-limited)
+      // — both correctly DENY here, failing closed.
+      return res === "OK";
     } catch {
-      // fall through to memory
+      // Upstash unreachable (5xx / network). Fail CLOSED — deny the claim rather
+      // than falling through to the per-instance memory guard below. Under load
+      // the route runs on many warm serverless instances, so a memory guard
+      // would let roughly one duplicate claim slip through PER instance — a
+      // faucet amplifier that mints hex. A denied legit claim is retryable; a
+      // duplicate credit is not recoverable. The memory guard is dev-only.
+      return false;
     }
   }
-  // In-memory dev fallback. JS is single-threaded per instance, so this
-  // get-then-set is effectively atomic within one process (no await between
-  // the check and the write).
+  // In-memory dev fallback (Upstash not configured). JS is single-threaded per
+  // instance, so this get-then-set is effectively atomic within one process.
   const exp = memory.get(storageKey);
   if (exp && exp > Date.now()) return false;
   memory.set(storageKey, Date.now() + TTL_SECONDS * 1000);

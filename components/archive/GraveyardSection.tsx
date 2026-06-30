@@ -17,7 +17,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { heroImageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 
 const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/freelons";
 const COLLECTION_SLUG = "freelons";
@@ -137,7 +137,7 @@ export async function GraveyardSection({ limit }: { limit?: number } = {}) {
       <div key={`${t.tokenId}-${t.ts}-${i}`} className="grave-row">
         <Link href={`/citizens/${t.tokenId}`}>
           <Image
-            src={heroImageUrl(t.tokenId)}
+            src={gridImageUrl(t.tokenId, 64)}
             alt={`Citizen #${t.tokenId}`}
             width={56}
             height={56}

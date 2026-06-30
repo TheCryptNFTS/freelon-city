@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getLastClaim, todayUTC, tryClaimToday, releaseClaimToday } from "@/lib/daily-claim-store";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
-import { creditWalletHex, getWalletHex, setWalletHex } from "@/lib/wallet-hex-store";
+import { creditWalletHex, patchWalletHex } from "@/lib/wallet-hex-store";
 import { ECONOMY } from "@/lib/economy-constants";
 import { CANON } from "@/lib/canon";
 import { requireProvenWallet, isSameOrigin } from "@/lib/x-session";
@@ -81,13 +81,20 @@ export async function POST(req: Request) {
   let bonus = 0;
   let dailyHex: number = ECONOMY.DAILY_CLAIM;
   try {
-    const rec = await getWalletHex(addr);
-    const last = rec.lastClaimDay ?? null;
-    if (last === yesterdayUTC()) streak = (rec.claimStreak ?? 0) + 1;
-    else streak = 1;
-    rec.claimStreak = streak;
-    rec.lastClaimDay = todayUTC();
-    await setWalletHex(rec);
+    // Streak read-modify-write MUST run under the wallet lock (patchWalletHex):
+    // the old standalone getWalletHex → setWalletHex pair (a) raced any
+    // concurrent locked credit (sweep/sale tick) and erased it, and (b) on a
+    // throttled getWalletHex returning an error-default balance:0, wrote that
+    // zero back — wiping the wallet's real balance. patchWalletHex re-reads
+    // fresh inside the lock via the strict reader, so a degraded read THROWS
+    // (caught below → claim released, nothing paid) instead of clobbering.
+    await patchWalletHex(addr, (rec) => {
+      const last = rec.lastClaimDay ?? null;
+      if (last === yesterdayUTC()) streak = (rec.claimStreak ?? 0) + 1;
+      else streak = 1;
+      rec.claimStreak = streak;
+      rec.lastClaimDay = todayUTC();
+    });
 
     // Collapse-mode earn multiplier
     const { getCollapseState, applyEarnMultiplier } = await import("@/lib/collapse-mode");

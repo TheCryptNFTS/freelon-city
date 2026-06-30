@@ -131,6 +131,25 @@ export async function getWalletHex(addr: string): Promise<WalletHex> {
   }
 }
 
+/**
+ * Strict read for read-modify-write UNDER the wallet lock. A genuine key MISS
+ * returns a fresh empty record (a real new wallet), but a STORE ERROR (Upstash
+ * rate-limited / unreachable — `upstash()` now THROWS on the HTTP-200-with-error
+ * body) propagates instead of masquerading as `balance: 0`. This is critical:
+ * `getWalletHex` fail-opens to an empty record for DISPLAY reads, but feeding
+ * that error-default zero record into a credit/patch + setWalletHex would
+ * CLOBBER the wallet's real balance to zero when only the GET was throttled and
+ * the SET succeeds. Throwing here aborts the write so nothing is clobbered; the
+ * caller's catch/refund/release engages instead.
+ */
+async function readWalletHexStrict(addr: string): Promise<WalletHex> {
+  const a = addr.toLowerCase();
+  if (!hasUpstash) return memory.get(a) ?? emptyRecord(a);
+  const raw = (await upstash(["GET", KEY(a)])) as string | null;
+  if (!raw) return emptyRecord(a);
+  return JSON.parse(raw) as WalletHex;
+}
+
 export async function setWalletHex(rec: WalletHex): Promise<void> {
   rec.address = rec.address.toLowerCase();
   if (!hasUpstash) {
@@ -164,7 +183,7 @@ export async function creditWalletHex(
   const farmable = opts?.farmable === true;
   const cap = farmable ? (await import("@/lib/economy-constants")).ECONOMY.FARMABLE_DAILY_CAP : 0;
   const rec = await withWalletLock(addr, async () => {
-    const r = await getWalletHex(addr);
+    const r = await readWalletHexStrict(addr);
     let give = amount;
     if (farmable) {
       const today = todayUTC();
@@ -208,7 +227,7 @@ export async function creditWalletHexCapped(
   dailyCap: number,
 ): Promise<{ credited: boolean; rec: WalletHex }> {
   const out = await withWalletLock(addr, async () => {
-    const r = await getWalletHex(addr);
+    const r = await readWalletHexStrict(addr);
     const today = todayUTC();
     if (r.sweepsResetDay !== today) {
       r.sweepsResetDay = today;
@@ -249,7 +268,7 @@ export async function patchWalletHex(
   patch: (rec: WalletHex) => void,
 ): Promise<void> {
   await withWalletLock(addr, async () => {
-    const rec = await getWalletHex(addr);
+    const rec = await readWalletHexStrict(addr);
     patch(rec);
     await setWalletHex(rec);
   });

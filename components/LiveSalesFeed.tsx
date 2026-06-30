@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CIVILIZATIONS, heroImageUrl, openseaUrl } from "@/lib/constants";
+import { CIVILIZATIONS, gridImageUrl, openseaUrl } from "@/lib/constants";
 import citizensData from "@/data/citizens.json";
 
 type Sale = {
@@ -140,7 +140,7 @@ export function LiveSalesFeed() {
               <div className="sf-thumb-wrap">
                 <img
                   className="sf-thumb"
-                  src={heroImageUrl(s.tokenId)}
+                  src={gridImageUrl(s.tokenId)}
                   alt={`#${s.tokenId}`}
                   loading="lazy"
                 />

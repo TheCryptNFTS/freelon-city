@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCitizen } from "@/lib/citizens";
-import { imageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 import { CitizenLifeHero } from "@/components/CitizenLifeHero";
 
 /**
@@ -53,7 +53,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ id: stri
       <div style={{ position: "relative", width: "min(100vw, 100vh)", height: "min(100vw, 100vh)" }}>
         <CitizenLifeHero
           tokenId={tid}
-          src={imageUrl(tid)}
+          src={gridImageUrl(tid, 1024)}
           name={name}
           fill
           frame={false}

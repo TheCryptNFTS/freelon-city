@@ -5,7 +5,7 @@
  */
 import Link from "next/link";
 import { getCivStandings } from "@/lib/civ-wars";
-import { heroImageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 import { MyCivStandings } from "@/components/MyCivStandings";
 
 export async function CivWarSection() {
@@ -99,7 +99,7 @@ export async function CivWarSection() {
                 {c.topTokenId && (
                   <div style={{ marginTop: 4, borderRadius: 10, overflow: "hidden", border: `1px solid ${c.color}33` }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={heroImageUrl(c.topTokenId)} alt={`#${c.topTokenId}`} style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }} loading="lazy" />
+                    <img src={gridImageUrl(c.topTokenId, 640)} alt={`#${c.topTokenId}`} style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }} loading="lazy" />
                   </div>
                 )}
               </article>
