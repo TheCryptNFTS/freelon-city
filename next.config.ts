@@ -140,7 +140,12 @@ const config: NextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       "img-src 'self' data: blob:",
-      "connect-src 'self'",
+      // 2026-06-30: GLTFLoader decodes embedded GLB textures into blob: URLs and
+      // FETCHES them via ImageBitmapLoader — that fetch is governed by connect-src,
+      // not img-src. Without blob: here every textured model's texture was refused
+      // ("Fetch API cannot load blob:… violates connect-src") and props rendered
+      // flat/untextured. blob: is origin-local (no exfil surface).
+      "connect-src 'self' blob:",
       // DRACOLoader decodes compressed GLBs in a same-origin Web Worker (blob).
       "worker-src 'self' blob:",
       "media-src 'self' blob:",
@@ -167,7 +172,8 @@ const config: NextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
       "img-src 'self' data: blob:",
-      "connect-src 'self'",
+      // Same blob:-fetch fix as MARS_CSP — GLTFLoader fetches decoded textures.
+      "connect-src 'self' blob:",
       "worker-src 'self' blob:",
       "media-src 'self' blob:",
       "frame-ancestors 'self'",
