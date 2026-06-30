@@ -34,6 +34,21 @@ export function heroImageUrl(tokenId: number) {
   return imageUrl(tokenId);
 }
 
+// Grid thumbnail URL (2026-06-30): the gallery used to point a raw <img> at the
+// PUBLIC Pinata gateway for every one of the up-to-60 cards on screen. The shared
+// gateway rate-limits per-IP (HTTP 429, text/plain) and Chrome then ORB-blocks the
+// response → empty black cards for real visitors. Route non-hero thumbs through the
+// SAME-ORIGIN Next/Vercel image optimizer instead: Vercel fetches each image ONCE
+// from the gateway, caches the optimized webp at the edge, and serves all visitors
+// from our own origin — no per-user gateway hammering, no ORB. Heroes keep their
+// instant local /heroes webp mirror. `w` stays within Next's default imageSizes.
+export function gridImageUrl(tokenId: number, w = 256) {
+  if (LOCAL_HEROES.has(tokenId)) {
+    return `/heroes/${tokenId.toString().padStart(4, "0")}.webp`;
+  }
+  return `/_next/image?url=${encodeURIComponent(imageUrl(tokenId))}&w=${w}&q=70`;
+}
+
 export function openseaUrl(tokenId: number) {
   return `${OPENSEA_BASE}/${tokenId}`;
 }

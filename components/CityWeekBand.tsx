@@ -5,7 +5,7 @@ import { topCitizens, getProgress, type CitizenProgress } from "@/lib/progressio
 import { deriveSpec } from "@/lib/specialization";
 import { getCitizen } from "@/lib/citizens";
 import { epithetFor } from "@/lib/epithets";
-import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
+import { CIVILIZATIONS, gridImageUrl } from "@/lib/constants";
 
 // THIS WEEK IN THE CITY — homepage teaser for the Signal Report (/report).
 // The public-life story rendered where cold traffic actually walks: winner civ +
@@ -123,7 +123,7 @@ export async function CityWeekBand() {
             >
               <div style={{ aspectRatio: "1 / 1", borderBottom: `2px solid ${n.civColor}`, overflow: "hidden", background: "#0a0a0c" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(n.tokenId)} alt={n.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <img src={gridImageUrl(n.tokenId)} alt={n.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
               <div style={{ padding: "10px 12px 12px" }}>
                 <div style={{ fontFamily: "var(--mono2)", fontSize: 10, letterSpacing: "0.14em", color: "var(--ink-dim)", textTransform: "uppercase" }}>

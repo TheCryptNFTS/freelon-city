@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SHAPES, imageUrl } from "@/lib/constants";
+import { SHAPES, gridImageUrl } from "@/lib/constants";
 import { getByShape } from "@/lib/citizens";
 
 // Folded in from the former /shapes page (2026-05-31 consolidation).
@@ -37,7 +37,7 @@ export function ShapesSection() {
                 {samples.map((c) => (
                   <Link key={c.id} href={`/citizens/${c.id}`} className="sample">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imageUrl(c.id)} alt={`Citizen #${c.id}`} loading="lazy" />
+                    <img src={gridImageUrl(c.id)} alt={`Citizen #${c.id}`} loading="lazy" />
                   </Link>
                 ))}
               </div>

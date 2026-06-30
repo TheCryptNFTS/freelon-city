@@ -7,7 +7,7 @@ import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { topTrainedAgents } from "@/lib/top-agents";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
-import { imageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 
 // PERF 2026-06-11 — /citizens declares revalidate=300 (ISR) but was building
 // as ƒ Dynamic: the Upstash reads here (`cache: "no-store"` REST fetches)
@@ -63,7 +63,7 @@ export async function TopAgents({ limit = 8 }: { limit?: number }) {
               >
                 <div className="img-frame">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl(a.tokenId)} alt={c?.name ?? `#${id4}`} loading="lazy" />
+                  <img src={gridImageUrl(a.tokenId)} alt={c?.name ?? `#${id4}`} loading="lazy" />
                   {activated && <span className="cc-awakened" aria-label="Activated agent">⬡</span>}
                 </div>
                 <div className="meta">

@@ -5,7 +5,7 @@ import { TopAgents } from "@/components/TopAgents";
 import { CitizensBrowser } from "@/components/CitizensBrowser";
 import { PfpSection } from "@/components/citizens/PfpSection";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
-import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
+import { CIVILIZATIONS, gridImageUrl } from "@/lib/constants";
 import Link from "next/link";
 
 // T3 2026-06-11 — explicit share tags so X previews sell the roster instead of
@@ -161,7 +161,7 @@ export default async function Citizens() {
                 <Link key={c.id} href={tag ? `/${tag.slug}` : `/citizens/${c.id}`} className="one-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
                   <div className="img-frame">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imageUrl(c.id)} alt={c.transmission_name || c.name} loading="lazy" />
+                    <img src={gridImageUrl(c.id)} alt={c.transmission_name || c.name} loading="lazy" />
                   </div>
                   <div className="meta">
                     <span className="id">#{c.id.toString().padStart(4, "0")}</span>
@@ -186,7 +186,7 @@ export default async function Citizens() {
               return (
                 <Link key={c.id} href={`/tribute/${handle}`} className="honor-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl(c.id)} alt={c.honoree} loading="lazy" />
+                  <img src={gridImageUrl(c.id)} alt={c.honoree} loading="lazy" />
                   <div className="meta">
                     <span className="id">#{c.id.toString().padStart(4, "0")}</span>
                     <span className="name">{c.honoree}</span>
@@ -209,7 +209,7 @@ export default async function Citizens() {
               return (
                 <Link key={c.id} href={`/citizens/${c.id}`} className="legendary-card" style={{ "--civ": civ?.color } as React.CSSProperties}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl(c.id)} alt={c.name} loading="lazy" />
+                  <img src={gridImageUrl(c.id)} alt={c.name} loading="lazy" />
                   <div className="meta">
                     <span className="id">#{c.id.toString().padStart(4, "0")}</span>
                     <span className="shape">{c.shape}</span>

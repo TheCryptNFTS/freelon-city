@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
+import { CIVILIZATIONS, gridImageUrl } from "@/lib/constants";
 
 type Mini = {
   id: number;
@@ -253,7 +253,7 @@ export function CitizensBrowser({
               style={{ "--civ": civObj?.color, position: "relative" } as React.CSSProperties}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageUrl(c.id)} alt={`Citizen #${c.id}`} loading="lazy" />
+              <img src={gridImageUrl(c.id)} alt={`Citizen #${c.id}`} loading="lazy" />
               {/* Civilization chip — a civ-colored hex + name so the 4040-grid reads
                   as 10 distinct civilizations at a glance, not a wall of samey
                   portraits. Civ name only (copy-safe — no rarity/value language). */}

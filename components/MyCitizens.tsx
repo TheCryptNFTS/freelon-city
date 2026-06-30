@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useHolder } from "@/lib/useHolder";
 import { WalletConnect } from "@/components/WalletConnect";
-import { imageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 import { trackEvent } from "@/lib/track";
 
 type Cit = { id: number; name: string; tier: string; civ: string; color: string };
@@ -160,7 +160,7 @@ export function MyCitizens() {
             >
               <div className="mycit-art">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(c.id)} alt={c.name} loading="lazy" />
+                <img src={gridImageUrl(c.id)} alt={c.name} loading="lazy" />
                 {activated && <span className="mycit-glyph" aria-label="Awakened">⬡</span>}
               </div>
               <div className="mycit-meta">

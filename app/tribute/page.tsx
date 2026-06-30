@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getHonoraries } from "@/lib/citizens";
-import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
+import { gridImageUrl, CIVILIZATIONS } from "@/lib/constants";
 import { PatronsSection } from "@/components/tribute/PatronsSection";
 import { ArchitectSection } from "@/components/tribute/ArchitectSection";
 import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
@@ -92,7 +92,7 @@ export default async function TributeIndex() {
                 style={{ "--civ": civ?.color } as React.CSSProperties}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(h.id)} alt={h.honoree} loading="lazy" />
+                <img src={gridImageUrl(h.id)} alt={h.honoree} loading="lazy" />
                 <div className="meta">
                   <div className="id">#{h.id.toString().padStart(4, "0")}</div>
                   <div className="name">{h.honoree}</div>

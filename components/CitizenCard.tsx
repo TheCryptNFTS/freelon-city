@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Citizen, civilizationColor } from "@/lib/citizens";
-import { imageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 import { GhostedMask } from "@/components/GhostedMask";
 
 export function CitizenCard({ citizen, size = "md", activated = false }: { citizen: Citizen; size?: "sm" | "md" | "lg"; activated?: boolean }) {
@@ -16,7 +16,7 @@ export function CitizenCard({ citizen, size = "md", activated = false }: { citiz
         <GhostedMask tokenId={citizen.id} variant="card">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={imageUrl(citizen.id)}
+            src={gridImageUrl(citizen.id)}
             alt={citizen.name}
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"

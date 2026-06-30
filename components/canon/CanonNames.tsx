@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import citizensData from "@/data/citizens.json";
-import { CIVILIZATIONS, imageUrl } from "@/lib/constants";
+import { CIVILIZATIONS, gridImageUrl } from "@/lib/constants";
 import { listNames, type NameEntry } from "@/lib/name-store";
 
 type Citizen = { id: number; civilization: string; name?: string; tier?: string };
@@ -57,7 +57,7 @@ export async function CanonNames() {
             return (
               <Link key={n.citizenId} href={`/citizens/${n.citizenId}`} className="name-card" style={civ ? ({ borderColor: `${civ.color}40` } as React.CSSProperties) : undefined}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl(n.citizenId)} alt={n.name} loading="lazy" />
+                <img src={gridImageUrl(n.citizenId)} alt={n.name} loading="lazy" />
                 <div>
                   <div className="id">#{padded}{civ ? ` · ${civ.doctrine.toUpperCase()}` : ""}</div>
                   <div className="custom">{n.name}</div>
