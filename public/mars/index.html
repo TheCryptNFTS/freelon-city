@@ -2068,7 +2068,7 @@ globeGroup.add(mapOverlay);
 
 /* ============================== surface scene ============================== */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b0a10);
+scene.background = new THREE.Color(0x120b08);   // 2026-06-30: warmed off the old cold blue-violet 0x0b0a10 (the one off-brand hue — showed as cold purple at any sky seam/extreme zoom) onto the brand warm axis
 scene.fog = new THREE.FogExp2(0x996340, 0.00045);   // butterscotch boot value (skyUpdate re-drives the COLOR per-frame; density stays). thinned 0.0007->0.00045 so the grand far mountains read as a faint dust silhouette you can see THROUGH (aerial depth) instead of dissolving into a flat washed-out wall at the horizon
 /* curated HOME content lives under homeGroup (toggled, never destroyed); procedural away
    sites live under awayGroup (torn down on cross). Sky/terrain/storms/dust stay on scene. */
@@ -2148,9 +2148,9 @@ let skyUniforms=null, skyMesh=null;
         float s=max(dot(dir,normalize(uSun)),0.);               // sun proximity
         // brand butterscotch palette
         vec3 HORIZON_DAY=vec3(.60,.39,.25);                     // bright butterscotch band (lifted out of muddy .29)
-        vec3 MID_DAY=vec3(.34,.225,.16);                        // terracotta mid-sky stop
+        vec3 MID_DAY=vec3(.46,.31,.24);                         // 2026-06-30: lifted+warmed mid-sky (was .34/.225/.16, near-identical to zenith → flat brown dome) for a real horizon→zenith gradient
         vec3 HORIZON_DUSK=vec3(.40,.12,.07);                    // dust-red a8341f family
-        vec3 ZENITH_DAY=vec3(.30,.205,.165);                    // warm dusty mauve-brown zenith — darker than the horizon band for depth, but never cold/grey/void
+        vec3 ZENITH_DAY=vec3(.40,.32,.30);                      // 2026-06-30: paler+desaturated zenith (was .30/.205/.165) — thin Mars air goes hazy pale-tan toward altitude, not dark; gives the dome real top-to-bottom depth, still warm (never cold/void)
         vec3 SUN_GLOW=vec3(.753,.478,.259);                     // butterscotch forward scatter
         vec3 SUN_BLUE=vec3(.28,.42,.62);                        // the EARNED Mars-dusk blue
         float dayN=smoothstep(-0.12,0.18,uSunY);                // 0 night .. 1 day, soft terminator
@@ -2211,8 +2211,8 @@ function skyUpdate(dt){
   const fr=(0.60*(1-dusk)+0.40*dusk), fg=(0.39*(1-dusk)+0.12*dusk), fb=(0.25*(1-dusk)+0.07*dusk);   // matches the lifted butterscotch HORIZON_DAY band — distant terrain dissolves into the horizon, no seam
   const fm=0.30+0.70*dayN;
   if(scene.fog) scene.fog.color.setRGB(fr*fm,fg*fm,fb*fm);
-  const _bgm=Math.max(fm,0.5);   // night-sky floor — dim warm-violet instead of crushing to black
-  scene.background.setRGB(0.05*_bgm,0.045*_bgm,0.078*_bgm);
+  const _bgm=Math.max(fm,0.5);   // night-sky floor — dim WARM instead of crushing to black
+  scene.background.setRGB(0.07*_bgm,0.05*_bgm,0.04*_bgm);   // 2026-06-30: was cold 0.05/0.045/0.078 (blue-violet) → warm brand axis
 }
 /* keep followSun targeting the live camera focus (rover) for shadow tracking */
 function skySetFocus(tx,tz){ _skyLastTx=tx; _skyLastTz=tz; }
@@ -2344,7 +2344,7 @@ function terrainH(x,z){
 }
 /* terrain mesh + reusable rebuildTerrain() — recomputes positions/tints/normals into the
    SAME BufferGeometry on every tile crossing (no realloc). Tints MULTIPLY the regolith map. */
-const _TT={BASALT:[.62,.56,.52],RUST:[1.1,.92,.84],OXIDE:[1.26,1.02,.86],IVORY:[1.34,1.26,1.12],DARK:[.48,.42,.38]};
+const _TT={BASALT:[.82,.58,.42],RUST:[1.16,.92,.80],OXIDE:[1.30,1.00,.82],IVORY:[1.34,1.26,1.12],DARK:[.56,.44,.36]};  // 2026-06-30 art pass: re-reddened+value-lifted the dominant BASALT zone (was grey-brown .62/.56/.52 → reads as lit Mars, not dull void) so the raking key light has bright regolith to rake; RUST/OXIDE nudged warmer, DARK lifted off near-black
 let terrain;
 let _terrainGen=0;   // bumps each rebuild → a stale cross's in-flight fill self-cancels
 function rebuildTerrain(){
@@ -3264,7 +3264,7 @@ function sfxScan(){
 
 /* materials helpers --------------------------------------------------------- */
 const GOLD=0xd8b25c;
-const matDark = ()=> new THREE.MeshStandardMaterial({color:0x14100c,roughness:.6,metalness:.7});
+const matDark = ()=> new THREE.MeshStandardMaterial({color:0x241a12,roughness:.82,metalness:.14,emissive:0x140a04,emissiveIntensity:.1});  // was 0x14100c@.6/.7 → a near-black box at metalness .7 = a dim mirror with NO surface form (read as a flat placeholder slab). Rock/monolith is non-metal: drop metalness to .14, lift albedo + roughness so the sun carves a real lit-face/shadow-face split → the obelisk SCULPTS instead of reading flat; faint warm emissive keeps it premium-dark not dead-black.
 // soft-knee on emissive: linear to 2.8, then 45% slope — keeps the brightest beacons from blowing
 // out to a white bloom-core; bloom haloes the octahedron silhouette instead of a saturated blob.
 const matGold = (i=1)=>{ const e=i*1.9, ei = e<=2.8 ? e : 2.8+(e-2.8)*0.45; return new THREE.MeshStandardMaterial({color:0x4a3a1a,roughness:.3,metalness:.8,emissive:GOLD,emissiveIntensity:ei}); };
@@ -3321,7 +3321,7 @@ function prepModel(root,k){
           /* kit albedo ships near-white — clamp HARD into the soot/gold register so the
              whole skyline speaks one language. rover stays readable; rocket keeps a touch of white. */
           const iconic = (k==='rover'||k==='rocket');
-          if(!iconic && _h.l>.28) o.material.color.setHSL(.085, Math.min(_h.s,.22)+.05, .24);   // hard soot + faint gold cast
+          if(!iconic && _h.l>.28) o.material.color.setHSL(.085, Math.min(_h.s,.22)+.05, .32);   // 2026-06-30: soot floor .24→.32 so structures read as dark METAL the key light catches, not black holes
           else if(k==='rocket' && _h.l>.6) o.material.color.setHSL(_h.h, Math.min(_h.s,.2), .5);  // dim the white, keep the silhouette
           else if(k==='rover' && _h.l>.32) o.material.color.setHSL(.075, Math.max(_h.s,.16), Math.min(_h.l,.64));  // warm sand-ivory body — stays light/readable, loses the sterile plastic white
         }
@@ -4681,6 +4681,7 @@ for(let i=0;i<TRAIL_N;i++){
 // sun-backscatter dust palette: kicked-up regolith reads warm/lit, then cools as it settles
 const _dustWarm=new THREE.Color(0xc89464), _dustCool=new THREE.Color(0x7a4a30), _dustTmp=new THREE.Color();
 let trailIdx=0, emitAcc=0;
+let _prevRoverGy=null, _roverBumpCD=0;   // 2026-06-30 driving-juice: track rover ground-height to detect hard landings for camera shake
 
 /* ===== EMILE DASH AFTERIMAGE — a gold ghost-silhouette smear behind the body during a dash (pure FX, no economy) ===== */
 const AI_N=6, AI_EMIT=0.04, afterimage=[];
@@ -6314,6 +6315,20 @@ function roverUpdate(dt,t){
       else { p.y=damp(p.y, groundY, 12, dt); EMILE.coyote=0.12; }                 // stick to ground + refill the coyote window
     }
   } else {
+    // 2026-06-30 driving-juice: the rover damps to ground (no ballistic fall), so detect a hard
+    // landing from the ground TARGET dropping fast under us while at speed — crest a dune and the
+    // ground falls away, then slams back up. Fire camera trauma + a thud scaled by the drop rate.
+    if(_prevRoverGy!==null && _roverBumpCD<=0 && roverSpd>6){
+      const dGy=(gy-_prevRoverGy)/Math.max(dt,1e-4);   // <0 = ground dropping away (airtime), >0 = slamming back up
+      if(dGy>14){   // ground rushing back up into the chassis = impact
+        const imp=Math.min(.26, (dGy-14)*.006 + roverSpdRatio*.05);
+        if(typeof addTrauma==='function') addTrauma(imp);
+        if(typeof sfxLand==='function') sfxLand(Math.min(22, dGy*.6));
+        if(typeof haptic==='function') haptic(Math.min(.6,imp*2.2),.08);
+        _roverBumpCD=0.18;   // debounce so one crest fires once, not every sub-step
+      }
+    }
+    _roverBumpCD=Math.max(0,_roverBumpCD-dt); _prevRoverGy=gy;
     p.y=damp(p.y, gy, 14, dt);
   }
   rover.rotation.y=roverHeading;
@@ -6342,8 +6357,12 @@ function roverUpdate(dt,t){
   /* +++ rover-feel: sand-surf detection — downhill, fast, on a steep face = drift glide */
   const _gyF=terrainH(p.x+sH*3,p.z+cH*3), _slope=(gy-_gyF);   // >0 = nose pointing downhill
   const _surf = roverSpd>maxSpd*.55 && _slope>1.1;            // fast + steep downhill
-  if(!_emile && roverSpd>3.5 && emitAcc>2.2){   // wheel dust + ruts are a ROVER thing — EMILE has feet, not tyres
+  // 2026-06-30 driving-juice: dust now SCALES with speed — emit interval shrinks and a second puff
+  // kicks in at speed, so flat-out driving roosts a wall of dust instead of the same crawl-puff.
+  const _dustGap = 2.2 - 1.4*roverSpdRatio;   // 2.2u at crawl → ~0.8u flat-out
+  if(!_emile && roverSpd>3.5 && emitAcc>_dustGap){   // wheel dust + ruts are a ROVER thing — EMILE has feet, not tyres
     emitAcc=0; emitDust(p.x-sH*2.1, gy+.5, p.z-cH*2.1);
+    if(roverSpdRatio>0.55) emitDust(p.x-sH*2.3, gy+.7, p.z-cH*2.3);   // second high-speed roost puff
     if(_surf){ const sp=2.6+roverSpdRatio*2.2; emitFan(p.x-sH*1.6, gy+.7, p.z-cH*1.6, sH, cH, sp); emitFan(p.x-sH*1.6, gy+.7, p.z-cH*1.6, sH, cH, sp); }
   }
   /* persistent ruts: keep the window centered, stamp under both rear wheels while loaded */
@@ -6521,10 +6540,10 @@ const GodRaysShader = {
 // survives. uGradeMix eases the whole thing toward neutral (1=full grade). Disco/dusk blue passes through:
 // we only REFUSE to push warm pixels cold; we never rotate cold pixels warm, so the physical blue sunset stays.
 const FilmicGradeShader = {
-  uniforms:{ tDiffuse:{value:null}, uGradeMix:{value:.85}, uVibr:{value:.18}, uDusk:{value:0} },   // vibrance .10->.18: richer gold/dust-red separation (uGradeMix stays .85 — full 1.0 over-cooks)
+  uniforms:{ tDiffuse:{value:null}, uGradeMix:{value:.85}, uVibr:{value:.18}, uDusk:{value:0}, uContrast:{value:1.08}, uRes:{value:new THREE.Vector2(1,1)} },   // vibrance .10->.18: richer gold/dust-red separation (uGradeMix stays .85 — full 1.0 over-cooks). 2026-06-30: +uContrast filmic S-curve, +uRes for grade-stage dither
   vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader:[
-    'varying vec2 vUv; uniform sampler2D tDiffuse; uniform float uGradeMix,uVibr,uDusk;',
+    'varying vec2 vUv; uniform sampler2D tDiffuse; uniform float uGradeMix,uVibr,uDusk,uContrast; uniform vec2 uRes;',
     'const vec3 IVORY  = vec3(.949,.918,.847);',
     'const vec3 DUSTRED= vec3(.659,.204,.122);',
     'const vec3 GOLD   = vec3(.847,.698,.361);',
@@ -6537,7 +6556,7 @@ const FilmicGradeShader = {
     '  float sh = 1. - smoothstep(0.0, 0.45, L);',
     '  float hi = smoothstep(0.55, 1.0, L);',
     '  float mid= 1. - sh - hi; mid = max(mid, 0.);',
-    '  g = mix(g, g * (DUSTRED*1.55 + .35), sh * .28);',
+    '  g = mix(g, g * (DUSTRED*1.30 + .35), sh * .16);',  // 2026-06-30: softened shadow split-tone (was 1.55/.28) — it was smearing every dark pixel (most of the world) into one dust-red, killing soot/rock/cast-shadow material separation
     '  g = mix(g, g * (GOLD   *1.20 + .25), mid * .22);',
     '  g = mix(g, mix(g, IVORY, .35),       hi * .30);',
     '  // gentle vibrance toward the warm axis (boosts gold, leaves the disc/ivory alone)',
@@ -6550,6 +6569,12 @@ const FilmicGradeShader = {
     '  g.g = mix(g.g, max(g.g, min(g.b,g.r)*0.85), guard);                           // LIFT green so it is never the deep-minimum below blue → kills magenta/purple (the shadow dust-red tint crushed green on bright objects); dust-red/gold (G>=B) untouched',
     '  // subtle warm lift in the very deepest blacks so nothing crushes to pure void',
     '  g += DUSTRED * 0.012 * (1. - smoothstep(0.0, 0.10, L));',
+    '  // 2026-06-30 filmic S-curve: restore micro-contrast/punch the ACES+split-tone flattened.',
+    '  // gated above the deep-shadow lift (ctMask) so it never re-crushes the dust shadows we lifted.',
+    '  float ctMask = smoothstep(0.06, 0.45, L);',
+    '  g = mix(g, (g - 0.5) * uContrast + 0.5, ctMask);',
+    '  // 2026-06-30 ordered hash dither (~1/255) on the final image — kills 8-bit banding on the big smooth dark sky+ground gradients at desktop width.',
+    '  g += (fract(sin(dot(vUv*uRes, vec2(12.9898,78.233)))*43758.5453) - 0.5)/255.;',
     '  gl_FragColor = vec4(mix(c, g, uGradeMix), 1.);',
     '}'].join('\n')
 };
@@ -9232,7 +9257,7 @@ function fitRenderer(){
     if(smaaPass) smaaPass.setSize(w*DPR, h*DPR);
     if(ssaoPass){ const s = (PERF_FX===1)? .5 : 1; ssaoPass.setSize(w*DPR*s, h*DPR*s); }   // mid stays half-res
     if(godRayPass){ godRayPass.material.uniforms.uPR.value = DPR; }
-    // (gradePass needs no resolution — it is per-pixel)
+    if(gradePass){ gradePass.material.uniforms.uRes.value.set(w*DPR, h*DPR); }   // 2026-06-30: feed pixel res for the grade-stage dither
   }
 }
 /* ============================== GHOST CONVOY ==============================
