@@ -7,6 +7,7 @@ import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { ProductDoors } from "@/components/ProductDoors";
 import { CityCollectionsStrip } from "@/components/CityCollectionsStrip";
 import { CitizensBand } from "@/components/CitizensBand";
+import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 import { TrackedLink } from "@/components/TrackedLink";
 import { PageBeacon } from "@/components/PageBeacon";
@@ -122,9 +123,10 @@ export default async function Home() {
               ECOSYSTEM, not a single AI-product page). The hero is promoted from
               "an AI citizen that remembers you" (one feature) to FREELON CITY the
               world; the memory hook stays in the subline as the conversion proof,
-              not the whole brand. Order beneath: populations (six collections) →
-              flagship + proof → play the city → buy. The flagship portrait stays
-              as the LCP and the face of "the one you own." */}
+              not the whole brand. 2026-06-30 THREE-PILLAR/placement-council order
+              beneath: three pillars (AI/Mars/TCG) → AI memory proof → owner proof →
+              six collections → demoted City Board → mosaic → buy. The flagship
+              portrait stays as the LCP and the face of "the one you own." */}
           <span className="hero-eyebrow">FREELON CITY · LIVING AI · ON-CHAIN SINCE 2023</span>
           <div className="hero-portrait">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -139,11 +141,21 @@ export default async function Home() {
           <h1 className="hero-landing__h1 hero-landing__h1--citizen">
             FREELON CITY<br />is <strong>alive.</strong>
           </h1>
+          {/* 2026-06-30 THREE-PILLAR PASS (founder: don't bury Mars/TCG; the city
+              has three flagship ways in — AI / Mars / TCG — not one AI product with
+              games hidden below). The subline used to LEAD with "of six collections"
+              (the world taxonomy the placement council demoted to mid-page); it now
+              names the three ways in. "remember you" stays as the proof hook (it gets
+              its full beat in CitizensBand below). Legal-safe: "travels with the NFT",
+              no value/return or on-chain-durability claims (COPY_LEGAL_CHECKLIST). */}
           <p className="hero-landing__tag">
-            A living AI city of six collections. They became citizens that{" "}
-            <strong>remember you</strong>, do real work, and build a public record.
-            Own a FREELON and that record is yours — its whole life travels with the NFT.
+            A living AI city with three ways in: <strong>meet a citizen</strong> that
+            remembers you, <strong>drive Mars</strong>, and <strong>battle the Crypt</strong>.
+            Own a FREELON and its whole life travels with the NFT.
           </p>
+          {/* Hero CTAs surface all three pillars at the front door (Meet primary;
+              Enter Mars + Own secondary). The full three-pillar cards sit directly
+              below in ProductDoors. */}
           <div className="hero-cta-row">
             <TrackedLink
               className="btn btn-primary btn-lg"
@@ -152,6 +164,14 @@ export default async function Home() {
               from="home_hero"
             >
               <span className="ttl">MEET A CITIZEN · FREE <span className="ar">→</span></span>
+            </TrackedLink>
+            <TrackedLink
+              className="btn btn-secondary btn-lg"
+              href="/mars-command"
+              event="mars_enter_click"
+              from="home_hero"
+            >
+              <span className="ttl">ENTER MARS →</span>
             </TrackedLink>
             <TrackedOpenSeaLink
               className="btn btn-secondary btn-lg"
@@ -164,30 +184,42 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── POPULATIONS — "Six collections, one city" (2026-06-30 brand
-          architecture pass). The world layer: the hero says the city is alive;
-          this says what it's MADE OF — six collections, each a population with a
-          role, FREELON the flagship. The single ecosystem beat a stranger needs
-          to stop asking "is this one collection or six?". */}
-      <CityCollectionsStrip />
-
-      {/* ── FLAGSHIP + PROOF — FREELON is the one citizen class you own, awaken
-          and train, and "it remembers you" is the conversion proof (now a beat,
-          not the whole brand). Reuses the CitizensBand quality bar; CTA hands off
-          to the live interactive proof at /demo. */}
-      <CitizensBand />
-
-      {/* ── PLAY THE CITY — Mars + TCG + AI as the city's EXPERIENCES, not
-          standalone games (2026-06-30: connective tissue so the games don't read
-          as bolted-on arcade cards). Enter Mars = first playable frontier; Crypt
-          TCG = the archive turned to battle; AI = meet a live citizen. */}
+      {/* ── THREE PILLARS — "Three ways into the city" (2026-06-30 placement
+          council, three-pillar pass). Moved DIRECTLY under the hero: the three
+          flagship public experiences — AI Citizens / Mars Command / Crypt TCG —
+          are the answer to "what can I actually do here?", and a premium ecosystem
+          shows its tentpoles early (Apple use-cases, Rockstar reveal). They are
+          NOT secondary games hidden under collections. ProductDoors is the
+          three-pillar band; arcade/minigames stay deeper on /play. */}
       <ProductDoors />
 
-      {/* Activation proof — the see→own bridge, relocated out of the hero so it
-          supports the doors instead of cluttering the first impression. Real
-          paid unlocks as social proof; self-hides until at least one exists. */}
+      {/* ── AI MEMORY PROOF — the strongest AI claim, proven before the ownership
+          ask. FREELON is the one citizen class you own, awaken and train, and "it
+          remembers you" is the conversion proof. Reuses the CitizensBand quality
+          bar; CTA hands off to the live interactive proof at /demo. */}
+      <CitizensBand />
+
+      {/* ── OWNER PROOF — real paid unlocks as social proof (the see→own bridge),
+          relocated out of the hero so it supports the pillars + proof instead of
+          cluttering the first impression. Self-hides until at least one exists. */}
       <div className="home-proofstrip">
         <ActivationProof />
+      </div>
+
+      {/* ── SIX COLLECTIONS, ONE CITY — the world/ownership-depth layer, now placed
+          AFTER the pillars + proof (placement council: the system map is the REWARD
+          for being interested, not the toll to enter). Names all six collections,
+          each a population with a role, FREELON marked the flagship ownable citizen
+          class. Full role map + browse lives at /collections. */}
+      <CityCollectionsStrip />
+
+      {/* ── CITY BOARD (demoted) — the live-city/insider newsboard, moved off the
+          top of every page (it used to render above the hero site-wide; the layout
+          now gates it OFF "/" via CityBoardGate). It answers "what's happening now?"
+          — relevant only AFTER a cold visitor understands what the place is and what
+          the pillars are. Sits low, as a quiet live-signal strip, not a front door. */}
+      <div className="home-cityboard">
+        <FourOFourEvent />
       </div>
 
       {/* 2026-06-30 REDUCTION PASS (founder + expert panel: teardown / art-director /
@@ -198,7 +230,8 @@ export default async function Home() {
           That double-pitch was the "scroll loads and it's still the same stuff"
           bloat. The bands' component files remain on disk for reuse on each
           product's own route (/mars-command, /crypt-tcg, /demo). Front door is now
-          one beat per idea: Hero → Doors → Proof → Mosaic → Close. */}
+          one beat per idea: Hero → three pillars → AI proof → owner proof →
+          collections → City Board → mosaic → close. */}
 
       {/* THE ABUNDANCE BAND — real citizens at real size, as collection proof
           above the buy beat. The one piece of unfakeable spectacle (4,040 renders). */}

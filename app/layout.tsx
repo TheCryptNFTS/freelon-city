@@ -12,6 +12,7 @@ import { FourOFourEvent } from "@/components/FourOFourEvent";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { CollapseBanner } from "@/components/CollapseBanner";
 import { CollapseBannerGate } from "@/components/CollapseBannerGate";
+import { CityBoardGate } from "@/components/CityBoardGate";
 import { ChromeGate } from "@/components/ChromeGate";
 import { BottomNav } from "@/components/BottomNav";
 import { ReferralBeacon } from "@/components/ReferralBeacon";
@@ -171,7 +172,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             with art, not a Bloomberg ribbon. Component kept at
             components/CityFeedTicker.tsx if a reskinned status line is ever
             wanted, but it no longer renders site-wide. */}
-        <FourOFourEvent />
+        {/* 2026-06-30 PLACEMENT PASS: the City Board is an INSIDER/live-city
+            newsboard (countdowns, agent Versus/Chronicle). Above the hero it was
+            the literal first pixel a cold visitor saw on the front door. Gated OFF
+            the homepage here; the homepage renders its own DEMOTED instance lower
+            down (after pillars → proof → collections). Unchanged on every other
+            route. */}
+        <CityBoardGate>
+          <FourOFourEvent />
+        </CityBoardGate>
         </ChromeGate>
         <main id="main">{children}</main>
         <ChromeGate>
