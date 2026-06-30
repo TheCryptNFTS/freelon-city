@@ -8740,6 +8740,9 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Bias the crop upward so the subject (rover / card fan / citizen head) stays
+     above the bottom title plate — insurance if a source drifts off 16:10. */
+  object-position: 50% 28%;
   display: block;
   filter: saturate(1.02) contrast(1.02);
   transition: transform .35s ease;
@@ -8750,7 +8753,7 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 32%, rgba(11,11,13,0.55) 70%, rgba(11,11,13,0.92) 100%);
+  background: linear-gradient(180deg, transparent 45%, rgba(11,11,13,0.45) 66%, rgba(11,11,13,0.9) 100%);
 }
 .door-card__head {
   position: absolute;
@@ -8790,6 +8793,8 @@ select.admin-input { appearance: none; -webkit-appearance: none; cursor: pointer
   font-size: 13px;
   line-height: 1.6;
   color: var(--ink-2);
+  /* Reserve 3 lines so all three cards' CTAs align on one baseline. */
+  min-height: calc(1.6em * 3);
 }
 .door-card__cta {
   margin-top: auto;

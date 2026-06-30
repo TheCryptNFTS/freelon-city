@@ -20,7 +20,7 @@ const DOORS = [
     href: "/mars-command",
     event: "mars_enter_click",
     img: "/og/art/mars-rover.webp",
-    kicker: "FREE · NO WALLET",
+    kicker: "BROWSER GAME · FREE",
     title: "Enter Mars",
     blurb:
       "Drive across a procedural Mars, scan buried signals, claim sectors, and fight the Chorus in a free browser game.",
@@ -29,8 +29,8 @@ const DOORS = [
   {
     href: "/crypt-tcg",
     event: "crypt_enter_click",
-    img: "/og/art/crypt.webp",
-    kicker: "SOLO VS AI · LIVE",
+    img: "/og/art/crypt-tcg.webp",
+    kicker: "CARD GAME · FREE",
     title: "Play the TCG",
     blurb:
       "Build a deck, command the archive, and battle solo against the AI in Crypt Legends TCG.",
@@ -40,7 +40,7 @@ const DOORS = [
     href: "/demo",
     event: "meet_citizen_click",
     img: "/og/art/freelons.webp",
-    kicker: "FREE TO MEET",
+    kicker: "LIVING AI · FREE",
     title: "AI Citizens",
     blurb:
       "Meet a living AI citizen free — one that remembers you and can prove it. Then own, awaken, and train it.",
