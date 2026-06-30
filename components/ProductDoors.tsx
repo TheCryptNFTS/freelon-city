@@ -43,7 +43,7 @@ const DOORS = [
     kicker: "FREE TO MEET",
     title: "AI Citizens",
     blurb:
-      "Meet a living AI citizen for free, then own, awaken, train, and build its public record.",
+      "Meet a living AI citizen free — one that remembers you and can prove it. Then own, awaken, and train it.",
     cta: "Meet a Citizen",
   },
 ];

@@ -3,9 +3,6 @@ import Link from "next/link";
 import { preload } from "react-dom";
 import { HeroVideo } from "@/components/HeroVideo";
 import { ActivationProof } from "@/components/ActivationProof";
-import { MarsBand } from "@/components/MarsBand";
-import { CryptTcgBand } from "@/components/CryptTcgBand";
-import { CitizensBand } from "@/components/CitizensBand";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { ProductDoors } from "@/components/ProductDoors";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
@@ -155,19 +152,18 @@ export default async function Home() {
         <ActivationProof />
       </div>
 
-      {/* ── THE THREE PRODUCT FEATURE BANDS — one controlled path, each product
-          sold at the CryptTcgBand quality bar (2026-06-29 site-design rebuild):
-          one product, one strong visual, one message, two CTAs, breathing room.
-          Mars → TCG → AI Citizens, in launcher priority order. The weak homepage
-          sections that used to sit here (How It Works NFT-instruction, the lore
-          term-badge, TransformsWall, CityWeekBand) were demoted off the cold path
-          — each still lives at its own route. */}
-      <MarsBand />
-      <CryptTcgBand />
-      <CitizensBand />
+      {/* 2026-06-30 REDUCTION PASS (founder + expert panel: teardown / art-director /
+          product-lead all converged): the three full-width product feature bands
+          (MarsBand / CryptTcgBand / CitizensBand) were DELETED from the homepage —
+          they re-sold the exact same three products the ProductDoors above already
+          name and link, at three full screens of near-identical gold-washed boxes.
+          That double-pitch was the "scroll loads and it's still the same stuff"
+          bloat. The bands' component files remain on disk for reuse on each
+          product's own route (/mars-command, /crypt-tcg, /demo). Front door is now
+          one beat per idea: Hero → Doors → Proof → Mosaic → Close. */}
 
       {/* THE ABUNDANCE BAND — real citizens at real size, as collection proof
-          directly under the AI-citizens pitch and above the buy beat. */}
+          above the buy beat. The one piece of unfakeable spectacle (4,040 renders). */}
       <CitizenMosaic />
 
       {/* ── CLOSING CTA — one clean ending, agents only. 2026-06-04 newcomer-path
@@ -191,36 +187,17 @@ export default async function Home() {
             <span className="ttl">MEET A CITIZEN · FREE →</span>
           </TrackedLink>
         </div>
-        {/* 2026-06-11 — civilization frame (lineage verified on Etherscan).
-            "FREELONS are the first" was FALSE — The Crypt deployed Oct 2023;
-            FREELONS (Apr 2026) are the NEWEST citizens. The city's age is the
-            proof, ownership is the hook (Pudgy-possessive, activity-first),
-            and the sisters are free-to-meet roles, not copies. No price claims. */}
-        <p className="home-close__eco">
-          One living city of AI citizens — six collections, founded on-chain in 2023.
-          FREELONS are the newest citizens, the ones you can own and train;{" "}
-          <strong>Emile, The Crypt, Oogies and Smiles</strong> are free to meet.{" "}
-          <Link href="/collections">Explore the collections →</Link>{" · "}
-          <Link href="/proof">See why only your FREELON can do this →</Link>
-        </p>
-        {/* 2026-06-06 buy-handoff polish — OWN A FREELON jumps straight to
-            OpenSea, which lands NFT-curious newcomers cold. One line sets the
-            expectation (wallet needed, secured on Ethereum) and points the
-            unsure to the 2-minute guide instead of bouncing. No price/return
-            claims (copy-safety). */}
+        {/* 2026-06-30 REDUCTION PASS: the close was five stacked paragraphs (eco
+            explainer + buy note + Discord/X invite) fighting at the buy moment —
+            the panel's "the close is louder than the hero" flag. Collapsed to one
+            quiet expectation line. The six-collections explainer and the
+            community invite were NOT lost: both already live in the footer (City
+            column links /collections; Support column links Discord + X). A premium
+            close is one decision, one line — not a second sitemap. */}
         <p className="home-close__note">
           Opens OpenSea · secured on Ethereum · a crypto wallet is needed to collect.
           After you collect, come back to <Link href="/my-citizens">awaken it</Link>.{" "}
           <Link href="/help#wallet">New to this? Start here →</Link>
-        </p>
-        {/* 2026-06-06 — community front door. The site had no path to the
-            holders' room from the homepage; owners and the merely-curious both
-            land here, so the closing surface is where the invite belongs. */}
-        <p className="home-close__community">
-          Talk to the city:{" "}
-          <a href="https://discord.gg/xcK3E8nCB8" target="_blank" rel="noreferrer">Discord ↗</a>
-          {" · "}
-          <a href="https://x.com/4040hex" target="_blank" rel="noreferrer">X ↗</a>
         </p>
       </section>
     </div>
