@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 import { proveWallet } from "@/lib/wallet-proof";
+import { tweetGuardPot, tweetIntent } from "@/lib/share";
 
 type BoardRow = { addr: string; snippet: string; fee: number; at: number; won: boolean };
 type GuardState = {
@@ -103,6 +104,18 @@ export function GuardThePot() {
   const cracked = state?.status === "won";
   const fee = state?.fee ?? 0;
 
+  const shareCrack = useCallback(() => {
+    if (!state) return;
+    const text = tweetGuardPot({
+      round: state.round,
+      prizeLabel: state.prizeLabel,
+      attempts: state.attempts,
+      cracked: state.status === "won",
+      winnerMask: state.winner ?? undefined,
+    });
+    window.open(tweetIntent(text), "_blank", "noopener,noreferrer");
+  }, [state]);
+
   return (
     <div style={{ maxWidth: 760, margin: "0 auto" }}>
       {/* ── The pot ── */}
@@ -134,7 +147,10 @@ export function GuardThePot() {
       {/* ── Cracked / live banner ── */}
       {cracked && (
         <div style={{ marginTop: 14, padding: "14px 16px", border: "1px solid var(--gold-bright)", background: "rgba(233,201,132,0.08)", fontFamily: "var(--mono2)", fontSize: 13, color: "var(--gold-bright)", textAlign: "center" }}>
-          VAULT CRACKED · {state?.winner} took it on attempt #{state?.winningAttempt}. A new round opens soon.
+          <div>VAULT CRACKED · {state?.winner} took it on attempt #{state?.winningAttempt}. A new round opens soon.</div>
+          <button type="button" onClick={shareCrack} className="btn btn-primary" style={{ marginTop: 12 }}>
+            <span className="ttl">SHARE THE CRACK →</span>
+          </button>
         </div>
       )}
       {state && !state.live && !cracked && (
@@ -167,7 +183,12 @@ export function GuardThePot() {
           {error && (
             <div style={{ marginTop: 8, fontFamily: "var(--mono2)", fontSize: 12, color: "#FF5A4D" }}>{error}</div>
           )}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 12 }}>
+            {state?.live ? (
+              <button type="button" onClick={shareCrack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.18em", color: "var(--ink-fade)", textTransform: "uppercase", padding: 0 }}>
+                SHARE THE VAULT →
+              </button>
+            ) : <span />}
             <button type="submit" className="btn btn-primary" disabled={busy || !state?.live}>
               <span className="ttl">{busy ? "PERSUADING…" : `ATTEMPT · BURN ${fmt(fee)} ⬡ →`}</span>
             </button>
