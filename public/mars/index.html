@@ -1482,6 +1482,7 @@ function failDefend(reason){
     if(rtAimLine){ scene.remove(rtAimLine); rtAimLine.material.dispose(); rtAimLine=null; }
     if(rtAimRing){ scene.remove(rtAimRing); rtAimRing.geometry.dispose(); rtAimRing.material.dispose(); rtAimRing=null; }
     const h=$('rtHud'); if(h) h.style.display='none';
+    clearFoeMeshes();
   }
   save(); updateHUD();
 }
@@ -1490,6 +1491,7 @@ function endDefend(won){
   if(rtAimLine){ scene.remove(rtAimLine); rtAimLine.material.dispose(); rtAimLine=null; }
   if(rtAimRing){ scene.remove(rtAimRing); rtAimRing.geometry.dispose(); rtAimRing.material.dispose(); rtAimRing=null; }
   const h=$('rtHud'); if(h) h.style.display='none';
+  clearFoeMeshes();
   if(won) winDefend(); else failDefend('repelled');
 }
 function claimTile(tid){
@@ -4394,7 +4396,7 @@ function clearRelics(){ for(const m of RELIC.items){ scene.remove(m); if(m.geome
 function startRelicRun(){
   if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;   // not off-surface / mid-cross / behind a modal
   if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
-  if(RELIC.active){ endRelicRun(false,true); }
+  if(RELIC.active){ endRelicRun(false,true); } if(TRIAL.active) endTimeTrial(false,true); if(PARK.active) endParkour(false,true);
   if(playerMode!=='emile') setPlayerMode('emile');            // it's a foot-race — drop into EMILE
   clearRelics();
   RELIC.total=8; RELIC.got=0; RELIC.timeLeft=RELIC.par=50; RELIC.active=true;
@@ -4484,7 +4486,7 @@ function clearTrial(){ for(const g of TRIAL.gates){ if(!g) continue; scene.remov
   if(TRIAL.ghost){ scene.remove(TRIAL.ghost); _disposeTree(TRIAL.ghost); TRIAL.ghost=null; } }
 function startTimeTrial(){
   if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;   // not off-surface / mid-cross / behind a modal
-  if(TRIAL.active) endTimeTrial(false,true);
+  if(TRIAL.active) endTimeTrial(false,true); if(RELIC.active) endRelicRun(false,true); if(PARK.active) endParkour(false,true); if(GAUNTLET.active) endGauntlet(false,true);
   if(playerMode!=='rover') setPlayerMode('rover');     // it's a DRIVING trial
   clearTrial();
   TRIAL.seed=dailySeed()>>>0;
@@ -4582,7 +4584,7 @@ function clearPark(){ for(const r of PARK.rings){ if(!r) continue; scene.remove(
 function startParkour(){
   if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;
   if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
-  if(PARK.active) endParkour(false,true);
+  if(PARK.active) endParkour(false,true); if(RELIC.active) endRelicRun(false,true); if(TRIAL.active) endTimeTrial(false,true);
   if(playerMode!=='emile') setPlayerMode('emile');
   clearPark();
   PARK.total=8; PARK.idx=0; PARK.t=0; PARK.active=true;
@@ -5376,7 +5378,7 @@ function cityFollow(wx,wz){
   for(const [key,g] of _cities){ if(!keep.has(key)){ if(g){ scene.remove(g); disposeCity(g); } _cities.delete(key); } }
 }
 function disposeCity(g){
-  g.traverse(o=>{ if(o.geometry && o.geometry!==_cityGeo && o.geometry!==_octGeo) o.geometry.dispose(); });
+  g.traverse(o=>{ if(o.isInstancedMesh) o.dispose(); else if(o.geometry && o.geometry!==_cityGeo && o.geometry!==_octGeo) o.geometry.dispose(); });
   if(g.userData.mats) for(const m of g.userData.mats) m.dispose();
   if(g.userData.label){ g.userData.label.remove(); g.userData.label=null; }
 }
@@ -10041,10 +10043,10 @@ Object.assign(window.MARS,{
   garageMenu:()=>{ _upEnsureBtn(); _upToggle(); return {open:!!_upPanel,tiers:{engine:_upTier('engine'),plating:_upTier('plating'),treads:_upTier('treads')},hex:S.hex}; },
   upBuy:(k)=>{ _upBuy(k); return {tier:_upTier(k),hex:S.hex,speedMul:+_upSpeedMul().toFixed(3),accelMul:+_upAccelMul().toFixed(3),armorMul:+_upArmorMul().toFixed(3)}; },
   miner:()=>{ _mawBuild(); const hx=Math.sin(roverHeading),hz=Math.cos(roverHeading); _maw.position.set(rover.position.x+hx*120,0,rover.position.z+hz*120); _maw.position.y=terrainH(_maw.position.x,_maw.position.z); return {x:+_maw.position.x.toFixed(0),z:+_maw.position.z.toFixed(0)}; },
-  race:()=>{ _rcStart(); return {gates:_RC_N,best:S.raceBest,center:[_RC_CX,_RC_CZ]}; },
+  race:()=>{ if(mode!=='play'||rtActive||_rcActive||_STORM.active||RELIC.active||TRIAL.active||PARK.active||GAUNTLET.active){ if(typeof toast==='function')toast('FINISH YOUR CURRENT RUN FIRST'); return {active:_rcActive}; } _rcStart(); return {gates:_RC_N,best:S.raceBest,center:[_RC_CX,_RC_CZ]}; },
   raceInfo:()=>({active:_rcActive,idx:_rcIdx,total:_RC_N,t:+_rcT.toFixed(1),best:S.raceBest,next:_rcGates&&_rcGates[_rcIdx]?[+_rcGates[_rcIdx].userData.x.toFixed(0),+_rcGates[_rcIdx].userData.z.toFixed(0)]:null}),
   raceSim:()=>{ _rcStart(); for(const g of _rcGates){ rover.position.set(g.userData.x,terrainH(g.userData.x,g.userData.z),g.userData.z); raceUpdate(0.5,0); } return {best:S.raceBest,active:_rcActive}; },
-  stormRun:()=>{ _stormStart(); return {haven:[+_STORM.hx.toFixed(0),+_STORM.hz.toFixed(0)],wall:_STORM.wall}; },
+  stormRun:()=>{ if(mode!=='play'||rtActive||_rcActive||_STORM.active||RELIC.active||TRIAL.active||PARK.active||GAUNTLET.active){ if(typeof toast==='function')toast('FINISH YOUR CURRENT RUN FIRST'); return {active:_STORM.active}; } _stormStart(); return {haven:[+_STORM.hx.toFixed(0),+_STORM.hz.toFixed(0)],wall:_STORM.wall}; },
   stormInfo:()=>({active:_STORM.active,wall:+_STORM.wall.toFixed(0),haven:_STORM.active?+Math.hypot(rover.position.x-_STORM.hx,rover.position.z-_STORM.hz).toFixed(0):null}),
   /* TASK#1 — render a share card headlessly (returns {kind,stats,png}) */
   runCard:(kind,stats)=>{ const k=(kind==='storm')?'storm':'race';
