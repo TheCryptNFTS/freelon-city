@@ -1542,7 +1542,7 @@ function repaintTerra(){ if(!terraTex) return; const px=_terraColForCur(), d=ter
 function terraform(id,toStage){ id=id||S.tile;
   if(typeof toStage==='number'){ S.terra[id]=Math.max(0,Math.min(TERRA_STAGES.length-1,toStage|0)); repaintTerra(); save(); return true; }   /* debug set */
   const st=terraState(id); if(!st.ok){ toast(st.why); return false; }
-  S.hex-=st.cost; S.today.spent+=st.cost; shownHex=S.hex;        // ⬡ SINK
+  S.hex-=st.cost; S.today.spent+=st.cost; trackSpend(st.cost,'terraform'); shownHex=S.hex;        // ⬡ SINK
   S.terra[id]=terraStage(id)+1;
   if(st.next.inf){ S.influence=(S.influence||0)+st.next.inf; floater('+'+st.next.inf+' INFLUENCE'); }
   toast(st.next.name+' · −⬡ '+st.cost); sfxClaim(); addTrauma(.18);
@@ -1581,7 +1581,7 @@ function layBandwidth(a,b){
   if(!b){ b=st.targets[0]; }
   if(!st.targets.includes(b)){ toast('SECTOR NOT ADJACENT'); return false; }
   const before=liveSectors();
-  S.hex-=st.cost; S.today.spent+=st.cost; shownHex=S.hex;        // ⬡ SINK
+  S.hex-=st.cost; S.today.spent+=st.cost; trackSpend(st.cost,'bandwidth'); shownHex=S.hex;        // ⬡ SINK
   S.uplink.push([a,b]); if(S.uplink.length>BW_MAX) S.uplink.shift();
   const after=liveSectors(); let woke=0;
   after.forEach(t=>{ if(!before.has(t)&&t!==HOME_TILE){ woke++; } });
@@ -4037,7 +4037,7 @@ function placeBuilding(t,x,z,silent){
     const cost=bCost(t);
     S.buildings.push({t,x:+x.toFixed(1),z:+z.toFixed(1), readyAt:Date.now()+(PROD[t]?PROD[t].dur:0)});
     S.hex-=cost;
-    S.today.spent+=cost; S.today.builds++;
+    S.today.spent+=cost; S.today.builds++; trackSpend(cost,'build');
     shownHex=S.hex;
     save(); syncCitizens(); updateHUD(); renderBuildMenu(); renderMissions();
     toast(`${CATALOG[t].name} ONLINE · −⬡ ${cost}`);
@@ -7110,7 +7110,7 @@ function dispatchCrew(id){
   const reward=Math.round((70+p.threat*35)*(p.type==='deposit'?(1+perkLvl('cores')*.15):1));
   const cost=Math.round(reward*.5);   // supply stake — sink-first, net yield ~+50% over the timer
   if(S.hex<cost){ toast('INSUFFICIENT ⬡ FOR SUPPLIES — NEED '+cost); return; }
-  S.hex-=cost; S.today.spent+=cost; shownHex=S.hex;
+  S.hex-=cost; S.today.spent+=cost; trackSpend(cost,'dispatch'); shownHex=S.hex;
   S.exped.push({id:p.id, name:p.name, type:p.type, threat:p.threat, reward, doneAt:Date.now()+expDur(p.threat)});
   sfxClaim(); toast('CREW DISPATCHED ▸ '+p.name+' · −⬡ '+cost); save(); updateHUD(); openCrews(); updateCrewsBtn();
 }
@@ -7572,7 +7572,7 @@ function openBeaconPanel(p){
   const owned=Object.values(S.tiles).filter(t=>t.claimed).length;
   const cost=Math.round(100*Math.pow(1.5,owned));
   if(S.hex<cost){ toast('CLAIM COST ⬡ '+cost+' — INSUFFICIENT'); return; }
-  S.hex-=cost; rec.claimed=1; rec.claimCol=Date.now(); rec.tended=_playClock; rec.rival=0; rec.rivalAt=0; rec.warned=0;   // match claimTile: a fresh hold is tended + pushes the Chorus off (this fallback only runs if the content layer is absent)
+  S.hex-=cost; S.today.spent+=cost; trackSpend(cost,'claim-tile'); rec.claimed=1; rec.claimCol=Date.now(); rec.tended=_playClock; rec.rival=0; rec.rivalAt=0; rec.warned=0;   // match claimTile: a fresh hold is tended + pushes the Chorus off (this fallback only runs if the content layer is absent)
   const g=poiGroups[p.id]; if(g){ siteCeremony(g); poiResolve(g); }
   S.xp+=20; shownHex=S.hex;
   toast(tileName(S.tile)+' CLAIMED · −⬡ '+cost);
@@ -7816,7 +7816,7 @@ function renderDeck(){
     el.onclick=()=>{
       const i=+el.dataset.up, lv=S.cardLv[i]||0, cost=cardCost(i);
       if(lv>=5||S.hex<cost) return;
-      S.hex-=cost; S.today.spent+=cost; shownHex=S.hex;
+      S.hex-=cost; S.today.spent+=cost; trackSpend(cost,'deck'); shownHex=S.hex;
       S.cardLv[i]=lv+1;
       sfxClaim(); toast(DECK.find(c=>c.civIdx===i).name+' HARDENED · −⬡ '+cost);
       save(); updateHUD(); renderDeck(); checkDailies();
@@ -9673,7 +9673,7 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
   },
   gradeMix:(v)=>{ if(gradePass) gradePass.material.uniforms.uGradeMix.value=v; return v; },  /* ease grade toward neutral for a full-blue dusk beat */
   cam:(y,p,d)=>{ yaw=y; pitch=p; dist=d; applyOrbit(); },
-  warp:ms=>{ S.buildings.forEach(b=>{ if(b.readyAt) b.readyAt-=ms; }); S.lastSeen-=ms; save(); },
+  warpTime:ms=>{ S.buildings.forEach(b=>{ if(b.readyAt) b.readyAt-=ms; }); S.lastSeen-=ms; save(); },
   frag:()=>awardFragment('debug'),
   firstVow:()=>{ S.firstSignalShown=false; const b=S.buildings.filter(x=>PROD[x.t])[0]||{readyAt:Date.now()+30*60e3}; showFirstSignalPromise(b); return {el:!!document.getElementById('firstSignalVow'), txt:(document.getElementById('firstSignalT')||{}).textContent}; },
   streak:(target)=>{ if(typeof target==='number'){ S.streak.n=Math.max(0,target-1); S.streak.lastDay=''; const g=creditStreak(); save(); updateHUD(); return {n:S.streak.n, bonus:g, prizeUnlocked:_streakPrize, trail:(S.cosmetic&&S.cosmetic.trail)?'0x'+S.cosmetic.trail.toString(16):null, note:streakNote, arc:streakArc(true)}; } return {n:S.streak.n, trail:(S.cosmetic&&S.cosmetic.trail)?'0x'+S.cosmetic.trail.toString(16):null, arc:streakArc(true)}; },
