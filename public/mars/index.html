@@ -4385,7 +4385,7 @@ function emileDash(){ if(playerMode!=='emile'||EMILE.dashCd>0) return; EMILE.das
    Zero new assets (procedural octahedron relics). Trigger: ⬡ RELIC RUN button / R key / MARS.relicRun(). */
 const RELIC={ active:false, items:[], total:0, got:0, timeLeft:0, par:50, _chain:false };
 function _relicHudEl(){ let el=document.getElementById('relicHud'); if(!el){ el=document.createElement('div'); el.id='relicHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
-function clearRelics(){ for(const m of RELIC.items){ scene.remove(m); if(m.geometry)m.geometry.dispose(); } RELIC.items.length=0; }
+function clearRelics(){ for(const m of RELIC.items){ scene.remove(m); if(m.geometry)m.geometry.dispose(); if(m.material)m.material.dispose(); } RELIC.items.length=0; }
 function startRelicRun(){
   if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;   // not off-surface / mid-cross / behind a modal
   if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
@@ -4437,7 +4437,7 @@ function tickRelicRun(dt,t){
     m.rotation.y+=dt*2.4; m.position.y=m.userData.baseY+Math.sin(t*2+i)*0.8;
     const dx=m.position.x-p.x, dz=m.position.z-p.z;               // horizontal grab — float height shouldn't shrink the radius
     if(dx*dx+dz*dz < 169){                                        // 13u grab radius (forgiving at speed)
-      scene.remove(m); if(m.geometry)m.geometry.dispose(); RELIC.items.splice(i,1); RELIC.got++;
+      scene.remove(m); if(m.geometry)m.geometry.dispose(); if(m.material)m.material.dispose(); RELIC.items.splice(i,1); RELIC.got++;
       burst(m.position.x,m.position.y,m.position.z); sfxBlip(RELIC.got/RELIC.total);
       if(typeof haptic==='function')haptic(.3,.05);
     }
@@ -4457,8 +4457,9 @@ const TRIAL={ active:false, gates:[], idx:0, t:0, total:6, best:null, seed:0,
 const GHOST_DT=0.15;   // ghost path sample interval (s)
 function dailyTrialKey(){ return 'mars_dtrial_'+new Date().toISOString().slice(0,10); }   // per-UTC-day best record
 function _trialHudEl(){ let el=document.getElementById('trialHud'); if(!el){ el=document.createElement('div'); el.id='trialHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
+function _disposeTree(o){ if(!o||!o.traverse) return; o.traverse(c=>{ if(c.geometry)c.geometry.dispose(); if(c.material){ if(Array.isArray(c.material))c.material.forEach(m=>m&&m.dispose()); else c.material.dispose(); } }); }
 function buildTrialGhost(){
-  if(TRIAL.ghost){ scene.remove(TRIAL.ghost); TRIAL.ghost=null; }
+  if(TRIAL.ghost){ scene.remove(TRIAL.ghost); _disposeTree(TRIAL.ghost); TRIAL.ghost=null; }
   if(!TRIAL.ghostPath || TRIAL.ghostPath.length<4) return;
   const grp=new THREE.Group();
   const body=new THREE.Mesh(new THREE.BoxGeometry(2.3,1.0,4), new THREE.MeshBasicMaterial({color:0xffe9b0,transparent:true,opacity:.20,depthWrite:false}));
@@ -4474,8 +4475,8 @@ function _ghostAt(t){   // world XZ of the best-run ghost at time t (path stored
   const k=f-i, ax=P[i*2], az=P[i*2+1], bx=P[i*2+2], bz=P[i*2+3];
   return [TRIAL.sx+ax+(bx-ax)*k, TRIAL.sz+az+(bz-az)*k];
 }
-function clearTrial(){ for(const g of TRIAL.gates){ if(!g) continue; scene.remove(g); if(g.geometry)g.geometry.dispose(); } TRIAL.gates.length=0;
-  if(TRIAL.ghost){ scene.remove(TRIAL.ghost); TRIAL.ghost=null; } }
+function clearTrial(){ for(const g of TRIAL.gates){ if(!g) continue; scene.remove(g); if(g.geometry)g.geometry.dispose(); if(g.material)g.material.dispose(); } TRIAL.gates.length=0;
+  if(TRIAL.ghost){ scene.remove(TRIAL.ghost); _disposeTree(TRIAL.ghost); TRIAL.ghost=null; } }
 function startTimeTrial(){
   if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;   // not off-surface / mid-cross / behind a modal
   if(TRIAL.active) endTimeTrial(false,true);
@@ -4553,7 +4554,7 @@ function tickTimeTrial(dt){
     const dx=g.position.x-p.x, dz=g.position.z-p.z;       // horizontal drive-through
     if(dx*dx+dz*dz < 144){                                // 12u — forgiving drive-through
       burst(g.position.x,g.position.y,g.position.z); sfxBlip((TRIAL.idx+1)/TRIAL.total);
-      scene.remove(g); if(g.geometry)g.geometry.dispose(); TRIAL.gates[TRIAL.idx]=null;
+      scene.remove(g); if(g.geometry)g.geometry.dispose(); if(g.material)g.material.dispose(); TRIAL.gates[TRIAL.idx]=null;
       TRIAL.splits.push(+TRIAL.t.toFixed(2));
       if(TRIAL.ghostSplits && TRIAL.ghostSplits[TRIAL.idx]!=null) TRIAL.lastDelta=TRIAL.t-TRIAL.ghostSplits[TRIAL.idx];   // vs your best at this gate
       TRIAL.idx++;
@@ -4572,7 +4573,7 @@ function tickTimeTrial(dt){
    altitude. Trigger: ▸ PARKOUR button / P key / MARS.parkour(). */
 const PARK={ active:false, rings:[], idx:0, total:8, t:0, _chain:false };
 function _parkHudEl(){ let el=document.getElementById('parkHud'); if(!el){ el=document.createElement('div'); el.id='parkHud'; el.style.cssText='position:fixed;top:150px;left:50%;transform:translateX(-50%);z-index:26;font-family:inherit;font-size:15px;letter-spacing:.18em;color:#ffe9b0;background:rgba(8,6,4,.72);border:1px solid var(--gold);padding:9px 22px;backdrop-filter:blur(6px);display:none;white-space:nowrap'; document.body.appendChild(el); } return el; }
-function clearPark(){ for(const r of PARK.rings){ if(!r) continue; scene.remove(r); if(r.geometry)r.geometry.dispose(); } PARK.rings.length=0; }
+function clearPark(){ for(const r of PARK.rings){ if(!r) continue; scene.remove(r); if(r.geometry)r.geometry.dispose(); if(r.material)r.material.dispose(); } PARK.rings.length=0; }
 function startParkour(){
   if(mode!=='play'||crossing||$('battle').classList.contains('open')||$('goneModal').classList.contains('open')) return;
   if(!EMILE.ready){ toast('EMILE still warming up…'); return; }
@@ -4622,7 +4623,7 @@ function tickParkour(dt,t){
     const dx=g.position.x-p.x, dz=g.position.z-p.z, dy=g.position.y-p.y;   // 3D — must be AT the ring altitude (jumped up)
     if(dx*dx+dz*dz+dy*dy < 36){                          // 6u sphere
       burst(g.position.x,g.position.y,g.position.z); sfxBlip((PARK.idx+1)/PARK.total);
-      scene.remove(g); if(g.geometry)g.geometry.dispose(); PARK.rings[PARK.idx]=null; PARK.idx++;
+      scene.remove(g); if(g.geometry)g.geometry.dispose(); if(g.material)g.material.dispose(); PARK.rings[PARK.idx]=null; PARK.idx++;
       if(PARK.idx>=PARK.total){ endParkour(true); return; }
     }
   }
@@ -4657,7 +4658,7 @@ function gauntletAdvance(phase){
   _gauntHudEl().style.display='block';
 }
 function buildFinishGate(){
-  if(GAUNTLET.finish){ scene.remove(GAUNTLET.finish); if(GAUNTLET.finish.geometry)GAUNTLET.finish.geometry.dispose(); }
+  if(GAUNTLET.finish){ scene.remove(GAUNTLET.finish); if(GAUNTLET.finish.geometry)GAUNTLET.finish.geometry.dispose(); if(GAUNTLET.finish.material)GAUNTLET.finish.material.dispose(); }
   const a=roverHeading, px=rover.position.x+Math.sin(a)*120, pz=rover.position.z+Math.cos(a)*120, y=terrainH(px,pz)+9;
   const m=new THREE.Mesh(new THREE.TorusGeometry(10,1.6,8,28), matGold(3.0));
   m.position.set(px,y,pz); m.lookAt(rover.position.x,y,rover.position.z); m.frustumCulled=false; scene.add(m);
@@ -4666,7 +4667,7 @@ function buildFinishGate(){
 function gauntletFail(stage){ toast('▸ GAUNTLET — out at '+stage+'. One clean run, no breaks.'); endGauntlet(false,true); }
 function endGauntlet(won, silent){
   const was=GAUNTLET.active; GAUNTLET.active=false; GAUNTLET.phase=0; RELIC._chain=false; PARK._chain=false;
-  if(GAUNTLET.finish){ scene.remove(GAUNTLET.finish); if(GAUNTLET.finish.geometry)GAUNTLET.finish.geometry.dispose(); GAUNTLET.finish=null; }
+  if(GAUNTLET.finish){ scene.remove(GAUNTLET.finish); if(GAUNTLET.finish.geometry)GAUNTLET.finish.geometry.dispose(); if(GAUNTLET.finish.material)GAUNTLET.finish.material.dispose(); GAUNTLET.finish=null; }
   clearRelics(); clearPark();
   document.body.classList.remove('gauntlet','relicrun','parkrun');
   const el=document.getElementById('gauntHud'); if(el) el.style.display='none';
