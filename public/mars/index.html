@@ -7402,7 +7402,17 @@ function renderNext(){
   const g=GOALS[S.goalIndex];
   /* first-run pin: keep the objective + control hint visible through the opening goals (drive →
      scan → survey → clear → first contact). Dropped once the player is established (goalIndex>=5). */
-  document.body.classList.toggle('firstrun', (S.goalIndex||0) < 5);
+  const _fresh=(S.goalIndex||0)<5;
+  document.body.classList.toggle('firstrun', _fresh);
+  /* first-run FOCUS the control hint on the two core-loop verbs (drive + where to scan); the full
+     bind list (relic/trial/parkour/hide-hud) is fake complexity for a brand-new player. Touch keeps
+     its own verbs (set elsewhere) and #hint stays hidden on phones, so only desktop swaps. */
+  const _hintEl=document.getElementById('hint');
+  if(_hintEl && !_coarse){
+    if(_hintEl._full==null) _hintEl._full=_hintEl.innerHTML;   // capture authored full hint once
+    const _want=_fresh ? 'W A S D / HOLD · DRIVE&nbsp;&nbsp;&nbsp;DRAG · LOOK&nbsp;&nbsp;&nbsp;SIGNAL SCAN ▸ BUTTON, BOTTOM-RIGHT' : _hintEl._full;
+    if(_hintEl.innerHTML!==_want) _hintEl.innerHTML=_want;
+  }
   let h=g?`▸ NEXT&nbsp;&nbsp;&nbsp;${g.text}`:'▸ ALL OBJECTIVES COMPLETE';
   if(g&&g.prog){ const [c,t]=g.prog(); h+=` · ${Math.min(c,t)}/${t}`; }
   if(renderNext._h!==h){ renderNext._h=h; $('nextChip').innerHTML=h; }
