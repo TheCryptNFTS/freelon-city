@@ -124,9 +124,9 @@ export function Header() {
         .mobile-signin {
           display: none;
           font-family: var(--mono2); font-size: 11px; letter-spacing: var(--tr-pill);
-          text-transform: uppercase; text-decoration: none;
+          text-transform: uppercase; text-decoration: none; white-space: nowrap;
           padding: 9px 16px; min-height: 40px; border-radius: 999px;
-          align-items: center;
+          align-items: center; flex-shrink: 0;
           border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
           background: color-mix(in srgb, var(--gold) 8%, transparent);
           color: var(--gold);
@@ -135,6 +135,14 @@ export function Header() {
         }
         .mobile-signin:active { background: color-mix(in srgb, var(--gold) 16%, transparent); }
         @media (max-width: 980px) { .desktop-nav { display: none !important; } .mobile-signin { display: inline-flex; } }
+        /* 2026-06-30 mobile journey QA: at ≤400px the long "404 · FREELON CITY"
+           wordmark (flex-shrink:0) squeezed the SIGN IN pill until its text
+           wrapped to two lines. Tighten the wordmark + pill so the header holds
+           one clean row. */
+        @media (max-width: 400px) {
+          .brand-text { letter-spacing: 0.12em; }
+          .mobile-signin { padding: 8px 12px; margin-right: 6px; }
+        }
         @media (min-width: 981px) { .mobile-trigger, .mobile-sheet { display: none !important; } }
         .nav-more-trigger {
           background: transparent;

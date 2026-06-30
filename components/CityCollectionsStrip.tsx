@@ -42,9 +42,9 @@ export function CityCollectionsStrip() {
           One city, many kinds of <em>citizen.</em>
         </h2>
         <p className="city-pops__lead">
-          FREELON CITY isn&apos;t one drop — it&apos;s a world of six collections, each a
-          population with a role. <strong>FREELON is the flagship</strong> you can own and
-          train; the rest are free to meet.
+          <strong>FREELON CITY is the world. FREELON is the flagship citizen collection inside
+          it.</strong> The city is six collections in all — each a population with a role.
+          FREELON is the one you own and train; the rest are free to meet.
         </p>
       </header>
 

@@ -75,7 +75,7 @@ export function ProductDoors() {
         >
           <span className="door-card__media">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={d.img} alt="" loading="eager" />
+            <img src={d.img} alt="" loading="lazy" />
             <span className="door-card__head">
               <span className="door-card__kicker">{d.kicker}</span>
               <span className="door-card__title">{d.title}</span>
