@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CIVILIZATIONS, imageUrl, type CivilizationSlug } from "@/lib/constants";
+import { CIVILIZATIONS, gridImageUrl, type CivilizationSlug } from "@/lib/constants";
 import { getByCivilization } from "@/lib/citizens";
 import { CivGlyph } from "@/components/CivGlyph";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
@@ -87,7 +87,7 @@ export default function Page() {
       <section id="civilizations" className="civs-list">
         {Object.entries(CIVILIZATIONS).map(([slug, c]) => {
           const faceId = repFace(slug);
-          const face = imageUrl(faceId);
+          const face = gridImageUrl(faceId);
           return (
           <Link
             key={slug}

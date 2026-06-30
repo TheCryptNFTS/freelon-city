@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import { getCitizen, countSimilar, civilizationColor, getIdentity } from "@/lib/citizens";
-import { imageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
+import { imageUrl, gridImageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
 import { ShareButtons } from "@/components/ShareButtons";
 import { CitizenDeepLore } from "@/components/CitizenDeepLore";
 import { QuestTracker } from "@/components/QuestTracker";
@@ -222,7 +222,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <div className={`img-shell relic-card${isActivated ? " is-activated" : ""} ${presence.aura} ${presence.tinted}`}>
               <CitizenLifeHero
                 tokenId={tid}
-                src={imageUrl(tid)}
+                src={gridImageUrl(tid, 640)}
                 name={customName?.name || c.transmission_name || c.name}
                 fill
                 frame={false}

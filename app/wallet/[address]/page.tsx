@@ -4,8 +4,7 @@ import { notFound } from "next/navigation";
 import {
   CONTRACT,
   CIVILIZATIONS,
-  imageUrl,
-  LOCAL_HEROES,
+  gridImageUrl,
 } from "@/lib/constants";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
 import { HexEarningsLog } from "@/components/HexEarningsLog";
@@ -490,9 +489,7 @@ export default async function WalletPage({
               const c = getCitizen(tid);
               const color = c ? civilizationColor(c.civilization) : "var(--gold)";
               const id4 = tid.toString().padStart(4, "0");
-              const src = LOCAL_HEROES.has(tid)
-                ? `/heroes/${id4}.webp`
-                : imageUrl(tid);
+              const src = gridImageUrl(tid);
               return (
                 <li key={tid} className="wallet-grid-item">
                   {/* Deep-link straight to the agent workspace so a connected

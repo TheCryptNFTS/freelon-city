@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { imageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 
 /**
  * CitizenAvatar — the ONE premium way to show a FREELON at small size.
@@ -38,7 +38,7 @@ export function CitizenAvatar({
   style,
 }: {
   tokenId?: number;
-  /** Explicit image src (e.g. a local hero webp). Falls back to imageUrl(tokenId). */
+  /** Explicit image src (e.g. a local hero webp). Falls back to gridImageUrl(tokenId). */
   src?: string;
   size?: number;
   alt?: string;
@@ -51,7 +51,7 @@ export function CitizenAvatar({
   style?: React.CSSProperties;
 }) {
   const [failed, setFailed] = useState(false);
-  const resolved = src ?? (tokenId != null ? imageUrl(tokenId) : undefined);
+  const resolved = src ?? (tokenId != null ? gridImageUrl(tokenId) : undefined);
   const label = alt ?? (tokenId != null ? `FREELON #${tokenId.toString().padStart(4, "0")}` : "FREELON citizen");
 
   // Ring thickness scales with size but stays crisp at small sizes.

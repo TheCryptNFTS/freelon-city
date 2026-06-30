@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
-import { imageUrl, openseaUrl, CIVILIZATIONS, CONTRACT } from "@/lib/constants";
+import { gridImageUrl, openseaUrl, CIVILIZATIONS, CONTRACT } from "@/lib/constants";
 import { getName } from "@/lib/name-store";
 import { AskAndShare } from "./AskAndShare";
 import { CitizenLifeHero } from "@/components/CitizenLifeHero";
@@ -113,7 +113,7 @@ export default async function CardPage({
       <div className="hex-frame-card">
         <CitizenLifeHero
           tokenId={tid}
-          src={imageUrl(tid)}
+          src={gridImageUrl(tid, 640)}
           name={displayName}
           fill
           frame={false}

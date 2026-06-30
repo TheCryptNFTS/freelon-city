@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getHonoraries, getIdentity, civilizationColor } from "@/lib/citizens";
-import { imageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
+import { gridImageUrl, openseaUrl, CIVILIZATIONS } from "@/lib/constants";
 import { HonoraryDisclaimer } from "@/components/HonoraryDisclaimer";
 
 export const revalidate = 3600;
@@ -94,7 +94,7 @@ export default async function TributePage({ params }: { params: Promise<{ handle
       <section className="tribute-hero-single" style={{ "--civ": color } as React.CSSProperties}>
         <div className="img-frame">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl(h.id)} alt={h.honoree} />
+          <img src={gridImageUrl(h.id, 640)} alt={h.honoree} />
         </div>
         <div className="body">
           <div className="stamp">⬡ TRIBUTE · CITIZEN #{id4}</div>

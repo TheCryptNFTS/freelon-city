@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { getCitizen, civilizationColor, getIdentity } from "@/lib/citizens";
-import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
+import { gridImageUrl, CIVILIZATIONS } from "@/lib/constants";
 import { AgentWorkspace } from "@/components/AgentWorkspace";
 
 export const dynamicParams = true;
@@ -35,7 +35,7 @@ export default async function AgentWorkspacePage({ params }: { params: Promise<{
     <AgentWorkspace
       tokenId={tid}
       name={name}
-      art={imageUrl(tid)}
+      art={gridImageUrl(tid, 640)}
       tier={c.tier}
       civName={civ?.name ?? c.civilization}
       civSlug={c.civilization}

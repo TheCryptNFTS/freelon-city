@@ -3,7 +3,7 @@ import Link from "next/link";
 import { syncHandle, normalizeHandle } from "@/lib/sync";
 import { getCarrier } from "@/lib/carrier-store";
 import { tier } from "@/lib/carrier";
-import { CIVILIZATIONS, imageUrl, LOCAL_HEROES } from "@/lib/constants";
+import { CIVILIZATIONS, gridImageUrl } from "@/lib/constants";
 import { getWalletByHandle } from "@/lib/x-store";
 import { getWalletTokens } from "@/lib/wallet-tokens";
 import { getWalletHex } from "@/lib/wallet-hex-store";
@@ -117,7 +117,7 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
         <Link href={`/citizens/${r.patron.id}`} className="cp-patron">
           <div className="lbl">YOUR TRIBE&apos;S FACE · ALIGNED</div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl(r.patron.id)} alt={r.patron.name} />
+          <img src={gridImageUrl(r.patron.id, 640)} alt={r.patron.name} />
           <div className="meta">
             <div className="id">#{id4}</div>
             <div className="name">{r.patron.name}</div>
@@ -174,7 +174,7 @@ export default async function CarrierPublicPage({ params }: { params: Promise<{ 
               <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "var(--s-3)", listStyle: "none", padding: 0, marginBottom: "var(--s-4)" }}>
                 {verified.topCitizens.map((c) => {
                   const cid4 = c.tokenId.toString().padStart(4, "0");
-                  const src = LOCAL_HEROES.has(c.tokenId) ? `/heroes/${cid4}.webp` : imageUrl(c.tokenId);
+                  const src = gridImageUrl(c.tokenId);
                   return (
                     <li key={c.tokenId}>
                       <Link href={`/citizens/${c.tokenId}`} style={{ display: "block", textDecoration: "none" }}>

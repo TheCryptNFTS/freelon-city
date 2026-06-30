@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useHolder } from "@/lib/useHolder";
 import { FramedAgent } from "@/components/FramedAgent";
-import { imageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 
 /**
  * Connected-holder home — replaces the "tiny strip" a holder used to get on the
@@ -68,7 +68,7 @@ export function YourAgentsRail({ hrefBase = "/citizens/", heading = "Your Agents
             return (
               <Link key={id} href={`${hrefBase}${id}`} style={{ textDecoration: "none", color: "inherit" }} aria-label={`Open citizen #${id}`}>
                 <FramedAgent
-                  art={imageUrl(id)}
+                  art={gridImageUrl(id)}
                   civColor="var(--gold)"
                   size={92}
                   alt={`Citizen #${id}`}

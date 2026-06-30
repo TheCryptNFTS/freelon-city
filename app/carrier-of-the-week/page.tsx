@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentCarrier } from "@/lib/carrier-of-week";
-import { imageUrl, openseaUrl } from "@/lib/constants";
+import { gridImageUrl, openseaUrl } from "@/lib/constants";
 import { CarrierShare } from "./CarrierShare";
 
 export const revalidate = 60;
@@ -80,7 +80,7 @@ export default async function CarrierOfTheWeekPage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={imageUrl(carrier.tokenId)}
+              src={gridImageUrl(carrier.tokenId, 640)}
               alt={displayName}
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />

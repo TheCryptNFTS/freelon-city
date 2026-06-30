@@ -9,7 +9,7 @@
  * Citizen on My Own."
  */
 import { useEffect, useMemo, useState } from "react";
-import { imageUrl } from "@/lib/constants";
+import { gridImageUrl } from "@/lib/constants";
 
 function readAddrCookie(): string | null {
   if (typeof document === "undefined") return null;
@@ -175,7 +175,7 @@ export function FeaturedCitizenPicker({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={imageUrl(tid)}
+                src={gridImageUrl(tid)}
                 alt={`#${tid}`}
                 loading="lazy"
                 /* Head-crop (the citizen's identity is the crystal head, upper third) so

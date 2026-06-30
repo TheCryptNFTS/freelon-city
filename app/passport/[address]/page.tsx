@@ -3,8 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   CIVILIZATIONS,
-  imageUrl,
-  LOCAL_HEROES,
+  gridImageUrl,
 } from "@/lib/constants";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
 import { getWalletTokens, normalizeAddress } from "@/lib/wallet-tokens";
@@ -294,9 +293,7 @@ export default async function PassportPage({
                 ? civilizationColor(c.civilization)
                 : "var(--gold)";
               const id4 = tid.toString().padStart(4, "0");
-              const src = LOCAL_HEROES.has(tid)
-                ? `/heroes/${id4}.webp`
-                : imageUrl(tid);
+              const src = gridImageUrl(tid);
               return (
                 <Link
                   key={tid}

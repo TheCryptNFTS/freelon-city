@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createWalletClient, createPublicClient, custom, http, fallback } from "viem";
 import { mainnet } from "viem/chains";
-import { CONTRACT, imageUrl, LOCAL_HEROES } from "@/lib/constants";
+import { CONTRACT, gridImageUrl } from "@/lib/constants";
 
 // ── viem clients ─────────────────────────────────────────────────────
 const CONFIGURED_RPC =
@@ -411,7 +411,7 @@ export function VaultClient() {
             <ul className="v-grid">
               {tokens.map((tid) => {
                 const id4 = tid.toString().padStart(4, "0");
-                const src = LOCAL_HEROES.has(tid) ? `/heroes/${id4}.webp` : imageUrl(tid);
+                const src = gridImageUrl(tid);
                 const on = selected.has(tid);
                 return (
                   <li key={tid}>
