@@ -882,7 +882,10 @@ THREE.ShaderChunk.fog_fragment = `#ifdef USE_FOG
 		float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
 	#endif
 	fogFactor = clamp( fogFactor, 0.0, 0.96 );  // 2026-06-30 raised ceiling .92→.96 — far horizon dissolves fully into haze for real depth layering
-	gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+	vec3 _fcol = gl_FragColor.rgb;
+	float _flum = dot( _fcol, vec3( 0.299, 0.587, 0.114 ) );   // 2026-06-30 AERIAL DESATURATION: distance pulls saturation toward grey BEFORE the haze mix, so far buttes/mountains read as real air-depth instead of full-saturation cut-outs dissolving into fog
+	_fcol = mix( _fcol, vec3( _flum ), fogFactor * 0.45 );
+	gl_FragColor.rgb = mix( _fcol, fogColor, fogFactor );
 #endif`;
 THREE.ShaderChunk.fog_pars_fragment = `#ifdef USE_FOG
 	uniform vec3 fogColor;
@@ -2306,10 +2309,31 @@ function _olyAt(u,v){
   const g=(x,y)=>d[(y*W+x)*4];
   return (((g(x0,y0)*(1-fx)+g(x1,y0)*fx)*(1-fy)+(g(x0,y1)*(1-fx)+g(x1,y1)*fx)*fy))/255;
 }
+function _hash2(ix,iz){ let h=(ix|0)*374761393 + (iz|0)*668265263; h=(h^(h>>>13))*1274126177; return ((h^(h>>>16))>>>0)/4294967296; }
+function _mesaField(sx,sz){
+  // 2026-06-30 MID-GROUND MASS: a distributed field of eroded flat-topped buttes/mesas. Real terrain
+  // silhouettes (self-shadowing, rim-lit, traversable) so the world isn't an empty plain — the #1 "indie
+  // sandbox" tell. Coarse 520m grid, ~38% of cells host one mesa, summed over the 3x3 neighbourhood.
+  // Cost: ~9 cheap int-hashes + a few sqrt per vertex; gated by squared-distance early-outs.
+  const CM=520, gx=Math.floor(sx/CM), gz=Math.floor(sz/CM); let h=0;
+  for(let ox=-1;ox<=1;ox++) for(let oz=-1;oz<=1;oz++){
+    const cx=gx+ox, cz=gz+oz, r=_hash2(cx,cz);
+    if(r<0.62) continue;                                                  // ~38% of cells host a mesa
+    const r2=_hash2(cx+97,cz+131), r3=_hash2(cx+57,cz+193), r4=_hash2(cx+233,cz+71);
+    const mx=(cx+0.15+r2*0.70)*CM, mz=(cz+0.15+r3*0.70)*CM;               // jittered centre inside the cell
+    if(mx*mx+mz*mz < 160*160) continue;                                   // keep the home basin clear
+    const R=72+r4*72, dx=sx-mx, dz=sz-mz, d2=dx*dx+dz*dz;
+    if(d2>R*R) continue;
+    const d=Math.sqrt(d2), H=40+r2*62;
+    const t=Math.min(1,(R-d)/(R*0.45));                                   // flat plateau top, steep eroded sides
+    h += H*t*(0.80+0.20*vnoise(sx*0.018,sz*0.018));                       // rim erosion so it isn't a clean cone
+  }
+  return h;
+}
 function marsLandmarks(sx,sz){
   // perf: terrainH() (hence this) runs per-vertex on near+far rebuilds (~100k+ calls). Use squared-distance
   // compares + cluster early-outs so the common case (vertex far from any landmark) costs a few mul-adds, no hypot/sqrt.
-  let h=0;
+  let h=_mesaField(sx,sz);
   // OLYMPUS MONS — largest volcano in the solar system. REAL MOLA shape when the DEM is loaded.
   { const cx=OLYMPUS.x, cz=OLYMPUS.z, R=OLYMPUS.r, dx=sx-cx, dz=sz-cz, d2=dx*dx+dz*dz;
     if(d2<R*R){ const d=Math.sqrt(d2);
@@ -6337,6 +6361,11 @@ function roverUpdate(dt,t){
     // 2026-06-30 driving-juice: the rover damps to ground (no ballistic fall), so detect a hard
     // landing from the ground TARGET dropping fast under us while at speed — crest a dune and the
     // ground falls away, then slams back up. Fire camera trauma + a thud scaled by the drop rate.
+    if(_prevRoverGy!==null && roverSpd>5){
+      // 2026-06-30 CREST VISTA: when the ground ahead falls away (gy dropping), feed a smoothed
+      // signal that lifts the camera pitch to reveal the horizon for a beat (see updateCamera).
+      _crestSig = damp(_crestSig, (gy < _prevRoverGy) ? Math.min(1,(_prevRoverGy-gy)*0.6) : 0, 3, dt);
+    } else _crestSig = damp(_crestSig, 0, 3, dt);
     if(_prevRoverGy!==null && _roverBumpCD<=0 && roverSpd>6){
       const dGy=(gy-_prevRoverGy)/Math.max(dt,1e-4);   // <0 = ground dropping away (airtime), >0 = slamming back up
       if(dGy>14){   // ground rushing back up into the chassis = impact
@@ -6668,13 +6697,15 @@ function renderFrame(activeScene){
 }
 
 const camTarget = new THREE.Vector3(0,7,0);
-let yaw=.6, pitch=.18, dist=50, distK=1;   // CINEMATIC CHASE default (was .42/110 top-down, then .26): grazing low angle so the rover is hero-framed and the dune horizon/aerial perspective reads. distK: speed-feel pullback, damped in updateCamera
+let yaw=.6, pitch=.28, dist=46, distK=1;   // CINEMATIC CHASE default (was .42/110 top-down, then .26, then .18/50): hero-low grazing angle, closer + a touch more pitch so the rover fills the lower-center third with a sky wedge above. distK: speed-feel pullback, damped in updateCamera
+let _pitchDyn=0, _crestSig=0, _settleT=0;   // 2026-06-30 dynamic-cam state: speed/crest pitch offset, crest-reveal signal, idle-settle ramp
 function applyOrbit(){
   const D=dist*distK;
+  const P=Math.max(.12,Math.min(.55, pitch+_pitchDyn));   // dynamic pitch (speed-graze + crest-reveal), clamped so it never inverts or flattens out the horizon
   camera.position.set(
-    camTarget.x + D*Math.cos(pitch)*Math.sin(yaw),
-    camTarget.y + D*Math.sin(pitch),
-    camTarget.z + D*Math.cos(pitch)*Math.cos(yaw));
+    camTarget.x + D*Math.cos(P)*Math.sin(yaw),
+    camTarget.y + D*Math.sin(P),
+    camTarget.z + D*Math.cos(P)*Math.cos(yaw));
   camera.lookAt(camTarget);
 }
 applyOrbit();
@@ -6748,6 +6779,11 @@ function clampCamera(dt){
   for(const m of buildingMeshes)  consider(m.position.x,m.position.z, m.userData.colR||5,   m.userData.colTop||8);
   _camPushS = bestS < _camPushS ? bestS : damp(_camPushS, bestS, 5, dt);
   if(_camPushS < 0.999){ camera.position.set(ax+ex*_camPushS, ay+ey*_camPushS, az+ez*_camPushS); }
+  /* 2026-06-30 TERRAIN FLOOR — with the lower hero pitch the lens can sink into a dune on a crest; keep it >=3.5u above whatever ground is under it. Damp-fast so it tracks a rising crest without popping. */
+  if(typeof terrainH==='function'){
+    const _gh = terrainH(camera.position.x, camera.position.z) + 3.5;
+    if(camera.position.y < _gh) camera.position.y = damp(camera.position.y, _gh, 14, dt);
+  }
 }
 function updateCamera(dt,t){
   const _em=(playerMode==='emile');
@@ -6760,12 +6796,15 @@ function updateCamera(dt,t){
   const _ltz = rover.position.z + Math.cos(roverHeading)*_lead;
   camTarget.x=damp(camTarget.x, _ltx, _fol, dt);
   camTarget.z=damp(camTarget.z, _ltz, _fol, dt);
-  camTarget.y=damp(camTarget.y, rover.position.y+(_em?7:4), _fol, dt);   // rover: look-at near roof height (was +6 → looked DOWN at a toy; +4 lifts the rover up the frame as the hero). EMILE: lifted onto the chest swirl
+  camTarget.y=damp(camTarget.y, rover.position.y+(_em?7:2.4), _fol, dt);   // rover: look-at at the chassis/hub line (was +6→looked DOWN at a toy, +4 still saw its back; +2.4 + the higher base pitch drops the rover into the lower-center as the hero, body forward). EMILE: lifted onto the chest swirl
   if(_em && EMILE.landT>0) camTarget.y -= Math.min(4,(EMILE.landV||0)*0.12)*(EMILE.landT/0.22);   // camera dip on landing impact
-  distK=damp(distK, 1+(_em?.34:.1)*roverSpdRatio + ((_em&&EMILE.dashT>0)?.18:0), 2.2, dt);   // tighter follow + real dash pull-back keeps the burst in frame
-  /* +++ rover-feel: SPEED CAMERA (Forza) — FOV breathes wider with speed, dust-streak vignette tightens. */
-  const _fovTgt = _reduceMotion ? 42 : (42 + (_em?3:11)*roverSpdRatio + ((_em&&EMILE.dashT>0)?6:0));   // EMILE: calmer FOV breathe (less world-warp) + a brief punch on dash
-  const _fov = damp(camera.fov, _fovTgt, _em?1.8:3, dt);   // slower FOV chase for EMILE so the now-instant accel doesn't lurch the lens
+  distK=damp(distK, 1+(_em?.34:.16)*roverSpdRatio + ((_em&&EMILE.dashT>0)?.18:0), 2.2, dt);   // tighter follow + real dash pull-back keeps the burst in frame; rover pull-back .16 = Forza speed-dolly
+  /* 2026-06-30 DYNAMIC PITCH: graze lower with speed (more ground-rush = more velocity), lift on a crest to reveal the vista. _crestSig fed from the slope signal in the physics step. */
+  const _pitchSpd = _em ? 0 : -0.07*roverSpdRatio;
+  _pitchDyn = damp(_pitchDyn, _pitchSpd + (_em?0:0.10*_crestSig), 2.0, dt);
+  /* +++ rover-feel: SPEED CAMERA (Forza) — FOV breathes wider with speed, dust-streak vignette tightens. Narrower base (38) = long-lens compression so the rover reads big & close. */
+  const _fovTgt = _reduceMotion ? 38 : (38 + (_em?3:13)*roverSpdRatio + ((_em&&EMILE.dashT>0)?6:0));   // EMILE: calmer FOV breathe (less world-warp) + a brief punch on dash
+  const _fov = Math.min(52, damp(camera.fov, _fovTgt, _em?1.8:3, dt));   // slower FOV chase for EMILE so the now-instant accel doesn't lurch the lens; hard-clamp ≤52 so speed-breathe never breaks the rover's scale
   if(Math.abs(_fov-camera.fov)>0.01){ camera.fov=_fov; camera.updateProjectionMatrix(); }
   vigPass.uniforms.darkness.value = damp(vigPass.uniforms.darkness.value, Math.min(0.92,.62+.5*roverSpdRatio), 2.5, dt);   // softer base, tightens with speed — clamped <1 so the corner target never goes negative (over-crush)
   followSun(camTarget.x, camTarget.z);
