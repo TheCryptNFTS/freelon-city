@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { TrackedLink } from "@/components/TrackedLink";
 import { heroImageUrl } from "@/lib/constants";
 
@@ -60,9 +59,14 @@ export function CitizensBand() {
             >
               <span className="ttl">MEET A CITIZEN →</span>
             </TrackedLink>
-            <Link className="btn btn-secondary" href="/citizens">
+            <TrackedLink
+              href="/citizens"
+              event="browse_citizens_click"
+              from="home_citizens_band"
+              className="btn btn-secondary"
+            >
               <span className="ttl">BROWSE ALL 4,040 →</span>
-            </Link>
+            </TrackedLink>
           </div>
 
           <div className="feature-band__live">

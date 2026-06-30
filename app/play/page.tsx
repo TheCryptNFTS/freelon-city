@@ -149,11 +149,12 @@ export default function PlayHub() {
         </p>
       </section>
 
-      {/* ── FOLDED: DAILY TRANSMISSION (former /daily) ── */}
-      <DailyTransmission />
-
-      <DailyHub />
-
+      {/* 2026-06-30 FLAGSHIP-FIRST: the two flagship games (Mars + Crypt TCG)
+          now lead the hub. They previously sat BELOW the DailyTransmission +
+          DailyHub reward ritual, so a first-time visitor met a "+10 ⬡ daily
+          reward" block and a lore quote before they ever saw a game — burying
+          the tentpoles the hero just promised. The daily ritual moved down,
+          directly under the games. */}
       <section
         style={{
           display: "grid",
@@ -287,6 +288,13 @@ export default function PlayHub() {
           </div>
         </TrackedExtLink>
       </section>
+
+      {/* ── DAILY RITUAL (former /daily) — demoted BELOW the flagship games
+          (2026-06-30). The daily reward + transmission is a returning-holder
+          loop, not the first thing a cold visitor should meet. */}
+      <DailyTransmission />
+
+      <DailyHub />
 
       {/* MORE WAYS TO PLAY — the loved prototypes, surfaced compactly (see MORE_GAMES). */}
       <section style={{ maxWidth: 1120, margin: "44px auto 0" }}>

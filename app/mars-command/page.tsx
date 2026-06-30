@@ -12,7 +12,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { TrackedExtLink } from "@/components/TrackedExtLink";
-import { GamePreview } from "@/components/GamePreview";
 
 const PAGE_DESC =
   "Mars Command — a free FREELON CITY game. Drive a rover across a living Mars, claim sectors for a sworn doctrine, fight the Chorus in real time, and silence the Void Scar. No wallet, no download — play in the browser.";
@@ -106,7 +105,10 @@ export default function MarsCommandPage() {
           A full game in the browser — free, no wallet, no download.
         </p>
 
-        {/* hero poster */}
+        {/* hero poster — the photoreal rover scene (the same premium art the
+            homepage door uses). The stylized GamePreview SVG made the Mars
+            DESTINATION read cheaper than the band that pointed to it; the
+            landing now leads with the real key art. */}
         <div
           style={{
             margin: "var(--s-4) 0",
@@ -114,9 +116,15 @@ export default function MarsCommandPage() {
             borderTop: `2px solid ${ACCENT}`,
             borderRadius: 12,
             overflow: "hidden",
+            aspectRatio: "1200 / 630",
           }}
         >
-          <GamePreview kind="mars" accent={ACCENT} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/og/art/mars-rover.webp"
+            alt="A rover on the Mars surface beneath the gold signal spire"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
         </div>
 
         {/* PLAY CTA */}

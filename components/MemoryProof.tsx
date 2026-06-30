@@ -97,7 +97,15 @@ export function MemoryProof() {
     set(2, at[0]);
     set(3, at[1]);
     set(4, at[2]);
-    set(5, at[3]);
+    // Phase 5 is the "you're back — I remember" payoff (the product thesis).
+    // memory_proof_run fires on SUBMIT; this fires when the recall actually
+    // LANDS, so the run-started → wow-delivered drop is measurable.
+    timers.current.push(
+      setTimeout(() => {
+        setPhase(5);
+        trackEvent("memory_proof_recalled");
+      }, at[3]),
+    );
   }
 
   function runJob(j: (typeof JOBS)[number]) {

@@ -128,6 +128,28 @@ export default async function CombatArchivesPage() {
           solo match against the AI right now.
         </p>
 
+        {/* hero poster — the gilded commander key art (same premium art the
+            homepage door uses). The landing was type-only above the fold, so a
+            cold visitor saw no game; the real card art now leads, matching the
+            Mars landing for flagship parity. */}
+        <div
+          style={{
+            margin: "var(--s-4) 0",
+            border: "1px solid var(--line)",
+            borderTop: "2px solid var(--gold)",
+            borderRadius: 12,
+            overflow: "hidden",
+            aspectRatio: "1200 / 630",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/og/art/crypt-tcg.webp"
+            alt="Crypt TCG commander cards from the ten civilizations"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </div>
+
         {/* PLAY CTA — the game is live (solo vs AI). Ranked PvP is the next
             beat; the door is honest about both. GAME_URL is env-overridable. */}
         <div style={{ marginTop: "var(--s-4)", display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
