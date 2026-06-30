@@ -874,14 +874,14 @@ THREE.ShaderChunk.fog_vertex = `#ifdef USE_FOG
 	#endif
 #endif`;
 THREE.ShaderChunk.fog_fragment = `#ifdef USE_FOG
-	float fogH = exp( - max( vFogHeight, 0.0 ) * 0.014 );
+	float fogH = exp( - max( vFogHeight, 0.0 ) * 0.008 );  // 2026-06-30 softer height-falloff (.014→.008) so distant peaks/dunes keep aerial perspective instead of popping out of the haze
 	#ifdef FOG_EXP2
 		float fd = fogDensity * fogH;
 		float fogFactor = 1.0 - exp( - fd * fd * vFogDepth * vFogDepth );
 	#else
 		float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
 	#endif
-	fogFactor = clamp( fogFactor, 0.0, 0.92 );
+	fogFactor = clamp( fogFactor, 0.0, 0.96 );  // 2026-06-30 raised ceiling .92→.96 — far horizon dissolves fully into haze for real depth layering
 	gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
 #endif`;
 THREE.ShaderChunk.fog_pars_fragment = `#ifdef USE_FOG
@@ -2177,7 +2177,7 @@ let skyUniforms=null, skyMesh=null;
         // EARNED blue Mars sunset: a broad soft halo + a brighter rim, setting-side near the horizon only
         col+=SUN_BLUE*pow(s,3.)*uDusk*0.85;
         col+=SUN_BLUE*pow(s,12.)*uDusk*1.6;
-        if(uSkyLow==0) col+=(hash(gl_FragCoord.xy)-.5)/255.;    // dither (full tier only)
+        col+=(hash(gl_FragCoord.xy)-.5)/255.;    // 2026-06-30 dither ALL tiers (one hash, negligible) — was full-tier-only, left visible 8-bit banding on the smooth sky gradient at mid tier
         gl_FragColor=vec4(col,1.);
       }`
   });
@@ -2211,6 +2211,10 @@ function skyUpdate(dt){
   const fr=(0.60*(1-dusk)+0.40*dusk), fg=(0.39*(1-dusk)+0.12*dusk), fb=(0.25*(1-dusk)+0.07*dusk);   // matches the lifted butterscotch HORIZON_DAY band — distant terrain dissolves into the horizon, no seam
   const fm=0.30+0.70*dayN;
   if(scene.fog) scene.fog.color.setRGB(fr*fm,fg*fm,fb*fm);
+  // 2026-06-30 fog DENSITY drifts with the sol (was a constant 0.00045): crisp thin air at midday,
+  // warm dust haze thickening through golden hour, murk at night — real time-of-day atmospheric depth.
+  // (exposure is left to the win/disco tweens — driving it here would stomp them.)
+  if(scene.fog && 'density' in scene.fog) scene.fog.density = 0.00045 * (0.92 + 0.32*dusk + 0.22*(1-dayN));
   const _bgm=Math.max(fm,0.5);   // night-sky floor — dim WARM instead of crushing to black
   scene.background.setRGB(0.07*_bgm,0.05*_bgm,0.04*_bgm);   // 2026-06-30: was cold 0.05/0.045/0.078 (blue-violet) → warm brand axis
 }
@@ -2376,7 +2380,13 @@ function rebuildTerrain(){
       let col=[c[0],c[1],c[2]];
       if(slope<.12 && fbm(x*.002+50,z*.002+50)>.62)
         col=col.map((v,k)=>v*.4+IVORY[k]*.6);
-      if(slope>.5) col=[DARK[0],DARK[1],DARK[2]];
+      // 2026-06-30 GRADED slope-rock: was a hard binary (slope>.5 → flat DARK cliff).
+      // Now moderate→steep faces ramp progressively toward exposed dark scree, so cliffs read
+      // as eroded rock with form instead of a black cut line. A touch of high-freq grain breaks banding.
+      if(slope>.26){
+        const t=Math.min(1,(slope-.26)/.32) * (0.86+0.14*fbm(x*.06,z*.06));
+        col=col.map((v,k)=>v*(1-t)+DARK[k]*t);
+      }
       for(const cr of _cr){
         const dd=Math.hypot(x-cr.x,z-cr.z);
         if(dd<cr.r) col=col.map(v=>v*.78);
@@ -2406,7 +2416,7 @@ function rebuildTerrain(){
       .replace('#include <begin_vertex>','#include <begin_vertex>\n  vFogW=(modelMatrix*vec4(transformed,1.)).xz;');
     shader.fragmentShader=shader.fragmentShader
       .replace('void main() {','varying vec2 vFogW;\nuniform sampler2D uReveal;\nuniform sampler2D uTerra;\nuniform vec2 uFogOrigin;\nvoid main() {')
-      .replace('#include <color_fragment>','#include <color_fragment>\n  {\n    float mv1=sin(vFogW.x*0.013)*cos(vFogW.y*0.011)+0.5*sin(vFogW.x*0.041+vFogW.y*0.037);\n    diffuseColor.rgb*=(1.0+0.10*mv1);\n    float mw=0.5+0.5*sin(vFogW.x*0.006-vFogW.y*0.008);\n    diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(1.06,0.99,0.92), mw);\n    float _gd=length(vFogW-uFogOrigin);\n    float _gn=1.0-smoothstep(18.0,150.0,_gd);\n    if(_gn>0.002){\n      float _rip=sin(vFogW.x*0.85+vFogW.y*0.33+sin(vFogW.y*0.11)*2.6);\n      float _grain=sin(vFogW.x*2.3-vFogW.y*1.7)*sin(vFogW.x*1.9+vFogW.y*2.7);\n      diffuseColor.rgb*=(1.0+(0.075*_rip+0.05*_grain)*_gn);\n    }\n  }\n  vec2 fogUV=clamp((vFogW-uFogOrigin+700.)/1400.,0.,1.);\n  float fogReveal=texture2D(uReveal,fogUV).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,fogUV);\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
+      .replace('#include <color_fragment>','#include <color_fragment>\n  {\n    float mv1=sin(vFogW.x*0.013)*cos(vFogW.y*0.011)+0.5*sin(vFogW.x*0.041+vFogW.y*0.037);\n    diffuseColor.rgb*=(1.0+0.10*mv1);\n    float mw=0.5+0.5*sin(vFogW.x*0.006-vFogW.y*0.008);\n    diffuseColor.rgb=mix(diffuseColor.rgb, diffuseColor.rgb*vec3(1.06,0.99,0.92), mw);\n    float _tbreak=sin(vFogW.x*0.207-vFogW.y*0.061)*sin(vFogW.y*0.191+vFogW.x*0.053);\n    float _tmid=sin(vFogW.x*0.071+1.7)*cos(vFogW.y*0.063-0.9);\n    diffuseColor.rgb*=(1.0+0.045*_tbreak+0.06*_tmid);\n    float _gd=length(vFogW-uFogOrigin);\n    float _gn=1.0-smoothstep(18.0,150.0,_gd);\n    if(_gn>0.002){\n      float _rip=sin(vFogW.x*0.85+vFogW.y*0.33+sin(vFogW.y*0.11)*2.6);\n      float _grain=sin(vFogW.x*2.3-vFogW.y*1.7)*sin(vFogW.x*1.9+vFogW.y*2.7);\n      diffuseColor.rgb*=(1.0+(0.075*_rip+0.05*_grain)*_gn);\n    }\n  }\n  vec2 fogUV=clamp((vFogW-uFogOrigin+700.)/1400.,0.,1.);\n  float fogReveal=texture2D(uReveal,fogUV).r;\n  diffuseColor.rgb*=(.34+.66*fogReveal);\n  vec4 terra=texture2D(uTerra,fogUV);\n  diffuseColor.rgb=mix(diffuseColor.rgb, terra.rgb, terra.a);');
     /* ---- SCAN-AS-LIDAR: gold wavefront on the ground (additive; safe-guarded) ---- */
     try{
       shader.uniforms.uLidar=uLidar;
@@ -3324,10 +3334,16 @@ function prepModel(root,k){
           const iconic = (k==='rover'||k==='rocket');
           if(!iconic && _h.l>.28) o.material.color.setHSL(.085, Math.min(_h.s,.22)+.05, .32);   // 2026-06-30: soot floor .24→.32 so structures read as dark METAL the key light catches, not black holes
           else if(k==='rocket' && _h.l>.6) o.material.color.setHSL(_h.h, Math.min(_h.s,.2), .5);  // dim the white, keep the silhouette
-          else if(k==='rover' && _h.l>.32) o.material.color.setHSL(.075, Math.max(_h.s,.16), Math.min(_h.l,.64));  // warm sand-ivory body — stays light/readable, loses the sterile plastic white
+          else if(k==='rover' && _h.l>.32) o.material.color.offsetHSL(0,-.06,-.04);  // 2026-06-30: was a flat setHSL(.075,…) hue-REWRITE that painted every light panel one sterile sand tone → killed the rover's read. Now just gently desat/dim so painted detail + material variety SURVIVE.
         }
-        o.material.roughness=Math.min(1,(o.material.roughness??.8)+.2);   // kill the plastic sheen
-        if(o.material.metalness!=null) o.material.metalness=Math.min(o.material.metalness,.3);
+        if(k==='rover'){
+          // hero asset on screen 100% of the time — preserve its spec so the key light catches edges/glass; don't flatten like a soot building.
+          o.material.roughness=Math.min(.62,Math.max(.32,(o.material.roughness??.5)));
+          if(o.material.metalness!=null) o.material.metalness=Math.max(o.material.metalness,.5);
+        } else {
+          o.material.roughness=Math.min(1,(o.material.roughness??.8)+.2);   // kill the plastic sheen
+          if(o.material.metalness!=null) o.material.metalness=Math.min(o.material.metalness,.3);
+        }
       }
     }
   });
@@ -3744,7 +3760,9 @@ function poiScar(rng){
 }
 function poiBeacon(rng){
   const g=new THREE.Group();
-  const obelisk=new THREE.Mesh(new THREE.BoxGeometry(1.4,10,1.4), matDark()); obelisk.position.y=5; g.add(obelisk);
+  // 2026-06-30 tapered HEX monolith (was a flat 1.4³ box) — slight taper + 6 sides reads as a carved
+  // obelisk catching the key light on its facets, and echoes the ⬡ brand motif.
+  const obelisk=new THREE.Mesh(new THREE.CylinderGeometry(.62,1.05,10,6), matDark()); obelisk.position.y=5; obelisk.rotation.y=Math.PI/6; g.add(obelisk);
   const flag=new THREE.Mesh(new THREE.BoxGeometry(.18,3.2,.18), matGold(2.2));
   flag.position.y=8.6; flag.userData.pulse=true; flag.userData.noShadow=true; pulsers.push(flag); g.add(flag);
   const cap=new THREE.Mesh(new THREE.OctahedronGeometry(1), matGold(2.4));
@@ -6584,7 +6602,7 @@ const composer = new EffectComposer(renderer);
 composer.setPixelRatio(DPR);
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth||1, innerHeight||1), .58, .5, .80);   // cinematic bloom: strength .58/radius .5/thresh .80 — gold glints + sun disc bloom into a warm halo (was .42/.4/.85, too timid); validated no blowout at noon
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth||1, innerHeight||1), .66, .42, .90);   // 2026-06-30 TIGHTENED: thresh .80→.90 so only genuinely bright highlights (sun disc, gold glints, emissive) bloom — the old .80 let mid-tone sky/ground wash into a flat indie halo. strength .58→.66 + radius .5→.42 = harder, crisper bloom on the things that should glow. validated no blowout at noon
 bloomPass.enabled = PERF_FX>=1;          // tier 0 (phones): drop the fill-heavy bloom — biggest constant cost
 composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
@@ -6734,8 +6752,14 @@ function clampCamera(dt){
 function updateCamera(dt,t){
   const _em=(playerMode==='emile');
   const _fol=_em?11:2.5;                        // EMILE moves fast — the camera must keep up or he runs off-frame
-  camTarget.x=damp(camTarget.x, rover.position.x, _fol, dt);
-  camTarget.z=damp(camTarget.z, rover.position.z, _fol, dt);
+  /* 2026-06-30 LOOK-AHEAD LEAD: bias the look-at point down the heading, scaled by speed,
+     so the camera anticipates where you're driving (classic racing cam) instead of staring at
+     the rover's back. Zero at standstill (no lurch), fully damped. EMILE keeps a centered frame. */
+  const _lead = _em ? 0 : 7*roverSpdRatio;
+  const _ltx = rover.position.x + Math.sin(roverHeading)*_lead;
+  const _ltz = rover.position.z + Math.cos(roverHeading)*_lead;
+  camTarget.x=damp(camTarget.x, _ltx, _fol, dt);
+  camTarget.z=damp(camTarget.z, _ltz, _fol, dt);
   camTarget.y=damp(camTarget.y, rover.position.y+(_em?7:4), _fol, dt);   // rover: look-at near roof height (was +6 → looked DOWN at a toy; +4 lifts the rover up the frame as the hero). EMILE: lifted onto the chest swirl
   if(_em && EMILE.landT>0) camTarget.y -= Math.min(4,(EMILE.landV||0)*0.12)*(EMILE.landT/0.22);   // camera dip on landing impact
   distK=damp(distK, 1+(_em?.34:.1)*roverSpdRatio + ((_em&&EMILE.dashT>0)?.18:0), 2.2, dt);   // tighter follow + real dash pull-back keeps the burst in frame
