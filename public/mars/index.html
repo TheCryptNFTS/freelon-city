@@ -7368,6 +7368,7 @@ const GOALS=[
   {text:'RUN A SIGNAL SCAN',          done:()=>(S.scans||0)>=1,              hex:50},
   {text:'SURVEY YOUR FIRST SITE',     done:()=>S.discovered.length>=1,       hex:60,  prog:()=>[S.discovered.length,1]},
   {text:'CLEAR YOUR FIRST SITE',      done:()=>S.cleared.length>=1,          hex:60},
+  {text:'UPGRADE YOUR ROVER · ⚙ WHEEL (BOTTOM-RIGHT) → GARAGE', done:()=>((S.garageUpgrades&&((S.garageUpgrades.engine|0)+(S.garageUpgrades.plating|0)+(S.garageUpgrades.treads|0)))||0)>=1, hex:60},   /* REWARD→UPGRADE rung (upGoalMig): by here a fresh player has earned 220+ ⬡ — teach that ⬡ is SPENDABLE on the rover (engine/plating/treads) BEFORE first combat, so the upgrade is felt in the very next fight. Completable straight from the radial GARAGE panel; no need to find the outpost first. */
   {text:'FIRST CONTACT — PURGE THE NEST', done:()=>S.cleared.includes('pFC')||S.wins>=1, hex:70},   /* a guaranteed combat objective BEFORE the tower exists (see pFC) — satisfied by clearing it OR any first win, so it never dead-ends */
   {text:'BUILD THE SIGNAL TOWER',     done:()=>count('tower')>=1,            hex:60},
   {text:'SURVEY 3 SITES',             done:()=>S.discovered.length>=3,       hex:80,  prog:()=>[S.discovered.length,3]},
@@ -7401,8 +7402,8 @@ const GOALS=[
 function renderNext(){
   const g=GOALS[S.goalIndex];
   /* first-run pin: keep the objective + control hint visible through the opening goals (drive →
-     scan → survey → clear → first contact). Dropped once the player is established (goalIndex>=5). */
-  const _fresh=(S.goalIndex||0)<5;
+     scan → survey → clear → UPGRADE → first contact). Dropped once the player is established (goalIndex>=6). */
+  const _fresh=(S.goalIndex||0)<6;
   document.body.classList.toggle('firstrun', _fresh);
   /* first-run FOCUS the control hint on the two core-loop verbs (drive + where to scan); the full
      bind list (relic/trial/parkour/hide-hud) is fake complexity for a brand-new player. Touch keeps
@@ -9273,6 +9274,19 @@ function startGame(){
       if((S.goalIndex||0)>=WL_AT) S.goalIndex=(S.goalIndex||0)+1;
     }
     S.wlGoalMig=1; save();
+  }
+  /* UPGRADE-YOUR-ROVER goal inserted at index 4 (after CLEAR YOUR FIRST SITE, before FIRST CONTACT).
+     Same one-time guarded splice as FC/WL: a fully-migrated save is exactly one short — splice a
+     'paid'=true slot at 4 (existing players neither see it as NEXT nor get a windfall) and bump a
+     past-4 pointer so their current objective stays correct. New saves rebuild goalPaid fresh above,
+     so they skip this (length check fails) and meet the rung naturally. */
+  if(!S.upGoalMig){
+    const UP_AT=4;
+    if(Array.isArray(S.goalPaid) && S.goalPaid.length===GOALS.length-1){
+      S.goalPaid.splice(UP_AT,0,true);
+      if((S.goalIndex||0)>=UP_AT) S.goalIndex=(S.goalIndex||0)+1;
+    }
+    S.upGoalMig=1; save();
   }
   /* CATCH-ALL self-heal: the guarded splices above only fire when goalPaid is exactly one short.
      A save that skipped a whole migration era (e.g. pre-FC, never opened during the FC-only window)
