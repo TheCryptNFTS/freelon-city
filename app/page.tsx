@@ -151,7 +151,8 @@ export default async function Home() {
           <p className="hero-landing__tag">
             A living AI city with three ways in: <strong>meet a citizen</strong> that
             remembers you, <strong>drive Mars</strong>, and <strong>battle the Crypt</strong>.
-            Own a FREELON and its whole life travels with the NFT.
+            <strong> FREELON</strong> is the flagship collection — own one and its whole
+            life travels with the NFT.
           </p>
           {/* Hero CTAs surface all three pillars at the front door (Meet primary;
               Enter Mars + Own secondary). The full three-pillar cards sit directly

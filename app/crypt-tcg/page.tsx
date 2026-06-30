@@ -11,6 +11,7 @@
  * marketing copy below. The OG card + page copy sell the playable game.
  */
 import Link from "next/link";
+import { preload } from "react-dom";
 import type { Metadata } from "next";
 import { TrackedExtLink } from "@/components/TrackedExtLink";
 import { GODS, godOpenSeaUrl } from "@/lib/gods";
@@ -84,6 +85,8 @@ const FRAGMENTS: Fragment[] = [
 ];
 
 export default async function CombatArchivesPage() {
+  // Hero key art is the LCP element — preload it high (matches app/page.tsx).
+  preload("/og/art/crypt-tcg.webp", { as: "image", fetchPriority: "high" });
   const floors = await getFloors(["crypttradingcards"]);
   const floor = formatFloor(floors["crypttradingcards"]);
 

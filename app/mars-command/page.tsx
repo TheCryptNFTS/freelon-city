@@ -10,6 +10,7 @@
  * back to the city automatically once it's served same-origin.
  */
 import Link from "next/link";
+import { preload } from "react-dom";
 import type { Metadata } from "next";
 import { TrackedExtLink } from "@/components/TrackedExtLink";
 
@@ -79,6 +80,10 @@ const JSON_LD = {
 };
 
 export default function MarsCommandPage() {
+  // The hero key art is the LCP element on this page — preload it high so it
+  // paints with first content instead of queuing behind fonts/CSS (matches the
+  // homepage hero-preload pattern in app/page.tsx).
+  preload("/og/art/mars-rover.webp", { as: "image", fetchPriority: "high" });
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "var(--s-5) var(--s-4) var(--s-7)" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />

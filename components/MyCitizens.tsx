@@ -157,6 +157,7 @@ export function MyCitizens() {
               href={`/agent/${c.id}`}
               className={`mycit-card${activated ? " is-activated" : ""}`}
               style={{ ["--civ" as string]: c.color }}
+              onClick={() => trackEvent("workspace_open", { from: "my_citizens", activated })}
             >
               <div className="mycit-art">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

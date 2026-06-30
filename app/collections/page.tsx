@@ -13,7 +13,7 @@ import { CityWeekBand } from "@/components/CityWeekBand";
 // T3 2026-06-11 — explicit share tags (a page-level openGraph block replaces
 // the layout's wholesale, so the branded default image is restated here).
 const COLLECTIONS_DESC =
-  "Every collection in the FREELON CITY universe — each token is an AI agent you can open and chat with.";
+  "One city, six populations — the flagship FREELON citizens you own and train, plus the wild, the dead, the emotional, the lost, and the Crypt card game.";
 export const metadata = {
   title: "The Universe · Collections",
   description: COLLECTIONS_DESC,

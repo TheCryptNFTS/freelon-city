@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useViewerAddr } from "@/lib/use-viewer";
+import { trackEvent } from "@/lib/track";
 
 /**
  * Ownership-aware primary CTA for the citizen profile (upgrade audit #5, 2026-06-19).
@@ -33,7 +34,12 @@ export function CitizenWorkspaceCta({ tid, color }: { tid: number; color: string
   }, [viewer.ready, viewer.addr, tid]);
 
   return (
-    <Link href={`/agent/${tid}`} className="workspace-open-cta" style={{ ["--accent" as string]: color }}>
+    <Link
+      href={`/agent/${tid}`}
+      className="workspace-open-cta"
+      style={{ ["--accent" as string]: color }}
+      onClick={() => trackEvent("workspace_open", { from: "citizen_pdp", owns })}
+    >
       <span className="wo-kicker">{owns ? "YOUR AGENT WORKSPACE" : "AWAKEN THIS FREELON"}</span>
       <span className="wo-title">{owns ? "Open the workspace →" : "Awaken this FREELON →"}</span>
       <span className="wo-sub">
