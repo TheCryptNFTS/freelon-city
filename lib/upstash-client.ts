@@ -26,6 +26,14 @@ export async function upstash(cmd: string[]): Promise<unknown> {
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`Upstash ${res.status}`);
-  const j = (await res.json()) as { result: unknown };
+  // Upstash REST signals COMMAND/DB errors (e.g. "database has been temporarily
+  // rate-limited", "value is not an integer") as HTTP 200 with an `error` field
+  // and NO `result`. Returning that silently as `undefined` is how callers ended
+  // up doing Number(undefined)=NaN (rate-limit.ts → permanent 429). Throw so the
+  // caller's catch/fallback engages — the in-memory limiter, the `.catch(()=>0)`
+  // store defaults, etc. A genuine key-miss is `{"result":null}` (no `error`),
+  // which still returns null, not a throw.
+  const j = (await res.json()) as { result?: unknown; error?: string };
+  if (typeof j.error === "string" && j.error) throw new Error(`Upstash: ${j.error}`);
   return j.result;
 }

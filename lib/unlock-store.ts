@@ -21,8 +21,14 @@ export async function hasUnlocked(handle: string, citizenId: number): Promise<bo
   if (!hasUpstash) {
     return memHandleSet.get(h)?.has(citizenId) ?? false;
   }
-  const r = (await upstash(["SISMEMBER", KEY(`h:${h}`), String(citizenId)])) as number;
-  return r === 1;
+  try {
+    const r = (await upstash(["SISMEMBER", KEY(`h:${h}`), String(citizenId)])) as number;
+    return r === 1;
+  } catch {
+    // Fail CLOSED: if the store is unreachable / rate-limited, treat as NOT
+    // unlocked rather than 500-ing the status GET or accidentally granting access.
+    return false;
+  }
 }
 
 export async function unlock(handle: string, citizenId: number, gifter?: string): Promise<void> {
@@ -49,14 +55,22 @@ export async function isCitizenGifted(citizenId: number): Promise<{ gifted: bool
     const gifter = memGiftAttribution.get(citizenId);
     return gifter ? { gifted: true, gifter } : { gifted: false };
   }
-  const r = (await upstash(["GET", KEY(`gift:${citizenId}`)])) as string | null;
-  return r ? { gifted: true, gifter: r } : { gifted: false };
+  try {
+    const r = (await upstash(["GET", KEY(`gift:${citizenId}`)])) as string | null;
+    return r ? { gifted: true, gifter: r } : { gifted: false };
+  } catch {
+    return { gifted: false };
+  }
 }
 
 export async function citizenUnlockers(citizenId: number): Promise<string[]> {
   if (!hasUpstash) {
     return Array.from(memCitizenUnlockers.get(citizenId) ?? []);
   }
-  const r = (await upstash(["SMEMBERS", KEY(`c:${citizenId}`)])) as string[];
-  return r ?? [];
+  try {
+    const r = (await upstash(["SMEMBERS", KEY(`c:${citizenId}`)])) as string[];
+    return r ?? [];
+  } catch {
+    return [];
+  }
 }

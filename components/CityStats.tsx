@@ -24,7 +24,10 @@ export function CityStats() {
     };
   }, []);
 
-  if (!s) {
+  // A rate-limited / degraded /api/opensea/stats returns a truthy object whose
+  // numeric fields are undefined (not a number). Treat that exactly like the
+  // loading state instead of crashing on `undefined.toFixed()`.
+  if (!s || typeof s.floor !== "number" || typeof s.volume !== "number" || typeof s.holders !== "number") {
     return (
       <div className="city-stats city-stats-loading">
         <span className="kicker">⬡ CITY · LIFETIME STATS</span>

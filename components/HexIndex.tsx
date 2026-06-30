@@ -28,7 +28,7 @@ export function HexIndex() {
     );
   }
 
-  if (!data) {
+  if (!data || typeof data.floor !== "number" || typeof data.index !== "number") {
     return (
       <div className="hex-index hex-index-loading">
         <span className="kicker">⬡ HEX INDEX</span>

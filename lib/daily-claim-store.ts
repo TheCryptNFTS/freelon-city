@@ -16,8 +16,16 @@ export function todayUTC(): string {
 
 export async function getLastClaim(addr: string): Promise<string | null> {
   if (!hasUpstash) return memory.get(addr.toLowerCase()) ?? null;
-  const raw = (await upstash(["GET", KEY(addr)])) as string | null;
-  return raw ?? null;
+  try {
+    const raw = (await upstash(["GET", KEY(addr)])) as string | null;
+    return raw ?? null;
+  } catch {
+    // Store unreachable / rate-limited: treat as "no claim recorded" so the
+    // status read doesn't 500. canClaimToday() then reports claimable; the
+    // actual credit is still gated by tryClaimToday()'s atomic SET (which
+    // fails closed on error), so this can't double-credit.
+    return null;
+  }
 }
 
 export async function setLastClaim(addr: string, day: string): Promise<void> {
