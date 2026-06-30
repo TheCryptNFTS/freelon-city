@@ -5,6 +5,8 @@ import { HeroVideo } from "@/components/HeroVideo";
 import { ActivationProof } from "@/components/ActivationProof";
 import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { ProductDoors } from "@/components/ProductDoors";
+import { CityCollectionsStrip } from "@/components/CityCollectionsStrip";
+import { CitizensBand } from "@/components/CitizensBand";
 import { TrackedOpenSeaLink } from "@/components/TrackedOpenSeaLink";
 import { TrackedLink } from "@/components/TrackedLink";
 import { PageBeacon } from "@/components/PageBeacon";
@@ -116,6 +118,13 @@ export default async function Home() {
               at scale (the thing you own) + the thesis line + the see→own button row.
               The three product doors stay directly below as FEEDERS, not co-equal
               products. Hierarchy is now Citizen (hero) → Mars/TCG (funnel doors). */}
+          {/* 2026-06-30 BRAND ARCHITECTURE PASS (founder call: the site is an
+              ECOSYSTEM, not a single AI-product page). The hero is promoted from
+              "an AI citizen that remembers you" (one feature) to FREELON CITY the
+              world; the memory hook stays in the subline as the conversion proof,
+              not the whole brand. Order beneath: populations (six collections) →
+              flagship + proof → play the city → buy. The flagship portrait stays
+              as the LCP and the face of "the one you own." */}
           <span className="hero-eyebrow">FREELON CITY · LIVING AI · ON-CHAIN SINCE 2023</span>
           <div className="hero-portrait">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -128,11 +137,12 @@ export default async function Home() {
             />
           </div>
           <h1 className="hero-landing__h1 hero-landing__h1--citizen">
-            An AI citizen<br />that <strong>remembers you.</strong>
+            FREELON CITY<br />is <strong>alive.</strong>
           </h1>
           <p className="hero-landing__tag">
-            Own a living AI character — meet one free, watch it recall you, then
-            awaken and train it. <strong>Its whole life travels with the NFT.</strong>
+            A living AI city of six collections. They became citizens that{" "}
+            <strong>remember you</strong>, do real work, and build a public record.
+            Own a FREELON and that record is yours — its whole life travels with the NFT.
           </p>
           <div className="hero-cta-row">
             <TrackedLink
@@ -154,12 +164,23 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── PRODUCT DOORS — now FEEDERS under the citizen hero, not co-equal
-          products (2026-06-30 collectible-first rebuild). The hero owns the
-          ownable thesis ("an AI citizen that remembers you" + see→own CTAs);
-          these three doors are the "what else can I do here" funnel: Enter Mars
-          (/mars-command), Play TCG (/crypt-tcg), AI Citizens (/demo). Kept as a
-          clean co-equal row visually, but they sit BELOW the product pitch now. */}
+      {/* ── POPULATIONS — "Six collections, one city" (2026-06-30 brand
+          architecture pass). The world layer: the hero says the city is alive;
+          this says what it's MADE OF — six collections, each a population with a
+          role, FREELON the flagship. The single ecosystem beat a stranger needs
+          to stop asking "is this one collection or six?". */}
+      <CityCollectionsStrip />
+
+      {/* ── FLAGSHIP + PROOF — FREELON is the one citizen class you own, awaken
+          and train, and "it remembers you" is the conversion proof (now a beat,
+          not the whole brand). Reuses the CitizensBand quality bar; CTA hands off
+          to the live interactive proof at /demo. */}
+      <CitizensBand />
+
+      {/* ── PLAY THE CITY — Mars + TCG + AI as the city's EXPERIENCES, not
+          standalone games (2026-06-30: connective tissue so the games don't read
+          as bolted-on arcade cards). Enter Mars = first playable frontier; Crypt
+          TCG = the archive turned to battle; AI = meet a live citizen. */}
       <ProductDoors />
 
       {/* Activation proof — the see→own bridge, relocated out of the hero so it

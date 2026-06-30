@@ -20,30 +20,30 @@ const DOORS = [
     href: "/mars-command",
     event: "mars_enter_click",
     img: "/og/art/mars-rover.webp",
-    kicker: "BROWSER GAME · FREE",
+    kicker: "THE FRONTIER · FREE",
     title: "Enter Mars",
     blurb:
-      "Drive across a procedural Mars, scan buried signals, claim sectors, and fight the Chorus in a free browser game.",
+      "The city's first playable frontier. Drive the surface, scan buried signals, claim sectors and fight the Chorus — every run writes city history.",
     cta: "Enter Mars",
   },
   {
     href: "/crypt-tcg",
     event: "crypt_enter_click",
     img: "/og/art/crypt-tcg.webp",
-    kicker: "CARD GAME · FREE",
-    title: "Play the TCG",
+    kicker: "THE COMBAT ARCHIVE · FREE",
+    title: "Battle the Crypt",
     blurb:
-      "Build a deck, command the archive, and battle solo against the AI in Crypt Legends TCG.",
+      "The archive turned to battle. Cards are commanders, civilizations and doctrines recovered from The Crypt — build a deck and fight the AI.",
     cta: "Play TCG",
   },
   {
     href: "/demo",
     event: "meet_citizen_click",
     img: "/og/art/freelons.webp",
-    kicker: "LIVING AI · FREE",
-    title: "AI Citizens",
+    kicker: "THE LIVING INTERFACE · FREE",
+    title: "Meet a Citizen",
     blurb:
-      "Meet a living AI citizen free — one that remembers you and can prove it. Then own, awaken, and train it.",
+      "Proof the city is alive: talk to a living AI citizen free, watch it remember you, then own and train one of your own.",
     cta: "Meet a Citizen",
   },
 ];
@@ -51,10 +51,21 @@ const DOORS = [
 export function ProductDoors() {
   return (
     <section
-      className="product-doors"
-      aria-label="What you can do in FREELON CITY"
+      className="product-doors-wrap"
+      aria-label="Play the city — experiences inside FREELON CITY"
     >
-      {DOORS.map((d) => (
+      <header className="product-doors__head">
+        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ PLAY THE CITY</span>
+        <h2 className="product-doors__h2">
+          Three ways into the <em>city.</em>
+        </h2>
+        <p className="product-doors__lead">
+          Mars, the Crypt and the citizens aren&apos;t separate games — they&apos;re the
+          experiences that make FREELON CITY a place. All free, in the browser.
+        </p>
+      </header>
+      <div className="product-doors">
+        {DOORS.map((d) => (
         <TrackedLink
           key={d.href}
           href={d.href}
@@ -78,6 +89,7 @@ export function ProductDoors() {
           </span>
         </TrackedLink>
       ))}
+      </div>
     </section>
   );
 }
