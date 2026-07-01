@@ -657,6 +657,44 @@
             mask-image:radial-gradient(ellipse at 50% 50%, transparent 34%, #000 80%); }
   body.dashing #dashfx{ opacity:1 }
   @media (prefers-reduced-motion: reduce){ #dashfx{ display:none } }
+  /* ============== MOBILE FLAGSHIP HUD PASS (2026-07-01) ==============
+     The default first-60s phone view (body.minhud/driving, not panels/mapping/fighting) was
+     reading like stacked debug panels: SIGNAL SCAN floating dead-centre over the rover (its
+     38vh anchor assumes a build sheet the clean HUD hides), a compass overlapping the minimap,
+     a redundant second objective row, and two chunky view boxes at mid-height. This block is
+     scoped to phones AND the clean-HUD state so the TAB-panels / map / combat layouts are
+     untouched. Safe-area + thumb-zone disciplined. Overrides win by coming last + higher
+     specificity. */
+  @media (max-width:560px){
+    /* TOP — one compact full-width objective strip, safe-area aware */
+    #nextChip{ top:calc(env(safe-area-inset-top,0px) + 12px)!important; left:12px!important; right:12px!important;
+      font-size:10px!important; letter-spacing:.12em!important; padding:9px 13px!important; box-sizing:border-box!important; }
+    #brand{ top:calc(env(safe-area-inset-top,0px) + 12px)!important; }
+    /* MINIMAP — smaller, tucked into the top-right safe corner; compass folded away (minimap already shows N/E/S/W) */
+    #minimapWrap{ width:82px!important; height:82px!important; left:auto!important; right:12px!important;
+      top:calc(env(safe-area-inset-top,0px) + 54px)!important; }
+    #compass{ display:none!important; }
+    /* BEACON — subordinate distance chip, top-left under the strip, ending before the minimap (no more double banner) */
+    #objHud{ top:calc(env(safe-area-inset-top,0px) + 58px)!important; left:12px!important; right:104px!important;
+      transform:none!important; text-align:left!important; font-size:9px!important; letter-spacing:.07em!important;
+      overflow:hidden!important; text-overflow:ellipsis!important; }
+    /* SCAN — real bottom-right thumb action in the clean HUD (drop the mid-screen 38vh float) */
+    body.minhud:not(.panels) #scanBtn, body.driving:not(.panels) #scanBtn{
+      top:auto!important; left:auto!important; right:16px!important;
+      bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important;
+      font-size:11px!important; letter-spacing:.24em!important; padding:14px 24px!important; }
+    /* TELEMETRY — compact, bottom-left, safe-area, quieted so it reads as a readout not a debug slab */
+    #navHud{ left:12px!important; bottom:calc(env(safe-area-inset-bottom,0px) + 14px)!important;
+      opacity:.86; transform:scale(.92); transform-origin:bottom left; }
+    /* VIEW GLYPHS — tiny quiet icon squares on the right edge, not chunky mid-height debug boxes */
+    body.playing #immBtn, body.playing #fsBtn{ width:36px!important; height:36px!important; right:12px!important;
+      padding:0!important; font-size:0!important; line-height:36px!important; border-radius:9px!important;
+      background:rgba(8,7,4,.5)!important; border:1px solid rgba(216,178,92,.26)!important; opacity:.82; }
+    body.playing #immBtn{ top:auto!important; bottom:calc(env(safe-area-inset-bottom,0px) + 100px)!important; }
+    body.playing #fsBtn{ top:auto!important; bottom:calc(env(safe-area-inset-bottom,0px) + 142px)!important; }
+    #immBtn::after{ content:'\25A3'; font-size:15px; color:rgba(242,234,216,.82); }   /* hide-HUD */
+    #fsBtn::after{ content:'\2922'; font-size:15px; color:rgba(242,234,216,.82); }     /* fullscreen */
+  }
 </style>
 <script type="importmap">
 {"imports":{
@@ -3407,7 +3445,7 @@ function prepModel(root,k){
           const iconic = (k==='rover'||k==='rocket');
           if(!iconic && _h.l>.28) o.material.color.setHSL(.085, Math.min(_h.s,.22)+.05, .32);   // 2026-06-30: soot floor .24→.32 so structures read as dark METAL the key light catches, not black holes
           else if(k==='rocket' && _h.l>.6) o.material.color.setHSL(_h.h, Math.min(_h.s,.2), .5);  // dim the white, keep the silhouette
-          else if(k==='rover' && _h.l>.32) o.material.color.offsetHSL(0,-.06,-.04);  // 2026-06-30: was a flat setHSL(.075,…) hue-REWRITE that painted every light panel one sterile sand tone → killed the rover's read. Now just gently desat/dim so painted detail + material variety SURVIVE.
+          else if(k==='rover' && _h.l>.32) o.material.color.offsetHSL(0,-.06,-Math.min(.30,(_h.l-.32)*.70+.05));  // 2026-07-01: the -.04 flat dim left pale hull panels reading as WHITE TOY PLASTIC (flagship-mismatch). Dim PROPORTIONALLY to lightness so the palest panels drop into the soot/gold register (l≈.7→.40) while mid-tone painted detail + material variety SURVIVE. Emissive lights untouched (offsetHSL only touches .color).
         }
         if(k==='rover'){
           // hero asset on screen 100% of the time — preserve its spec so the key light catches edges/glass; don't flatten like a soot building.
