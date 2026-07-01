@@ -390,13 +390,27 @@ async function creditSweep(
     (e) => e.kind === "sweep_streak" && Date.now() - e.ts < STREAK_WINDOW_MS,
   );
   if (recentSweeps >= STREAK_THRESHOLD && !alreadyBonus) {
-    const streakHex = applyEarnMultiplier(STREAK_BONUS, collapse);
-    await creditWalletHex(buyer, streakHex, {
-      kind: "sweep_streak",
-      ts,
-      note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${streakHex}⬡${noteSuffix}`,
-    }, { farmable: true });
-    bonus = true;
+    // Guard the bonus with the SAME per-day SET-NX key the inline path uses
+    // (lib/sweep-inline.ts) so a cron tick and an inline sweep that both cross
+    // the threshold in the same window can't double-pay it — the in-record
+    // `alreadyBonus` read is not atomic across the two paths' separate lock
+    // acquisitions. Fail CLOSED (skip the bonus) on infra error.
+    const bonusKey = `freelon:sweep:streak:${buyer.toLowerCase()}:${new Date().toISOString().slice(0, 10)}`;
+    let ownBonus = false;
+    try {
+      ownBonus = await tryAcquireDedupe(bonusKey, 172800);
+    } catch {
+      ownBonus = false;
+    }
+    if (ownBonus) {
+      const streakHex = applyEarnMultiplier(STREAK_BONUS, collapse);
+      await creditWalletHex(buyer, streakHex, {
+        kind: "sweep_streak",
+        ts,
+        note: `${STREAK_THRESHOLD}+ sweeps in 24h · +${streakHex}⬡${noteSuffix}`,
+      }, { farmable: true });
+      bonus = true;
+    }
   }
 
   return { credited: sweepHex, bonus };

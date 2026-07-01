@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { addTithe, isValidTitheAmount, MIN_TITHE_AMOUNT } from "@/lib/tithe-store";
-import { debitWalletHex, getWalletHex } from "@/lib/wallet-hex-store";
+import { debitWalletHex, getWalletHex, InsufficientHexError, WalletBusyError } from "@/lib/wallet-hex-store";
 import { CIVILIZATIONS } from "@/lib/constants";
 import { isValidAddress } from "@/lib/wallet-tokens";
 import { limit, tooManyResponse } from "@/lib/rate-limit";
@@ -103,7 +103,20 @@ export async function POST(req: Request) {
       kind: "manual",
       note: `Tithe to ${civ} (+${safeDisplay})${collapse.active ? ` · COLLAPSE -${Math.round((1 - collapse.sinkMultiplier) * 100)}%` : ""}`,
     });
-  } catch {
+  } catch (e) {
+    // Classify the debit failure so a transient lock miss reads as retryable
+    // (503) and a real shortfall as 402 — not an opaque 500. A TOCTOU race
+    // between the balance pre-check above and the locked debit can still fire
+    // InsufficientHexError; WalletBusyError is lock contention, not a failure.
+    if (e instanceof InsufficientHexError) {
+      return NextResponse.json(
+        { error: "insufficient_hex", balance: e.balance, needed: e.requested },
+        { status: 402 },
+      );
+    }
+    if (e instanceof WalletBusyError) {
+      return NextResponse.json({ error: "wallet_busy" }, { status: 503 });
+    }
     return NextResponse.json({ error: "burn_failed" }, { status: 500 });
   }
 

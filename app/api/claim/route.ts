@@ -81,19 +81,24 @@ export async function POST(req: Request) {
   let bonus = 0;
   let dailyHex: number = ECONOMY.DAILY_CLAIM;
   try {
-    // Streak read-modify-write MUST run under the wallet lock (patchWalletHex):
-    // the old standalone getWalletHex → setWalletHex pair (a) raced any
-    // concurrent locked credit (sweep/sale tick) and erased it, and (b) on a
-    // throttled getWalletHex returning an error-default balance:0, wrote that
-    // zero back — wiping the wallet's real balance. patchWalletHex re-reads
-    // fresh inside the lock via the strict reader, so a degraded read THROWS
-    // (caught below → claim released, nothing paid) instead of clobbering.
+    // Streak read MUST run under the wallet lock (patchWalletHex): the old
+    // standalone getWalletHex → setWalletHex pair (a) raced any concurrent
+    // locked credit (sweep/sale tick) and erased it, and (b) on a throttled
+    // getWalletHex returning an error-default balance:0, wrote that zero back
+    // — wiping the wallet's real balance. patchWalletHex re-reads fresh inside
+    // the lock via the strict reader, so a degraded read THROWS (caught below
+    // → claim released, nothing paid) instead of clobbering.
+    //
+    // 2026-07-01 fix: COMPUTE the streak here but do NOT persist
+    // lastClaimDay/claimStreak yet. Writing them before the base credit meant a
+    // failed credit (Upstash blip) left the day stamped, so the retry saw
+    // last===today → reset an established streak to 1. We now persist the streak
+    // only AFTER the credit lands (below), so a failed credit leaves the streak
+    // untouched for a clean retry.
     await patchWalletHex(addr, (rec) => {
       const last = rec.lastClaimDay ?? null;
       if (last === yesterdayUTC()) streak = (rec.claimStreak ?? 0) + 1;
       else streak = 1;
-      rec.claimStreak = streak;
-      rec.lastClaimDay = todayUTC();
     });
 
     // Collapse-mode earn multiplier
@@ -107,6 +112,14 @@ export async function POST(req: Request) {
       kind: "manual",
       note: `Daily X share · streak ${streak}d · +${dailyHex}⬡${noteSuffix}`,
     }, { farmable: true });
+
+    // Base credit landed — NOW persist the streak advance. Guarded by the
+    // per-day claim lock (tryClaimToday) so only this claim mutates these
+    // fields today; sweep/sale ticks never touch them.
+    await patchWalletHex(addr, (rec) => {
+      rec.claimStreak = streak;
+      rec.lastClaimDay = todayUTC();
+    });
 
     // Streak milestone bonus — a SEPARATE, non-critical credit. If it fails
     // we must NOT roll back the claim: the base was already paid, so a retry
