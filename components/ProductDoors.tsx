@@ -45,6 +45,12 @@ const DOORS = [
     blurb:
       "Proof the city is alive: talk to a living AI citizen free, watch it remember you, then own and train one of your own.",
     cta: "Meet a Citizen",
+    // 2026-07-01 palette fix: the source art has an electric-CYAN centre gem that
+    // is the one off-brand element in the three-door triptych (brand is gold/ivory
+    // /warm-black). Flag it so the card warms the crop back on-palette (globals.css
+    // `.door-card--citizen`). Ideal long-term fix is regenerating the gem gold — the
+    // OG share render still carries the cyan (P2).
+    tone: "citizen" as const,
   },
 ];
 
@@ -71,7 +77,7 @@ export function ProductDoors() {
           href={d.href}
           event={d.event}
           from="home_doors"
-          className="door-card"
+          className={d.tone === "citizen" ? "door-card door-card--citizen" : "door-card"}
         >
           <span className="door-card__media">
             {/* eslint-disable-next-line @next/next/no-img-element */}

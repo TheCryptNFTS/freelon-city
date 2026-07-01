@@ -55,7 +55,17 @@ export const metadata: Metadata = {
 // all drop to the compact "MORE WAYS TO PLAY" row so they read as experiments,
 // not as products competing with Mars + TCG. Genre lines also de-"Like X"-ed —
 // naming a competitor's game made ours read derivative (copy pass, same date).
-const GAMES = [
+type GameCard = {
+  href: string;
+  kicker: string;
+  title: string;
+  genre: string;
+  blurb: string;
+  accent: string;
+  img?: string;
+};
+
+const GAMES: GameCard[] = [
   {
     href: "/mars-command",
     kicker: "EXPLORE · REAL-TIME · NO WALLET",
@@ -63,7 +73,13 @@ const GAMES = [
     genre: "Mars exploration + real-time combat",
     blurb:
       "Drive a rover across a living Mars, scan for buried sites, claim sectors for a sworn doctrine, and fight the Chorus in real time. A full game — free, no wallet, in the browser.",
-    accent: "var(--gold-bright)",  },
+    accent: "var(--gold-bright)",
+    // 2026-07-01 flagship-art fix: the flagship cards were rendering a cheap
+    // procedural SVG (GamePreview) while the real cinematic key art already
+    // shipped on the homepage doors + route hero. Point /play at the same art so
+    // Mars reads as a flagship here too, not a placeholder.
+    img: "/og/art/mars-rover.webp",
+  },
 ];
 
 // GUARD THE POT — the marquee spectacle. Deliberately NOT a permanent 4th card:
@@ -71,7 +87,7 @@ const GAMES = [
 // surfaces here when the round is actually LIVE (GUARD_POT_LIVE=true), so the
 // default arcade stays the clean three-door layout and this appears as an event,
 // not as more permanent clutter.
-const GUARD_CARD = {
+const GUARD_CARD: GameCard = {
   href: "/play/guard",
   kicker: "EVENT · LIVE NOW",
   title: "Guard the Pot",
@@ -180,19 +196,43 @@ export default function PlayHub() {
               transition: "border-color .18s, transform .18s",
             }}
           >
-            {/* Game-specific SVG poster — mirrors the actual mechanic so
-                each box SHOWS its game instead of being a plain panel. */}
+            {/* Flagship cards show the real cinematic key art (with a warm-black
+                scrim so the art fades into the card and the palette reads on-brand);
+                event/prototype cards without art fall back to the mechanic poster. */}
             <div
               style={{
+                position: "relative",
                 margin: "-24px -22px 18px",
                 borderBottom: `1px solid var(--line)`,
                 overflow: "hidden",
+                aspectRatio: g.img ? "16 / 9" : undefined,
               }}
             >
-              <GamePreview
-                kind={(g.href === "/mars-command" ? "mars" : g.href.replace("/play/", "")) as GameKind}
-                accent={g.accent}
-              />
+              {g.img ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={g.img}
+                    alt=""
+                    loading="lazy"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 42%", display: "block" }}
+                  />
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(180deg, rgba(11,10,9,0) 30%, rgba(11,10,9,0.55) 78%, rgba(11,10,9,0.92) 100%)",
+                    }}
+                  />
+                </>
+              ) : (
+                <GamePreview
+                  kind={(g.href === "/mars-command" ? "mars" : g.href.replace("/play/", "")) as GameKind}
+                  accent={g.accent}
+                />
+              )}
             </div>
             <div
               style={{
@@ -268,9 +308,32 @@ export default function PlayHub() {
             border: "1px solid var(--line)",
             borderTop: "2px solid var(--gold-bright)",
             background: "var(--bg-2)",
-            padding: "24px 22px 26px",
+            padding: "0 0 26px",
+            overflow: "hidden",
           }}
         >
+          {/* Real Crypt key art — the card was text-only, reading unfinished next
+              to a flagship. Same cinematic art as the /crypt-tcg hero + homepage
+              door, with a warm-black scrim. 2026-07-01 flagship-art fix. */}
+          <div style={{ position: "relative", borderBottom: "1px solid var(--line)", overflow: "hidden", aspectRatio: "16 / 9" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/og/art/crypt-tcg.webp"
+              alt=""
+              loading="lazy"
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 30%", display: "block" }}
+            />
+            <span
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(180deg, rgba(11,10,9,0) 30%, rgba(11,10,9,0.55) 78%, rgba(11,10,9,0.92) 100%)",
+              }}
+            />
+          </div>
+          <div style={{ padding: "22px 22px 0" }}>
           <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.28em", color: "var(--gold-bright)", textTransform: "uppercase", marginBottom: 14 }}>
             CARD GAME · SOLO VS AI · DECK-BUILDER
           </div>
@@ -285,6 +348,7 @@ export default function PlayHub() {
           </p>
           <div style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.22em", color: "var(--ink-fade)", textTransform: "uppercase" }}>
             PLAY THE CARD GAME ↗
+          </div>
           </div>
         </TrackedExtLink>
       </section>

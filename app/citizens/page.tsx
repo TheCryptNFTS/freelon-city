@@ -117,6 +117,16 @@ export default async function Citizens() {
           visible record that stays with the token. Pick one to create with it.{" "}
           <Link href="/proof" style={{ color: "var(--gold)", whiteSpace: "nowrap" }}>See what owners render →</Link>
         </p>
+        {/* SCOPE CLARIFIER 2026-07-01 (Billy P0: "Choose a FREELON too narrow"):
+            this page is the FLAGSHIP collection's chooser, but FREELON CITY is a
+            whole world of six populations. Say so, and give a one-tap path to
+            browse them all — the flagship is the entry, not the entirety. */}
+        <p className="lead" style={{ fontSize: 13, opacity: 0.72, marginTop: 8 }}>
+          <strong>FREELON</strong> is the flagship citizen collection you own and train.
+          The city has <strong>six populations</strong> in all — the wild, the dead, the
+          emotional, the lost, and the Crypt.{" "}
+          <Link href="/collections" style={{ color: "var(--gold)", whiteSpace: "nowrap" }}>Browse all collections →</Link>
+        </p>
 
         {/* OWNER-FIRST 2026-06-09: connect → see YOUR characters → click straight
             into the create page (/agent/[id]). No typing a token number — that's
