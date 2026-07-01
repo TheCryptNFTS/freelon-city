@@ -83,7 +83,7 @@
 
   #brand{top:22px;left:26px}
   #brand .k{font-family:'Clash Display',monospace;font-size:10px;letter-spacing:.55em;color:var(--gold);margin-bottom:6px}
-  #brand .n{font-size:19px;letter-spacing:.3em;color:var(--ivory);text-shadow:0 0 18px rgba(216,178,92,.25)}
+  #brand .n{font-size:19px;letter-spacing:.3em;color:var(--ivory);text-shadow:0 1px 3px rgba(10,6,2,.8),0 0 18px rgba(216,178,92,.25)}   /* 2026-07-01 war-room: ivory-on-blown-sky was invisible at golden hour — dark under-shadow anchors the wordmark */
 
   #stats{top:22px;right:26px;display:flex;gap:10px}
   .stat{background:var(--panel);border:1px solid var(--line);padding:10px 16px;text-align:right;
@@ -118,7 +118,7 @@
              border-top:1px solid var(--line);padding-top:9px;display:none;font-style:italic}
 
   #hint{bottom:10px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.42em;
-        color:rgba(242,234,216,.82);text-shadow:0 1px 5px rgba(0,0,0,.9);text-align:center;white-space:nowrap}
+        color:rgba(242,234,216,.92);text-shadow:0 1px 2px rgba(0,0,0,.95),0 1px 10px rgba(0,0,0,.85);text-align:center;white-space:nowrap}   /* 2026-07-01 war-room: single thin shadow vanished over blown-bright sand — doubled shadow keeps the only control-teaching line legible */
   /* accessibility: honor reduced-motion for CSS animations/transitions (the JS camera motion is gated separately) */
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
@@ -3461,10 +3461,10 @@ function prepModel(root,k){
           // are left untouched so the headlights still throw a beam at night.
           const nm=(o.name||'').toLowerCase();
           const paint=(hex,rough,metal)=>{ if(o.material.color) o.material.color.setHex(hex); o.material.roughness=rough; if(o.material.metalness!=null) o.material.metalness=metal; };
-          if(/^grs/.test(nm)){ o.visible=false; }   // 2026-07-01: grouser cleats splay flat to the ground and read as scattered "loose broken wheel parts" (Billy). Hide them — the black rubber tyres carry the wheel read cleanly.
+          if(/^grs|^gpencil/.test(nm)){ o.visible=false; }   // 2026-07-01: grouser cleats splay flat to the ground and read as scattered "loose broken wheel parts" (Billy). Hide them — the black rubber tyres carry the wheel read cleanly. GPencil* = Blender grease-pencil sketch strokes that shipped inside the GLB — 14u-tall phantom slabs riding the rover transform.
           else if(/hl|rl|lens|lamp|glow|emis|glass|visor/.test(nm)){ /* keep emissive lights as authored */ }
-          else if(/tyre|tire|wheel/.test(nm)) paint(0x0c0a08,.92,.08);
-          else if(/hub|grs|arm|axle|tread/.test(nm)) paint(0x1c1915,.85,.22);
+          else if(/tyre|tire|wheel/.test(nm)) paint(0x1f1a15,.9,.08);   // 2026-07-01 war-room: 0x0c0a08 sat under the PBR albedo floor — tyres rendered as detached black blobs against the bright sand. Lifted to dark-rubber that still catches the key light.
+          else if(/hub|grs|arm|axle|tread/.test(nm)) paint(0x2e2720,.8,.3);   // suspension arms were near-invisible → wheels read as floating. Mid-dark metal keeps the linkage visible.
           else if(/trim/.test(nm)) paint(0xc4842f,.42,.55);
           else if(/wing|panel|solar/.test(nm)) paint(0x191b23,.5,.22);
           else if(/mast|antenna|antstem|rail|mhead|dish|whip/.test(nm)) paint(0x24211c,.78,.3);
@@ -4198,7 +4198,7 @@ const roverWheels=[];
   /* ---- HERO KIT: persistent rover detailing parented to roverTilt → SURVIVES the GLB shell swap.
      Headlights + throw, tail-lights, and a roof cargo rack with a strapped canister so the rover
      reads as a purposeful expedition vehicle, not a box on wheels. Tuned to the ~5.5×3.9 shell. ---- */
-  const roverKit=new THREE.Group(); roverTilt.add(roverKit);
+  const roverKit=new THREE.Group(); roverKit.name='_legacyKit'; roverTilt.add(roverKit);   // named so swapRoverModel can retire the kit visuals when the GLB (with its own lamps/rack) arrives
   const _kitDark=new THREE.MeshStandardMaterial({color:0x161310,roughness:.7,metalness:.45});
   const _headMat=new THREE.MeshStandardMaterial({color:0xeadbb8,roughness:.35,metalness:.1,emissive:0xffe7b0,emissiveIntensity:.12});
   const _tailMat=new THREE.MeshStandardMaterial({color:0x3a0c08,roughness:.4,metalness:.1,emissive:0xff3318,emissiveIntensity:.5});
@@ -4276,9 +4276,18 @@ function swapRoverModel(){
   roverShell.clear(); roverWheels.length=0;
   roverShell.add(MODEL_CACHE.rover.clone(true));
   _roverGLBSwapped=true;
-  // re-seat the player marker onto the GLB body: slim rear antenna + a small LED at the tip (no roof gem)
-  if(roverAntenna) roverAntenna.position.set(.5,1.55,-1.55);
-  if(roverBeacon) roverBeacon.position.set(.5,2.5,-1.55);
+  /* 2026-07-01 war-room: retire the box-shell hero-kit VISUALS once the GLB is in. The kit was
+     tuned to the old 5.5×3.9 procedural shell — beside the mk2 GLB its tail-light boxes floated
+     at ground level as two glowing red slabs and the hub/lens/rack pieces read as bolted-on
+     debris. The GLB carries its own authored lamps + rack. Lights are NOT meshes, so the night
+     headlight SpotLight (rover.userData.headLight) keeps throwing its beam. */
+  const _kit=roverTilt.getObjectByName('_legacyKit');
+  if(_kit) _kit.traverse(o=>{ if(o.isMesh) o.visible=false; });
+  // 2026-07-01 war-room: retire the legacy antenna+LED marker too — the mk2 GLB ships its own
+  // whip/mast/dish, and at any seat height the extra rod overlaps the hull silhouette and reads
+  // as a bar dangling off the vehicle (the "debris" tell in the first-spawn frame).
+  if(roverAntenna) roverAntenna.visible=false;
+  if(roverBeacon) roverBeacon.visible=false;
   if(roverLamp) roverLamp.position.set(0,2.0,0);
 }
 
