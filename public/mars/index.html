@@ -171,7 +171,7 @@
   body.playing #crewsBtn{display:block}
   #crewsBtn:hover{border-color:var(--gold)} #crewsBtn.busy{color:var(--gold-bright);border-color:var(--gold)}
   body.mapping #crewsBtn{display:none!important}
-  /* EMILE ⇄ ROVER toggle (mirrors #crewsBtn on the left) + a thumb JUMP pad shown only as EMILE */
+  /* EMILE / ROVER toggle (mirrors #crewsBtn on the left) + a thumb JUMP pad shown only as EMILE */
   #emileBtn{position:fixed;bottom:44px;left:calc(50% - 150px);transform:translateX(-50%);z-index:21;
     background:var(--panel);border:1px solid var(--line);color:var(--gold);font-family:inherit;
     font-size:9px;letter-spacing:.3em;padding:10px 16px;cursor:pointer;backdrop-filter:blur(6px);display:none}
@@ -839,7 +839,7 @@ setTimeout(function(){
   <div class="panelTitle">MISSIONS</div>
   <div id="missionBody"></div>
 </div>
-<div class="hud" id="hint">W A S D / HOLD · DRIVE&nbsp;&nbsp;&nbsp;C · EMILE ⇄ ROVER&nbsp;&nbsp;&nbsp;SPACE · JUMP&nbsp;&nbsp;&nbsp;SHIFT · DASH&nbsp;&nbsp;&nbsp;R · RELIC&nbsp;&nbsp;&nbsp;T · TIME TRIAL&nbsp;&nbsp;&nbsp;P · PARKOUR&nbsp;&nbsp;&nbsp;DRAG · ORBIT&nbsp;&nbsp;&nbsp;H · HIDE HUD</div>
+<div class="hud" id="hint">W A S D / HOLD · DRIVE&nbsp;&nbsp;&nbsp;C · EMILE / ROVER&nbsp;&nbsp;&nbsp;SPACE · JUMP&nbsp;&nbsp;&nbsp;SHIFT · DASH&nbsp;&nbsp;&nbsp;R · RELIC&nbsp;&nbsp;&nbsp;T · TIME TRIAL&nbsp;&nbsp;&nbsp;P · PARKOUR&nbsp;&nbsp;&nbsp;DRAG · ORBIT&nbsp;&nbsp;&nbsp;H · HIDE HUD</div>
 <div id="rtHud">
   <div class="rtTitle" id="rtTitle">⬡ CONTACT — PURGE THE CORRUPTION</div>
   <div class="rtFoes" id="rtFoes">3 CONTACTS</div>
@@ -1415,7 +1415,7 @@ function tickFront(force){
   /* 1) SEED — the Chorus gathers once you hold ≥2 sectors and the field is clear (post-wipe lull respected) */
   if(chorusCount()===0 && claimedTileCount()>=2 && _playClock>=(S.frontReseedAt||0)){
     if(_seedFront()){ S.frontEpoch=(S.frontEpoch||0)+1; justSeeded=true; dirty=true;
-      toast('⚠ THE CHORUS GATHERS AT YOUR FRONTIER'); sfxBlip(.3); }
+      toast('ALERT · THE CHORUS GATHERS AT YOUR FRONTIER'); sfxBlip(.3); }
   }
   const rivalSet={}; rivalTiles().forEach(id=>rivalSet[id]=1);
   /* 2) ASSAULT + NEGLECT — your worst-tended away sector falls; the front (×2) and hostile terrain accelerate it */
@@ -1432,9 +1432,9 @@ function tickFront(force){
       if(S.defend && S.defend.tile===worst.id) failDefend('overrun');   // #3: the tile fell — clear its lapsed defend objective
       worst.r.claimed=0; worst.r.rival=1; worst.r.rivalAt=_playClock; worst.r.warned=0;
       if((S.influence||0)>0) S.influence=Math.max(0,S.influence-8);
-      toast('✖ '+planetTileName(worst.id)+' FALLS TO THE CHORUS — retake it'); sfxThunk(); addTrauma(.2); dirty=true;
+      toast(''+planetTileName(worst.id)+' FALLS TO THE CHORUS — retake it'); sfxThunk(); addTrauma(.2); dirty=true;
     } else if(wScore>=warnAt && !worst.r.warned){
-      worst.r.warned=1; toast('⚠ '+planetTileName(worst.id)+(worst.r._adj?' IS UNDER ASSAULT':' IS SLIPPING')+' — tend it'); sfxBlip(.3);
+      worst.r.warned=1; toast('ALERT · '+planetTileName(worst.id)+(worst.r._adj?' IS UNDER ASSAULT':' IS SLIPPING')+' — tend it'); sfxBlip(.3);
       if(worst.r._adj && !S.defend && !rtActive) offerDefend(worst.id);   // #3: front-adjacent assault → offer a DEFEND
     }
   }
@@ -1454,7 +1454,7 @@ function tickFront(force){
       for(const id of cands){ const d=distToHoldings(id,H)+Math.random()*0.9; if(d<bd){ bd=d; best=id; } }
       if(!best) break;
       const r=tileRec(best); r.rival=1; r.rivalAt=_playClock; dirty=true;
-      if(gridDist(best,HOME_TILE)<=2) toast('⚠ THE CHORUS NEARS YOUR COMMAND SEAT');
+      if(gridDist(best,HOME_TILE)<=2) toast('ALERT · THE CHORUS NEARS YOUR COMMAND SEAT');
     }
   }
   /* 4) WARLORD — once you're one step from winning (scar silenced + 10 held), the Chorus crowns a NAMED siege near your seat */
@@ -1466,7 +1466,7 @@ function tickFront(force){
         if(held.length){ wt=held[0]; const rc=tileRec(wt); rc.claimed=0; rc.rival=1; rc.rivalAt=_playClock; } } }   // guarantee a seat (the siege TAKES ground if it must) — never fail to crown, or the win softlocks
     if(wt){ const nm=WARLORD_NAMES[(S.frontEpoch||0)%WARLORD_NAMES.length];
       tileRec(wt).warlord=1; S.warlord={ id:wt, name:nm, spawnAt:_playClock, broken:false };
-      toast('⚔ THE CHORUS CROWNS '+nm+' — BREAK THE SIEGE TO SECURE THE PLANET'); sfxThunk(); addTrauma(.5); dirty=true; }
+      toast('THE CHORUS CROWNS '+nm+' — BREAK THE SIEGE TO SECURE THE PLANET'); sfxThunk(); addTrauma(.5); dirty=true; }
   }
   if(dirty){ mmDirty=true; if(typeof paintGlobe==='function' && mode==='map') paintGlobe(); save(); updateHUD(); }
 }
@@ -1476,14 +1476,14 @@ setInterval(tickFront, 30e3);
 function offerDefend(tid){
   if(S.defend || !tid) return;
   S.defend={ tile:tid, deadline:_playClock+DEFEND_WINDOW, waves:DEFEND_WAVES, wave:0, active:false };
-  toast('⚔ '+planetTileName(tid)+' UNDER ASSAULT — DEFEND IT'); sfxBlip(.4);
+  toast(''+planetTileName(tid)+' UNDER ASSAULT — DEFEND IT'); sfxBlip(.4);
   showDefendBeacon(tid); save(); updateHUD();
 }
 function showDefendBeacon(tid){
   removeDefendBeacon();
   const b=document.createElement('button'); b.id='defendBeacon';
   b.style.cssText='position:fixed;bottom:248px;right:26px;z-index:40;font:bold 12px ui-monospace,monospace;letter-spacing:.1em;color:#0a0806;background:linear-gradient(180deg,#e0936a,#a8341f);border:none;border-radius:22px;padding:11px 22px;cursor:pointer;box-shadow:0 6px 26px rgba(168,52,31,.55)';
-  b.textContent='⚔ DEFEND '+planetTileName(tid).split(' ')[0]+' ▸';
+  b.textContent='DEFEND '+planetTileName(tid).split(' ')[0]+' ▸';
   b.onclick=()=>startDefend(tid);
   document.body.appendChild(b);
 }
@@ -1496,9 +1496,9 @@ function startDefend(tid){
   S.defend.active=true; S.defend.wave=1; rtDefend=true;
   startRTCombat(null,null);   // stake skipped via rtDefend
   if(!rtActive){ rtDefend=false; S.defend.active=false; showDefendBeacon(tid); return; }   // start guarded out → re-offer
-  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent='⚔ DEFEND — WAVE 1 / '+S.defend.waves;
+  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent='DEFEND — WAVE 1 / '+S.defend.waves;
   const _re=document.getElementById('rtReward'); if(_re) _re.textContent='HOLD THE LINE ▸ +INFLUENCE';
-  toast('⚔ DEFEND '+planetTileName(tid)+' — HOLD THROUGH '+S.defend.waves+' WAVES');
+  toast('DEFEND '+planetTileName(tid)+' — HOLD THROUGH '+S.defend.waves+' WAVES');
 }
 function defendWaveAdvance(){
   if(!S.defend) return false;
@@ -1512,14 +1512,14 @@ function defendWaveAdvance(){
     m.position.set(px, terrainH(px,pz), pz);
     rtFoes.push({mesh:m, hp:Math.max(16,Math.round(f.pw*esc)), pw:f.pw*esc, alive:true, atkCd:1.2+Math.random()*1.0}); }
   rtInteg=Math.min(100, rtInteg+25);   // a short breather between waves
-  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent='⚔ DEFEND — WAVE '+S.defend.wave+' / '+S.defend.waves;
-  rtRenderHud(); toast('⚔ WAVE '+S.defend.wave+' / '+S.defend.waves+' INBOUND — HEAVIER'); sfxThunk(); addTrauma(.4); combatFlash('168,52,31');
+  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent='DEFEND — WAVE '+S.defend.wave+' / '+S.defend.waves;
+  rtRenderHud(); toast('WAVE '+S.defend.wave+' / '+S.defend.waves+' INBOUND — HEAVIER'); sfxThunk(); addTrauma(.4); combatFlash('168,52,31');
   return true;
 }
 function showDefendResult(won,detail){   // big unmissable win/loss verdict so the defense outcome reads instantly
   const old=document.getElementById('defendResult'); if(old) old.remove();
   const d=document.createElement('div'); d.id='defendResult';
-  const col=won?'240,199,94':'168,52,31', head=won?'▲ SECTOR HELD':'✖ SECTOR LOST';
+  const col=won?'240,199,94':'168,52,31', head=won?'▲ SECTOR HELD':'▼ SECTOR LOST';
   d.style.cssText='position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);z-index:64;pointer-events:none;text-align:center;opacity:0;transition:opacity .18s ease,transform .18s ease';
   d.innerHTML='<div style="font:900 38px ui-monospace,monospace;letter-spacing:.04em;color:rgb('+col+');text-shadow:0 2px 18px rgba('+col+',.7),0 0 2px #000">'+head+'</div>'+
     '<div style="margin-top:8px;font:bold 14px ui-monospace,monospace;letter-spacing:.12em;color:#f4ead2;text-shadow:0 1px 6px #000">'+(detail||'')+'</div>';
@@ -1540,7 +1540,7 @@ function winDefend(){
 }
 function failDefend(reason){
   if(S.defend && reason==='repelled') showDefendResult(false, planetTileName(S.defend.tile)+' · OVERRUN — STILL EXPOSED');   // only the in-combat loss gets the verdict banner; timeout/overrun are off-screen lapses
-  if(S.defend && reason!=='overrun') toast('⚔ DEFENSE ENDED — '+planetTileName(S.defend.tile)+' still exposed');
+  if(S.defend && reason!=='overrun') toast('DEFENSE ENDED — '+planetTileName(S.defend.tile)+' still exposed');
   S.defend=null; rtDefend=false; removeDefendBeacon();
   if(rtActive){   // defense in depth: if a defend is force-failed mid-combat, tear the fight down too (never strand a live RT fight as a normal HEX-paying one)
     rtActive=false; rtFoes=[]; distK=1; document.body.classList.remove('fighting');
@@ -2237,7 +2237,7 @@ let skyUniforms=null, skyMesh=null;
         float h=max(dir.y,0.);                                   // 0 horizon .. 1 zenith
         float s=max(dot(dir,normalize(uSun)),0.);               // sun proximity
         // brand butterscotch palette
-        vec3 HORIZON_DAY=vec3(.60,.39,.25);                     // bright butterscotch band (lifted out of muddy .29)
+        vec3 HORIZON_DAY=vec3(.63,.35,.21);                     // 2026-07-01: warmed the low band toward saturated Mars terracotta (was .60/.39/.25 — the narrow R-G gap read as pale khaki/beige haze that washed the horizon out). Wider R-G gap = orange-red dust, not butterscotch.
         vec3 MID_DAY=vec3(.46,.31,.24);                         // 2026-06-30: lifted+warmed mid-sky (was .34/.225/.16, near-identical to zenith → flat brown dome) for a real horizon→zenith gradient
         vec3 HORIZON_DUSK=vec3(.40,.12,.07);                    // dust-red a8341f family
         vec3 ZENITH_DAY=vec3(.40,.32,.30);                      // 2026-06-30: paler+desaturated zenith (was .30/.205/.165) — thin Mars air goes hazy pale-tan toward altitude, not dark; gives the dome real top-to-bottom depth, still warm (never cold/void)
@@ -2298,7 +2298,7 @@ function skyUpdate(dt){
   sunLight.color.copy(_skyTmp);
   followSun(_skyLastTx,_skyLastTz);
   // fog matches the horizon band: butterscotch -> dust-red at dusk, darkened at night
-  const fr=(0.60*(1-dusk)+0.40*dusk), fg=(0.39*(1-dusk)+0.12*dusk), fb=(0.25*(1-dusk)+0.07*dusk);   // matches the lifted butterscotch HORIZON_DAY band — distant terrain dissolves into the horizon, no seam
+  const fr=(0.63*(1-dusk)+0.40*dusk), fg=(0.35*(1-dusk)+0.12*dusk), fb=(0.21*(1-dusk)+0.07*dusk);   // matches the warmed terracotta HORIZON_DAY band (2026-07-01: day coeffs .60/.39/.25 → .63/.35/.21, kept in lockstep with the sky so distant terrain still dissolves seamlessly) — distant terrain dissolves into the horizon, no seam
   const fm=0.30+0.70*dayN;
   if(scene.fog) scene.fog.color.setRGB(fr*fm,fg*fm,fb*fm);
   // 2026-06-30 fog DENSITY drifts with the sol (was a constant 0.00045): crisp thin air at midday,
@@ -2734,14 +2734,16 @@ function buildDetail(){
       const x=(cx+rng())*CELL, z=(cz+rng())*CELL;   // jittered world position inside the cell
       if(Math.hypot(x,z)<22) continue;  // keep the HOME command-seat pad (world origin) clear
       const y=terrainH(x,z);
-      const ripple=rng()<0.32;          // ~1/3 are flat dune-ripples, the rest pebbles
+      const ripple=rng()<0.15;          // low-profile sand swells (was 0.32 — too many, read as debris plates); the rest pebbles/boulders
       const _big = !ripple && rng()<0.13;   // ~13% of rocks are larger hero boulders → real foreground silhouette + scale variety (breaks the uniform pebble carpet that read as "indie")
       const s=ripple ? (1.2+rng()*2.6) : (_big ? (2.6+rng()*2.7) : (0.42+rng()*1.35));
-      dummy.position.set(x,y+(ripple?0.04:s*0.18),z);
+      dummy.position.set(x,y+(ripple?0.02:s*0.18),z);
       // ripples must LIE FLAT on the sand (thin Y axis points up): a near-zero X/Z tilt + random yaw.
       // (the old -81° X-tilt stood the flat disc UP into a thin vertical blade — that was the "vertical shard" scatter.)
-      dummy.rotation.set(ripple?(rng()-0.5)*0.28:rng()*0.5, rng()*6.283, ripple?(rng()-0.5)*0.28:rng()*0.5);
-      if(ripple) dummy.scale.set(s*2.4,s*0.18,s*1.1); else dummy.scale.setScalar(s);
+      dummy.rotation.set(ripple?(rng()-0.5)*0.14:rng()*0.5, rng()*6.283, ripple?(rng()-0.5)*0.14:rng()*0.5);
+      // 2026-07-01: ripples were reading as scattered flat DEBRIS PLATES ("loose broken parts").
+      // Make them BROAD + WAFER-THIN low sand swells that hug the dune, not angular plates stood proud.
+      if(ripple) dummy.scale.set(s*3.6,s*0.05,s*2.6); else dummy.scale.setScalar(s);
       dummy.updateMatrix();
       mesh.setMatrixAt(placed,dummy.matrix);
       // palette grade off the SAME fbm tint logic as the terrain (BASALT→OXIDE→IVORY family),
@@ -2756,6 +2758,9 @@ function buildDetail(){
       else if(hue<0.33)  col.setRGB(0.40,0.31,0.28);   // cool basalt-grey (warm-leaning, survives the palette guard)
       else               col.setRGB(0.44,0.31,0.25);   // BASALT/DARK — lifted out of near-black so rocks read as rock, not holes
       col.multiplyScalar(0.86+rng()*0.42);             // wider value spread for per-rock variation
+      // ripples wear the SAND albedo (warm, low-contrast) not the rock palette — a rock-coloured flat
+      // plate reads as debris; a sand-coloured swell reads as ground the light rakes across.
+      if(ripple){ col.setRGB(0.62,0.45,0.30); col.multiplyScalar(0.9+rng()*0.14); }
       mesh.setColorAt(placed,col);
       placed++;
     }
@@ -3448,9 +3453,22 @@ function prepModel(root,k){
           else if(k==='rover' && _h.l>.32) o.material.color.offsetHSL(0,-.06,-Math.min(.30,(_h.l-.32)*.70+.05));  // 2026-07-01: the -.04 flat dim left pale hull panels reading as WHITE TOY PLASTIC (flagship-mismatch). Dim PROPORTIONALLY to lightness so the palest panels drop into the soot/gold register (l≈.7→.40) while mid-tone painted detail + material variety SURVIVE. Emissive lights untouched (offsetHSL only touches .color).
         }
         if(k==='rover'){
-          // hero asset on screen 100% of the time — preserve its spec so the key light catches edges/glass; don't flatten like a soot building.
-          o.material.roughness=Math.min(.62,Math.max(.32,(o.material.roughness??.5)));
-          if(o.material.metalness!=null) o.material.metalness=Math.max(o.material.metalness,.5);
+          // 2026-07-01 REPAINT: the old forced metalness floor (min .5) turned the pale GLB
+          // hull into a chrome mirror that blew out pure WHITE under the dusk HDRI env map —
+          // no readable form (flagship-mismatch). Repaint the vehicle BY PART NAME into a
+          // heavy Mars-command register: matte dusty-gunmetal hull, black rubber tyres, dark
+          // wheel gear, subtle amber accent trim, dark solar wings. Emissive lamps (hl/rl/lens)
+          // are left untouched so the headlights still throw a beam at night.
+          const nm=(o.name||'').toLowerCase();
+          const paint=(hex,rough,metal)=>{ if(o.material.color) o.material.color.setHex(hex); o.material.roughness=rough; if(o.material.metalness!=null) o.material.metalness=metal; };
+          if(/^grs/.test(nm)){ o.visible=false; }   // 2026-07-01: grouser cleats splay flat to the ground and read as scattered "loose broken wheel parts" (Billy). Hide them — the black rubber tyres carry the wheel read cleanly.
+          else if(/hl|rl|lens|lamp|glow|emis|glass|visor/.test(nm)){ /* keep emissive lights as authored */ }
+          else if(/tyre|tire|wheel/.test(nm)) paint(0x0c0a08,.92,.08);
+          else if(/hub|grs|arm|axle|tread/.test(nm)) paint(0x1c1915,.85,.22);
+          else if(/trim/.test(nm)) paint(0xc4842f,.42,.55);
+          else if(/wing|panel|solar/.test(nm)) paint(0x191b23,.5,.22);
+          else if(/mast|antenna|antstem|rail|mhead|dish|whip/.test(nm)) paint(0x24211c,.78,.3);
+          else paint(0x39332b,.72,.26);   // hull/prow/skirt/deck/cargo — dusty gunmetal
         } else {
           o.material.roughness=Math.min(1,(o.material.roughness??.8)+.2);   // kill the plastic sheen
           if(o.material.metalness!=null) o.material.metalness=Math.min(o.material.metalness,.3);
@@ -4725,8 +4743,8 @@ function startGauntlet(){
 function gauntletAdvance(phase){
   GAUNTLET.phase=phase;
   if(phase===2){ startParkour(); PARK._chain=true; const el=document.getElementById('parkHud'); if(el) el.style.display='none';
-    if(typeof floater==='function')floater('② RINGS'); if(typeof sfxBlip==='function')sfxBlip(.6); }
-  else if(phase===3){ buildFinishGate(); if(typeof floater==='function')floater('③ SPRINT'); if(typeof sfxBlip==='function')sfxBlip(.8); }
+    if(typeof floater==='function')floater('2 RINGS'); if(typeof sfxBlip==='function')sfxBlip(.6); }
+  else if(phase===3){ buildFinishGate(); if(typeof floater==='function')floater('3 SPRINT'); if(typeof sfxBlip==='function')sfxBlip(.8); }
   _gauntHudEl().style.display='block';
 }
 function buildFinishGate(){
@@ -4766,9 +4784,9 @@ function tickGauntlet(dt,t){
   }
   const el=document.getElementById('gauntHud');
   if(el){ let label;
-    if(GAUNTLET.phase===1) label='▸ ① RELICS '+RELIC.got+'/'+RELIC.total;
-    else if(GAUNTLET.phase===2) label='▸ ② RINGS '+PARK.idx+'/'+PARK.total;
-    else label='▸ ③ SPRINT ▸ FINISH';
+    if(GAUNTLET.phase===1) label='▸ 1 RELICS '+RELIC.got+'/'+RELIC.total;
+    else if(GAUNTLET.phase===2) label='▸ 2 RINGS '+PARK.idx+'/'+PARK.total;
+    else label='▸ 3 SPRINT ▸ FINISH';
     el.textContent=label+'   '+GAUNTLET.t.toFixed(1)+'s'+(GAUNTLET.best!=null?'   BEST '+GAUNTLET.best.toFixed(1)+'s':''); }
 }
 function makeGauntletCard(time,isBest){
@@ -5238,7 +5256,7 @@ function navHudUpdate(dt){
   const latS=Math.abs(ll.lat).toFixed(2)+'°'+(ll.lat>=0?'N':'S'), lonS=ll.lon.toFixed(2)+'°E';
   const spd = (playerMode==='emile')
     ? `<span style="color:#ffd98a">${roverSpd.toFixed(1)} M/S ON FOOT</span>`
-    : (warpActive ? `<span style="color:#9fd8ff">⮞ WARP ${kmh.toFixed(0)} KM/H</span>` : `${kmh.toFixed(0)} KM/H`);
+    : (warpActive ? `<span style="color:#9fd8ff">▸ WARP ${kmh.toFixed(0)} KM/H</span>` : `${kmh.toFixed(0)} KM/H`);
   let nc=null,nd=1e18; for(const g of _cities.values()){ if(!g)continue; const ddx=g.userData.cx-p.x, ddz=g.userData.cz-p.z, d2=ddx*ddx+ddz*ddz; if(d2<nd){nd=d2;nc=g;} }
   let comp='';
   if(nc){ const rel=Math.atan2(nc.userData.cx-p.x, nc.userData.cz-p.z)-roverHeading, deg=(rel*180/Math.PI).toFixed(0);
@@ -5344,7 +5362,7 @@ const WARP_SPD=900;          // m/s overland (~3,240 km/h); 900*(1/60)=15u/subst
 function toggleWarp(){
   if(playerMode==='emile'){ toast('WARP IS ROVER-ONLY — press C for the rover'); return; }
   warpActive=!warpActive;
-  toast(warpActive?'⮞ WARP DRIVE ENGAGED — hold a heading':'WARP DISENGAGED');
+  toast(warpActive?'▸ WARP DRIVE ENGAGED — hold a heading':'WARP DISENGAGED');
   if(warpActive){ try{sfxTick();}catch(e){} try{addTrauma(.55);}catch(e){} }   // launch punch
 }
 /* ============================ STREAMING CITIES ============================
@@ -5649,7 +5667,7 @@ let _skywayBtn=null, _skywayPanel=null;
 function ensureSkywayBtn(){
   return;            // TASK#4: consolidated into action wheel
   if(_skywayBtn) return;
-  const b=document.createElement('button'); b.id='skywayBtn'; b.textContent='⤴ SKYWAY';
+  const b=document.createElement('button'); b.id='skywayBtn'; b.textContent='SKYWAY';
   b.style.cssText='position:fixed;right:14px;bottom:120px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(18,14,9,.82);color:#ffd98a;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
   b.onclick=toggleSkyway; document.body.appendChild(b); _skywayBtn=b;
 }
@@ -5659,7 +5677,7 @@ function toggleSkyway(){
   const rows=Object.keys(log).map(k=>{ const c=log[k]; return {c,d:Math.hypot(c.x-rx,c.z-rz)}; }).sort((a,b)=>a.d-b.d);
   const p=document.createElement('div'); p.id='skywayPanel';
   p.style.cssText='position:fixed;right:14px;bottom:158px;z-index:31;width:250px;max-height:46vh;overflow:auto;padding:12px;border-radius:13px;border:1px solid rgba(216,178,92,.4);background:rgba(14,11,7,.94);backdrop-filter:blur(9px);color:#f2ead8;font:13px/1.3 system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.5)';
-  let h='<div style="font:700 12px/1 system-ui;letter-spacing:.08em;color:#ffd98a;margin-bottom:9px">⤴ SKYWAY NETWORK</div>';
+  let h='<div style="font:700 12px/1 system-ui;letter-spacing:.08em;color:#ffd98a;margin-bottom:9px">SKYWAY NETWORK</div>';
   if(!rows.length) h+='<div style="opacity:.6;font-size:12px">No settlements charted yet. Drive out and discover cities to unlock fast-travel.</div>';
   for(const r of rows) h+=`<button data-x="${r.c.x}" data-z="${r.c.z}" style="display:block;width:100%;text-align:left;margin:5px 0;padding:8px 10px;border-radius:9px;border:1px solid rgba(216,178,92,.25);background:rgba(216,178,92,.07);color:#f2ead8;cursor:pointer;font:13px system-ui"><span style="color:#ffd98a;font-weight:600">${r.c.name}</span><span style="float:right;opacity:.6;font-size:11px">${(r.d/1000).toFixed(r.d<10000?1:0)}KM</span></button>`;
   p.innerHTML=h;
@@ -5851,13 +5869,26 @@ let _grg=null, _grgBeacon=null;
 function _grgEnsure(){
   if(_grg) return _grg;
   const g=new THREE.Group();
-  const steel=new THREE.MeshStandardMaterial({color:0x4a3d2c,roughness:.8,metalness:.5});
-  const dark =new THREE.MeshStandardMaterial({color:0x241c12,roughness:.9,metalness:.3});
+  // Mars-industrial depot palette. The old steel(0x4a3d2c)/dark(0x241c12) read as pure BLACK
+  // voids on any shadowed face (near-zero albedo + metalness with no env map = "broken/missing
+  // asset"). Rebuilt as dusty tan structural metal: mid albedo, LOW metalness (a dielectric dusty
+  // panel keeps its colour under ambient instead of collapsing to black), and a faint warm self-emit
+  // FLOOR so no face ever reads as a void. This is the first thing a player sees at the spawn outpost.
+  const steel=new THREE.MeshStandardMaterial({color:0x4e4234,roughness:.86,metalness:.14,emissive:0x1a120a,emissiveIntensity:.22});   // 2026-07-01: was 0x9c8560 mid-tan — under full golden sun the big barrel roof + tanks blew out to a CREAM MARSHMALLOW (same white-blowout the rover hull had). Halved the albedo + cut the emissive lift → heavy dark industrial metal that keeps its form; amber running lights now carry the "powered depot" read.
+  const panel=new THREE.MeshStandardMaterial({color:0x362d20,roughness:.9, metalness:.12,emissive:0x120c06,emissiveIntensity:.2});
   const amber=new THREE.MeshStandardMaterial({color:0xffb24a,emissive:0xff8a1a,emissiveIntensity:1.5,roughness:.5});
-  const hangar=new THREE.Mesh(new THREE.BoxGeometry(34,14,24),steel); hangar.position.y=7; g.add(hangar);
-  const roof=new THREE.Mesh(new THREE.CylinderGeometry(13,13,34,12,1,false,0,Math.PI),dark); roof.rotation.z=Math.PI/2; roof.position.set(0,14,0); g.add(roof);
-  for(let i=0;i<3;i++){ const cyl=new THREE.Mesh(new THREE.CylinderGeometry(3,3,10,12),steel); cyl.position.set(24,5,-8+i*8); g.add(cyl); }   // fuel cylinders
-  for(const sx of [-22,22]){ const w=new THREE.Mesh(new THREE.BoxGeometry(3,6,28),dark); w.position.set(sx,3,0); g.add(w); }                 // blast walls
+  const hazard=new THREE.MeshStandardMaterial({color:0xffc24a,emissive:0xffa12a,emissiveIntensity:.7,roughness:.6});
+  const hangar=new THREE.Mesh(new THREE.BoxGeometry(34,13,24),steel); hangar.position.y=6.5; g.add(hangar);
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(13,13,34,16,1,false,0,Math.PI),steel); roof.rotation.z=Math.PI/2; roof.position.set(0,13,0); g.add(roof);
+  // corrugated ribs so the barrel roof reads as ribbed metal, not one dark tube
+  for(let i=-2;i<=2;i++){ const rib=new THREE.Mesh(new THREE.TorusGeometry(13,.4,6,18,Math.PI),panel); rib.rotation.y=Math.PI/2; rib.position.set(i*7,13,0); g.add(rib); }
+  // hazard skirt along the base grounds the hangar and adds a lit accent line
+  const skirt=new THREE.Mesh(new THREE.BoxGeometry(34.6,1.4,24.6),hazard); skirt.position.y=1.0; g.add(skirt);
+  for(let i=0;i<3;i++){ const cyl=new THREE.Mesh(new THREE.CylinderGeometry(3,3,10,12),steel); cyl.position.set(24,5,-8+i*8); g.add(cyl);   // fuel cylinders
+    const cap=new THREE.Mesh(new THREE.CylinderGeometry(3.1,3.1,.7,12),panel); cap.position.set(24,10.2,-8+i*8); g.add(cap); }
+  for(const sx of [-22,22]){ const w=new THREE.Mesh(new THREE.BoxGeometry(3,6,28),panel); w.position.set(sx,3,0); g.add(w); }               // blast walls
+  // amber running lights along the front eave — the depot reads as powered/occupied
+  for(const bx of [-14,-7,0,7,14]){ const rl=new THREE.Mesh(new THREE.SphereGeometry(.5,8,6),amber); rl.position.set(bx,13.4,12.1); g.add(rl); }
   const mast=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,26,8),steel); mast.position.set(-18,13,-10); g.add(mast);
   const bea=new THREE.Mesh(new THREE.SphereGeometry(1.6,12,10),amber); bea.position.set(-18,27,-10); g.add(bea); _grgBeacon=bea;
   g.position.set(_GRG_X,terrainH(_GRG_X,_GRG_Z),_GRG_Z);
@@ -5870,7 +5901,7 @@ function garageUpdate(dt,t){
   if(d<_GRG_R && !S.garageFound){
     S.garageFound=true;
     if(typeof addHex==='function') addHex(_GRG_REWARD,{src:'garage'}); else { S.hex=(S.hex||0)+_GRG_REWARD; if(typeof save==='function') save(); }
-    if(typeof toast==='function') toast('⛭ OUTPOST FOUND · +'+_GRG_REWARD+' ⬡ · upgrades online');
+    if(typeof toast==='function') toast('OUTPOST FOUND · +'+_GRG_REWARD+' ⬡ · upgrades online');
   }
 }
 
@@ -5928,7 +5959,7 @@ function _rcBuildGates(){
 function _rcEnsureBtn(){
   return;            // TASK#4: consolidated into action wheel
   if(_rcBtn) return;
-  const b=document.createElement('button'); b.id='raceBtn'; b.textContent='⚑ RACE';
+  const b=document.createElement('button'); b.id='raceBtn'; b.textContent='RACE';
   b.style.cssText='position:fixed;right:14px;bottom:166px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(18,14,9,.82);color:#ffd98a;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
   b.onclick=()=>MARS.race(); document.body.appendChild(b); _rcBtn=b;
 }
@@ -5937,7 +5968,7 @@ function _rcStart(){
   _rcBuildGates(); _rcActive=true; _rcIdx=0; _rcT=0;
   for(let i=0;i<_rcGates.length;i++) _rcGates[i].material.color.setHex(i===0?0x6ad0ff:0xffb24a);
   _rcHudEl().style.display='block';
-  if(typeof toast==='function') toast('⚑ RACE · pass all '+_RC_N+' gates');
+  if(typeof toast==='function') toast('RACE · pass all '+_RC_N+' gates');
 }
 function _rcFinish(){
   _rcActive=false; const tm=_rcT, best=S.raceBest||0;
@@ -5945,14 +5976,14 @@ function _rcFinish(){
   if(window.__marsLB) window.__marsLB.reportRace(tm);   // TASK#3 weekly leaderboard (fail-soft, no ⬡)
   if(typeof addHex==='function') addHex(_RC_REWARD,{src:'race'}); else { S.hex=(S.hex||0)+_RC_REWARD; if(typeof save==='function') save(); }
   _rcHudEl().style.display='none';
-  if(typeof toast==='function') toast('⚑ FINISH · '+tm.toFixed(1)+'s · +'+_RC_REWARD+' ⬡');
+  if(typeof toast==='function') toast('FINISH · '+tm.toFixed(1)+'s · +'+_RC_REWARD+' ⬡');
   if(typeof promptRunShare==='function') promptRunShare('race',{time:+tm.toFixed(1),reward:_RC_REWARD,gates:_RC_N,sector:_runSectorName(_RC_CX,_RC_CZ),isBest:(best===0||tm<best)});   // TASK#1 share card
 }
 function raceUpdate(dt,t){
   if(!_rcActive) return;
   _rcT+=dt; const g=_rcGates[_rcIdx]; if(!g) return;
   const d=Math.hypot(rover.position.x-g.userData.x, rover.position.z-g.userData.z);
-  _rcHudEl().textContent='⚑ GATE '+(_rcIdx+1)+'/'+_RC_N+' · '+_rcT.toFixed(1)+'s';
+  _rcHudEl().textContent='GATE '+(_rcIdx+1)+'/'+_RC_N+' · '+_rcT.toFixed(1)+'s';
   if(d<_RC_HIT){
     g.material.color.setHex(0x3a6a2a); _rcIdx++;
     if(_rcIdx>=_rcGates.length){ _rcFinish(); return; }
@@ -5967,7 +5998,7 @@ let _stormBtn=null, _stormHud=null;
 function _stormEnsureBtn(){
   return;            // TASK#4: consolidated into action wheel
   if(_stormBtn) return;
-  const b=document.createElement('button'); b.id='stormBtn'; b.textContent='⛈ STORM RUN';
+  const b=document.createElement('button'); b.id='stormBtn'; b.textContent='STORM RUN';
   b.style.cssText='position:fixed;right:14px;bottom:212px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(10,16,22,.82);color:#f2ead8;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
   b.onclick=()=>MARS.stormRun(); document.body.appendChild(b); _stormBtn=b;
 }
@@ -5980,16 +6011,16 @@ function _stormStart(){
   _STORM.active=true; _STORM.wall=_STORM.WALL_START;
   WEATHER.active=1; WEATHER.intensity=Math.max(WEATHER.intensity,0.6);
   _stormHudEl().style.display='block';
-  if(typeof toast==='function') toast('⛈ STORM RUN · reach the gold haven before the wall');
+  if(typeof toast==='function') toast('STORM RUN · reach the gold haven before the wall');
 }
 function _stormEnd(win){
   _STORM.active=false; WEATHER.active=0; if(_STORM.hav) _STORM.hav.visible=false;
   _stormHudEl().style.display='none';
   if(win){ if(typeof addHex==='function') addHex(_STORM.REWARD,{src:'storm'}); else { S.hex=(S.hex||0)+_STORM.REWARD; if(typeof save==='function') save(); }
-    if(typeof toast==='function') toast('⛈ HAVEN REACHED · +'+_STORM.REWARD+' ⬡');
+    if(typeof toast==='function') toast('HAVEN REACHED · +'+_STORM.REWARD+' ⬡');
     if(window.__marsLB) window.__marsLB.reportStorm(true, _STORM.wall);   // TASK#3 weekly survival board
     if(typeof promptRunShare==='function') promptRunShare('storm',{reward:_STORM.REWARD,sector:_runSectorName(rover.position.x,rover.position.z)}); }   // TASK#1 share card
-  else if(typeof toast==='function') toast('⛈ THE WALL TOOK YOU · try again');
+  else if(typeof toast==='function') toast('THE WALL TOOK YOU · try again');
 }
 /* ===== TASK #1 — SHAREABLE RUN CARDS (race + storm-escape) =====================
    Reuses the existing brand/share rails: makeTrialCard layout, unfurlURL deep-link,
@@ -6013,7 +6044,7 @@ function marsRunCard(kind, stats){
   x.textAlign='center'; x.textBaseline='middle';
   /* kicker */
   x.fillStyle='#d8b25c'; x.font='bold '+(22*Sc)+'px ui-monospace,monospace';
-  x.fillText(isStorm?'⛈  MARS COMMAND  ·  STORM ESCAPE':'⚑  MARS COMMAND  ·  GATE RACE', W*.5, H*.18);
+  x.fillText(isStorm?'MARS COMMAND  ·  STORM ESCAPE':'MARS COMMAND  ·  GATE RACE', W*.5, H*.18);
   /* hero line */
   const hero = isStorm ? 'SURVIVED' : (stats.time||0).toFixed(1)+'s';
   x.fillStyle = isStorm ? '#6ad0ff' : '#f0c75e';
@@ -6046,9 +6077,9 @@ function shareRun(kind, stats){
   const url = unfurlURL(heroLabel, isStorm?'STORM ESCAPE':'GATE RACE', seedHash, tag);
   const line = isStorm
     ? ('I survived the dust storm on Mars'+(stats.time?(' in '+stats.time.toFixed(1)+'s'):'')
-        +' ⬡ — beat that 🔴 '+url+' @4040hex #FREELONCITY')
+        +' ⬡ — beat that '+url+' @4040hex #FREELONCITY')
     : ('I ran the MARS COMMAND gate race in '+(stats.time||0).toFixed(1)+'s'
-        +(stats.isBest?' (new best)':'')+' ⬡ — beat my time 🔴 '+url+' @4040hex #FREELONCITY');
+        +(stats.isBest?' (new best)':'')+' ⬡ — beat my time '+url+' @4040hex #FREELONCITY');
   share({
     card: marsRunCard(kind, stats),
     line, url,
@@ -6073,7 +6104,7 @@ function stormRunUpdate(dt,t){
   _STORM.wall += dt*((spd/Math.max(1,mx))*40 - 26);                 // outrun → gap grows; idle → it closes
   _STORM.wall=Math.min(_STORM.WALL_MAX,_STORM.wall);
   WEATHER.intensity=Math.min(1, 0.4 + (1-_STORM.wall/_STORM.WALL_MAX)*0.6);
-  _stormHudEl().textContent='⛈ WALL '+Math.max(0,_STORM.wall|0)+'m · HAVEN '+(dh|0)+'m';
+  _stormHudEl().textContent='WALL '+Math.max(0,_STORM.wall|0)+'m · HAVEN '+(dh|0)+'m';
   if(dh<_STORM.HAVEN_WIN){ _stormEnd(true); return; }
   if(_STORM.wall<=0){ _stormEnd(false); return; }
 }
@@ -6091,7 +6122,7 @@ function _upArmorMul(){ return 1/(1+_upTier('plating')*0.15); }
 function _upEnsureBtn(){
   return;            // TASK#4: consolidated into action wheel
   if(_upBtn) return;
-  const b=document.createElement('button'); b.id='upgradeBtn'; b.textContent='⛭ GARAGE';
+  const b=document.createElement('button'); b.id='upgradeBtn'; b.textContent='GARAGE';
   b.style.cssText='position:fixed;right:14px;bottom:258px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(18,14,9,.82);color:#ffd98a;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
   b.onclick=_upToggle; document.body.appendChild(b); _upBtn=b;
 }
@@ -6100,7 +6131,7 @@ function _upRender(){
   if(_upPanel) _upPanel.remove();
   const p=document.createElement('div'); p.id='upgradePanel';
   p.style.cssText='position:fixed;right:14px;bottom:300px;z-index:31;width:260px;padding:13px;border-radius:13px;border:1px solid rgba(216,178,92,.4);background:rgba(14,11,7,.95);backdrop-filter:blur(9px);color:#f2ead8;font:13px/1.3 system-ui;box-shadow:0 12px 40px rgba(0,0,0,.5)';
-  let h='<div style="font:700 12px/1 system-ui;letter-spacing:.08em;color:#ffd98a;margin-bottom:4px">⛭ GARAGE UPGRADES</div><div style="opacity:.6;font-size:11px;margin-bottom:9px">'+(S.hex|0)+' ⬡ available</div>';
+  let h='<div style="font:700 12px/1 system-ui;letter-spacing:.08em;color:#ffd98a;margin-bottom:4px">GARAGE UPGRADES</div><div style="opacity:.6;font-size:11px;margin-bottom:9px">'+(S.hex|0)+' ⬡ available</div>';
   for(const k of ['engine','plating','treads']){
     const tier=_upTier(k), maxed=tier>=_UP_MAX_TIER, cost=_upCost(k), can=!maxed && (S.hex||0)>=cost;
     h+='<div style="margin:7px 0;padding:8px 10px;border-radius:9px;border:1px solid rgba(216,178,92,.22);background:rgba(216,178,92,.06)">'
@@ -6120,7 +6151,7 @@ function _upBuy(k){
   S.hex-=cost; S.today.spent+=cost; if(typeof trackSpend==='function') trackSpend(cost,'garage'); shownHex=S.hex;
   S.garageUpgrades[k]=tier+1;
   if(typeof updateHUD==='function') updateHUD(); if(typeof save==='function') save();
-  if(typeof toast==='function') toast('⛭ '+_UP_LABEL[k]+' → T'+(tier+1));
+  if(typeof toast==='function') toast(''+_UP_LABEL[k]+' → T'+(tier+1));
   _upRender();
 }
 
@@ -6212,7 +6243,7 @@ function _wheelSelect(a){
 function _wheelToggle(open){
   _wheelOpen = (open==null) ? !_wheelOpen : !!open;
   if(_wheelEl) _wheelEl.classList.toggle('open',_wheelOpen);
-  if(_wheelLauncher){ _wheelLauncher.setAttribute('aria-expanded',_wheelOpen?'true':'false'); _wheelLauncher.textContent=_wheelOpen?'×':'⛭'; }
+  if(_wheelLauncher){ _wheelLauncher.setAttribute('aria-expanded',_wheelOpen?'true':'false'); _wheelLauncher.textContent=_wheelOpen?'×':'•••'; }
   _wheelApplyPositions();
   if(_wheelOpen){ const first=_wheelFan&&_wheelFan.querySelector('.awItem'); if(first) setTimeout(()=>first.focus(),120); }
 }
@@ -6223,7 +6254,7 @@ function ensureActionWheel(){
   const wrap=document.createElement('div'); wrap.id='actionWheel';
   const fan=document.createElement('div'); fan.style.cssText='position:absolute;right:0;bottom:0';
   const L=document.createElement('button'); L.className='awLaunch'; L.type='button';
-  L.textContent='⛭'; L.setAttribute('aria-haspopup','true'); L.setAttribute('aria-expanded','false'); L.setAttribute('aria-label','Action wheel');
+  L.textContent='•••'; L.setAttribute('aria-haspopup','true'); L.setAttribute('aria-expanded','false'); L.setAttribute('aria-label','Action wheel');
   // press-and-hold (pointer) opens; quick tap also toggles; release outside an item closes
   L.addEventListener('pointerdown',(e)=>{ e.preventDefault(); _wheelHold=setTimeout(()=>{ if(!_wheelOpen)_wheelToggle(true); _wheelHold=null; },140); });
   L.addEventListener('pointerup',()=>{ if(_wheelHold){ clearTimeout(_wheelHold); _wheelHold=null; _wheelToggle(); } });   // short tap = toggle
@@ -6239,16 +6270,16 @@ function ensureActionWheel(){
 }
 
 /* Pre-register the four game actions. Guarded so the functions exist at call time. */
-registerWheelAction({id:'skyway',label:'SKYWAY',icon:'⤴', onSelect:()=>toggleSkyway()});
-registerWheelAction({id:'race',  label:'RACE',  icon:'⚑', onSelect:()=>MARS.race()});
-registerWheelAction({id:'storm', label:'STORM RUN',icon:'⛈',onSelect:()=>MARS.stormRun()});
-registerWheelAction({id:'garage',label:'GARAGE',icon:'⚙', onSelect:()=>_upToggle()});
+registerWheelAction({id:'skyway',label:'SKYWAY',icon:'▲', onSelect:()=>toggleSkyway()});
+registerWheelAction({id:'race',  label:'RACE',  icon:'▸', onSelect:()=>MARS.race()});
+registerWheelAction({id:'storm', label:'STORM RUN',icon:'≈',onSelect:()=>MARS.stormRun()});
+registerWheelAction({id:'garage',label:'GARAGE',icon:'▦', onSelect:()=>_upToggle()});
 /* TASK#1 + #2/3 wheel entries (integrator-merged): SHARE last race + LEADERBOARD panel */
-registerWheelAction({id:'share', label:'SHARE',  icon:'⤤', onSelect:()=>{
+registerWheelAction({id:'share', label:'SHARE',  icon:'→', onSelect:()=>{
   if(typeof shareRun!=='function'){ if(typeof toast==='function') toast('nothing to share yet'); return; }
   shareRun('race',{time:S.raceBest||0,reward:_RC_REWARD,gates:_RC_N,sector:_runSectorName(_RC_CX,_RC_CZ),isBest:false});
 }});
-registerWheelAction({id:'leaderboard',label:'LEADERBOARD',icon:'☰', onSelect:()=>{
+registerWheelAction({id:'leaderboard',label:'LEADERBOARD',icon:'▮', onSelect:()=>{
   if(window.__marsLB) window.__marsLB.toggle(true); else if(typeof toast==='function') toast('board loading…');
 }});
 
@@ -6273,7 +6304,7 @@ addEventListener('keydown',e=>{
   else if(k==='s'||e.key==='ArrowDown') keyDrive.b=1;
   else if(k==='a'||e.key==='ArrowLeft') keyDrive.l=1;
   else if(k==='d'||e.key==='ArrowRight') keyDrive.r=1;
-  else if(k==='c'){ togglePlayer(); e.preventDefault(); return; }   // C — swap rover ⇄ EMILE
+  else if(k==='c'){ togglePlayer(); e.preventDefault(); return; }   // C — swap rover / EMILE
   else if(playerMode==='emile' && k===' ' && !rtActive && !$('battle').classList.contains('open')){ emileJump(); e.preventDefault(); e.stopImmediatePropagation(); return; }
   else if(playerMode==='emile' && k==='shift'){ emileDash(); e.preventDefault(); return; }   // e.key for Shift is always 'shift' (shiftleft/right were dead e.code comparisons)
   else if(k==='r' && !rtActive){ startRelicRun(); e.preventDefault(); return; }   // R — start a RELIC RUN
@@ -7105,9 +7136,9 @@ function updateHUD(){
   $('archiveVal').textContent=S.archive.owned.length+'/40';
   $('bannerVal').innerHTML=S.faction<0?'—':DOCTRINES[S.faction].slice(0,4)+' <span class="glyph">·</span> ◇'+(S.influence||0);
   { const cc=chorusCount(), fc=$('frontChip');
-    if(fc){ if(warlordActive()){ fc.style.display=''; $('frontVal').innerHTML='<span style="color:#e0816a">⚔ '+(S.warlord.name.split(' ').slice(-1)[0])+'</span>'; }   /* #4: the siege overrides the front readout */
+    if(fc){ if(warlordActive()){ fc.style.display=''; $('frontVal').innerHTML='<span style="color:#e0816a">VS '+(S.warlord.name.split(' ').slice(-1)[0])+'</span>'; }   /* #4: the siege overrides the front readout */
       else if(cc>0){ fc.style.display=''; const cl=claimedTileCount(), trend=cc<cl?'▾':cc>cl*1.5?'▴':'·';
-        $('frontVal').innerHTML='<span style="color:#d98a63">⚠ '+cc+'</span> <span class="glyph">'+trend+'</span>'; }
+        $('frontVal').innerHTML='<span style="color:#d98a63">ALERT · '+cc+'</span> <span class="glyph">'+trend+'</span>'; }
       else fc.style.display='none'; } }
   if(S.challenge && !S.challenge.beaten && claimedTileCount()>S.challenge.n){   /* #3: you out-held the planet's sharer */
     S.challenge.beaten=true; toast('▲ CHALLENGE BEATEN — you out-held '+(DOCTRINES[S.challenge.doc]||'them')+' ('+claimedTileCount()+' > '+S.challenge.n+')');
@@ -7376,7 +7407,7 @@ function showWarlordBeacon(){
   removeWarlordBeacon();
   const b=document.createElement('button'); b.id='warlordBeacon';
   b.style.cssText='position:fixed;bottom:300px;right:26px;z-index:40;font:bold 12px ui-monospace,monospace;letter-spacing:.08em;color:#0a0806;background:linear-gradient(180deg,#e0936a,#a8341f);border:none;border-radius:22px;padding:11px 22px;cursor:pointer;box-shadow:0 6px 28px rgba(168,52,31,.6)';
-  b.textContent='⚔ BREAK THE SIEGE ▸';
+  b.textContent='BREAK THE SIEGE ▸';
   b.onclick=()=>startWarlordFight(S.warlord&&S.warlord.id);
   document.body.appendChild(b);
 }
@@ -7421,7 +7452,7 @@ const GOALS=[
   {text:'RUN A SIGNAL SCAN',          done:()=>(S.scans||0)>=1,              hex:50},
   {text:'SURVEY YOUR FIRST SITE',     done:()=>S.discovered.length>=1,       hex:60,  prog:()=>[S.discovered.length,1]},
   {text:'CLEAR YOUR FIRST SITE',      done:()=>S.cleared.length>=1,          hex:60},
-  {text:'UPGRADE YOUR ROVER · ⚙ WHEEL (BOTTOM-RIGHT) → GARAGE', done:()=>((S.garageUpgrades&&((S.garageUpgrades.engine|0)+(S.garageUpgrades.plating|0)+(S.garageUpgrades.treads|0)))||0)>=1, hex:60},   /* REWARD→UPGRADE rung (upGoalMig): by here a fresh player has earned 220+ ⬡ — teach that ⬡ is SPENDABLE on the rover (engine/plating/treads) BEFORE first combat, so the upgrade is felt in the very next fight. Completable straight from the radial GARAGE panel; no need to find the outpost first. */
+  {text:'UPGRADE YOUR ROVER · ACTION WHEEL (BOTTOM-RIGHT) → GARAGE', done:()=>((S.garageUpgrades&&((S.garageUpgrades.engine|0)+(S.garageUpgrades.plating|0)+(S.garageUpgrades.treads|0)))||0)>=1, hex:60},   /* REWARD→UPGRADE rung (upGoalMig): by here a fresh player has earned 220+ ⬡ — teach that ⬡ is SPENDABLE on the rover (engine/plating/treads) BEFORE first combat, so the upgrade is felt in the very next fight. Completable straight from the radial GARAGE panel; no need to find the outpost first. */
   {text:'FIRST CONTACT — PURGE THE NEST', done:()=>S.cleared.includes('pFC')||S.wins>=1, hex:70},   /* a guaranteed combat objective BEFORE the tower exists (see pFC) — satisfied by clearing it OR any first win, so it never dead-ends */
   {text:'BUILD THE SIGNAL TOWER',     done:()=>count('tower')>=1,            hex:60},
   {text:'SURVEY 3 SITES',             done:()=>S.discovered.length>=3,       hex:80,  prog:()=>[S.discovered.length,3]},
@@ -7687,7 +7718,7 @@ function streakArc(plain){
   const dn=S.streak.n>0?(((S.streak.n-1)%7)+1):0;          // position within the current 7-day cycle (1..7)
   let pips=''; for(let i=1;i<=7;i++) pips+= i<=dn?'▮':'▯';
   const got=!!(S.cosmetic&&S.cosmetic.trail);
-  const goal = got ? (STREAK_PRIZE.name+' ✓ ACTIVE') : ('DAY '+dn+'/7 ▸ '+STREAK_PRIZE.name);
+  const goal = got ? (STREAK_PRIZE.name+' · ACTIVE') : ('DAY '+dn+'/7 ▸ '+STREAK_PRIZE.name);
   return plain ? (pips+'  '+goal) : ('<span style="letter-spacing:.22em;color:var(--gold-bright)">'+pips+'</span>  '+goal);
 }
 function creditStreak(){
@@ -8890,7 +8921,7 @@ function startRTCombat(zone,poi){
     rtAimRing.rotation.x=-Math.PI/2; rtAimRing.visible=false; scene.add(rtAimRing);
   }
   const _hint=document.getElementById('rtHint'); if(_hint) _hint.textContent=_coarse?'HOLD ▸ STEER + DODGE · AUTO-FIRES ON TARGET':'STEER TO AIM · TAP FIRE ▸ CLICK / SPACE · WASD TO DODGE';
-  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent = rtWarlord?('⚔ '+((S.warlord&&S.warlord.name)||'THE WARLORD')+' — BREAK THE SIEGE') : isBoss?'⬡ THE VOID SCAR — SILENCE THE HEART':'⬡ CONTACT — PURGE THE CORRUPTION';
+  const _ttl=document.getElementById('rtTitle'); if(_ttl) _ttl.textContent = rtWarlord?('VS '+((S.warlord&&S.warlord.name)||'THE WARLORD')+' — BREAK THE SIEGE') : isBoss?'⬡ THE VOID SCAR — SILENCE THE HEART':'⬡ CONTACT — PURGE THE CORRUPTION';
   $('rtHud').style.display='block'; rtRenderHud();
   toast(isBoss?'THE VOID SCAR ANSWERS — SILENCE THE HEART':'CONTACT — PURGE THE CORRUPTION'); sfxThunk(); addTrauma(isBoss?.5:.3); haptic(isBoss?[0,200,80,200]:[0,120,60,140],isBoss?.95:.7);
 }
@@ -10006,8 +10037,8 @@ window.MARS={ place:(t,x,z)=>placeBuilding(t,x,z,false), state:()=>S, skip:start
         ◆ LAST WEEK: <b>${_esc(lw.name)}</b> · ${(+lw.score).toFixed(lowerBetter?1:0)}${unit}</div>` : '';
     p.innerHTML =
       `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
-         <b style="letter-spacing:.08em">⚑ WEEKLY ${board.toUpperCase()}</b>
-         <span data-close="1" style="cursor:pointer;opacity:.7">✕</span></div>
+         <b style="letter-spacing:.08em">WEEKLY ${board.toUpperCase()}</b>
+         <span data-close="1" style="cursor:pointer;opacity:.7">X</span></div>
        <div style="display:flex;gap:6px;margin-bottom:8px">
          <span data-board="race"  style="cursor:pointer;${board==='race' ?'color:#fff3cf':'opacity:.55'}">RACE</span>
          <span data-board="storm" style="cursor:pointer;${board==='storm'?'color:#fff3cf':'opacity:.55'}">STORM</span></div>
