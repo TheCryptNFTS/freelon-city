@@ -108,24 +108,33 @@ export default function DemoPage() {
         </p>
       </header>
 
-      {/* THE MEMORY PROOF (2026-06-26 punchlist #3 + ELON_ALGORITHM_REVIEW
-          "move MemoryProof to /demo"): the staged, zero-cost "it remembers MY
-          fact" beat — the single surface where the thesis is felt AND shareable.
-          It sits ABOVE the live chat: the staged proof shows what ownership
-          gives (memory across sessions), then the live (stateless) demo below
-          lets the stranger actually talk. The share card carries the visitor's
-          OWN typed fact — the virality wedge of "it remembers you". */}
+      {/* 2026-07-01 demo-audit reorder: a page titled "Meet a Citizen" must LEAD
+          with the real, live citizen — not the staged preview. Previously the
+          guided MemoryProof sat first and pushed the live chat below the fold on
+          mobile, where the two VANTA-01 widgets read as duplicates. Now the live
+          chat is the front door (greeting + starter chips render instantly,
+          client-side, no free turn spent), and the staged memory loop follows as
+          the ONE thing the live *stateless* demo can't show — memory across
+          sessions — i.e. the ownership upgrade, landing right before its OWN CTA.
+          ReferralBeacon mount removed T11 2026-06-11 — now global in app/layout.tsx. */}
+      <DemoChat agents={agents} />
+
+      {/* THE MEMORY PROOF (2026-06-26 punchlist #3): the staged, zero-cost "it
+          remembers MY fact" loop — the single surface where the thesis is felt
+          AND shareable, and the one thing the stateless live demo above can't do.
+          Given a distinct job (prove cross-session memory = what owning adds) so
+          it reads as the upgrade, not a duplicate of the live chat. The share card
+          carries the visitor's OWN typed fact — the "it remembers you" wedge. */}
+      <div style={{ margin: "var(--s-6) 0 var(--s-3)" }}>
+        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE PART YOU CAN&apos;T DEMO · MEMORY</span>
+        <p style={{ fontFamily: "var(--mono2)", fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 560, marginTop: 8 }}>
+          The live citizen above forgets you the moment you leave. Owning one is what makes it
+          remember you across sessions — here&apos;s that whole loop, start to finish.
+        </p>
+      </div>
       <div style={{ marginBottom: "var(--s-5)" }}>
         <MemoryProof />
       </div>
-
-      <div style={{ marginBottom: "var(--s-3)" }}>
-        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ NOW TALK TO A LIVE ONE</span>
-      </div>
-
-      {/* ReferralBeacon mount removed T11 2026-06-11 — it is now global in
-          app/layout.tsx (a second mount here would double-fire the event). */}
-      <DemoChat agents={agents} />
     </div>
   );
 }
