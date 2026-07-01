@@ -22,6 +22,7 @@ import type { XSession } from "@/lib/x-session";
 import { creditWalletHex } from "@/lib/wallet-hex-store";
 import { getCarrier, putCarrier } from "@/lib/carrier-store";
 import { upstash, hasUpstash } from "@/lib/upstash-client";
+import { POINTS } from "@/lib/carrier";
 
 const ADDR_RE = /^0x[a-f0-9]{40}$/;
 
@@ -76,23 +77,35 @@ export async function foldCarrierIntoWallet(
     memoryFoldLocks.add(lockKey);
   }
 
-  // 2) Read carrier; nothing to fold if absent, already migrated, or empty.
+  // 2) Read carrier; nothing to fold if absent or already migrated.
   const carrier = await getCarrier(h);
   if (!carrier) return;
   if (carrier.migratedTo) return; // belt-and-suspenders with the NX lock
-  if (carrier.hexPoints <= 0) {
-    // Still stamp so we don't re-check every spend.
+
+  // The STARTING grant (POINTS.STARTING) is an onboarding stipend for the
+  // handle-only relay path — it was never EARNED through activity, so it must
+  // NOT be laundered into the spendable wallet ledger. (The wallet-spend routes
+  // lazily create a carrier at hexPoints == totalEarned == STARTING; folding
+  // that whole balance minted free wallet-hex per X account.) Fold only
+  // activity-earned hex that is still held: min(current balance, lifetime-earned
+  // minus the grant). A brand-new lazy carrier therefore folds 0.
+  const earnedBeyondGrant = Math.max(0, (carrier.totalEarned ?? 0) - POINTS.STARTING);
+  const foldable = Math.max(0, Math.min(carrier.hexPoints, earnedBeyondGrant));
+  if (foldable <= 0) {
+    // Nothing earned to migrate; stamp so we don't re-check every spend. Leave
+    // the (unearned) grant balance intact on the carrier — harmless for wallet
+    // users, who spend from the wallet ledger from here on.
     await putCarrier({ ...carrier, migratedTo: w });
     return;
   }
 
-  // 3) Credit the wallet with the leftover carrier balance, then zero +
-  //    stamp the carrier. Credit before stamp so a crash between them
-  //    leaves the carrier balance intact (the NX lock prevents a re-run
-  //    from double-crediting; worst case a manual reconcile, never a mint).
-  await creditWalletHex(w, carrier.hexPoints, {
+  // 3) Credit the wallet with the earned portion, then decrement + stamp the
+  //    carrier. Credit before stamp so a crash between them leaves the carrier
+  //    balance intact (the NX lock prevents a re-run from double-crediting;
+  //    worst case a manual reconcile, never a mint).
+  await creditWalletHex(w, foldable, {
     kind: "manual",
-    note: `Carrier hex migrated to wallet (+${carrier.hexPoints}⬡)`,
+    note: `Carrier hex migrated to wallet (+${foldable}⬡)`,
   });
-  await putCarrier({ ...carrier, hexPoints: 0, migratedTo: w });
+  await putCarrier({ ...carrier, hexPoints: carrier.hexPoints - foldable, migratedTo: w });
 }
