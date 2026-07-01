@@ -1,13 +1,14 @@
 import { TrackedLink } from "@/components/TrackedLink";
 
 /**
- * PRODUCT DOORS — the homepage's three front-door actions (2026-06-29).
+ * PRODUCT DOORS — the "also playable" games band (2026-06-29; DEMOTED 2026-07-01).
  *
- * The homepage led almost entirely with AI citizens (MEET A CITIZEN / OWN A
- * FREELON); Mars and the TCG existed but were buried below the fold and in the
- * footer, so a stranger couldn't tell FREELON CITY is a playable launcher. This
- * band makes the three real products co-equal doors directly under the hero —
- * "what can I do here?" answered in three seconds:
+ * History: this band was briefly promoted to three co-equal front doors directly
+ * under the hero (2026-06-30 three-pillar pass). The 2026-07-01 teardown scored
+ * that down — "three products fighting at the front door" — so the homepage now
+ * leads with the ONE thesis (a citizen that remembers you) + proof + how-it-works,
+ * and this band sits BELOW that as funnel/proof-the-city-is-alive, not competing
+ * products. All three routes stay live; only the emphasis/order changed.
  *   ENTER MARS (/mars-command) · PLAY TCG (/crypt-tcg) · AI CITIZENS (/demo).
  *
  * Server component; CTAs use TrackedLink so each door's click-through is
@@ -61,13 +62,13 @@ export function ProductDoors() {
       aria-label="Play the city — experiences inside FREELON CITY"
     >
       <header className="product-doors__head">
-        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ PLAY THE CITY</span>
+        <span className="kicker" style={{ color: "var(--gold)" }}>⬡ ALSO PLAYABLE</span>
         <h2 className="product-doors__h2">
-          Three ways into the <em>city.</em>
+          More ways to play the <em>city.</em>
         </h2>
         <p className="product-doors__lead">
-          Mars, the Crypt and the citizens aren&apos;t separate games — they&apos;re the
-          experiences that make FREELON CITY a place. All free, in the browser.
+          Owning a citizen is the main thing — but the city is alive around it. Drive
+          Mars, battle the Crypt, or meet more citizens. All free, in the browser.
         </p>
       </header>
       <div className="product-doors">

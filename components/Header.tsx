@@ -7,12 +7,12 @@ import { HeaderHolderLinks } from "@/components/HeaderHolderLinks";
 import { OPENSEA_BASE } from "@/lib/constants";
 
 /**
- * Site header. Primary nav is the launcher spine — the three co-equal
- * product doors (Enter Mars / Play TCG / AI Citizens) + Own — followed by
- * holder tools, the hex pill, and the wallet. Everything else is demoted to
- * the fat Footer. All chrome is class-based — local styles live in the
- * <style> block at the bottom of this file, which itself reads from
- * Phase 1 tokens.
+ * Site header. Primary nav is the thesis funnel (2026-07-01 sequencing pass):
+ * MEET FREE → Citizens → Play → Start → Own. The individual games (Mars / TCG)
+ * are reached via the Play hub, not top-level slots. Followed by holder tools,
+ * the hex pill, and the wallet. Everything else is demoted to the fat Footer.
+ * All chrome is class-based — local styles live in the <style> block at the
+ * bottom of this file, which itself reads from Phase 1 tokens.
  */
 export function Header() {
   return (
@@ -34,16 +34,19 @@ export function Header() {
         </Link>
 
         <nav className="desktop-nav">
-          {/* 2026-06-29 LAUNCHER NAV (founder: full premium product rebuild —
-              "only the three product actions should fight for top-level
-              attention"). Top nav is now the three co-equal product doors +
-              Own; every secondary route (lore / civilizations / archive /
-              collections / help / status) is demoted to the fat Footer, which
-              is the desktop "menu". prefetch={false} keeps first-load bandwidth
-              on the page being viewed, not the nav targets. */}
-          <Link href="/mars-command" prefetch={false} className="nav-link nav-start">Enter Mars</Link>
-          <Link href="/crypt-tcg" prefetch={false} className="nav-link">Play TCG</Link>
-          <Link href="/demo" prefetch={false} className="nav-link">AI Citizens</Link>
+          {/* 2026-07-01 SEQUENCING PASS (teardown 6.8: "make the homepage sell ONE
+              thesis first — the citizen remembers you; games are funnel not thesis").
+              Top nav previously gave the individual games (Enter Mars / Play TCG / AI
+              Citizens) three co-equal top-level slots — three products fighting for
+              attention. Now it prioritises the thesis funnel: MEET FREE (primary) →
+              Citizens → Play → Start → Own. Mars & the TCG are NOT removed — they live
+              under the Play games hub (/play) and their own routes; only their nav
+              emphasis dropped (distribution problem ≠ route problem). prefetch={false}
+              keeps first-load bandwidth on the page being viewed. */}
+          <Link href="/demo" prefetch={false} className="nav-link nav-start">Meet Free</Link>
+          <Link href="/citizens" prefetch={false} className="nav-link">Citizens</Link>
+          <Link href="/play" prefetch={false} className="nav-link">Play</Link>
+          <Link href="/start" prefetch={false} className="nav-link">Start</Link>
           <a href={OPENSEA_BASE} target="_blank" rel="noreferrer" className="nav-link">Own ↗</a>
           {/* Returning-holder tools — only render once a holding wallet is
               connected, so the newcomer front door stays condensed. */}

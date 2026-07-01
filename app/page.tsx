@@ -141,22 +141,21 @@ export default async function Home() {
           <h1 className="hero-landing__h1 hero-landing__h1--citizen">
             FREELON CITY<br />is <strong>alive.</strong>
           </h1>
-          {/* 2026-06-30 THREE-PILLAR PASS (founder: don't bury Mars/TCG; the city
-              has three flagship ways in — AI / Mars / TCG — not one AI product with
-              games hidden below). The subline used to LEAD with "of six collections"
-              (the world taxonomy the placement council demoted to mid-page); it now
-              names the three ways in. "remember you" stays as the proof hook (it gets
-              its full beat in CitizensBand below). Legal-safe: "travels with the NFT",
-              no value/return or on-chain-durability claims (COPY_LEGAL_CHECKLIST). */}
+          {/* 2026-07-01 SEQUENCING PASS (teardown 6.8: "three products fighting at
+              the front door"). The subline previously LED with "three ways in: meet /
+              drive Mars / battle the Crypt" — that restated the three-products-compete
+              problem in the hero itself. It now sells ONE thesis: the citizen remembers
+              you. Mars/TCG are demoted to an "also playable" band lower down (funnel,
+              not thesis). Legal-safe: "travels with the NFT", no value/return or
+              on-chain-durability claims (COPY_LEGAL_CHECKLIST). */}
           <p className="hero-landing__tag">
-            A living AI city with three ways in: <strong>meet a citizen</strong> that
-            remembers you, <strong>drive Mars</strong>, and <strong>battle the Crypt</strong>.
-            <strong> FREELON</strong> is the flagship collection — own one and its whole
-            life travels with the NFT.
+            Every face is a living <strong>AI citizen that remembers you</strong> — meet
+            one free, tell it something, and it recalls you next time. Own a{" "}
+            <strong>FREELON</strong> and its whole memory and work history travel with the NFT.
           </p>
-          {/* Hero CTAs surface all three pillars at the front door (Meet primary;
-              Enter Mars + Own secondary). The full three-pillar cards sit directly
-              below in ProductDoors. */}
+          {/* Hero CTAs sell the one thesis: MEET a citizen free (primary) → OWN one
+              (secondary). Mars/TCG are no longer co-equal front-door CTAs — they live
+              in the demoted "also playable" band below, reachable but not competing. */}
           <div className="hero-cta-row">
             <TrackedLink
               className="btn btn-primary btn-lg"
@@ -165,14 +164,6 @@ export default async function Home() {
               from="home_hero"
             >
               <span className="ttl">MEET A CITIZEN · FREE <span className="ar">→</span></span>
-            </TrackedLink>
-            <TrackedLink
-              className="btn btn-secondary btn-lg"
-              href="/mars-command"
-              event="mars_enter_click"
-              from="home_hero"
-            >
-              <span className="ttl">ENTER MARS →</span>
             </TrackedLink>
             <TrackedOpenSeaLink
               className="btn btn-secondary btn-lg"
@@ -185,27 +176,51 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── THREE PILLARS — "Three ways into the city" (2026-06-30 placement
-          council, three-pillar pass). Moved DIRECTLY under the hero: the three
-          flagship public experiences — AI Citizens / Mars Command / Crypt TCG —
-          are the answer to "what can I actually do here?", and a premium ecosystem
-          shows its tentpoles early (Apple use-cases, Rockstar reveal). They are
-          NOT secondary games hidden under collections. ProductDoors is the
-          three-pillar band; arcade/minigames stay deeper on /play. */}
-      <ProductDoors />
+      {/* 2026-07-01 SEQUENCING PASS (teardown 6.8: "delete and sequence, don't add;
+          make the homepage sell ONE thesis first — the citizen remembers you; games
+          are proof/funnel not the thesis"). New spine leads with the thesis + proof +
+          how-it-works, THEN demotes Mars/TCG/Citizens into an "also playable" band.
+          Nothing is deleted or unrouted — a pure re-sequence (distribution problem ≠
+          route problem, the lesson we already paid for). Order:
+          Hero → AI memory proof → How it works → Owner proof → Also playable (games)
+          → Six collections → City Board → Mosaic → close. */}
 
       {/* ── AI MEMORY PROOF — the strongest AI claim, proven before the ownership
           ask. FREELON is the one citizen class you own, awaken and train, and "it
-          remembers you" is the conversion proof. Reuses the CitizensBand quality
-          bar; CTA hands off to the live interactive proof at /demo. */}
+          remembers you" is the conversion proof. CTA hands off to the live
+          interactive proof at /demo. Moved UP to sit directly under the hero. */}
       <CitizensBand />
 
-      {/* ── OWNER PROOF — real paid unlocks as social proof (the see→own bridge),
-          relocated out of the hero so it supports the pillars + proof instead of
-          cluttering the first impression. Self-hides until at least one exists. */}
+      {/* ── HOW IT WORKS — the plain Own → Awaken → Train → travels sequence, the
+          teardown's requested beat ("Own → Awaken → Train → work history travels with
+          the token"). Reuses the .agent-howto styles (owner explainer), compacted to
+          the four public steps a cold visitor needs before the ownership ask. */}
+      <section className="home-howitworks reveal" aria-label="How it works">
+        <div className="agent-howto" style={{ maxWidth: 720, margin: "var(--s-6) auto", padding: "18px 20px" }}>
+          <span className="kicker">⬡ HOW IT WORKS</span>
+          <ol className="agent-howto-steps">
+            <li><strong>Meet one free</strong> → talk to a living citizen in the browser. No wallet, no signup — and it remembers you.</li>
+            <li><strong>Own it</strong> → buy a FREELON on OpenSea. Now the citizen is yours.</li>
+            <li><strong>Awaken it</strong> → a one-time payment turns its agent on and drops bonus ⬡ in your wallet.</li>
+            <li><strong>Train it</strong> → give it jobs (write, strategy, research, images). It levels up and builds a work history that travels with the NFT.</li>
+          </ol>
+        </div>
+      </section>
+
+      {/* ── OWNER PROOF — real paid unlocks as social proof (the see→own bridge).
+          Self-hides until at least one exists. */}
       <div className="home-proofstrip">
         <ActivationProof />
       </div>
+
+      {/* ── ALSO PLAYABLE (demoted) — the games/experiences band. Was the three
+          co-equal front doors DIRECTLY under the hero (2026-06-30 three-pillar pass);
+          the teardown scored that down as "three products fighting at the front door".
+          Now re-sequenced BELOW the thesis + proof + how-it-works so Mars/TCG read as
+          funnel/proof-the-city-is-alive, not competing products. All three routes stay
+          live — reframed, not removed (ProductDoors' own header now says "also playable").
+          Arcade/minigames stay deeper on /play. */}
+      <ProductDoors />
 
       {/* ── SIX COLLECTIONS, ONE CITY — the world/ownership-depth layer, now placed
           AFTER the pillars + proof (placement council: the system map is the REWARD
