@@ -5961,17 +5961,17 @@ function raceUpdate(dt,t){
   }
 }
 
-/* --- #10 STORM ESCAPE: outrun a closing dust wall to a cyan haven --- */
+/* --- #10 STORM ESCAPE: outrun a closing dust wall to a gold haven --- */
 const _STORM={ WALL_START:520, WALL_MAX:900, HAVEN_DIST:1000, HAVEN_WIN:60, REWARD:120, active:false, wall:520, hx:0, hz:0, hav:null };
 let _stormBtn=null, _stormHud=null;
 function _stormEnsureBtn(){
   return;            // TASK#4: consolidated into action wheel
   if(_stormBtn) return;
   const b=document.createElement('button'); b.id='stormBtn'; b.textContent='⛈ STORM RUN';
-  b.style.cssText='position:fixed;right:14px;bottom:212px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(106,208,255,.5);background:rgba(10,16,22,.82);color:#bfe6ff;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
+  b.style.cssText='position:fixed;right:14px;bottom:212px;z-index:30;padding:9px 13px;border-radius:11px;border:1px solid rgba(216,178,92,.5);background:rgba(10,16,22,.82);color:#f2ead8;font:600 12px/1 system-ui,sans-serif;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(6px)';
   b.onclick=()=>MARS.stormRun(); document.body.appendChild(b); _stormBtn=b;
 }
-function _stormHudEl(){ if(_stormHud) return _stormHud; const d=document.createElement('div'); d.id='stormHud'; d.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:30;padding:7px 14px;border-radius:10px;background:rgba(10,14,20,.82);border:1px solid rgba(106,208,255,.45);color:#bfe6ff;font:700 13px/1 system-ui;letter-spacing:.05em;display:none;backdrop-filter:blur(6px)'; document.body.appendChild(d); _stormHud=d; return d; }
+function _stormHudEl(){ if(_stormHud) return _stormHud; const d=document.createElement('div'); d.id='stormHud'; d.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:30;padding:7px 14px;border-radius:10px;background:rgba(10,14,20,.82);border:1px solid rgba(216,178,92,.45);color:#f2ead8;font:700 13px/1 system-ui;letter-spacing:.05em;display:none;backdrop-filter:blur(6px)'; document.body.appendChild(d); _stormHud=d; return d; }
 function _stormStart(){
   const hd=roverHeading, hx=Math.sin(hd), hz=Math.cos(hd);
   _STORM.hx=rover.position.x+hx*_STORM.HAVEN_DIST; _STORM.hz=rover.position.z+hz*_STORM.HAVEN_DIST;
@@ -5980,7 +5980,7 @@ function _stormStart(){
   _STORM.active=true; _STORM.wall=_STORM.WALL_START;
   WEATHER.active=1; WEATHER.intensity=Math.max(WEATHER.intensity,0.6);
   _stormHudEl().style.display='block';
-  if(typeof toast==='function') toast('⛈ STORM RUN · reach the cyan haven before the wall');
+  if(typeof toast==='function') toast('⛈ STORM RUN · reach the gold haven before the wall');
 }
 function _stormEnd(win){
   _STORM.active=false; WEATHER.active=0; if(_STORM.hav) _STORM.hav.visible=false;
@@ -6007,7 +6007,7 @@ function marsRunCard(kind, stats){
   const x=cv.getContext('2d'); const Sc=W/1200;
   x.fillStyle='#080604'; x.fillRect(0,0,W,H);
   const gr=x.createRadialGradient(W*.5,H*.34,40*Sc,W*.5,H*.34,W*.72);
-  gr.addColorStop(0, isStorm?'rgba(106,208,255,.13)':'rgba(216,178,92,.13)');
+  gr.addColorStop(0, isStorm?'rgba(168,52,31,.16)':'rgba(216,178,92,.13)');
   gr.addColorStop(1,'rgba(8,6,4,0)'); x.fillStyle=gr; x.fillRect(0,0,W,H);
   x.strokeStyle='rgba(216,178,92,.4)'; x.lineWidth=2*Sc; x.strokeRect(18*Sc,18*Sc,W-36*Sc,H-36*Sc);
   x.textAlign='center'; x.textBaseline='middle';
