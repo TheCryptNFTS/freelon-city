@@ -127,7 +127,12 @@ export default async function Home() {
               beneath: three pillars (AI/Mars/TCG) → AI memory proof → owner proof →
               six collections → demoted City Board → mosaic → buy. The flagship
               portrait stays as the LCP and the face of "the one you own." */}
-          <span className="hero-eyebrow">FREELON CITY · LIVING AI · ON-CHAIN SINCE 2023</span>
+          {/* 2026-07-01 cold-user pass: the eyebrow led with "ON-CHAIN SINCE 2023" —
+              crypto credentials in the FIRST visual breath, friction for a civilian who
+              doesn't yet know what the product is. Now leads with the product category;
+              the on-chain proof moves BELOW the CTA as secondary credibility (for
+              believers), not the opening line. */}
+          <span className="hero-eyebrow">LIVING AI CITIZENS</span>
           <div className="hero-portrait">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -156,6 +161,14 @@ export default async function Home() {
           {/* Hero CTAs sell the one thesis: MEET a citizen free (primary) → OWN one
               (secondary). Mars/TCG are no longer co-equal front-door CTAs — they live
               in the demoted "also playable" band below, reachable but not competing. */}
+          {/* 2026-07-01 conversion pass: the fear-removing reassurance ("no wallet, no
+              signup, 5 free messages") used to live only in the CitizensBand far down
+              the page — NOT at the decision point. Placed directly above the primary
+              MEET button (which is always first on both desktop and stacked-mobile) so
+              a cold visitor sees the risk is zero the instant before they tap. */}
+          <p className="hero-reassure" style={{ fontFamily: "var(--mono2)", fontSize: 12.5, color: "var(--ink-2)", letterSpacing: "0.03em", margin: "0 0 var(--s-3)" }}>
+            No wallet. No signup. 5 free messages.
+          </p>
           <div className="hero-cta-row">
             <TrackedLink
               className="btn btn-primary btn-lg"
@@ -173,6 +186,12 @@ export default async function Home() {
               <span className="ttl">OWN A FREELON →</span>
             </TrackedOpenSeaLink>
           </div>
+          {/* On-chain credibility, demoted from the eyebrow to secondary proof BELOW
+              the decision point — kept for believers, out of the civilian's first
+              breath (2026-07-01 cold-user pass). */}
+          <p className="hero-credential" style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "var(--s-3) 0 0" }}>
+            Built from the original FREELON CITY collection · on-chain since 2023
+          </p>
         </div>
       </section>
 
