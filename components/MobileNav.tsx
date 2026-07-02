@@ -42,19 +42,34 @@ type NavGroup = { heading: string | null; links: NavLink[] };
 // launcher nav + homepage cards); City is the directory; Own is the buy +
 // account links; Support is help + policies + community. One source of truth
 // with the footer — edit both files together when the IA changes.
+// 2026-07-02 WAR-ROOM ALIGNMENT: the sheet still sold the retired 2026-06-29
+// games-first hierarchy (three gold PLAY doors on top) while the 07-01 desktop
+// header re-sequenced the whole site around ONE thesis (MEET FREE first, games
+// demoted to proof/funnel). The two navs contradicted each other on the exact
+// audience that matters most (mobile cold traffic). Sheet now mirrors the
+// thesis funnel: Meet free (gold) + the /start path lead; games follow.
+// Also fixes two audit findings: /start had NO inbound link anywhere on
+// mobile, and /live was a bottom-nav tab unreachable from this sheet.
 const GROUPS: NavGroup[] = [
   {
-    heading: "PLAY · FREE",
+    heading: "MEET · FREE",
     links: [
-      { href: "/mars-command", label: "Enter Mars", gold: true },
-      { href: "/crypt-tcg", label: "Play the TCG", gold: true },
       { href: "/demo", label: "Meet an AI citizen", gold: true },
+      { href: "/start", label: "New? The five-step path" },
+    ],
+  },
+  {
+    heading: "PLAY",
+    links: [
+      { href: "/mars-command", label: "Enter Mars" },
+      { href: "/crypt-tcg", label: "Play the TCG" },
       { href: "/play", label: "All games" },
     ],
   },
   {
     heading: "CITY",
     links: [
+      { href: "/live", label: "Happening now · Live" },
       { href: "/citizens", label: "Browse the 4,040" },
       { href: "/collections", label: "The six collections" },
       { href: "/civilizations", label: "Ten civilizations" },
@@ -151,14 +166,29 @@ export function MobileNav() {
             <ul>
               {g.links.map((l) => (
                 <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    prefetch={false}
-                    onClick={() => setOpen(false)}
-                    style={l.gold ? { color: "var(--gold)" } : undefined}
-                  >
-                    {l.label}
-                  </Link>
+                  {/* 2026-07-02: external links open in a new tab like their
+                      Footer/Header twins — the sheet used to same-tab users
+                      off the site via next/link. */}
+                  {l.href.startsWith("http") ? (
+                    <a
+                      href={l.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setOpen(false)}
+                      style={l.gold ? { color: "var(--gold)" } : undefined}
+                    >
+                      {l.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={l.href}
+                      prefetch={false}
+                      onClick={() => setOpen(false)}
+                      style={l.gold ? { color: "var(--gold)" } : undefined}
+                    >
+                      {l.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

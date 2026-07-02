@@ -562,7 +562,9 @@ export function VaultClient() {
                 const id4 = r.tokenId.toString().padStart(4, "0");
                 const glyph =
                   r.state === "confirmed" ? "✓"
-                  : r.state === "confirming" ? "⌛"
+                  // 2026-07-02: was ⌛ (color emoji on many platforms) — the
+                  // ellipsis matches the site's typographic glyph set.
+                  : r.state === "confirming" ? "…"
                   : r.state === "failed" ? "✗"
                   : r.state === "rejected" ? "⊘"
                   : "⏸";

@@ -27,6 +27,9 @@ export function Footer() {
         <div className="site-footer__col">
           <h2 className="site-footer__heading">City</h2>
           <ul>
+            {/* 2026-07-02 war-room: /live was a bottom-nav tab with zero other
+                inbound links sitewide — now reachable from the directory. */}
+            <li><Link href="/live">Happening Now · Live</Link></li>
             <li><Link href="/citizens">The 4,040</Link></li>
             <li><Link href="/collections">The Six Collections</Link></li>
             <li><Link href="/civilizations">Ten Civilizations</Link></li>
@@ -50,6 +53,10 @@ export function Footer() {
           <h2 className="site-footer__heading">Support</h2>
           <ul>
             <li><Link href="/help">Help · Start here</Link></li>
+            {/* 2026-07-02 war-room: the finished public Agent API docs had ZERO
+                inbound links anywhere (the comment above claimed demoted routes
+                stay reachable from feature surfaces — false for this one). */}
+            <li><Link href="/developers">Developers · Agent API</Link></li>
             <li><Link href="/legal/terms">Terms</Link></li>
             <li><Link href="/legal/privacy">Privacy</Link></li>
             <li><Link href="/legal">All policies</Link></li>

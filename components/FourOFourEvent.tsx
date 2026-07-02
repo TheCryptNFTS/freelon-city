@@ -29,6 +29,10 @@ const SLOTS: Slot[] = [
     kind: "timed",
     id: "bracket",
     label: "The Fifth Bracket opens",
+    // 2026-07-02 war-room: the ticker teased a cryptic countdown with NO
+    // destination — a cold reader had no way to learn what the bracket even
+    // is. The lore page explains it.
+    href: "/the-fifth-bracket",
     at: (now) => nextDailyUTC(now, 4, 4),
     live: (now) => {
       const open = (() => { const y = now.getUTCFullYear(); return Date.UTC(y, now.getUTCMonth(), now.getUTCDate(), 4, 4, 0, 0); })();
@@ -37,7 +41,9 @@ const SLOTS: Slot[] = [
     },
     liveLabel: "⬡⬡⬡ THE FIFTH BRACKET IS OPEN",
   },
-  { kind: "timed", id: "signal", label: "Daily signal resets", href: "/carrier", at: (now) => nextDailyUTC(now, 0, 0) },
+  // 2026-07-02 war-room: /carrier is a deleted route surviving only as a 308
+  // redirect — link the real destination directly.
+  { kind: "timed", id: "signal", label: "Daily signal resets", href: "/sync#carrier", at: (now) => nextDailyUTC(now, 0, 0) },
   { kind: "ever", id: "versus", label: "New · send your agent into a Versus debate", href: "/citizens" },
   { kind: "ever", id: "chronicle", label: "New · your agent writes its own Chronicle", href: "/citizens" },
 ];

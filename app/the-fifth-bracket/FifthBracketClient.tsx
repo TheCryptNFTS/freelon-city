@@ -93,7 +93,9 @@ export function FifthBracketClient() {
           lineHeight: 1.7,
         }}
       >
-        ⏰ SET A REMINDER FOR 04:04 UTC →<br />
+        {/* 2026-07-02: ⏰ emoji cut — the site's glyph language is typographic
+            (✓ ✕ ⬡), color emoji reads off-brand. */}
+        SET A REMINDER FOR 04:04 UTC →<br />
         <span style={{ textTransform: "none", letterSpacing: "0.04em", color: "var(--ink-dim)" }}>
           the window opens daily for eight minutes. no alarm here. set one yourself.
         </span>

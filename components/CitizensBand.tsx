@@ -38,10 +38,16 @@ export function CitizensBand() {
           <h2 className="feature-band__h2">
             A citizen that <em>remembers you</em> — and can prove it.
           </h2>
+          {/* 2026-07-02 war-room truth pass: this pitch still promised the FREE
+              citizen recalls you "later" — the same claim purged from the hero,
+              /start and /share/remember (the live demo is stateless; /demo says
+              so). The proof loop on /demo demonstrates recall in-session with
+              the why-trail; PERMANENT memory is the owned upgrade. */}
           <p className="feature-band__pitch">
-            Every FREELON is an AI citizen with a visible memory brain. Tell one
-            something, come back later, and it recalls — then shows the exact
-            trail of why. No wallet needed to meet one.
+            Every FREELON is an AI citizen with a visible memory brain. Give one
+            a fact in the live proof and watch it recall — with the exact trail
+            of why. Own one and that memory becomes permanent. No wallet needed
+            to try it.
           </p>
 
           <ul className="feature-band__pills">
@@ -81,7 +87,12 @@ export function CitizensBand() {
             <div className="citizen-profile__portrait">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={heroImageUrl(404)} alt="" loading="lazy" />
-              <span className="citizen-profile__id">CITIZEN #404 · ONLINE</span>
+              {/* 2026-07-02 war-room: panel relabeled OWNER VIEW and the
+                  fabricated anecdote ("Sector 04… answered correctly") cut —
+                  an invented interaction was sitting beside the words "can
+                  prove it". The panel now says what it is: a mock of the
+                  owner's memory view. */}
+              <span className="citizen-profile__id">CITIZEN #404 · OWNER VIEW</span>
             </div>
             <div className="citizen-profile__body">
               <div className="citizen-profile__row">
@@ -93,8 +104,8 @@ export function CitizensBand() {
                 <span className="citizen-profile__bar"><span style={{ width: "72%" }} /></span>
               </div>
               <p className="citizen-profile__memory">
-                Remembers: you said your <b>favorite signal was Sector 04</b>.
-                Asked again 3 days later → answered correctly.
+                What an owner sees: the facts you taught it, its work history,
+                and the exact trail of <b>why it recalled</b> each one.
               </p>
             </div>
           </div>

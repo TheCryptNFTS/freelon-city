@@ -50,13 +50,13 @@ export function CarrierHealthCta({
   } else if (!x.ready) {
     // Still probing — show a neutral CTA
     label = "...";
-    href = "/carrier";
+    href = "/sync#carrier";
   } else if (!x.verified) {
     label = "SIGN IN WITH X →";
-    href = xSignInHref(viewer.addr) || "/carrier";
+    href = xSignInHref(viewer.addr) || "/sync#carrier";
   } else {
     label = showCount ? "CLAIM TODAY'S 10 ⬡ →" : "CLAIM TODAY →";
-    href = "/carrier";
+    href = "/sync#carrier";
   }
 
   const style: React.CSSProperties = {

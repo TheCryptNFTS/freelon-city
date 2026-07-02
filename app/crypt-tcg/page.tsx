@@ -22,6 +22,9 @@ import { STATUS_EXPLAINERS } from "@/lib/collections-data";
 // Phase 2 metadata 2026-05-27 — route-specific OG card (combat-archives.jpg).
 // 2026-06-10: the game shipped — the door is live. OG promises play because
 // the page delivers a real solo-vs-AI match.
+// 2026-07-02 war-room: the raw 1536×1024 art unfurled anonymous — 3:2 (X crops
+// it) with no title, brand, or URL. Now the branded /api/og/crypt-tcg card:
+// same art as the hook, plus what it is and where it lives.
 const PAGE_DESC =
   "Crypt TCG — the FREELON CITY card game. Ten commanders, one for each civilization. Build a deck and battle the AI now — ranked play coming.";
 export const metadata: Metadata = {
@@ -30,14 +33,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Crypt TCG · The Card Game",
     description: PAGE_DESC,
-    images: [{ url: "/og/combat-archives.jpg", width: 1536, height: 1024 }],
+    images: [{ url: "/api/og/crypt-tcg", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Crypt TCG · The Card Game",
     description: PAGE_DESC,
-    images: ["/og/combat-archives.jpg"],
+    images: ["/api/og/crypt-tcg"],
   },
 };
 
