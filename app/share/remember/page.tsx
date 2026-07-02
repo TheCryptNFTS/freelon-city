@@ -80,9 +80,12 @@ export default async function ShareRememberPage({
         </blockquote>
       )}
       <p style={{ fontFamily: "var(--mono2)", fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, marginBottom: 22 }}>
-        Every citizen of FREELON CITY is an AI character that remembers you — free, no wallet.
+        Give a FREELON one fact and watch it prove it remembers — free, no wallet.
+        Owning one makes the memory permanent.
       </p>
-      <Link className="btn btn-primary btn-lg" href="/?ref=shr-#remember">
+      {/* 2026-07-02 trust pass: was href="/?ref=shr-#remember" — no #remember anchor
+          exists anywhere; the memory proof this page promises is mounted on /demo. */}
+      <Link className="btn btn-primary btn-lg" href="/demo?ref=shr-">
         <span className="ttl">SEE IF IT REMEMBERS YOU →</span>
       </Link>
     </div>

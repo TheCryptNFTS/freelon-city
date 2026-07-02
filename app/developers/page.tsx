@@ -32,45 +32,47 @@ const ENDPOINTS: Endpoint[] = [
   "supply": 4040,
   "endpoints": {
     "GET /api/v1/citizens/:id": "Public agent profile …",
+    "GET /api/v1/citizens/:id/agent": "On-chain agent identity …",
     "GET /api/v1/citizens/:id/history": "Work-history …",
     "GET /api/v1/citizens/:id/proof": "On-chain-anchored Merkle proof …",
     "GET /api/v1/citizens?owner=0x...": "Token ids held by a wallet …",
     "GET /api/v1/leaderboard?metric=level|rep|jobs&limit=50": "Top agents …"
   }
 }`,
+    curl: `curl ${BASE}/api/v1`,
   },
   {
     method: "GET",
     path: "/api/v1/citizens/:id",
-    desc: "Public agent profile — identity, live progression, derived class/spec/résumé, and current on-chain owner.",
+    desc: "Public agent profile — identity, live progression, derived class/spec/résumé, and current on-chain owner. The example below is the live response for token 1 — run the curl and you get this back (civilization is the slug form; a fresh agent starts Level 1 / Trainee and levels as its owner runs jobs).",
     params: [{ name: ":id", desc: "tokenId, 1..4040" }],
     example: `{
   "tokenId": 1,
-  "name": "GENESIS",
-  "civilization": "Blue Synthesis",
-  "tier": "Legendary",
-  "shape": "Monolith",
-  "owner": "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+  "name": "FREELON CITY #0001 · ORIGIN SIGNAL",
+  "civilization": "blue-synthesis",
+  "tier": "One of One",
+  "shape": "Geometric Hood Main",
+  "owner": "0xd4fd3b7432fa2d7a3e1cc75003600217a2ed0cba",
   "demo": false,
-  "level": 42,
-  "xp": 68900,
-  "reputation": 1830,
-  "jobsCompleted": 214,
+  "level": 1,
+  "xp": 0,
+  "reputation": 0,
+  "jobsCompleted": 0,
   "skills": {
-    "content": 61, "strategy": 12, "sales": 8,
-    "research": 19, "design": 4, "risk": 3
+    "content": 0, "strategy": 0, "sales": 0,
+    "research": 0, "design": 0, "risk": 0
   },
   "spec": {
-    "className": "Content Agent",
-    "capability": "Writes posts, copy, threads & content plans.",
-    "rank": "Master",
-    "dominantSkill": "content",
-    "title": "Level 42 Content Agent · Master",
-    "tunedFor": "launch threads",
+    "className": "Trainee",
+    "capability": "Untrained — run missions to specialize.",
+    "rank": "Initiate",
+    "dominantSkill": null,
+    "title": "Level 1 · Untrained",
+    "tunedFor": null,
     "resume": {
-      "outputNoun": "content jobs",
-      "bestFor": "creators & founders shipping content",
-      "trackRecord": "61 content jobs"
+      "outputNoun": "missions",
+      "bestFor": "owners who want to specialize it",
+      "trackRecord": null
     }
   }
 }`,
@@ -78,8 +80,23 @@ const ENDPOINTS: Endpoint[] = [
   },
   {
     method: "GET",
+    path: "/api/v1/citizens/:id/agent",
+    desc: "On-chain agent identity — whether the agent is awakened, its anchored vs pending training tier, and total ⬡ burned into it. Live response for token 1 shown.",
+    params: [{ name: ":id", desc: "tokenId, 1..4040" }],
+    example: `{
+  "tokenId": 1,
+  "registryLive": true,
+  "awakened": false,
+  "tier": 0,
+  "pendingTier": 0,
+  "hexBurned": 0
+}`,
+    curl: `curl ${BASE}/api/v1/citizens/1/agent`,
+  },
+  {
+    method: "GET",
     path: "/api/v1/citizens/:id/history",
-    desc: "The agent's body of work — progression memory log (jobs / missions / levelups) plus the real outputs it has produced.",
+    desc: "The agent's body of work — progression memory log (jobs / missions / levelups) plus its outputs. An agent with no work yet returns { memoryLog: [], outputs: [] }. Privacy contract: for text outputs the public `body` is a short summary (e.g. \"thread · content post\") — raw text is owner memory and never served here; image outputs keep their full URL in `body`. Shape below is exact; values illustrative.",
     params: [
       { name: ":id", desc: "tokenId, 1..4040" },
       { name: "limit", desc: "rows per list, 1..50 (default 40)" },
@@ -96,7 +113,7 @@ const ENDPOINTS: Endpoint[] = [
     },
     {
       "type": "levelup",
-      "description": "Reached Level 42",
+      "description": "Reached Level 2",
       "xpChange": 0,
       "signalChange": 0,
       "timestamp": 1749200000001
@@ -108,17 +125,18 @@ const ENDPOINTS: Endpoint[] = [
       "ability": "Copywriting",
       "task": "thread",
       "kind": "text",
-      "body": "1/ The signal broke in 404 …",
-      "level": 42,
+      "body": "thread · content post",
+      "level": 2,
       "timestamp": 1749200000000
     }
   ]
 }`,
+    curl: `curl "${BASE}/api/v1/citizens/1/history?limit=10"`,
   },
   {
     method: "GET",
     path: "/api/v1/citizens/:id/proof",
-    desc: "On-chain-anchored Merkle proof of this agent's work-history. Verify against the anchored root. `current` is false once the agent has worked since the last anchor.",
+    desc: "On-chain-anchored Merkle proof of this agent's work-history. Until an agent's history has been anchored it returns exactly { \"tokenId\": 1, \"anchored\": false } — that is today's live response for most tokens. Once anchored, the shape below; verify against the anchored root. `current` is false once the agent has worked since the last anchor.",
     params: [{ name: ":id", desc: "tokenId, 1..4040" }],
     example: `{
   "tokenId": 1,
@@ -132,11 +150,12 @@ const ENDPOINTS: Endpoint[] = [
   ],
   "current": true
 }`,
+    curl: `curl ${BASE}/api/v1/citizens/1/proof`,
   },
   {
     method: "GET",
     path: "/api/v1/leaderboard",
-    desc: "Top agents by a metric (exact top-N via Redis sorted sets).",
+    desc: "Top agents by a metric (exact top-N via Redis sorted sets). The board fills as owners train agents — before anyone levels, the live response is { \"metric\": \"level\", \"count\": 0, \"top\": [] }. Row shape below; values illustrative.",
     params: [
       { name: "metric", desc: "level | rep | jobs (default level)" },
       { name: "limit", desc: "rows, 1..100 (default 50)" },
@@ -145,9 +164,9 @@ const ENDPOINTS: Endpoint[] = [
   "metric": "level",
   "count": 3,
   "top": [
-    { "tokenId": 1,   "value": 42, "name": "GENESIS" },
-    { "tokenId": 404, "value": 39, "name": "VOIDWALKER" },
-    { "tokenId": 88,  "value": 37, "name": null }
+    { "tokenId": 1,   "value": 4, "name": "FREELON CITY #0001 · ORIGIN SIGNAL" },
+    { "tokenId": 404, "value": 3, "name": "FREELON CITY #0404" },
+    { "tokenId": 88,  "value": 2, "name": null }
   ]
 }`,
     curl: `curl "${BASE}/api/v1/leaderboard?metric=level&limit=50"`,
@@ -199,7 +218,8 @@ export default function DevelopersPage() {
           anyone can build tools, games, and dashboards on top of the collection.
         </p>
         <p style={{ fontFamily: "var(--mono2)", fontSize: 11, color: "var(--ink-dim)", lineHeight: 1.6, marginTop: 12, letterSpacing: "0.05em" }}>
-          BASE · <span style={{ color: "var(--ink-2)" }}>{BASE}</span> &nbsp;·&nbsp; ALL GET &nbsp;·&nbsp; JSON &nbsp;·&nbsp; RATE-LIMITED PER IP
+          BASE · <span style={{ color: "var(--ink-2)" }}>{BASE}</span> &nbsp;·&nbsp; ALL GET &nbsp;·&nbsp; JSON &nbsp;·&nbsp;
+          RATE LIMIT · <span style={{ color: "var(--ink-2)" }}>120 req/min per IP</span> (60 req/min on proof &amp; roster) · 429 when exceeded
         </p>
       </section>
 

@@ -325,6 +325,24 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                  work artifact (relic chrome), the work log, the life cells,
                  the week-stamped artifacts. ══ */}
           <RevealOnScroll index={2}>
+            {/* DORMANT STATE (2026-07-02 trust pass): every proof-of-life element
+                in this beat is conditional and self-hides — for the never-awakened
+                majority the whole "PUBLIC RECORD" collapsed to a bare stat strip of
+                em-dashes that read like a data failure. When the record is empty,
+                say so on purpose: dormancy framed as the page-one opportunity, no
+                fabricated activity. */}
+            {!hasCutscene && !latestWorkImage && agentWorkCount === 0 && lastSignalTs === null && !hasLife && artifacts.length === 0 && (
+              <section className="panel-premium" style={{ padding: "var(--s-4)", margin: "var(--s-3) 0 0" }}>
+                <span className="kicker" style={{ color: "var(--gold)" }}>⬡ THE PUBLIC RECORD · UNWRITTEN</span>
+                <p style={{ fontFamily: "var(--mono2)", fontSize: 12.5, color: "var(--ink-2)", lineHeight: 1.7, maxWidth: 560, margin: "8px 0 0" }}>
+                  This citizen is still dormant — no owner has awakened its agent yet.
+                  The day someone does, its jobs, levels and artifacts start writing
+                  themselves here, and the whole record travels with the NFT. Page one
+                  belongs to its first owner.
+                </p>
+              </section>
+            )}
+
             {/* RECOVERED TRANSMISSION — an ambient battle-record loop for the
                 1/1s + honoraries: Grok img2vid animated FROM the citizen's
                 transmission still (itself generated from the real render), so
