@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 const STEPS = [
   {
     label: "Meet a citizen — free",
-    body: "Talk to a living AI citizen in the browser. No wallet, no signup. Tell it something, come back, and it remembers you.",
+    body: "Talk to a living AI citizen in the browser. No wallet, no signup — a free taste of what an owned citizen becomes.",
   },
   {
     label: "Own one for permanence",
@@ -48,7 +48,7 @@ const STEPS = [
   },
   {
     label: "Awaken it",
-    body: "A one-time payment turns its agent on. It wakes up, ready to work — and drops bonus ⬡ in your wallet.",
+    body: "A one-time payment turns its agent on. It wakes up, remembers you from then on, and drops bonus ⬡ in your wallet.",
   },
   {
     label: "Train it with jobs",
@@ -79,8 +79,8 @@ export default function StartPage() {
             maxWidth: 560,
           }}
         >
-          Every face is a living AI citizen that remembers you. Meet one free, own it if you
-          want it for keeps, then wake it up and put it to work. Here&apos;s the whole path.
+          Every face is a living AI citizen — an owned one remembers you. Meet one free, own
+          it if you want it for keeps, then wake it up and put it to work. Here&apos;s the whole path.
         </p>
       </section>
 

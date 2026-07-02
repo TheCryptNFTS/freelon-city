@@ -2405,7 +2405,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   display: flex; gap: var(--s-2); flex-wrap: wrap;
   margin: var(--s-5) 0 var(--s-7);
   padding: 10px 0; border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--ink) 88%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);   /* 2026-07-02 war-room: was var(--ink) — the BONE text token — which painted a cream plate behind bone links (~1.1:1 contrast, read as broken) */
   backdrop-filter: blur(8px);
 }
 .civ-subnav a {

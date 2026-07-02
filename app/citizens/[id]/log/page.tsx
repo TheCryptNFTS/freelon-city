@@ -147,8 +147,12 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <div style={{ fontSize: 13, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--ink-2)" }}>
             ⬡ No public work yet
           </div>
+          {/* 2026-07-02 war-room: 3,861/4,040 identity headlines are the literal
+              placeholder "IDENTITY" — interpolating it produced broken prose
+              ("…hasn't logged public work yet. IDENTITY. Once it runs jobs…"). */}
           <p style={{ marginTop: 12, fontSize: 12.5, lineHeight: 1.7, color: "var(--ink-dim)" }}>
-            This agent hasn&rsquo;t logged public work yet. {identity?.headline ? `${identity.headline}.` : ""} Once it
+            This agent hasn&rsquo;t logged public work yet.{" "}
+            {identity?.headline && identity.headline !== "IDENTITY" ? `${identity.headline}. ` : ""}Once it
             runs jobs, every output shows up here.
           </p>
           <Link

@@ -277,10 +277,16 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* IDENTITY — the lore that makes this a character, kept short. */}
+            {/* IDENTITY — the lore that makes this a character, kept short.
+                2026-07-02 war-room: 3,861/4,040 entries in data/identities.json carry the
+                literal placeholder headline "IDENTITY" — printing it made 96% of profiles
+                read like a data failure. Placeholder headlines render nothing; the bio
+                (real prose on every token) still carries the block. */}
             {identity && (
               <div className="identity-block">
-                <div className="headline" style={{ color }}>{identity.headline}</div>
+                {identity.headline && identity.headline !== "IDENTITY" && (
+                  <div className="headline" style={{ color }}>{identity.headline}</div>
+                )}
                 <p className="bio">{identity.bio}</p>
               </div>
             )}

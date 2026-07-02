@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getCitizen, civilizationColor } from "@/lib/citizens";
-import { imageUrl, CIVILIZATIONS, LOCAL_HEROES } from "@/lib/constants";
+import { imageUrl, CIVILIZATIONS } from "@/lib/constants";
 
 export const runtime = "edge";
 
@@ -9,10 +9,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const tid = parseInt(id, 10);
   const c = getCitizen(tid);
   if (!c) return new Response("Not found", { status: 404 });
-  const id4src = tid.toString().padStart(4, "0");
-  const imgSrc = LOCAL_HEROES.has(tid)
-    ? new URL(`/heroes/${id4src}.webp`, req.url).toString()
-    : imageUrl(tid);
+  // 2026-07-02 war-room: heroes previously pointed at local /heroes/NNNN.webp —
+  // satori cannot decode webp, so all 39 hero cards (1/1s + honoraries) rendered a
+  // solid black void where the portrait belongs (runtime-confirmed on prod #0001).
+  // The CDN grid image serves every token id in a satori-safe format.
+  const imgSrc = imageUrl(tid);
 
   const color = civilizationColor(c.civilization);
   const civ = (CIVILIZATIONS as Record<string, { name: string; doctrine: string }>)[c.civilization];
@@ -88,7 +89,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
                 display: "flex",
               }}
             >
-              ⬡ FREELON CITY · #{id4}
+              {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+              <svg width="16" height="18" viewBox="0 0 26 30" style={{ marginRight: 12 }}>
+                <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#c8aa64" strokeWidth="3" />
+              </svg>
+              FREELON CITY · #{id4}
             </div>
 
             <div

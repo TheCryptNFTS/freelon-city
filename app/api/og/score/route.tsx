@@ -31,9 +31,9 @@ type Theme = { title: string; kicker: string; accent: string };
 const THEMES: Record<string, Theme> = {
   sweep: { title: "SWEEP RUN", kicker: "CLEAR THE CORRUPTED", accent: "#E9C984" },
   proof: { title: "PROOF OF SIGNAL", kicker: "RECEIVE THE TRANSMISSION", accent: "#C8A75D" },
-  cipher: { title: "THE CIPHER", kicker: "DECODE THE SHIFT", accent: "#9B6DFF" },
+  cipher: { title: "THE CIPHER", kicker: "DECODE THE SHIFT", accent: "#E9C984" },   // was #9B6DFF — off-brand violet on the outward share card (brand canon: black/gold/bone/amber)
   reckoning: { title: "THE RECKONING", kicker: "CIV WAR · BURN FOR YOUR SIDE", accent: "#E0556B" },
-  "hex-match": { title: "HEX MATCH", kicker: "LINE UP THE SIGNAL", accent: "#3DDC97" },
+  "hex-match": { title: "HEX MATCH", kicker: "LINE UP THE SIGNAL", accent: "#C8A75D" },   // was #3DDC97 — off-brand mint green
   mars: { title: "MARS COMMAND · DAILY TRIAL", kicker: "DRIVE · CLAIM · BEAT THE TIME", accent: "#E9C984" },
 };
 
@@ -59,7 +59,7 @@ export function GET(req: Request) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#0A0E27",
+          background: "#0B0B0D",
           color: INK,
           fontFamily: "system-ui, sans-serif",
           padding: "64px 72px",
@@ -99,7 +99,11 @@ export function GET(req: Request) {
               textTransform: "uppercase",
             }}
           >
-            <span style={{ fontSize: 30 }}>⬡</span> {theme.kicker}
+            {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+            <svg width="24" height="28" viewBox="0 0 26 30">
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={theme.accent} strokeWidth="2.5" />
+            </svg>
+            {theme.kicker}
           </div>
           {tag ? (
             <div
@@ -184,7 +188,12 @@ export function GET(req: Request) {
             letterSpacing: "0.06em",
           }}
         >
-          <span style={{ color: GOLD, display: "flex" }}>⬡ @4040hex</span>
+          <span style={{ color: GOLD, display: "flex", alignItems: "center", gap: 10 }}>
+            <svg width="18" height="21" viewBox="0 0 26 30">
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={GOLD} strokeWidth="3" />
+            </svg>
+            @4040hex
+          </span>
           <span style={{ color: INK_DIM, display: "flex" }}>
             404 · FREELON CITY · freeloncity.com/play
           </span>

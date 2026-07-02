@@ -5,6 +5,7 @@ import { listRecentTransforms, type TransformEntry } from "@/lib/transforms-feed
 import { topCitizens } from "@/lib/progression-store";
 import { getCitizen } from "@/lib/citizens";
 import { CityPulse } from "@/components/CityPulse";
+import { CitizenMosaic } from "@/components/CitizenMosaic";
 import { TransmissionCard } from "@/components/TransmissionCard";
 import { CitizenAvatar } from "@/components/CitizenAvatar";
 import { PageBeacon } from "@/components/PageBeacon";
@@ -33,6 +34,14 @@ export default async function LivePage() {
     .map((t) => ({ ...t, citizen: getCitizen(t.tokenId) }))
     .filter((t): t is typeof t & { citizen: NonNullable<typeof t.citizen> } => !!t.citizen)
     .slice(0, 8);
+
+  // 2026-07-02 war-room: every live section below is conditional and every fetch
+  // .catch()es to [] — so when the stores are quiet or unreachable, the page whose
+  // ONE job is to read as ALIVE silently collapsed to hero → footer with nothing in
+  // between (runtime-confirmed on prod: zero of the three sections rendered). When
+  // all three are empty, show the STANDING record instead — real renders and the
+  // permanent city surfaces. Static, checkable content only; no fabricated activity.
+  const quiet = leaderRows.length === 0 && madeRows.length === 0 && transmissions.length === 0;
 
   return (
     <div className="home-page" style={{ maxWidth: "var(--maxw)", margin: "0 auto", padding: "0 var(--pad)" }}>
@@ -117,6 +126,32 @@ export default async function LivePage() {
             </Link>
           </div>
         </section>
+      )}
+
+      {/* QUIET FALLBACK — the standing record, shown only when all three live
+          stores return empty so the page never renders as a dead shell. */}
+      {quiet && (
+        <>
+          <section style={{ marginTop: "var(--s-8)" }}>
+            <span className="kicker">⬡ THE STANDING RECORD</span>
+            <p style={{ color: "var(--ink-2)", maxWidth: 640, margin: "var(--s-2) 0 0" }}>
+              The wire is between broadcasts. The city itself doesn&apos;t blink —
+              4,040 citizens, ten civilizations, and a record that only grows.
+            </p>
+          </section>
+          <CitizenMosaic />
+          <section style={{ marginTop: "var(--s-5)", display: "flex", gap: 22, flexWrap: "wrap" }}>
+            <Link className="kicker" href="/transmissions" style={{ color: "var(--ink-dim)" }}>
+              READ THE TRANSMISSIONS →
+            </Link>
+            <Link className="kicker" href="/archive" style={{ color: "var(--ink-dim)" }}>
+              OPEN THE ARCHIVE →
+            </Link>
+            <Link className="kicker" href="/civilizations" style={{ color: "var(--ink-dim)" }}>
+              MEET THE TEN CIVILIZATIONS →
+            </Link>
+          </section>
+        </>
       )}
 
       {/* CTA — turn the aliveness into a try. */}

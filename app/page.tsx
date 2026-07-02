@@ -153,10 +153,14 @@ export default async function Home() {
               you. Mars/TCG are demoted to an "also playable" band lower down (funnel,
               not thesis). Legal-safe: "travels with the NFT", no value/return or
               on-chain-durability claims (COPY_LEGAL_CHECKLIST). */}
+          {/* 2026-07-02 war-room truth pass: the old line promised the FREE citizen
+              "recalls you next time" — /demo itself says the live demo is stateless
+              ("forgets you the moment you leave"). Memory is the OWNED upgrade; the
+              hero now says exactly that, keeping the hook without the broken promise. */}
           <p className="hero-landing__tag">
-            Every face is a living <strong>AI citizen that remembers you</strong> — meet
-            one free, tell it something, and it recalls you next time. Own a{" "}
-            <strong>FREELON</strong> and its whole memory and work history travel with the NFT.
+            Every face is a living <strong>AI citizen</strong> — meet one free and ask it
+            anything. Own a <strong>FREELON</strong> and it <strong>remembers you</strong>:
+            its whole memory and work history travel with the NFT.
           </p>
           {/* Hero CTAs sell the one thesis: MEET a citizen free (primary) → OWN one
               (secondary). Mars/TCG are no longer co-equal front-door CTAs — they live
@@ -218,9 +222,9 @@ export default async function Home() {
         <div className="agent-howto" style={{ maxWidth: 720, margin: "var(--s-6) auto", padding: "18px 20px" }}>
           <span className="kicker">⬡ HOW IT WORKS</span>
           <ol className="agent-howto-steps">
-            <li><strong>Meet one free</strong> → talk to a living citizen in the browser. No wallet, no signup — and it remembers you.</li>
+            <li><strong>Meet one free</strong> → talk to a living citizen in the browser. No wallet, no signup.</li>
             <li><strong>Own it</strong> → buy a FREELON on OpenSea. Now the citizen is yours.</li>
-            <li><strong>Awaken it</strong> → a one-time payment turns its agent on and drops bonus ⬡ in your wallet.</li>
+            <li><strong>Awaken it</strong> → a one-time payment turns its agent on — from then on it remembers you — and drops bonus ⬡ in your wallet.</li>
             <li><strong>Train it</strong> → give it jobs (write, strategy, research, images). It levels up and builds a work history that travels with the NFT.</li>
           </ol>
         </div>
