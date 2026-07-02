@@ -87,8 +87,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         {/* Right: the work */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "48px 52px", justifyContent: "space-between" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontFamily: "monospace", fontSize: 20, letterSpacing: 4, color }}>
-              ⬡ FREELON CITY · #{id4}
+            <span style={{ fontFamily: "monospace", fontSize: 20, letterSpacing: 4, color, display: "flex", alignItems: "center" }}>
+              {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+              <svg width="17" height="20" viewBox="0 0 26 30" style={{ marginRight: 12 }}>
+                <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={color} strokeWidth="3" />
+              </svg>
+              FREELON CITY · #{id4}
             </span>
             <span style={{ fontFamily: display, fontSize: 52, fontWeight: 700, marginTop: 16, lineHeight: 1.05 }}>{name}</span>
             <span style={{ fontFamily: "monospace", fontSize: 22, letterSpacing: 2, color, marginTop: 10 }}>

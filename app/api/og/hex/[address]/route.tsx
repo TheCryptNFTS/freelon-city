@@ -62,7 +62,11 @@ export async function GET(
             display: "flex",
           }}
         >
-          ⬡ WALLET HEX · FREELON CITY
+          {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+          <svg width="16" height="18" viewBox="0 0 26 30" style={{ marginRight: 12 }}>
+            <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#c8aa64" strokeWidth="3" />
+          </svg>
+          WALLET HEX · FREELON CITY
         </div>
 
         <div style={{ display: "flex", marginTop: 18 }}>
@@ -119,7 +123,11 @@ export async function GET(
               marginTop: 4,
             }}
           >
-            ⬡ HEX
+            {/* drawn hexagon unit mark (⬡ tofus in satori) */}
+            <svg width="26" height="30" viewBox="0 0 26 30" style={{ marginRight: 14 }}>
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#e6e1d2" strokeWidth="2.5" />
+            </svg>
+            HEX
           </span>
         </div>
 
@@ -152,7 +160,11 @@ export async function GET(
                 marginTop: 4,
               }}
             >
-              {data.lifetimeEarned.toLocaleString()} ⬡
+              {data.lifetimeEarned.toLocaleString()}
+              {/* drawn hexagon unit mark (⬡ tofus in satori) */}
+              <svg width="22" height="26" viewBox="0 0 26 30" style={{ marginLeft: 10 }}>
+                <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#e6e1d2" strokeWidth="2.5" />
+              </svg>
             </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>

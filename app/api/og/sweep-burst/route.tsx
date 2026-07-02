@@ -101,9 +101,15 @@ export async function GET(req: Request) {
               fontFamily: "monospace",
               textTransform: "uppercase",
               fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
             }}
           >
-            ⬡ SWEEP BURST · LIVE FROM THE CITY
+            {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+            <svg width="15" height="17" viewBox="0 0 26 30" style={{ marginRight: 10 }}>
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={GOLD} strokeWidth="3" />
+            </svg>
+            SWEEP BURST · LIVE FROM THE CITY
           </span>
           <div
             style={{
@@ -127,23 +133,26 @@ export async function GET(req: Request) {
           </div>
         </div>
 
-        {/* Middle: 3×2 image grid */}
+        {/* Middle: 3×2 image grid — as two flex rows. 2026-07-02 og sweep: this
+            was display:"grid", which satori rejects outright ("Invalid value for
+            CSS property display… Received: grid") — the route 500'd on EVERY
+            request, so this share card has never rendered in this form. */}
         <div
           style={{
             marginTop: 28,
             flex: 1,
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gridTemplateRows: "repeat(2, 1fr)",
+            display: "flex",
+            flexWrap: "wrap",
             gap: 12,
-            // Edge runtime ImageResponse doesn't support real CSS grid in all
-            // cases — but next/og supports it in nodejs runtime which we use.
           }}
         >
           {cells.map((id, i) => (
             <div
               key={i}
               style={{
+                // explicit cell size: flex-wrap needs it (grid used to size these)
+                width: 354,
+                height: 172,
                 background: PANEL,
                 border: `1px solid ${BORDER}`,
                 borderRadius: 10,
@@ -167,16 +176,10 @@ export async function GET(req: Request) {
                   }}
                 />
               ) : (
-                <span
-                  style={{
-                    fontSize: 18,
-                    letterSpacing: 4,
-                    color: INK_DIM,
-                    fontFamily: "monospace",
-                  }}
-                >
-                  ⬡
-                </span>
+                // drawn hexagon placeholder (⬡ tofus in satori)
+                <svg width="22" height="26" viewBox="0 0 26 30">
+                  <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={INK_DIM} strokeWidth="2" />
+                </svg>
               )}
               {id !== null && (
                 <span
@@ -211,8 +214,11 @@ export async function GET(req: Request) {
             fontFamily: "monospace",
           }}
         >
-          <span style={{ color: GOLD, fontSize: 18, letterSpacing: 4 }}>
-            ⬡ @4040hex
+          <span style={{ color: GOLD, fontSize: 18, letterSpacing: 4, display: "flex", alignItems: "center", gap: 10 }}>
+            <svg width="16" height="18" viewBox="0 0 26 30">
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={GOLD} strokeWidth="3" />
+            </svg>
+            @4040hex
           </span>
           <span style={{ color: INK_DIM, fontSize: 16, letterSpacing: 3 }}>
             THE CITY REMEMBERS WHAT MOVES THROUGH IT

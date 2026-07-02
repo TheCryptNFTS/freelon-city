@@ -68,7 +68,11 @@ export async function GET(req: Request) {
             display: "flex",
           }}
         >
-          ⬡ 404 — FREELON CITY · FLOOR HISTORY
+          {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+          <svg width="16" height="18" viewBox="0 0 26 30" style={{ marginRight: 12 }}>
+            <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#c8aa64" strokeWidth="3" />
+          </svg>
+          404 — FREELON CITY · FLOOR HISTORY
         </div>
         <div
           style={{

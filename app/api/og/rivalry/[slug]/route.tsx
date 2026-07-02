@@ -93,7 +93,13 @@ export async function GET(
             zIndex: 5,
           }}
         >
-          <span style={{ display: "flex" }}>⬡ 404 — FREELON CITY</span>
+          <span style={{ display: "flex", alignItems: "center" }}>
+            {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+            <svg width="15" height="17" viewBox="0 0 26 30" style={{ marginRight: 10 }}>
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#c8aa64" strokeWidth="3" />
+            </svg>
+            404 — FREELON CITY
+          </span>
           <span style={{ display: "flex" }}>CIVILIZATION WAR</span>
         </div>
 
@@ -194,16 +200,10 @@ export async function GET(
             >
               VS
             </span>
-            <span
-              style={{
-                fontSize: 64,
-                color: "#c8aa64",
-                marginTop: 12,
-                display: "flex",
-              }}
-            >
-              ⬡
-            </span>
+            {/* drawn hexagon centerpiece (⬡ tofus in satori) */}
+            <svg width="56" height="64" viewBox="0 0 26 30" style={{ marginTop: 12 }}>
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#c8aa64" strokeWidth="1.6" />
+            </svg>
           </div>
 
           {/* RIGHT — rival civ */}

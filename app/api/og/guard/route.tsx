@@ -28,7 +28,7 @@ export function GET(req: Request) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#0A0E27",
+          background: "#0B0B0D",
           color: ink,
           fontFamily: "system-ui, sans-serif",
           padding: "72px",
@@ -46,7 +46,7 @@ export function GET(req: Request) {
             borderRadius: "50%",
             background: cracked
               ? "radial-gradient(circle, rgba(233,201,132,0.30) 0%, rgba(233,201,132,0) 70%)"
-              : "radial-gradient(circle, rgba(0,217,184,0.20) 0%, rgba(0,217,184,0) 70%)",
+              : "radial-gradient(circle, rgba(200,167,93,0.18) 0%, rgba(200,167,93,0) 70%)",
             display: "flex",
           }}
         />
@@ -62,7 +62,10 @@ export function GET(req: Request) {
             textTransform: "uppercase",
           }}
         >
-          <span style={{ fontSize: 30 }}>⬡</span>{" "}
+          {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+          <svg width="26" height="30" viewBox="0 0 26 30">
+            <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={gold} strokeWidth="2.5" />
+          </svg>
           {cracked ? `THE VAULT IS CRACKED · ROUND ${round}` : `GUARD THE POT · ROUND ${round}`}
         </div>
 

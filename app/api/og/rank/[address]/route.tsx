@@ -84,7 +84,11 @@ export async function GET(
             display: "flex",
           }}
         >
-          ⬡ FREELON CITY · LEADERBOARD RANK
+          {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+          <svg width="16" height="18" viewBox="0 0 26 30" style={{ marginRight: 12 }}>
+            <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#C8A75D" strokeWidth="3" />
+          </svg>
+          FREELON CITY · LEADERBOARD RANK
         </div>
 
         <div
@@ -185,7 +189,13 @@ export async function GET(
                 marginTop: 4,
               }}
             >
-              {balance !== null ? `${balance.toLocaleString()} ⬡` : "—"}
+              {balance !== null ? balance.toLocaleString() : "—"}
+              {/* drawn hexagon unit mark (⬡ tofus in satori) */}
+              {balance !== null && (
+                <svg width="20" height="23" viewBox="0 0 26 30" style={{ marginLeft: 10 }}>
+                  <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#C8A75D" strokeWidth="2.5" />
+                </svg>
+              )}
             </span>
           </div>
         </div>

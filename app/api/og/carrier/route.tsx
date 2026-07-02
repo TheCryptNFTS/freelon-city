@@ -21,7 +21,7 @@ const CACHE = "public, s-maxage=600";
 const INK = "#F5F2E8";
 const INK_DIM = "rgba(245,242,232,0.55)";
 const GOLD = "#C8A75D";
-const BG = "#0A0E27";
+const BG = "#0B0B0D";   // 2026-07-02 og sweep: was #0A0E27 — the navy the de-cheap pass killed sitewide
 
 function clip(v: string | null, max: number): string {
   return (v || "").slice(0, max);
@@ -126,7 +126,11 @@ export async function GET(req: Request) {
               textTransform: "uppercase",
             }}
           >
-            <span style={{ fontSize: 30 }}>⬡</span> CARRIER OF THE WEEK{week ? ` · ${week}` : ""}
+            {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+            <svg width="24" height="28" viewBox="0 0 26 30">
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={GOLD} strokeWidth="2.5" />
+            </svg>
+            CARRIER OF THE WEEK{week ? ` · ${week}` : ""}
           </div>
 
           <div
@@ -179,7 +183,12 @@ export async function GET(req: Request) {
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 28, fontSize: 22 }}>
-            <span style={{ color: GOLD, display: "flex" }}>⬡ @4040hex</span>
+            <span style={{ color: GOLD, display: "flex", alignItems: "center", gap: 10 }}>
+              <svg width="18" height="21" viewBox="0 0 26 30">
+                <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke={GOLD} strokeWidth="3" />
+              </svg>
+              @4040hex
+            </span>
             <span style={{ color: INK_DIM, display: "flex" }}>freeloncity.com/carrier-of-the-week</span>
           </div>
         </div>

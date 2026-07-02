@@ -131,7 +131,11 @@ export async function GET(
               display: "flex",
             }}
           >
-            ⬡ PROPAGANDA
+            {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+            <svg width="14" height="16" viewBox="0 0 26 30" style={{ marginRight: 10 }}>
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#0a0c12" strokeWidth="3" />
+            </svg>
+            PROPAGANDA
           </div>
           <div
             style={{
@@ -207,7 +211,11 @@ export async function GET(
               display: "flex",
             }}
           >
-            ⬡ 404 — FREELON CITY
+            {/* drawn hexagon — a literal ⬡ glyph tofus in satori (no font carries it) */}
+            <svg width="16" height="18" viewBox="0 0 26 30" style={{ marginRight: 12 }}>
+              <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#c8aa64" strokeWidth="3" />
+            </svg>
+            404 — FREELON CITY
           </div>
 
           <div
@@ -287,7 +295,10 @@ export async function GET(
                 fontSize: 22,
               }}
             >
-              ⬡
+              {/* drawn hexagon seal (⬡ tofus in satori) */}
+              <svg width="20" height="23" viewBox="0 0 26 30">
+                <path d="M13 1 L25 8 L25 22 L13 29 L1 22 L1 8 Z" fill="none" stroke="#c8aa64" strokeWidth="2.5" />
+              </svg>
             </span>
           </div>
         </div>
